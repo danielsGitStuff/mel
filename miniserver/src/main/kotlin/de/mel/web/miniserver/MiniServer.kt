@@ -6,17 +6,11 @@ import de.mel.MelRunnable
 import de.mel.MelThread
 import de.mel.auth.MelStrings
 import de.mel.auth.data.access.CertificateManager
-import de.mel.auth.data.access.DatabaseManager
 import de.mel.auth.tools.DBLokImpl
 import de.mel.auth.tools.N
-import de.mel.execute.SqliteExecutor
 import de.mel.konsole.Konsole
 import de.mel.sql.Hash
 import de.mel.sql.RWLock
-import de.mel.sql.SQLQueries
-import de.mel.sql.SqlQueriesException
-import de.mel.sql.conn.SQLConnector
-import de.mel.sql.transform.SqlResultTransformer
 import de.mel.update.VersionAnswer
 import de.mel.web.miniserver.data.FileEntry
 import de.mel.web.miniserver.data.FileRepository
@@ -25,6 +19,7 @@ import de.mel.web.miniserver.http.HttpsThingy
 import de.mel.web.miniserver.input.InputPipeReader
 import de.mel.web.miniserver.socket.BinarySocketOpener
 import de.mel.web.miniserver.socket.EncSocketOpener
+import de.mel.web.serverparts.SetupHelper
 import java.io.File
 import java.io.FileInputStream
 import java.lang.management.ManagementFactory
@@ -101,26 +96,9 @@ constructor(val config: ServerConfig) {
         }
         secretProperties.load(secretPropFile.inputStream())
 
-        fun setupSql(dir: File): SQLQueries {
-            val dbFile = File(dir, "db.db")
-            val sqlQueries = SQLQueries(SQLConnector.createSqliteConnection(dbFile), true, RWLock(), SqlResultTransformer.sqliteResultSetTransformer())
-            // turn on foreign keys
-            try {
-                sqlQueries.execute("PRAGMA foreign_keys = ON;", null)
-            } catch (e: SqlQueriesException) {
-                e.printStackTrace()
-            }
-            val sqliteExecutor = SqliteExecutor(sqlQueries.sqlConnection)
-            if (!sqliteExecutor.checkTablesExist("servicetype", "service", "approval", "certificate")) {
-                //find sql file in workingdir
-                val resourceStream = DatabaseManager::class.java.getResourceAsStream("/de/mel/auth/sql.sql")
-                sqliteExecutor.executeStream(resourceStream)
-            }
-            return sqlQueries
-        }
 
         //setup socket certificate manager first
-        val socketSqlQueries = setupSql(secretSocketDir)
+        val socketSqlQueries =  SetupHelper.setupMelAuthSqlqueries(secretSocketDir)
         socketCertificateManager = CertificateManager(secretSocketDir, socketSqlQueries, config.keySize)
 
         if (socketCertificateManager.hadToInitialize()) {
@@ -136,7 +114,7 @@ constructor(val config: ServerConfig) {
 //                    Processor("cp", File(secretSocketDir, "pk.key").absolutePath, secretHttpDir.absolutePath),
 //                    Processor("cp", File(secretSocketDir, "pub.key").absolutePath, secretHttpDir.absolutePath))
         }
-        val httpSqlQueries = setupSql(secretHttpDir)
+        val httpSqlQueries = SetupHelper.setupMelAuthSqlqueries(secretHttpDir)
         httpCertificateManager = CertificateManager(secretHttpDir, httpSqlQueries, config.keySize)
 
         // loading and hashing files

@@ -15,10 +15,14 @@ import java.util.concurrent.Semaphore
 import javax.net.ssl.SSLContext
 
 object ContentType {
+    const val TEXT = "text/html; charset=UTF-8"
     const val SVG = "image/svg+xml"
+    const val WEBP = "image/webp"
+    const val JPG = "image/jpeg"
+    const val PNG = "image/png"
 }
 
-abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLContext) : DeferredRunnable() {
+abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLContext?) : DeferredRunnable() {
     override fun onShutDown(): Promise<Void, Void, Void>? = null
 
     override fun runImpl() {
@@ -79,7 +83,7 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
     private val threadSemaphore = Semaphore(1, true)
     private val threadQueue = LinkedList<MelThread>()
 
-    lateinit var server: HttpsServer
+    lateinit var server: HttpServer
     private val threadFactory = { r: Runnable ->
         var melThread: MelThread? = null
 
@@ -114,7 +118,7 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
 
     fun respondBinary(ex: HttpExchange, path: String, contentType: String? = null, cache: Boolean = false) {
         with(ex) {
-//            de.mel.Lok.debug("sending $path to $remoteAddress")
+            //            de.mel.Lok.debug("sending $path to $remoteAddress")
             var page: Page? = null
             try {
                 if (contentType != null)
@@ -141,7 +145,7 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
 
     fun respondText(ex: HttpExchange, path: String, contentType: String? = null, vararg replacers: Replacer) {
         with(ex) {
-//            de.mel.Lok.debug("sending $path to $remoteAddress")
+            //            de.mel.Lok.debug("sending $path to $remoteAddress")
             var page: Page? = null
             try {
                 if (contentType != null) {
@@ -162,16 +166,26 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
     }
 
     fun start() {
-        Lok.info("binding https to           : $port")
-        server = createServer()
-        Lok.info("successfully bound https to: $port")
+        if (sslContext == null) {
+            Lok.info("binding http to           : $port")
+            server = createServer()
+            Lok.info("successfully bound http to: $port")
+        } else {
+            Lok.info("binding https to           : $port")
+            server = createSecureServer()
+            Lok.info("successfully bound https to: $port")
+        }
         configureContext(server)
         server.executor = executor
         server.start()
-        Lok.info("https is up")
+        if (sslContext == null)
+            Lok.info("http is up")
+        else
+            Lok.info("https is up")
     }
 
-    abstract fun configureContext(server: HttpsServer)
+
+    abstract fun configureContext(server: HttpServer)
 
     fun redirect(httpExchange: HttpExchange, targetUrl: String): Unit {
         try {
@@ -189,7 +203,7 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
         if (page != null)
             try {
                 with(ex) {
-//                    Lok.debug("sending '${page?.path}' to $remoteAddress")
+                    //                    Lok.debug("sending '${page?.path}' to $remoteAddress")
                     if (contentType != null)
                         responseHeaders.add("Content-Type", contentType)
                     sendResponseHeaders(200, page?.bytes?.size?.toLong() ?: "404".toByteArray().size.toLong())
@@ -201,7 +215,12 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
             }
     }
 
-    private fun createServer(): HttpsServer {
+    private fun createServer(): HttpServer {
+        val server = HttpServer.create(InetSocketAddress(port), 0)
+        return server
+    }
+
+    private fun createSecureServer(): HttpsServer {
         val server = HttpsServer.create(InetSocketAddress(port), 0)
         val configurator = object : HttpsConfigurator(sslContext) {
             override fun configure(params: HttpsParameters) {

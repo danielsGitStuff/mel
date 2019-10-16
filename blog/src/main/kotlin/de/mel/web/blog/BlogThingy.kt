@@ -1,6 +1,7 @@
 package de.mel.web.blog
 
 import com.sun.net.httpserver.HttpExchange
+import com.sun.net.httpserver.HttpServer
 import com.sun.net.httpserver.HttpsServer
 import de.mel.Lok
 import de.mel.auth.tools.N
@@ -83,7 +84,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
         super.respondPage(ex, page, contentType)
     }
 
-    override fun configureContext(server: HttpsServer) {
+    override fun configureContext(server: HttpServer) {
         this.server = server
         val contextCreator = HttpContextCreator(server)
         contextCreator.createContext("/$subUrl").withGET().handle { httpExchange, queryMap ->

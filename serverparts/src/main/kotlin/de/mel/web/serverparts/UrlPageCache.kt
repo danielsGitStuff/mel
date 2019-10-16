@@ -2,7 +2,7 @@ package de.mel.web.serverparts
 
 import com.sun.net.httpserver.HttpExchange
 
-class UrlPageCache(val abstractHttpsThingy: AbstractHttpsThingy, val size: Int) {
+class UrlPageCache(private val abstractHttpsThingy: AbstractHttpsThingy, val size: Int) {
     @Synchronized
     operator fun set(url: String, page: Page) {
         // page is new

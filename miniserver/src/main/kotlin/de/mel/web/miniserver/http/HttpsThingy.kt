@@ -1,18 +1,16 @@
 package de.mel.web.miniserver.http
 
+import com.sun.net.httpserver.HttpServer
 import com.sun.net.httpserver.HttpsServer
 import de.mel.Lok
 import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer
-import de.mel.web.serverparts.AbstractHttpsThingy
-import de.mel.web.serverparts.HttpContextCreator
-import de.mel.web.serverparts.Page
-import de.mel.web.serverparts.Replacer
 import de.mel.web.serverparts.visits.Visitors
 import de.mel.web.miniserver.Deploy
 import de.mel.web.miniserver.MiniServer
 import de.mel.web.blog.BlogSettings
 import de.mel.web.blog.BlogThingy
 import de.mel.web.miniserver.data.FileRepository
+import de.mel.web.serverparts.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
@@ -20,11 +18,6 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
-object ContentType {
-    const val SVG = "image/svg+xml"
-    const val WEBP = "image/webp"
-    const val JPG = "image/jpeg"
-}
 
 class HttpsThingy(private val port: Int, private val miniServer: MiniServer, private val fileRepository: FileRepository) : AbstractHttpsThingy(port, miniServer.httpCertificateManager.sslContext) {
     var blogThingy: BlogThingy
@@ -77,7 +70,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 Replacer("keep", if (miniServer.config.keepBinaries) "checked" else ""))
     }
 
-    override fun configureContext(server: HttpsServer) {
+    override fun configureContext(server: HttpServer) {
         val contextCreator = HttpContextCreator(server)
         contextCreator.createContext("/")
                 .withGET()

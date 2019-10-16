@@ -1,6 +1,7 @@
 package de.mel.web.serverparts
 
 import com.sun.net.httpserver.HttpExchange
+import com.sun.net.httpserver.HttpServer
 import com.sun.net.httpserver.HttpsServer
 import de.mel.Lok
 import de.mel.auth.tools.N
@@ -15,7 +16,7 @@ import de.mel.auth.tools.N
  *     **Keep in mind that if you call [RequestHandler handle] this one will match all requests. That means that all subsequent RequestHandlers are ignored.**
  *     Only the first matching RequestHandler is invoked. **Requesthandlers are tried in the order you create them!**
  */
-class HttpContextCreator(val server: HttpsServer) {
+class HttpContextCreator(val server: HttpServer) {
 
 
     /**

@@ -1,8 +1,12 @@
 package de.mel.auth.tools;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Scanner;
 
 public class F {
@@ -21,5 +25,11 @@ public class F {
         if (s.hasNext())
             return s.next();
         throw new IOException("could not read resource: " + resourcePath);
+    }
+
+    @NotNull
+    public static String readMimeType(@NotNull File file) throws IOException {
+        String  mime = Files.probeContentType(Path.of(file.toURI()));
+        return mime;
     }
 }

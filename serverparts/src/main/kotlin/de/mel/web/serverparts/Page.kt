@@ -1,6 +1,7 @@
 package de.mel.web.serverparts
 
 import de.mel.auth.tools.N
+import java.io.File
 
 
 class Page {
@@ -21,6 +22,19 @@ class Page {
         this.bytes = bytes
         if (cache)
             staticPagesCache[path] = this
+    }
+
+    constructor(path: String, file: File) {
+        if (staticPagesCache.containsKey(path)) {
+            this.path = path
+            this.bytes = staticPagesCache[path]!!.bytes
+            return
+        }
+        this.bytes = file.readBytes()
+        this.path = path
+        if (!staticPagesCache.containsKey(path)) {
+            staticPagesCache[path] = this
+        }
     }
 
 
