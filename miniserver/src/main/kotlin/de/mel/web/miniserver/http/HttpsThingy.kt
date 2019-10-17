@@ -39,15 +39,12 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 Replacer("files") {
                     val s = StringBuilder()
                     miniServer.fileRepository.sortedFileEntries.forEach { fileEntry ->
-                        val ldt = LocalDateTime.ofEpochSecond(fileEntry.timestamp / 1000, 0, ZoneOffset.UTC)
-                        val formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd hh:mm:ss")
-                        val date = ldt.format(formatter)
                         s.append("<tr>")
                         s.append("<td><a href=\"files/${fileEntry.hash}\" download=\"${fileEntry.file.name}\">${fileEntry.file.name}</a></td>") //name
                         s.append("<td>${fileEntry.variant}</td>") //variant
                         s.append("<td>${String.format("%.2f", fileEntry.size.toFloat() / 1024 / 1024)} mb</td>") //size
-                        s.append("<td>$date</td>") //build date
-                        s.append("<td>${fileEntry.version.take(7)}</td>")
+                        s.append("<td>${fileEntry.version}</td>") //build date
+                        s.append("<td>${fileEntry.commit}</td>")
                         s.append("<td>${fileEntry.hash}</td>")//hash
                         s.append("</tr>")
                     }

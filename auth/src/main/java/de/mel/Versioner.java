@@ -2,27 +2,44 @@ package de.mel;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.Properties;
 
 public class Versioner {
 
     private static BuildReader buildReader = new BuildReader() {
 
-
         @Override
         public void readProperties() throws IOException {
             Properties properties = new Properties();
             InputStream in = getClass().getResourceAsStream("/version.properties");
             properties.load(in);
-            timestamp = Long.valueOf(properties.getProperty("timestamp"));
             variant = properties.getProperty("variant");
             version = properties.getProperty("version");
+            commit = properties.getProperty("commit");
+
         }
     };
 
+
+    public static boolean isYounger(String currentVersion, String newVersion) throws ParseException {
+        SimpleDateFormat formatter = new SimpleDateFormat(VERSION_DATE_FORMAT_PATTERN);
+        Date currentDate = formatter.parse(currentVersion);
+        Date newDate = formatter.parse(newVersion);
+        return currentDate.getTime() < newDate.getTime();
+    }
+
+    public static final String VERSION_DATE_FORMAT_PATTERN = "yyyy-MM-ddhh-mm-ss";
+
+
+
     public static abstract class BuildReader {
         protected String variant;
-        protected Long timestamp;
+        protected String commit;
         protected String version;
 
         public String getVersion() {
@@ -37,10 +54,8 @@ public class Versioner {
             return variant;
         }
 
-        public Long getTimestamp() throws IOException {
-            if (timestamp == null)
-                readProperties();
-            return timestamp;
+        public String getCommit() {
+            return commit;
         }
     }
 
@@ -48,8 +63,8 @@ public class Versioner {
         return buildReader.getVersion();
     }
 
-    public static Long getTimestamp() throws IOException {
-        return buildReader.getTimestamp();
+    public static String getCommit() throws IOException {
+        return buildReader.getCommit();
     }
 
     public static String getBuildVariant() throws IOException {

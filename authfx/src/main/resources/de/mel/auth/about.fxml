@@ -14,7 +14,7 @@
            text="%about.couldNotRead"/>
 
     <Label styleClass="lbl-center-section" text="%about.timestamp"/>
-    <Label fx:id="lblTimestamp" maxHeight="1.7976931348623157E308" prefWidth="1.7976931348623157E308" styleClass="lbl"
+    <Label fx:id="lblCommit" maxHeight="1.7976931348623157E308" prefWidth="1.7976931348623157E308" styleClass="lbl"
            text="%about.couldNotRead"/>
 
     <Label styleClass="lbl-center-section" text="%about.version"/>

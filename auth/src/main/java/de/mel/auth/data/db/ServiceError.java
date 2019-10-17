@@ -11,14 +11,14 @@ import java.util.List;
 public class ServiceError implements SerializableEntity {
     private String exceptionClass, exceptionMessage, variant;
     private List<String> stacktrace;
-    private Long version;
+    private String version;
 
     public ServiceError() {
 
     }
 
 
-    public Long getVersion() {
+    public String getVersion() {
         return version;
     }
 
@@ -27,7 +27,7 @@ public class ServiceError implements SerializableEntity {
     }
 
     public ServiceError(BootException e) {
-        N.oneLine(() -> version = Versioner.getTimestamp());
+        N.oneLine(() -> version = Versioner.getVersion());
         N.oneLine(() -> variant = Versioner.getBuildVariant());
         if (e.getCause() != null)
             exceptionClass = e.getCause().getClass().getSimpleName();

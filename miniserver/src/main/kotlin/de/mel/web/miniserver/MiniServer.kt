@@ -98,7 +98,7 @@ constructor(val config: ServerConfig) {
 
 
         //setup socket certificate manager first
-        val socketSqlQueries =  SetupHelper.setupMelAuthSqlqueries(secretSocketDir)
+        val socketSqlQueries = SetupHelper.setupMelAuthSqlqueries(secretSocketDir)
         socketCertificateManager = CertificateManager(secretSocketDir, socketSqlQueries, config.keySize)
 
         if (socketCertificateManager.hadToInitialize()) {
@@ -129,9 +129,7 @@ constructor(val config: ServerConfig) {
         N.forEachIgnorantly(filesDir.listFiles { f -> f.isFile && (f.name.endsWith(".jar") || f.name.endsWith(".apk")) }) { f ->
             val hash: String = Hash.sha256(FileInputStream(f))
             val propertiesFile = File(filesDir, f.name + MelStrings.update.INFO_APPENDIX)
-            val variant: String
-            val timestamp: Long?
-            val version: String
+
             if (!propertiesFile.exists())
                 return@forEachIgnorantly
             Lok.info("reading binary: " + f.absolutePath)
@@ -139,14 +137,15 @@ constructor(val config: ServerConfig) {
             val properties = Properties()
             properties.load(FileInputStream(propertiesFile))
 
-            variant = properties.getProperty("variant")
-            timestamp = properties.getProperty("timestamp").toLong()
-            version = properties.getProperty("version")
+            val variant = properties.getProperty("variant")
+            val version = properties.getProperty("version")
+            val commit = properties.getProperty("commit")
+
             val size = f.length()
 
-            val fileEntry = FileEntry(hash = hash, file = f, variant = variant, timestamp = timestamp, size = size, version = version)
+            val fileEntry = FileEntry(hash = hash, file = f, variant = variant, size = size, version = version, commit = commit)
             fileRepository += fileEntry
-            versionAnswer.addEntry(hash, variant, version, timestamp, f.length())
+            versionAnswer.addEntry(hash, variant, commit, version, size)
         }
         fileRepository.sort()
     }

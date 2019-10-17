@@ -15,6 +15,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
+import java.text.ParseException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -52,15 +53,15 @@ public class Updater {
     void onVersionAvailable(VersionAnswer.VersionEntry versionEntry) {
         try {
             String currentCommit = Versioner.getVersion();
-            Long timestamp = Versioner.getTimestamp();
-            Lok.debug("current: commit=" + currentCommit + " timestamp=" + timestamp);
-            Lok.debug("latest : commit=" + versionEntry.getCommit() + " timestamp=" + versionEntry.getTimestamp());
-            if (timestamp >= versionEntry.getTimestamp()) {
+            String currentVersion = Versioner.getVersion();
+            Lok.debug("current: commit=" + currentCommit + " timestamp=" + currentVersion);
+            Lok.debug("latest : commit=" + versionEntry.getCommit() + " version=" + versionEntry.getVersion());
+            if (Versioner.isYounger(currentVersion, versionEntry.getVersion())) {
                 Lok.debug("no update necessary :)");
                 N.forEachAdvIgnorantly(updateHandlers, (stoppable, index, updateHandler) -> updateHandler.onNoUpdateAvailable(this));
                 return;
             }
-        } catch (IOException e) {
+        } catch (IOException | ParseException e) {
             e.printStackTrace();
             return;
         }

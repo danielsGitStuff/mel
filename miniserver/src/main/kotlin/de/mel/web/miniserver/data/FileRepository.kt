@@ -3,16 +3,8 @@ package de.mel.web.miniserver.data
 import java.io.File
 import java.io.FileNotFoundException
 
-fun main(args: Array<String>) {
-    val fileEntry = FileEntry(hash = "h", file = File("bla"), variant = "var", timestamp = 666L, size = 0L, version = "commit")
-    val repo = FileRepository()
-    repo += fileEntry
-    val r = repo["h"]
-    println(r)
-}
-
 @Suppress("ArrayInDataClass")
-class FileEntry(val hash: String, val file: File, val variant: String, val version: String, val timestamp: Long, val size: Long, bytes: ByteArray? = null) {
+class FileEntry(val hash: String, val file: File, val variant: String, val version: String, val commit:String, val size: Long, bytes: ByteArray? = null) {
     var bytes: ByteArray? = bytes
         get() {
             if (field == null) {

@@ -35,7 +35,7 @@ public class AboutFX extends AuthSettingsFX {
     @FXML
     private WebView webView;
     @FXML
-    private Label lblVersion, lblVariant, lblTimestamp;
+    private Label lblVersion, lblVariant, lblCommit;
 
     @FXML
     private Button btnCheckUpdate, btnUpdate;
@@ -77,8 +77,7 @@ public class AboutFX extends AuthSettingsFX {
         }
 
         try {
-            Date timestamp = new Date(Versioner.getTimestamp());
-            lblTimestamp.setText(timestamp.toString());
+            lblCommit.setText(Versioner.getCommit());
             lblVariant.setText(Versioner.getBuildVariant());
             lblVersion.setText(Versioner.getVersion());
         } catch (Exception e) {
@@ -128,8 +127,8 @@ public class AboutFX extends AuthSettingsFX {
                 public void onUpdateAvailable(Updater updater, VersionAnswer.VersionEntry ve) {
                     Lok.debug("available");
                     N.r(() -> {
-                        Long currentVersion = Versioner.getTimestamp();
-                        Lok.debug("update available from " + currentVersion + " to " + ve.getTimestamp() + ", hash " + ve.getHash());
+                        String currentVersion = Versioner.getVersion();
+                        Lok.debug("update available from " + currentVersion + " to " + ve.getVersion() + ", hash " + ve.getHash());
                         AboutFX.this.updater = updater;
                         versionEntry.set(ve);
                         btnUpdate.setDisable(false);
