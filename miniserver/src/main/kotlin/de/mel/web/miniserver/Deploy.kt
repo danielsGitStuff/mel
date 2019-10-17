@@ -133,13 +133,13 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                     val relaseProcesses = mutableListOf<Processor>()
                     relaseProcesses.add(Processor("/bin/sh", "-c", "git tag -f -a \"$version\"  -m \"Released version $version\"\n"))
                     if (buildRequest.apk!!) {
-                        relaseProcesses.add(Processor("cd ${projectRootDir.absolutePath}; ./release.sh $version \"${apkFile!!.absolutePath}\""))
+                        relaseProcesses.add(Processor("/bin/sh", "-c""cd ${projectRootDir.absolutePath}; ./release.sh $version \"${apkFile!!.absolutePath}\""))
                     }
                     if (buildRequest.jar!!) {
-                        relaseProcesses.add(Processor("cd ${projectRootDir.absolutePath}; ./release.sh $version \"${fxFile!!.absolutePath}\""))
+                        relaseProcesses.add(Processor("/bin/sh", "-c""cd ${projectRootDir.absolutePath}; ./release.sh $version \"${fxFile!!.absolutePath}\""))
                     }
                     if (buildRequest.blog!!) {
-                        relaseProcesses.add(Processor("cd ${projectRootDir.absolutePath}; ./release.sh $version \"${blogFile!!.absolutePath}\""))
+                        relaseProcesses.add(Processor("/bin/sh", "-c""cd ${projectRootDir.absolutePath}; ./release.sh $version \"${blogFile!!.absolutePath}\""))
                     }
                     Processor.runProcesses("upload to github", *relaseProcesses.toTypedArray())
                 }
