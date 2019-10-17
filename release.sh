@@ -2,7 +2,7 @@
 
 set -eu -o pipefail
 
-echo "running ind dir $(pwd)"
+echo -e "running in dir $(pwd)"
 VERSION_PREV=$(egrep -o '[0-9]+' <released.version)
 
 VERSION_NEXT=$((VERSION_PREV + 1))
