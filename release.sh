@@ -1,8 +1,12 @@
 #!/bin/bash
-
+# usage: script.sh VERSION PATH_TO_BINARY
 set -eu -o pipefail
 
 echo -e "running in dir $(pwd)"
+
+VERSION=$1
+BINARY=$2
+
 VERSION_PREV=$(egrep -o '[0-9]+' <released.version)
 
 VERSION_NEXT=$((VERSION_PREV + 1))
@@ -31,38 +35,25 @@ echo ""
 function format_version() {
   local version=$(date +"%Y-%m-%d-%H-%M-%S")
   echo -n "$version"
-#  local VERSION=$1
-#  echo -n "0."$((VERSION / 10))'.'$((VERSION % 10))
+  #  local VERSION=$1
+  #  echo -n "0."$((VERSION / 10))'.'$((VERSION % 10))
 }
 
-function deployBinaries() {
+function deployBinary() {
   echo "uploading!!!!"
   local APK_ALIGNED=app/build/outputs/apk/release/de.mel.mel-release.apk
   local FXBUNDLE=fxbundle/build/libs/fxbundle-fx.jar
   local BLOG=blog/build/libs/blog-standalone.jar
-  local TAG=$(format_version ${VERSION_NEXT})
+  #  local TAG=$(format_version ${VERSION_NEXT})
   local owner="danielsGitStuff"
   local repo="mel"
 
-  if test -f "$APK_ALIGNED"; then
-    echo "Upload apk file to github"
+  if test -f "$BINARY"; then
+    echo "Upload $BINARY file to github"
     ./upload.sh github_api_token="${CREDENTIALS_GITHUB}" \
-      owner="$owner" repo="$repo" tag="$TAG" \
-      filename="${APK_ALIGNED}"
+      owner="$owner" repo="$repo" tag="$VERSION" \
+      filename="${BINARY}"
   fi
-  if test -f "$FXBUNDLE"; then
-    echo "Upload fx file to github"
-    ./upload.sh github_api_token="${CREDENTIALS_GITHUB}" \
-      owner="$owner" repo="$repo" tag="$TAG" \
-      filename="${FXBUNDLE}"
-  fi
-  if test -f "$BLOG"; then
-    echo "Upload blog file to github"
-    ./upload.sh github_api_token="${CREDENTIALS_GITHUB}" \
-      owner="$owner" repo="$repo" tag="$TAG" \
-      filename="${BLOG}"
-  fi
-
 }
 
 # increase app version for further development
@@ -92,13 +83,12 @@ echo "ext { appVersion = $VERSION_NEXT }" >released.version
 #trap - ERR
 
 # create tag for this version
-git tag -a "$(format_version ${VERSION_NEXT})" \
-  -m "Released version $(format_version ${VERSION_NEXT})"
+git tag -f -a "$VERSION"  -m "Released version $VERSION"
 
 git push
 git push --tags
 
-deployBinaries
+deployBinary
 
 # generate debug sources in a final step.
 #echo "Prepare next dev cycle..."

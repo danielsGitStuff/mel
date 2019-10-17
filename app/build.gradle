@@ -90,6 +90,7 @@ android {
             manifestPlaceholders = [appName: "Mel", icon: "ic_launcher"]
             buildConfigField("String", "BUILD_VARIANT", "\"apk-release\"")
             buildConfigField("String", "BUILD_TIMESTAMP", "\"${timestamp}\"")
+            buildConfigField("String","BUILD_COMMIT", "\"${VERSION}\"")
             buildConfigField("String","BUILD_VERSION","\"${COMMIT}\"")
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'

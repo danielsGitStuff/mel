@@ -11,7 +11,14 @@ buildscript {
         }
         out.toString().take(7).trim()
     }.call()
-    println "commit=${ext.COMMIT}"
+    ext.VERSION = { ->
+        File f = new File("build.tmp.version")
+        if (f.exists()) {
+            f.readLines().get(0)
+        } else
+            "version not provided"
+    }.call()
+    println "commit=${ext.COMMIT} version=\"${ext.VERSION}\""
     repositories {
         jcenter()
         mavenCentral()

@@ -57,8 +57,8 @@ ext {
 task createProperties() {
     doLast {
         println "createProperties($buildDir)"
-        props['timestamp'] = new Date().getTime().toString()
-        props['version'] = "${COMMIT}".toString()
+        props['version'] = "${VERSION}".toString()
+        props['commit'] = "${COMMIT}".toString()
         props['variant'] = buildVariant
         //store in jar
         File resources = new File(buildDir, "resources")
