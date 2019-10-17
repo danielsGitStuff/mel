@@ -179,9 +179,9 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
         server.executor = executor
         server.start()
         if (sslContext == null)
-            Lok.info("http is up")
+            Lok.info("http is up on port $port")
         else
-            Lok.info("https is up")
+            Lok.info("https is up on port $port")
     }
 
 
@@ -199,13 +199,12 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
         }
     }
 
-    open fun respondPage(ex: HttpExchange, page: Page?, contentType: String? = "text/html; charset=UTF-8") {
+    open fun respondPage(ex: HttpExchange, page: Page?) {
         if (page != null)
             try {
                 with(ex) {
                     //                    Lok.debug("sending '${page?.path}' to $remoteAddress")
-                    if (contentType != null)
-                        responseHeaders.add("Content-Type", contentType)
+                    responseHeaders.add("Content-Type", page.contentType)
                     sendResponseHeaders(200, page?.bytes?.size?.toLong() ?: "404".toByteArray().size.toLong())
                     responseBody.write(page?.bytes ?: "404".toByteArray())
                     responseBody.close()

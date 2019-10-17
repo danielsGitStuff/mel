@@ -52,7 +52,7 @@ compileJava {
 def props = new Properties()
 ext {
     buildVariant = "fx"
-    jarName = "${project.name}-${buildVariant}.jar"
+    jarName = "${rootProject.name}-${buildVariant}.jar"
 }
 task createProperties() {
     doLast {

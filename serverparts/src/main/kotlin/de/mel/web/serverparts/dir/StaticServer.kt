@@ -7,10 +7,7 @@ import de.mel.auth.tools.F
 import de.mel.konsole.DependenciesContainer
 import de.mel.konsole.Konsole
 import de.mel.sql.RWLock
-import de.mel.web.serverparts.AbstractHttpsThingy
-import de.mel.web.serverparts.HttpContextCreator
-import de.mel.web.serverparts.Page
-import de.mel.web.serverparts.SetupHelper
+import de.mel.web.serverparts.*
 import java.io.File
 import java.util.*
 
@@ -40,8 +37,8 @@ class StaticServer(private val certificateManager: CertificateManager?, val sett
             contextCreator.createContext(subUrl)
                     .withGET()
                     .handle { httpExchange, _ ->
-                        val contentType = F.readMimeType(it)
-                        respondPage(httpExchange, Page(path = subUrl, file = it), contentType = contentType)
+                        val page = Page(path = subUrl, file = it)
+                        respondPage(httpExchange, page)
                     }
         }
         if (rootIndexHtml != null) {
@@ -61,11 +58,14 @@ class StaticServer(private val certificateManager: CertificateManager?, val sett
             val konsole = Konsole<DirSettings>(settings)
             konsole.mandatory("-dir", "set the directory to publish") { result, a -> result.dir = File(a[0]) }
                     .optional("-port", "port the server listens on") { result, a -> result.port = a[0].toInt() }
-                    .optional("-https", "enables HTTPS") { result, a -> result.https = true }
+                    .optional("-https", "enables HTTPS") { result, _ -> result.https = true }
+                    .optional("-debug", "enables debug logging") { result, _ -> result.debug = true }
                     .optional("-certdir", "set the dir where to store/load the servers certificates", { result, a -> result.workingDir = File(a[0]) }, DependenciesContainer.DependencySet("-https"))
             konsole.handle(args)
             if (!settings.workingDir.exists())
                 settings.workingDir.mkdirs()
+
+            Lok.getImpl().setPrintDebug(settings.debug)
 
             var httpCertificateManager: CertificateManager? = null
             if (settings.https) {

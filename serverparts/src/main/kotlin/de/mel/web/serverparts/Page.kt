@@ -1,5 +1,6 @@
 package de.mel.web.serverparts
 
+import de.mel.auth.tools.F
 import de.mel.auth.tools.N
 import java.io.File
 
@@ -15,6 +16,8 @@ class Page {
         private set
     var bytes: ByteArray
         private set
+    var contentType: String = ContentType.TEXT
+        private set
 
 
     constructor(path: String, bytes: ByteArray, cache: Boolean = false) {
@@ -26,12 +29,15 @@ class Page {
 
     constructor(path: String, file: File) {
         if (staticPagesCache.containsKey(path)) {
+            val olde = staticPagesCache[path]!!
             this.path = path
-            this.bytes = staticPagesCache[path]!!.bytes
+            this.bytes = olde.bytes
+            this.contentType = olde.contentType
             return
         }
         this.bytes = file.readBytes()
         this.path = path
+        this.contentType = F.readMimeType(file) ?: ContentType.TEXT
         if (!staticPagesCache.containsKey(path)) {
             staticPagesCache[path] = this
         }
