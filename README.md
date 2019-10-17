@@ -1,7 +1,9 @@
-# Welcome to Mel
+# Welcome to M[e](https://xorserv.spdns.de)l
 If you are looking for a solution to synchronize files and contacts between various Android devices and PCs you might want to read further.
 It has no "cloud" thing built in and is intended for home network use. 
 The main scenario (I guess?) is doing synchronization work in the background when you are sleeping and your phone plugged into the charger.
+
+[The homepage is here](https://xorserv.spdns.de)
 
 ## When to use and when not to use?
 When:
