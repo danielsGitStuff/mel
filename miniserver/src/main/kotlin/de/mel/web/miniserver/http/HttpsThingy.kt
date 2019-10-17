@@ -41,6 +41,7 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                     miniServer.fileRepository.sortedFileEntries.forEach { fileEntry ->
                         s.append("<tr>")
                         s.append("<td><a href=\"files/${fileEntry.hash}\" download=\"${fileEntry.file.name}\">${fileEntry.file.name}</a></td>") //name
+                        s.append("<td><a href=\"https://github.com/danielsGitStuff/mel/releases/download/${fileEntry.version}/${fileEntry.file.name}\" download=\"${fileEntry.file.name}\">Download</a></td>")
                         s.append("<td>${fileEntry.variant}</td>") //variant
                         s.append("<td>${String.format("%.2f", fileEntry.size.toFloat() / 1024 / 1024)} mb</td>") //size
                         s.append("<td>${fileEntry.version}</td>") //build date
