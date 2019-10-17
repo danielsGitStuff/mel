@@ -116,8 +116,8 @@ task releaseWithProps {
         if (signed) {
             println("RELEASE WITH PROPS")
             Properties p = new Properties()
-            p['timestamp'] = new Date().getTime().toString()
-            p['version'] = "${COMMIT}".toString()
+            p['commit'] = "${COMMIT}".toString()
+            p['version'] = "${VERSION}".toString()
             p['variant'] = 'apk-release'
             File output = new File("$buildDir/outputs/apk/release")
             output.mkdirs()
