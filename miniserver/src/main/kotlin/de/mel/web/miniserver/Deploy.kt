@@ -132,7 +132,9 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
 
                 if (buildRequest.release!!) {
                     val relaseProcesses = mutableListOf<Processor>()
-                    relaseProcesses.add(Processor("/bin/sh", "-c", "git tag -f -a \"$version\"  -m \"Released version $version\"\n"))
+                    // create tag
+                    relaseProcesses.add(Processor("/bin/sh", "-c", "cd ${projectRootDir.absolutePath}; ./tag.sh $version"))
+                    // add upload jobs
                     if (buildRequest.apk!!) {
                         relaseProcesses.add(Processor("/bin/sh", "-c", "cd ${projectRootDir.absolutePath}; ./release.sh $version \"${apkFile!!.absolutePath}\""))
                     }
@@ -142,6 +144,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                     if (buildRequest.blog!!) {
                         relaseProcesses.add(Processor("/bin/sh", "-c", "cd ${projectRootDir.absolutePath}; ./release.sh $version \"${blogFile!!.absolutePath}\""))
                     }
+                    // run everything
                     Processor.runProcesses("upload to github", *relaseProcesses.toTypedArray())
                 }
 

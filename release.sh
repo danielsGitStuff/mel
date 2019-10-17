@@ -83,10 +83,10 @@ echo "ext { appVersion = $VERSION_NEXT }" >released.version
 #trap - ERR
 
 # create tag for this version
-git tag -f -a "$VERSION"  -m "Released version $VERSION"
-
-git push
-git push --tags
+#git tag -f -a "$VERSION"  -m "Released version $VERSION"
+#
+#git push
+#git push --tags
 
 deployBinary
 
