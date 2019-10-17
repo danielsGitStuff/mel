@@ -64,7 +64,9 @@ echo "token is $github_api_token"
 echo "release is $RELEASE , GH_REPO=$GH_REPO"
 # Validate token.
 echo "Validating auth token"
+echo "curl -o -fsSH \"$AUTH\" $GH_REPO"
 curl -o /dev/null -fsSH "$AUTH" $GH_REPO || { echo "Error: Invalid repo, token or network issue!";  exit 1; }
+echo "validated"
 
 echo "Create a new release (if not already created)"
 RELEASE="$(echo "{'tag_name': '$tag', 'target_commitish': 'master', 'name': 'v$tag', 'body': 'App version $tag'}" | tr \' \")"
@@ -77,7 +79,10 @@ eval $(echo "$RESPONSE" | grep -m 1 "id.:" | grep -w id | tr : = | tr -cd '[[:al
 
 echo "Uploading asset..." >&2
 GH_ASSET="https://uploads.github.com/repos/$owner/$repo/releases/$id/assets?name=$(basename $filename)"
+echo "GH_ASSET=$GH_ASSET"
+echo "filename=$filename"
 curl -o /dev/null -sSfH "$AUTH" --data-binary @"$filename" -H "Content-Type: application/octet-stream" $GH_ASSET
+
 
 URL="https://github.com/$owner/$repo/releases/download/$tag/app-release.apk"
 echo "URL for the released file is now: $URL"

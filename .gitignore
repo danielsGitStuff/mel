@@ -7,6 +7,7 @@
 *.class
 *.jar
 
+
 /app/build
 /blog/build
 /contacts/build
@@ -30,6 +31,8 @@
 /*/mel.data
 /*/mel.data2
 
+/released.version
+/github_auth
 
 app/src/main/assets/filesync.sql
 app/src/main/assets/sql.sql

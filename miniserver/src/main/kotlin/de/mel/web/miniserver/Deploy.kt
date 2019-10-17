@@ -109,6 +109,11 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 processList.add(Processor("rm", "-f", "${File(serverFilesDir, "output.json")}"))
                 processList.add(Processor("/bin/sh", "-c", "chmod -R 700 \"$serverFilesDir\""))
                 Processor.runProcesses("copying", *processList.toTypedArray())
+
+                if (buildRequest.release!!) {
+                    Processor.runProcesses("release to github", Processor("/bin/sh", "-c", "./release.sh"))
+                }
+
                 // delete stop pipe
                 miniServer.inputReader?.stop()
                 // restart
