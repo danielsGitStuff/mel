@@ -1,5 +1,6 @@
 # Mel.miniserver
-This is a very simple web and build server for Mel running in the JVM. 
+This is a very simple web and build server for Mel running in the JVM.
+Note: This is specifically tailored for the Mel website.
 ## Why?
 Security! Apache web servers and colleagues are very complex pieces of software. 
 And from time to time vulnerabilities are discovered. 
@@ -10,7 +11,7 @@ Though the JVM cannot offer perfect security, possible vulnerabilities are harde
 No. It is just very simple.
 
 ## Is it fast?
-I have not benchmarked it. It probably won't break any world records.
+I have not benchmarked it. It probably won't break any speed records.
 
 ## Config
 When starting for the first time, the application creates a folder called "server" and a subfolder called "secret".
