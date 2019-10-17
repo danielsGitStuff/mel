@@ -88,8 +88,8 @@ android {
                 signingConfig signingConfigs.release
             manifestPlaceholders = [appName: "Mel", icon: "ic_launcher"]
             buildConfigField("String", "BUILD_VARIANT", "\"apk-release\"")
-            buildConfigField("String","BUILD_COMMIT", "\"${VERSION}\"")
-            buildConfigField("String","BUILD_VERSION","\"${COMMIT}\"")
+            buildConfigField("String", "BUILD_COMMIT", "\"${VERSION}\"")
+            buildConfigField("String", "BUILD_VERSION", "\"${COMMIT}\"")
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             debuggable true
@@ -98,10 +98,20 @@ android {
             manifestPlaceholders = [appName: "Mel DEBUG", icon: "ic_debug"]
             applicationIdSuffix ".debug"
             buildConfigField("String", "BUILD_VARIANT", "\"apk-debug\"")
-            buildConfigField("String","BUILD_VERSION","\"${COMMIT}\"")
+            buildConfigField("String", "BUILD_VERSION", "\"${COMMIT}\"")
             minifyEnabled false
         }
     }
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            if (variant.variantData.variantConfiguration.buildType.name == "debug") {
+                println "setting release apk name to: mel.apk"
+                outputFileName = "mel.apk"
+            }
+        }
+    }
+
+
     // write the additional prop file
     afterEvaluate {
         assembleRelease.finalizedBy(releaseWithProps)
