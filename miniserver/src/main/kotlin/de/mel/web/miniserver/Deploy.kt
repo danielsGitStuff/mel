@@ -55,7 +55,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
 
                 // create a version and write it to the "version.now" file
                 val version = kotlin.run {
-                    val timestamp = LocalDateTime.ofEpochSecond(Date().time/1000, 0, ZoneOffset.UTC)
+                    val timestamp = LocalDateTime.ofEpochSecond(Date().time / 1000, 0, ZoneOffset.UTC)
                     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-ddhh-mm-ss")
                     timestamp.format(formatter)
                 }
@@ -131,7 +131,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
 
                 if (buildRequest.release!!) {
                     val relaseProcesses = mutableListOf<Processor>()
-                    relaseProcesses.add(Processor("git tag -f -a \"$version\"  -m \"Released version $version\"\n"))
+                    relaseProcesses.add(Processor("/bin/sh", "-c", "git tag -f -a \"$version\"  -m \"Released version $version\"\n"))
                     if (buildRequest.apk!!) {
                         relaseProcesses.add(Processor("cd ${projectRootDir.absolutePath}; ./release.sh $version \"${apkFile!!.absolutePath}\""))
                     }
