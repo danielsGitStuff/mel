@@ -12,7 +12,8 @@ buildscript {
         out.toString().take(7).trim()
     }.call()
     ext.VERSION = { ->
-        File f = new File("build.tmp.version")
+        File f = new File(projectDir, "build.tmp.version")
+        println "trying to read version from ${f.getCanonicalPath()}"
         if (f.exists()) {
             f.readLines().get(0)
         } else

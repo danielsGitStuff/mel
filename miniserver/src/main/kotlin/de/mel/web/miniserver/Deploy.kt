@@ -55,7 +55,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
 
                 // create a version and write it to the "version.now" file
                 val version = kotlin.run {
-                    val timestamp = LocalDateTime.ofEpochSecond(Date().time, 0, ZoneOffset.UTC)
+                    val timestamp = LocalDateTime.ofEpochSecond(Date().time/1000, 0, ZoneOffset.UTC)
                     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-ddhh-mm-ss")
                     timestamp.format(formatter)
                 }
