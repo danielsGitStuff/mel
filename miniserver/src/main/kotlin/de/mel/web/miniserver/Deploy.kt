@@ -1,6 +1,7 @@
 package de.mel.web.miniserver
 
 import de.mel.Lok
+import de.mel.Versioner
 import de.mel.auth.tools.N
 import de.mel.auth.tools.lock.P
 import de.mel.web.miniserver.http.BuildRequest
@@ -56,7 +57,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 // create a version and write it to the "version.now" file
                 val version = kotlin.run {
                     val timestamp = LocalDateTime.ofEpochSecond(Date().time / 1000, 0, ZoneOffset.UTC)
-                    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-ddhh-mm-ss")
+                    val formatter = DateTimeFormatter.ofPattern(Versioner.VERSION_DATE_FORMAT_PATTERN)
                     timestamp.format(formatter)
                 }
                 with(version) {

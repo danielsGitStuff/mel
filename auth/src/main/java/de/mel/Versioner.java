@@ -33,7 +33,7 @@ public class Versioner {
         return currentDate.getTime() < newDate.getTime();
     }
 
-    public static final String VERSION_DATE_FORMAT_PATTERN = "yyyy-MM-ddhh-mm-ss";
+    public static final String VERSION_DATE_FORMAT_PATTERN = "yyyy-MM-dd-hh-mm-ss";
 
 
 
