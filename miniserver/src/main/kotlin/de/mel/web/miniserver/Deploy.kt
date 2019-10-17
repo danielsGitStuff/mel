@@ -111,7 +111,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 Processor.runProcesses("copying", *processList.toTypedArray())
 
                 if (buildRequest.release!!) {
-                    Processor.runProcesses("release to github", Processor("/bin/sh", "-c", "${projectRootDir.absolutePath}/release.sh"))
+                    Processor.runProcesses("release to github", Processor("/bin/sh", "-c", "cd ${projectRootDir.absolutePath}; ./release.sh"))
                 }
 
                 // delete stop pipe
