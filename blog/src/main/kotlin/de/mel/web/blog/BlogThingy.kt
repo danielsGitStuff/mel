@@ -79,9 +79,9 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
         }
     }
 
-    override fun respondPage(ex: HttpExchange, page: Page?, contentType: String?) {
+    override fun respondPage(ex: HttpExchange, page: Page?) {
         visitors?.count(ex)
-        super.respondPage(ex, page, contentType)
+        super.respondPage(ex, page)
     }
 
     override fun configureContext(server: HttpServer) {
