@@ -134,7 +134,7 @@
     <string name="loading">Starting...</string>
     <string name="btnAbout">About</string>
     <string name="titleAbout">About</string>
-    <string name="version">Version: </string>
+    <string name="version">Version</string>
     <string name="powergrid_wifi_off">Wifi Off</string>
     <string name="powergrid_wifi_on">Wifi On</string>
     <string name="powergrid_power_off">AC Off</string>
@@ -167,6 +167,5 @@
     <string name="settingsLokExportToast">Exported to: </string>
     <string name="btnExportDBs">Export DBs</string>
     <string name="knownInstances">Known Mels</string>
-    <string name="timestamp">Timestamp</string>
-
+    <string name="commit">Commit</string>
 </resources>

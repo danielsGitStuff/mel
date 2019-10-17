@@ -33,7 +33,6 @@ sourceSets {
 def keyStorePropFile = rootProject.file("miniserver/server/secret/secret.properties")
 ext {
     signed = false
-    timestamp = new Date().getTime().toString()
     buildVariant = "apk"
 }
 android {
@@ -89,7 +88,6 @@ android {
                 signingConfig signingConfigs.release
             manifestPlaceholders = [appName: "Mel", icon: "ic_launcher"]
             buildConfigField("String", "BUILD_VARIANT", "\"apk-release\"")
-            buildConfigField("String", "BUILD_TIMESTAMP", "\"${timestamp}\"")
             buildConfigField("String","BUILD_COMMIT", "\"${VERSION}\"")
             buildConfigField("String","BUILD_VERSION","\"${COMMIT}\"")
             minifyEnabled false
@@ -100,7 +98,6 @@ android {
             manifestPlaceholders = [appName: "Mel DEBUG", icon: "ic_debug"]
             applicationIdSuffix ".debug"
             buildConfigField("String", "BUILD_VARIANT", "\"apk-debug\"")
-            buildConfigField("String", "BUILD_TIMESTAMP", "\"${timestamp}\"")
             buildConfigField("String","BUILD_VERSION","\"${COMMIT}\"")
             minifyEnabled false
         }

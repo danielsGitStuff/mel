@@ -134,7 +134,7 @@
     <string name="loading">Starte...</string>
     <string name="btnAbout">Zeige \"Über\"</string>
     <string name="titleAbout">Über</string>
-    <string name="version">Version: </string>
+    <string name="version">Version</string>
     <string name="powergrid_wifi_off">W-Lan Aus</string>
     <string name="powergrid_wifi_on">W-Lan An</string>
     <string name="powergrid_power_off">Strom Aus</string>
@@ -167,6 +167,6 @@
     <string name="settingsLokExportToast">Gepseichert unter: </string>
     <string name="btnExportDBs">Export DBs</string>
     <string name="knownInstances">Bekannte Mels</string>
-    <string name="timestamp">Erbaungszeitstempel</string>
+    <string name="commit">Commit</string>
 
 </resources>
