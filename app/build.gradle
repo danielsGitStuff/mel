@@ -131,7 +131,7 @@ task releaseWithProps {
             p['variant'] = 'apk-release'
             File output = new File("$buildDir/outputs/apk/release")
             output.mkdirs()
-            new File(output, "${rootProject.name}-release.apk.properties")
+            new File(output, "${rootProject.name}.apk.properties")
                     .withWriter { w -> p.store(w, null) }
         } else {
             println "apk not signed, so no prop file is created"
