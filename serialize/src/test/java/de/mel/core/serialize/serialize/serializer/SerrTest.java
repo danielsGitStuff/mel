@@ -51,7 +51,7 @@ public class SerrTest {
         String json = SerializableEntitySerializer.serialize(hashesAvailable);
         System.out.println(json);
         PrimitiveSet copy = (PrimitiveSet) SerializableEntityDeserializer.deserialize(json);
-        assertEquals("{\"$id\":1,\"__type\":\"de.mel.core.serialize.serialize.reflection.classes.PrimitiveSet\",\"strings\":[\"aa\",\"bb\"],\"ints\":[33,22,44]}",json);
+        assertEquals("{\"$id\":1,\"__type\":\"de.mel.core.serialize.serialize.reflection.classes.PrimitiveSet\",\"strings\":[\"aa\",\"bb\"],\"ints\":[33,22,44]}", json);
     }
 
 
@@ -195,10 +195,18 @@ public class SerrTest {
     public void number() throws JsonSerializationException, JsonDeserializationException {
         SimpleSerializableEntity simpleSerializableEntity = new SimpleSerializableEntity().setNumber(567);
         String json = SerializableEntitySerializer.serialize(simpleSerializableEntity);
+        SimpleSerializableEntity des = (SimpleSerializableEntity) SerializableEntityDeserializer.deserialize(json);
+        assertEquals(simpleSerializableEntity.getNumber(), des.getNumber());
+
+    }
+
+    @Test(expected = JsonDeserializationException.class)
+    public void numberFail() throws JsonSerializationException, JsonDeserializationException {
+        SimpleSerializableEntity simpleSerializableEntity = new SimpleSerializableEntity().setNumber(567);
+        String json = SerializableEntitySerializer.serialize(simpleSerializableEntity);
         json = "{\"$id\":1,\"__type\":\"de.mel.core.serialize.classes.SimpleSerializableEntity\",\"number\":\"567\"}";
         SimpleSerializableEntity des = (SimpleSerializableEntity) SerializableEntityDeserializer.deserialize(json);
-        assertEquals(simpleSerializableEntity.getNumber(),des.getNumber());
-
+        assertEquals(simpleSerializableEntity.getNumber(), des.getNumber());
     }
 
     @Test
