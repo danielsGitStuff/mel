@@ -87,7 +87,7 @@ public class BashToolsStuffModifiedTest {
     public void timestamp1() throws InterruptedException {
         testDir.mkdirs();
         Long t1 = testDir.lastModified();
-        Thread.sleep(1);
+        Thread.sleep(100);
         File dir = new File(testDir.getAbsolutePath() + File.separator + "ttttttt");
         dir.mkdirs();
         Long t2 = testDir.lastModified();
