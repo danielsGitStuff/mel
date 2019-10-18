@@ -33,8 +33,8 @@ dependencies {
     api project(path: ':filedump')
     api project(path: ':filesyncfx')
     api project(path: ':authfx')
-    testImplementation project(configuration: 'driveTestOutput', path: ':filesync')
+    testImplementation project(configuration: 'filesyncTestOutput', path: ':filesync')
 
-//    testCompile project(path: ':dump',configuration :'driveTestOutput')
+//    testCompile project(path: ':dump',configuration :'filesyncTestOutput')
     testImplementation 'junit:junit:4.12'
 }

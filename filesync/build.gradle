@@ -4,7 +4,7 @@ plugins{
 }
 
 configurations{
-    driveTestOutput
+    filesyncTestOutput
 }
 sourceSets {
     main {
@@ -19,7 +19,7 @@ sourceSets {
     }
 }
 dependencies {
-    driveTestOutput sourceSets.test.output
+    filesyncTestOutput sourceSets.test.output
     api project(path: ':auth')
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$KOTLIN_CR_V"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"

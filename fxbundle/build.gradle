@@ -40,7 +40,7 @@ dependencies {
     implementation project(':filedumpfx')
     implementation project(':filesyncfx')
     implementation project(':contactsfx')
-    testImplementation project(configuration: 'driveTestOutput', path: ':filesync')
+    testImplementation project(configuration: 'filesyncTestOutput', path: ':filesync')
     testImplementation 'junit:junit:4.12'
 }
 compileJava {

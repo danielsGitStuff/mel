@@ -82,10 +82,3 @@ GH_ASSET="https://uploads.github.com/repos/$owner/$repo/releases/$id/assets?name
 echo "GH_ASSET=$GH_ASSET"
 echo "filename=$filename"
 curl -o /dev/null -sSfH "$AUTH" --data-binary @"$filename" -H "Content-Type: application/octet-stream" $GH_ASSET
-
-
-#URL="https://github.com/$owner/$repo/releases/download/$tag/app-release.apk"
-#echo "URL for the released file is now: $URL"
-#
-#echo "Validating files..."
-#curl -LfsS $URL | md5sum "$filename" -
