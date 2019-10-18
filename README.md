@@ -140,9 +140,10 @@ For example:
   - some programs like `find` may accept your parameters but silently ignore them: `mindepth` for example
 - your background service might get killed at any time
 
-In Java I only found one thing that is broken:
-the file watch service that watches folders for changes:
-It neither delivers complete nor correct results on any Platform. All you can rely on is that something had happened.
+In Java I only found two things that are broken:
+- the file watch service that watches folders for changes:
+  It neither delivers complete nor correct results on any Platform. All you can rely on is that something had happened.
+- My JUnit tests somehow end with core dumps of the underlying JVM (on the build machine only)
 
 
 ### Intellij does not rebuild all changed Files when running or debugging (Linux)
