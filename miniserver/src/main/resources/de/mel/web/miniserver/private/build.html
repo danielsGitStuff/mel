@@ -16,17 +16,21 @@
                 var cbKeep = document.getElementById("cbKeep");
                 var cbBlog = document.getElementById("cbBlog");
                 var cbRelease = document.getElementById("cbRelease");
+                var cbTest = document.getElementById("cbTest");
                 var req = {
-                    $id: 1,
-                    __type: "de.mel.web.miniserver.http.BuildRequest",
-                    server: cbServer.checked,
-                    apk: cbApk.checked,
-                    jar: cbJar.checked,
-                    blog: cbBlog.checked,
-                    release: cbRelease.checked,
-                    pw: document.getElementById("pw").value,
-                    keepBinaries: cbKeep.checked
-                };
+                        $id: 1,
+                        __type: "de.mel.web.miniserver.http.BuildRequest",
+                        server: cbServer.checked,
+                        apk: cbApk.checked,
+                        jar: cbJar.checked,
+                        blog: cbBlog.checked,
+                        release: cbRelease.checked,
+                        test: cbTest.checked,
+                        pw: document.getElementById("pw").value,
+                        keepBinaries:
+                        cbKeep.checked
+                    }
+                ;
                 fetch("/api/build", {
                     method: 'POST', // or 'PUT'
                     body: JSON.stringify(req), // data can be `string` or {object}!
@@ -66,6 +70,7 @@
     <button onclick="return warning()" type="submit">Shut Down</button>
 </form>
 <br>
+<input type="checkbox" id="cbTest" checked> <label for="cbTest">Run Tests</label>
 <input type="checkbox" id="cbKeep" <§=keep/>><label for="cbKeep">Keep binaries</label>
 <input type="checkbox" id="cbRelease"><label for="cbRelease">release(Github)</label>
 <input type="checkbox" id="cbServer" checked> <label for="cbServer">miniserver</label>
