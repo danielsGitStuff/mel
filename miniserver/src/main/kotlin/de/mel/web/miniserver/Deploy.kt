@@ -81,7 +81,6 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 // tests take a shitload of time on that stupid machine
                 Processor.runProcesses("run tests",
                         Processor(gradle.absolutePath, ":auth:test"),
-                        Processor(gradle.absolutePath, ":calendar:test"),
                         Processor(gradle.absolutePath, ":contacts:test"),
                         Processor(gradle.absolutePath, ":filesync:test"),
                         Processor(gradle.absolutePath, ":filedump:test"),
