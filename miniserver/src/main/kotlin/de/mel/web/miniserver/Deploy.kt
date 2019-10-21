@@ -122,17 +122,17 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 if (buildRequest.apk!!) {
                     processList.add(Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/app/build/outputs/apk/release/\"* \"${serverFilesDir.absolutePath}\""))
                     apkFile = File("${projectRootDir.absolutePath}/app/build/outputs/apk/release/").listFiles().filter { it.extension.toLowerCase() == "apk" }.first()
-                    apkPropFile = File("${projectRootDir.absolutePath}/app/build/outputs/apk/release/").listFiles().filter { it.extension.toLowerCase() == "apk.properties" }.first()
+                    apkPropFile = File("${projectRootDir.absolutePath}/app/build/outputs/apk/release/").listFiles().filter { it.extension.toLowerCase() == "properties" }.first()
                 }
                 if (buildRequest.jar!!) {
                     processList.add(Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/fxbundle/build/libs/\"* \"${serverFilesDir.absolutePath}\""))
                     fxFile = File("${projectRootDir.absolutePath}/fxbundle/build/libs/").listFiles().filter { it.extension.toLowerCase() == "jar" }.first()
-                    fxPropFile = File("${projectRootDir.absolutePath}/fxbundle/build/libs/").listFiles().filter { it.extension.toLowerCase() == "jar.properties" }.first()
+                    fxPropFile = File("${projectRootDir.absolutePath}/fxbundle/build/libs/").listFiles().filter { it.extension.toLowerCase() == "properties" }.first()
                 }
                 if (buildRequest.blog!!) {
                     processList.add(Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/blog/build/libs/\"* \"${serverFilesDir.absolutePath}\""))
                     blogFile = File("${projectRootDir.absolutePath}/blog/build/libs/").listFiles().filter { it.extension.toLowerCase() == "jar" }.first()
-                    blogPropFile = File("${projectRootDir.absolutePath}/blog/build/libs/").listFiles().filter { it.extension.toLowerCase() == "jar.properties" }.first()
+                    blogPropFile = File("${projectRootDir.absolutePath}/blog/build/libs/").listFiles().filter { it.extension.toLowerCase() == "properties" }.first()
                 }
                 processList.add(Processor("rm", "-f", "${File(serverFilesDir, "output.json")}"))
                 processList.add(Processor("/bin/sh", "-c", "chmod -R 700 \"$serverFilesDir\""))
