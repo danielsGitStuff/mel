@@ -140,14 +140,14 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
 
                 if (buildRequest.release!!) {
                     fun appendGithubMirror(binary: File, propFile: File, version: String) {
-                        Lok.debug("aaa")
+                        Lok.info("aaa")
                         val props = Properties()
                         props.load(propFile.inputStream())
-                        Lok.debug("aaa1")
+                        Lok.info("aaa1")
                         props[MelStrings.update.GITHUB] = "https://github.com/danielsGitStuff/mel/releases/download/$version/${binary.name}"
-                        Lok.debug("aaa2")
+                        Lok.info("aaa2")
                         props.store(propFile.outputStream(),"comments go here")
-                        Lok.debug("aaa3")
+                        Lok.info("aaa3")
                     }
 
                     val relaseProcesses = mutableListOf<Processor>()
@@ -163,16 +163,16 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                         appendGithubMirror(fxFile, fxPropFile!!, version)
                     }
                     if (buildRequest.blog!!) {
-                        Lok.debug("aaa4")
+                        Lok.info("aaa4")
                         relaseProcesses.add(Processor("/bin/sh", "-c", "cd ${projectRootDir.absolutePath}; ./release.sh $version \"${blogFile!!.absolutePath}\""))
-                        Lok.debug("aaa5")
+                        Lok.info("aaa5")
                         appendGithubMirror(blogFile, blogPropFile!!, version)
-                        Lok.debug("aaa6")
+                        Lok.info("aaa6")
                     }
                     // run everything
-                    Lok.debug("aaa7")
+                    Lok.info("aaa7")
                     Processor.runProcesses("upload to github", *relaseProcesses.toTypedArray())
-                    Lok.debug("aaa8")
+                    Lok.info("aaa8")
                 }
 
                 // delete stop pipe
