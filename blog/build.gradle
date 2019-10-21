@@ -16,9 +16,9 @@ sourceSets {
     }
 }
 dependencies {
-    api 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1'
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$KOTLIN_CR_V"
     api "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
-    api "org.jetbrains.kotlinx:kotlinx-io-jvm:0.1.0"
+    api "org.jetbrains.kotlinx:kotlinx-io-jvm:0.1.15"
     api project(':konsole')
     api project(':auth')
     api project(':serverparts')
