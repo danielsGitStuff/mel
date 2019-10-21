@@ -63,8 +63,10 @@ task createProperties() {
         //store in jar
         File resources = new File(buildDir, "resources")
         File main = new File(resources, "main")
-        main.mkdirs()
-        new File(main, "version.properties").withWriter { w -> props.store(w, null) }
+        File de = new File(main, "de")
+        File mel = new File(de, "mel")
+        de.mkdirs()
+        new File(mel, "version.properties").withWriter { w -> props.store(w, null) }
         File libs = new File(buildDir, "libs")
         libs.mkdirs()
         new File(libs, "${jarName}.properties").withWriter { w -> props.store(w, null) }

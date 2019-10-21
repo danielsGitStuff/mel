@@ -56,9 +56,9 @@ public class Updater {
 
     void onVersionAvailable(VersionAnswerEntry versionEntry) {
         try {
-            String currentCommit = Versioner.getVersion();
+            String currentCommit = Versioner.getCommit();
             String currentVersion = Versioner.getVersion();
-            Lok.debug("current: commit=" + currentCommit + " timestamp=" + currentVersion);
+            Lok.debug("current: commit=" + currentCommit + " version=" + currentVersion);
             Lok.debug("latest : commit=" + versionEntry.getCommit() + " version=" + versionEntry.getVersion());
             if (Versioner.isYounger(currentVersion, versionEntry.getVersion())) {
                 Lok.debug("no update necessary :)");

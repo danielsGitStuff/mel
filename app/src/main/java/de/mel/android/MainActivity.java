@@ -190,7 +190,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
 
             @Override
             public void readProperties() throws IOException {
-                commit = BuildConfig.BUILD_VERSION;
+                commit = BuildConfig.BUILD_COMMIT;
                 variant = BuildConfig.BUILD_VARIANT;
                 version = BuildConfig.BUILD_VERSION;
             }

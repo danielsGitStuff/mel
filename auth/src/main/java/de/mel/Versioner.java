@@ -16,7 +16,7 @@ public class Versioner {
         @Override
         public void readProperties() throws IOException {
             Properties properties = new Properties();
-            InputStream in = getClass().getResourceAsStream("/version.properties");
+            InputStream in = getClass().getResourceAsStream("/de/mel/version.properties");
             properties.load(in);
             variant = properties.getProperty("variant");
             version = properties.getProperty("version");
