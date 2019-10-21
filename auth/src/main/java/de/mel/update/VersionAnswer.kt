@@ -7,7 +7,7 @@ class VersionAnswer : SerializableEntity {
     private val entries: MutableMap<String, VersionAnswerEntry> = HashMap()
 
     fun addEntry(entry: VersionAnswerEntry) {
-        entries[entry.variant] = entry
+        entries[entry.variant!!] = entry
     }
 
     fun getHash(variant: String): String? {

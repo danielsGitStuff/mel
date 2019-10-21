@@ -16,8 +16,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Created by xor on 12/20/15.
@@ -37,9 +36,6 @@ public class SerrTest {
         private Set<SimpleSerializableEntity> set = new HashSet<>();
     }
 
-    public static class WithObjectMap implements SerializableEntity {
-        private Map<String, URL> urls = new HashMap<>();
-    }
 
 //
 //    @Test
@@ -146,8 +142,22 @@ public class SerrTest {
         WithObjectMap entity = new WithObjectMap();
         entity.urls.put("1", new URL("http://bla.de"));
         String json = serialize(entity);
-        String result = "{\"$id\":1,\"__type\":\"de.mel.core.serialize.serialize.serializer.SerrTest$WithObjectMap\"}";
+        String result = "{\"$id\":1,\"__type\":\"de.mel.core.serialize.classes.WithObjectMap\"}";
         assertEquals(result, json);
+    }
+
+    @Test
+    public void testWithEntityMap() throws MalformedURLException, JsonDeserializationException {
+        WithEntityMap withMap = new WithEntityMap();
+        SimplestEntity entity = new SimplestEntity();
+        entity.name = "changed";
+        withMap.entities.put("entity1", entity);
+        String json = serialize(withMap);
+        String result = "{\"$id\":1,\"__type\":\"de.mel.core.serialize.classes.WithEntityMap\",\"entities\":{\"__type\":\"java.util.HashMap\",\"__k\":\"java.lang.String\",\"__v\":\"de.mel.core.serialize.classes.SimplestEntity\",\"__x\":{\"0\":\"entity1\"},\"__m\":{\"0\":{\"$id\":2,\"__type\":\"de.mel.core.serialize.classes.SimplestEntity\",\"name\":\"changed\"}}}}";
+        assertEquals(result, json);
+        WithEntityMap des = (WithEntityMap) SerializableEntityDeserializer.deserialize(json);
+        SimplestEntity desEntity = des.entities.get("entity1");
+        assertNotNull(desEntity);
     }
 // currently not implemented
 //    @Test

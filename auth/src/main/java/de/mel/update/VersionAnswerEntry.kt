@@ -3,4 +3,6 @@ package de.mel.update
 import de.mel.core.serialize.SerializableEntity
 
 
-data class VersionAnswerEntry(val variant: String, val hash: String, val commit: String, val version: String, val length: Long, val mirrors: List<String>) : SerializableEntity
+class VersionAnswerEntry(var variant: String?, var hash: String?, var commit: String?, var version: String?, var length: Long?, var mirrors: List<String>?) : SerializableEntity {
+    constructor() : this(null, null, null, null, null, null)
+}
