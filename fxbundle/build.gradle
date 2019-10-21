@@ -65,7 +65,7 @@ task createProperties() {
         File main = new File(resources, "main")
         File de = new File(main, "de")
         File mel = new File(de, "mel")
-        de.mkdirs()
+        mel.mkdirs()
         new File(mel, "version.properties").withWriter { w -> props.store(w, null) }
         File libs = new File(buildDir, "libs")
         libs.mkdirs()
