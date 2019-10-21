@@ -4,7 +4,7 @@ import java.io.File
 import java.io.FileNotFoundException
 
 @Suppress("ArrayInDataClass")
-class FileEntry(val hash: String, val file: File, val variant: String, val version: String, val commit:String, val size: Long, bytes: ByteArray? = null) {
+class FileEntry(val hash: String, val file: File, val variant: String, val version: String, val commit: String, val size: Long, val mirrors: List<String>, bytes: ByteArray? = null) {
     var bytes: ByteArray? = bytes
         get() {
             if (field == null) {

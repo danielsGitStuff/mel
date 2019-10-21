@@ -145,13 +145,15 @@ constructor(val config: ServerConfig) {
 
             val size = f.length()
 
-            val fileEntry = FileEntry(hash = hash, file = f, variant = variant, size = size, version = version, commit = commit)
-            fileRepository += fileEntry
+
             val mirrors = mutableListOf<String>()
             if (mirrorGithub != null)
                 mirrors.add(mirrorGithub)
             val versionAnswerEntry = VersionAnswerEntry(variant = variant, hash = hash, commit = commit, version = version, length = size, mirrors = mirrors)
             versionAnswer.addEntry(versionAnswerEntry)
+
+            val fileEntry = FileEntry(hash = hash, file = f, variant = variant, size = size, version = version, commit = commit, mirrors = mirrors)
+            fileRepository += fileEntry
         }
         fileRepository.sort()
     }
