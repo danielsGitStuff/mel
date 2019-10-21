@@ -68,6 +68,7 @@ public class Warden<Type> {
 
     /**
      * executes some code and has a return value.
+     *
      * @param resultRunnable
      * @param <Y>
      * @return
@@ -93,6 +94,7 @@ public class Warden<Type> {
 
     /**
      * Executes some code within this transaction.
+     *
      * @param runnable
      * @return
      */
@@ -107,6 +109,7 @@ public class Warden<Type> {
             runnable.run();
         } catch (Exception e) {
             Lok.error("lockingTransaction failed: " + e.toString() + " msg: " + e.getMessage());
+            e.printStackTrace();
             end();
         } finally {
             if (!permaLocked)
