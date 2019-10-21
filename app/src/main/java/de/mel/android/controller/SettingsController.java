@@ -25,13 +25,12 @@ import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.tools.N;
 import de.mel.update.UpdateHandler;
 import de.mel.update.Updater;
-import de.mel.update.VersionAnswer;
+import de.mel.update.VersionAnswerEntry;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Date;
 
 /**
  * Created by xor on 9/19/17.
@@ -128,7 +127,7 @@ public class SettingsController extends GuiController {
                             }
 
                             @Override
-                            public void onUpdateFileReceived(Updater updater, VersionAnswer.VersionEntry versionEntry, File target) {
+                            public void onUpdateFileReceived(Updater updater, VersionAnswerEntry versionEntry, File target) {
                                 Notifier.cancel(null, requestCode);
 
                                 File toInstall = target;
@@ -158,7 +157,7 @@ public class SettingsController extends GuiController {
                             }
 
                             @Override
-                            public void onUpdateAvailable(Updater updater, VersionAnswer.VersionEntry versionEntry) {
+                            public void onUpdateAvailable(Updater updater, VersionAnswerEntry versionEntry) {
                                 titleAvail = androidService.getString(R.string.titleUpdateAvail);
                                 titleReceiving = androidService.getString(R.string.titleReceiving);
                                 activity.showMessageBinary(R.string.titleUpdateAvail, R.string.questionDownloadUpdate, (dialog, which) -> {
@@ -182,7 +181,7 @@ public class SettingsController extends GuiController {
                             }
                         };
                     Updater updater = androidService.getMelAuthService().getUpdater().clearUpdateHandlers().addUpdateHandler(updateHandler);
-                    updater.retrieveUpdate();
+                    updater.searchUpdate();
 
                 });
             } else {

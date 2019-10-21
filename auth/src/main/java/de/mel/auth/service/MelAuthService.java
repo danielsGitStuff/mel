@@ -170,7 +170,7 @@ public class MelAuthService {
     }
 
     public void updateProgram() throws UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        updater.retrieveUpdate();
+        updater.searchUpdate();
     }
 
     public void start() {

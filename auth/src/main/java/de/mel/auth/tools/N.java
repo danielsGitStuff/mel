@@ -104,6 +104,11 @@ public class N {
         N.runner.runTry(noTryRunnable);
     }
 
+    public static <T> T r(INoTryWithResult<T> noTryRunnable) {
+        return N.runner.runResult(noTryRunnable);
+    }
+
+
     /**
      * closes the Resource when failing or finishing
      *
@@ -428,6 +433,7 @@ public class N {
         return null;
     }
 
+
     public interface ResultRunnable<Ty> {
         Ty run();
     }
@@ -504,6 +510,15 @@ public class N {
         return this;
     }
 
+    private <T> T runResult(INoTryWithResult<T> noTryRunnable) {
+        try {
+            return noTryRunnable.run();
+        } catch (Exception e) {
+            consumer.accept(e);
+        }
+        return null;
+    }
+
     public N runTry(INoTryRunnable noTryRunnable, NoTryExceptionConsumer consumer) {
         try {
             noTryRunnable.run();
@@ -519,6 +534,10 @@ public class N {
 
     public interface INoTryRunnable {
         void run() throws Exception;
+    }
+
+    public interface INoTryWithResult<T> {
+        T run() throws Exception;
     }
 
     //####

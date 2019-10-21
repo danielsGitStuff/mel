@@ -37,7 +37,7 @@ public class UpdateMessageSocket extends SimpleSocket {
             String json = in.readUTF();
             Lok.debug(json);
             VersionAnswer answer = (VersionAnswer) SerializableEntityDeserializer.deserialize(json);
-            VersionAnswer.VersionEntry entry = answer.getEntry(variant);
+            VersionAnswerEntry entry = answer.getEntry(variant);
             if (entry == null) {
                 Lok.error("update server has not the variant('" + variant + "') I am looking for :(");
             } else {

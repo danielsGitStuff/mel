@@ -2,6 +2,7 @@ package de.mel.web.miniserver
 
 import de.mel.Lok
 import de.mel.Versioner
+import de.mel.auth.MelStrings
 import de.mel.auth.tools.N
 import de.mel.auth.tools.lock.P
 import de.mel.web.miniserver.http.BuildRequest
@@ -115,35 +116,51 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 var apkFile: File? = null
                 var fxFile: File? = null
                 var blogFile: File? = null
+                var apkPropFile: File? = null
+                var fxPropFile: File? = null
+                var blogPropFile: File? = null
                 if (buildRequest.apk!!) {
                     processList.add(Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/app/build/outputs/apk/release/\"* \"${serverFilesDir.absolutePath}\""))
                     apkFile = File("${projectRootDir.absolutePath}/app/build/outputs/apk/release/").listFiles().filter { it.extension.toLowerCase() == "apk" }.first()
+                    apkPropFile = File("${projectRootDir.absolutePath}/app/build/outputs/apk/release/").listFiles().filter { it.extension.toLowerCase() == "apk.properties" }.first()
                 }
                 if (buildRequest.jar!!) {
                     processList.add(Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/fxbundle/build/libs/\"* \"${serverFilesDir.absolutePath}\""))
                     fxFile = File("${projectRootDir.absolutePath}/fxbundle/build/libs/").listFiles().filter { it.extension.toLowerCase() == "jar" }.first()
+                    fxPropFile = File("${projectRootDir.absolutePath}/fxbundle/build/libs/").listFiles().filter { it.extension.toLowerCase() == "jar.properties" }.first()
                 }
                 if (buildRequest.blog!!) {
                     processList.add(Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/blog/build/libs/\"* \"${serverFilesDir.absolutePath}\""))
                     blogFile = File("${projectRootDir.absolutePath}/blog/build/libs/").listFiles().filter { it.extension.toLowerCase() == "jar" }.first()
+                    blogPropFile = File("${projectRootDir.absolutePath}/blog/build/libs/").listFiles().filter { it.extension.toLowerCase() == "jar.properties" }.first()
                 }
                 processList.add(Processor("rm", "-f", "${File(serverFilesDir, "output.json")}"))
                 processList.add(Processor("/bin/sh", "-c", "chmod -R 700 \"$serverFilesDir\""))
                 Processor.runProcesses("copying", *processList.toTypedArray())
 
                 if (buildRequest.release!!) {
+                    fun appendGithubMirror(binary: File, propFile: File, version: String) {
+                        val props = Properties()
+                        props.load(propFile.inputStream())
+                        props[MelStrings.update.GITHUB] = "https://github.com/danielsGitStuff/mel/releases/download/$version/${binary.name}"
+                        props.store(propFile.outputStream(),"comments go here")
+                    }
+
                     val relaseProcesses = mutableListOf<Processor>()
                     // create tag
                     relaseProcesses.add(Processor("/bin/sh", "-c", "cd ${projectRootDir.absolutePath}; ./tag.sh $version"))
                     // add upload jobs
                     if (buildRequest.apk!!) {
                         relaseProcesses.add(Processor("/bin/sh", "-c", "cd ${projectRootDir.absolutePath}; ./release.sh $version \"${apkFile!!.absolutePath}\""))
+                        appendGithubMirror(apkFile, apkPropFile!!, version)
                     }
                     if (buildRequest.jar!!) {
                         relaseProcesses.add(Processor("/bin/sh", "-c", "cd ${projectRootDir.absolutePath}; ./release.sh $version \"${fxFile!!.absolutePath}\""))
+                        appendGithubMirror(fxFile, fxPropFile!!, version)
                     }
                     if (buildRequest.blog!!) {
                         relaseProcesses.add(Processor("/bin/sh", "-c", "cd ${projectRootDir.absolutePath}; ./release.sh $version \"${blogFile!!.absolutePath}\""))
+                        appendGithubMirror(blogFile, blogPropFile!!, version)
                     }
                     // run everything
                     Processor.runProcesses("upload to github", *relaseProcesses.toTypedArray())

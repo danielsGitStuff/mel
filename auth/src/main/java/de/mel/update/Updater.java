@@ -8,9 +8,13 @@ import de.mel.auth.service.MelAuthService;
 import de.mel.auth.tools.N;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
 import java.net.Socket;
+import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -35,7 +39,7 @@ public class Updater {
         this.target = new File(settings.getWorkingDirectory(), settings.getVariant());
     }
 
-    public void retrieveUpdate() throws UnrecoverableKeyException, IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    public void searchUpdate() throws UnrecoverableKeyException, IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         if (updateMessageSocket != null)
             updateMessageSocket.onShutDown();
         if (binarySocket != null)
@@ -50,7 +54,7 @@ public class Updater {
         melAuthService.execute(updateMessageSocket);
     }
 
-    void onVersionAvailable(VersionAnswer.VersionEntry versionEntry) {
+    void onVersionAvailable(VersionAnswerEntry versionEntry) {
         try {
             String currentCommit = Versioner.getVersion();
             String currentVersion = Versioner.getVersion();
@@ -68,7 +72,7 @@ public class Updater {
         N.forEachAdvIgnorantly(updateHandlers, (stoppable, index, updateHandler) -> updateHandler.onUpdateAvailable(this, versionEntry));
     }
 
-    void onUpdateReceived(VersionAnswer.VersionEntry versionEntry, File target) {
+    void onUpdateReceived(VersionAnswerEntry versionEntry, File target) {
         Lok.debug("Success. I got Update!!!1!");
         N.forEachAdvIgnorantly(updateHandlers, (stoppable, index, updateHandler) -> updateHandler.onUpdateFileReceived(this, versionEntry, target));
     }
@@ -87,7 +91,40 @@ public class Updater {
         N.forEachAdvIgnorantly(updateHandlers, (stoppable, index, updateHandler) -> updateHandler.onProgress(this, done, length));
     }
 
-    public void loadUpdate(VersionAnswer.VersionEntry versionEntry, File target) {
+    /**
+     * Retrieve the binary file
+     *
+     * @param versionEntry
+     * @param target
+     */
+    public void loadUpdate(VersionAnswerEntry versionEntry, File target) {
+        for (String urlString : versionEntry.getMirrors()) {
+            FileOutputStream fos = null;
+            InputStream input = null;
+            try {
+                Lok.info("transferring update (src=" + urlString + ")");
+                URL url = new URL(urlString);
+                input = url.openStream();
+                fos = new FileOutputStream(target);
+                if (BinarySocket.transferToOutputStream(this, fos, input, versionEntry.getHash(), versionEntry.getLength())) {
+                    Lok.info("update transferred successfully (src=" + urlString + ")");
+                    return;
+                } else {
+                    Lok.error("could not transfer update (src=" + urlString + ")");
+                }
+            } catch (IOException | NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            } finally {
+                if (input != null)
+                    N.r(input::close);
+                if (fos != null)
+                    N.r(fos::close);
+            }
+            loadFromXorserv(versionEntry, target);
+        }
+    }
+
+    private void loadFromXorserv(VersionAnswerEntry versionEntry, File target) {
         String url = settings.getUpdateUrl();
         int port = settings.getUpdateBinaryPort();
         Socket socket = new Socket();

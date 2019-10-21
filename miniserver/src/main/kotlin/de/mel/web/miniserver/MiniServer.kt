@@ -12,6 +12,7 @@ import de.mel.konsole.Konsole
 import de.mel.sql.Hash
 import de.mel.sql.RWLock
 import de.mel.update.VersionAnswer
+import de.mel.update.VersionAnswerEntry
 import de.mel.web.miniserver.data.FileEntry
 import de.mel.web.miniserver.data.FileRepository
 import de.mel.web.serverparts.HttpThingy
@@ -140,12 +141,17 @@ constructor(val config: ServerConfig) {
             val variant = properties.getProperty("variant")
             val version = properties.getProperty("version")
             val commit = properties.getProperty("commit")
+            val mirrorGithub: String? = properties.getProperty(MelStrings.update.GITHUB, null)
 
             val size = f.length()
 
             val fileEntry = FileEntry(hash = hash, file = f, variant = variant, size = size, version = version, commit = commit)
             fileRepository += fileEntry
-            versionAnswer.addEntry(hash, variant, commit, version, size)
+            val mirrors = mutableListOf<String>()
+            if (mirrorGithub != null)
+                mirrors.add(mirrorGithub)
+            val versionAnswerEntry = VersionAnswerEntry(variant = variant, hash = hash, commit = commit, version = version, length = size, mirrors = mirrors)
+            versionAnswer.addEntry(versionAnswerEntry)
         }
         fileRepository.sort()
     }

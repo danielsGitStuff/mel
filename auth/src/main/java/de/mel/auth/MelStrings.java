@@ -14,6 +14,7 @@ public class MelStrings {
         public static final String VARIANT_JAR = "konsole";
         public static final String VARIANT_APK = "apk";
         public static final String INFO_APPENDIX = ".properties";
+        public static final String GITHUB = "github";
     }
 
     public static class msg {

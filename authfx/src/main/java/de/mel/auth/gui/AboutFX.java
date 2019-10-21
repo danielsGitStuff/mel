@@ -7,10 +7,7 @@ import de.mel.auth.FxApp;
 import de.mel.auth.service.MelAuthAdminFX;
 import de.mel.auth.tools.F;
 import de.mel.auth.tools.N;
-import de.mel.update.CurrentJar;
-import de.mel.update.UpdateHandler;
-import de.mel.update.Updater;
-import de.mel.update.VersionAnswer;
+import de.mel.update.*;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -23,7 +20,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -84,7 +80,7 @@ public class AboutFX extends AuthSettingsFX {
             e.printStackTrace();
         }
         btnCheckUpdate.setOnMouseClicked(event -> {
-            AtomicReference<VersionAnswer.VersionEntry> versionEntry = new AtomicReference<>();
+            AtomicReference<VersionAnswerEntry> versionEntry = new AtomicReference<>();
             File currentJarFile = null;
             try {
                 currentJarFile = new File(CurrentJar.getCurrentJarClass().getProtectionDomain().getCodeSource().getLocation().toURI());
@@ -102,7 +98,7 @@ public class AboutFX extends AuthSettingsFX {
 
 
                 @Override
-                public void onUpdateFileReceived(Updater updater, VersionAnswer.VersionEntry versionEntry, File updateFile) {
+                public void onUpdateFileReceived(Updater updater, VersionAnswerEntry versionEntry, File updateFile) {
                     Lok.debug("received. replacing...");
                     boolean replaced = updateFile.renameTo(finalCurrentJarFile);
                     if (replaced) {
@@ -124,7 +120,7 @@ public class AboutFX extends AuthSettingsFX {
                 }
 
                 @Override
-                public void onUpdateAvailable(Updater updater, VersionAnswer.VersionEntry ve) {
+                public void onUpdateAvailable(Updater updater, VersionAnswerEntry ve) {
                     Lok.debug("available");
                     N.r(() -> {
                         String currentVersion = Versioner.getVersion();
@@ -148,7 +144,7 @@ public class AboutFX extends AuthSettingsFX {
                 }
             });
 
-            N.r(() -> melAuthService.getUpdater().retrieveUpdate());
+            N.r(() -> melAuthService.getUpdater().searchUpdate());
         });
 
     }
