@@ -7,6 +7,8 @@ import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntity
 import de.mel.core.serialize.serialize.reflection.FieldAnalyzer;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 /**
  * Created by xor on 1/13/17.
@@ -29,7 +31,15 @@ public class MapSerializerFactory implements FieldSerializerFactory {
 
     @Override
     public boolean canSerialize(Field field) {
-        return FieldAnalyzer.isMap(field);
+        if (!FieldAnalyzer.isMap(field))
+            return false;
+        Type type = field.getGenericType();
+        ParameterizedType pType = (ParameterizedType) type;
+        Class clazzK = (Class) pType.getActualTypeArguments()[0];
+        Class clazzV = (Class) pType.getActualTypeArguments()[1];
+        if (!(FieldAnalyzer.isEntitySerializableClass(clazzK) || FieldAnalyzer.isPrimitiveClass(clazzK)))
+            return false;
+        return FieldAnalyzer.isEntitySerializableClass(clazzV) || FieldAnalyzer.isPrimitiveClass(clazzV);
     }
 
     @Override

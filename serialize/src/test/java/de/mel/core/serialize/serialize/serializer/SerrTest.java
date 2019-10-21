@@ -12,6 +12,8 @@ import de.mel.core.serialize.serialize.trace.TraceManager;
 
 import org.junit.Test;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
@@ -33,6 +35,10 @@ public class SerrTest {
 
     public static class S implements SerializableEntity {
         private Set<SimpleSerializableEntity> set = new HashSet<>();
+    }
+
+    public static class WithObjectMap implements SerializableEntity {
+        private Map<String, URL> urls = new HashMap<>();
     }
 
 //
@@ -132,6 +138,15 @@ public class SerrTest {
         WithSerializableEntityCollection withEntitySerializableCollection = new WithSerializableEntityCollection();
         String json = serialize(withEntitySerializableCollection);
         String result = "{\"$id\":1,\"__type\":\"de.mel.core.serialize.classes.WithSerializableEntityCollection\",\"primitive\":\"primitive\"}";
+        assertEquals(result, json);
+    }
+
+    @Test
+    public void testWithObjectMap() throws MalformedURLException {
+        WithObjectMap entity = new WithObjectMap();
+        entity.urls.put("1", new URL("http://bla.de"));
+        String json = serialize(entity);
+        String result = "{\"$id\":1,\"__type\":\"de.mel.core.serialize.serialize.serializer.SerrTest$WithObjectMap\"}";
         assertEquals(result, json);
     }
 // currently not implemented
