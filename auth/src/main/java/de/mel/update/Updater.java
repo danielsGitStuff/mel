@@ -60,7 +60,7 @@ public class Updater {
             String currentVersion = Versioner.getVersion();
             Lok.debug("current: commit=" + currentCommit + " version=" + currentVersion);
             Lok.debug("latest : commit=" + versionEntry.getCommit() + " version=" + versionEntry.getVersion());
-            if (Versioner.isYounger(currentVersion, versionEntry.getVersion())) {
+            if (!Versioner.isYounger(currentVersion, versionEntry.getVersion())) {
                 Lok.debug("no update necessary :)");
                 N.forEachAdvIgnorantly(updateHandlers, (stoppable, index, updateHandler) -> updateHandler.onNoUpdateAvailable(this));
                 return;
