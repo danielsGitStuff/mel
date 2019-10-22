@@ -13,13 +13,15 @@
     <Label fx:id="lblVariant" maxHeight="1.7976931348623157E308" prefWidth="1.7976931348623157E308" styleClass="lbl"
            text="%about.couldNotRead"/>
 
-    <Label styleClass="lbl-center-section" text="%about.timestamp"/>
-    <Label fx:id="lblCommit" maxHeight="1.7976931348623157E308" prefWidth="1.7976931348623157E308" styleClass="lbl"
-           text="%about.couldNotRead"/>
-
     <Label styleClass="lbl-center-section" text="%about.version"/>
     <Label fx:id="lblVersion" maxHeight="1.7976931348623157E308" prefWidth="1.7976931348623157E308" styleClass="lbl"
            text="%about.couldNotRead"/>
+
+    <Label styleClass="lbl-center-section" text="%about.commit"/>
+    <Label fx:id="lblCommit" maxHeight="1.7976931348623157E308" prefWidth="1.7976931348623157E308" styleClass="lbl"
+           text="%about.couldNotRead"/>
+
+
 
     <Label fx:id="lblUpdate" maxHeight="1.7976931348623157E308" prefWidth="1.7976931348623157E308"
            styleClass="lbl-center-section" text="%about.update"/>

@@ -16,6 +16,7 @@ import javafx.scene.web.WebView;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -83,8 +84,14 @@ public class AboutFX extends AuthSettingsFX {
             AtomicReference<VersionAnswerEntry> versionEntry = new AtomicReference<>();
             File currentJarFile = null;
             try {
-                currentJarFile = new File(CurrentJar.getCurrentJarClass().getProtectionDomain().getCodeSource().getLocation().toURI());
-                if (!currentJarFile.getAbsolutePath().endsWith(".jar")) {
+                URL locationUrl = CurrentJar.getCurrentJarClass().getProtectionDomain().getCodeSource().getLocation();
+                String jarPath = N.r(() -> {
+                    String toParse = locationUrl.getContent().toString();
+                    return toParse.substring(1, toParse.length() - "!/BOOT-INF/classes".length());
+                });
+                Lok.debug("path=" + jarPath);
+                currentJarFile = new File(jarPath);
+                if (!locationUrl.getProtocol().equals("jar")) {
                     Lok.error("Seems I am not a jar. I won't update myself then ;)");
                     FxApp.showErrorDialog(getString("about.alert.title"), getString("about.err.notAJar"));
                     return;

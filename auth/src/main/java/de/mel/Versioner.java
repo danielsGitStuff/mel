@@ -21,7 +21,6 @@ public class Versioner {
             variant = properties.getProperty("variant");
             version = properties.getProperty("version");
             commit = properties.getProperty("commit");
-
         }
     };
 
@@ -42,7 +41,9 @@ public class Versioner {
         protected String commit;
         protected String version;
 
-        public String getVersion() {
+        public String getVersion() throws IOException {
+            if (version == null)
+                readProperties();
             return version;
         }
 
@@ -54,7 +55,9 @@ public class Versioner {
             return variant;
         }
 
-        public String getCommit() {
+        public String getCommit() throws IOException {
+            if (commit == null)
+                readProperties();
             return commit;
         }
     }
