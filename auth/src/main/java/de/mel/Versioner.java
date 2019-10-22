@@ -30,11 +30,11 @@ public class Versioner {
         SimpleDateFormat formatter = new SimpleDateFormat(VERSION_DATE_FORMAT_PATTERN);
         Date currentDate = formatter.parse(currentVersion);
         Date newDate = formatter.parse(newVersion);
+        Lok.debug("comparing " + currentDate.toString() + " < " + newDate.toString());
         return currentDate.getTime() < newDate.getTime();
     }
 
     public static final String VERSION_DATE_FORMAT_PATTERN = "yyyy-MM-dd-hh-mm-ss";
-
 
 
     public static abstract class BuildReader {
