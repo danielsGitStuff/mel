@@ -152,9 +152,11 @@ public class ConnectWorker extends MelWorker {
                                     ConnectJob secondJob = new ConnectJob(connectJob.getCertificateId(), connectJob.getAddress(), connectJob.getPort(), connectJob.getPortCert(), false);
                                     secondJob.done(result1 -> {
                                         result.resolve(result1);
+                                        melAuthService.getPowerManager().releaseWakeLock(this);
                                         shutDown();
                                     }).fail(result1 -> {
                                         result.reject(result1);
+                                        melAuthService.getPowerManager().releaseWakeLock(this);
                                         shutDown();
                                     });
                                     this.addJob(secondJob);
@@ -188,10 +190,11 @@ public class ConnectWorker extends MelWorker {
             }));
         } else if (job instanceof IsolatedConnectJob) {
             this.isolate((IsolatedConnectJob<? extends MelIsolatedProcess>) job)
-                    .fail(result -> stopConnecting())
-                    .always((state, resolved, rejected) -> {
-                        melAuthService.getPowerManager().releaseWakeLock(ConnectWorker.this);
-                    });
+                    .fail(result -> {
+                        stopConnecting();
+                        melAuthService.getPowerManager().releaseWakeLock(this);
+                    })
+                    .done(result -> melAuthService.getPowerManager().releaseWakeLock(this));
         }
     }
 
