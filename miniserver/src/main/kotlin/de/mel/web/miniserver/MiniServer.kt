@@ -192,7 +192,7 @@ constructor(val config: ServerConfig) {
             httpsSocketOpener?.start()
         }
         config.httpPort?.let {
-            httpSocketOpener = HttpThingy(it, config.httpsPort)
+            httpSocketOpener = HttpThingy(it, null)
             httpSocketOpener?.start()
         }
 
