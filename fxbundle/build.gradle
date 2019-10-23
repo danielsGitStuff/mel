@@ -76,5 +76,5 @@ bootJar {
     mainClassName = 'de.mel.fxbundle.Main'
     archiveFileName = jarName
 }
-processResources.dependsOn(createProperties)
+bootJar.dependsOn(createProperties)
 // buildJarstuff ends here
