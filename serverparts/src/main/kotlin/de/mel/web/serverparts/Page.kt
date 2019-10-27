@@ -1,6 +1,5 @@
 package de.mel.web.serverparts
 
-import de.mel.auth.tools.F
 import de.mel.auth.tools.N
 import java.io.File
 
@@ -37,7 +36,7 @@ class Page {
         }
         this.bytes = file.readBytes()
         this.path = path
-        this.contentType = F.readMimeType(file) ?: ContentType.TEXT
+        this.contentType = MimeTypeReader.readMimeType(file) ?: ContentType.TEXT
         if (!staticPagesCache.containsKey(path)) {
             staticPagesCache[path] = this
         }
