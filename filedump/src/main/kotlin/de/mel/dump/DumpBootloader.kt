@@ -13,7 +13,7 @@ open class DumpBootloader : FileSyncBootloader() {
     }
 
     override fun isCompatiblePartner(service: ServiceJoinServiceType): Boolean {
-        return service.name.equalsValue(DumpStrings.NAME) && service.additionalServicePayload != null;
+        return service.type.equalsValue(DumpStrings.TYPE) && service.additionalServicePayload != null;
     }
 
     override fun getName(): String = "File Dump"

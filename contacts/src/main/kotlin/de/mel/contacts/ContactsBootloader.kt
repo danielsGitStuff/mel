@@ -30,7 +30,7 @@ import de.mel.sql.SqlQueriesException
  */
 
 open class ContactsBootloader : Bootloader<ContactsService>() {
-    override fun isCompatiblePartner(service: ServiceJoinServiceType): Boolean = service.name.equalsValue(ContactStrings.NAME)
+    override fun isCompatiblePartner(service: ServiceJoinServiceType): Boolean = service.type.equalsValue(ContactStrings.NAME)
 
     override fun cleanUpDeletedService(melService: ContactsService?, uuid: String?) {
         File(bootLoaderDir, uuid).delete()

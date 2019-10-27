@@ -46,7 +46,7 @@ public class FileSyncBootloader extends Bootloader<MelFileSyncService> {
 
     @Override
     public String getName() {
-        return FileSyncStrings.NAME;
+        return FileSyncStrings.TYPE;
     }
 
     @Override
@@ -115,7 +115,7 @@ public class FileSyncBootloader extends Bootloader<MelFileSyncService> {
 
     @Override
     public boolean isCompatiblePartner(ServiceJoinServiceType service) {
-        return service.getName().equalsValue(FileSyncStrings.NAME) && service.getAdditionalServicePayload() != null;
+        return service.getType().equalsValue(FileSyncStrings.TYPE) && service.getAdditionalServicePayload() != null;
     }
 
     /**
