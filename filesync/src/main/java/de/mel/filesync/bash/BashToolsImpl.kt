@@ -1,6 +1,5 @@
 package de.mel.filesync.bash
 
-import com.sun.org.apache.xpath.internal.operations.Bool
 import java.io.File
 import java.io.IOException
 
