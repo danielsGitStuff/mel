@@ -8,6 +8,9 @@ import de.mel.Lok
 import de.mel.auth.file.AFile
 import de.mel.filesync.bash.*
 import de.mel.filesync.bash.BashToolsAndroidJavaImpl
+import java.io.BufferedReader
+import java.io.File
+import java.io.InputStreamReader
 
 /**
  * Created by xor on 7/20/17.
@@ -17,7 +20,6 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
     private var findNewerFallback: BashToolsAndroidJavaImpl? = null
     private val javaBashTools: BashToolsAndroidJavaImpl
     private var findFallBack: BashToolsAndroidJavaImpl? = null
-
 
 
     init {
@@ -32,6 +34,11 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
             return findNewerFallback!!.stuffModifiedAfter(referenceFile, directory, pruneDir)
         return super.stuffModifiedAfter(referenceFile, directory, pruneDir)
     }
+
+    /**
+     * There is no created date on Android. We use modified instead.
+     */
+    override fun createFsBashDetails(created: Long?, modified: Long, iNode: Long, symLink: Boolean, symLinkTarget: String?, name: String): FsBashDetails = FsBashDetails(modified, modified, iNode, symLink, symLinkTarget, name)
 
     private fun testCommands() {
         // find
