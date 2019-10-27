@@ -30,6 +30,7 @@ public class P {
     /**
      * Runs a {@link Warden.TransactionRunnable} on objects and calls end() finally.
      * Useful when the current thread might die during waiting for or even running the transaction.
+     *
      * @param runnable
      * @param objects
      */
@@ -151,6 +152,8 @@ public class P {
                 N.forEach(key.getObjects(), o -> lockMap.remove(o));
                 N.forEach(key.getReadObjects(), o -> {
                     Set<Key> set = readMap.get(o);
+                    if (set == null)
+                        Lok.debug("DEBUG KEKS");
                     set.remove(key);
                     if (set.isEmpty())
                         readMap.remove(o);

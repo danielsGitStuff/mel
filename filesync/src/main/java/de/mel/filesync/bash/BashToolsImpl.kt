@@ -1,5 +1,6 @@
 package de.mel.filesync.bash
 
+import com.sun.org.apache.xpath.internal.operations.Bool
 import java.io.File
 import java.io.IOException
 
@@ -25,6 +26,10 @@ abstract class BashToolsImpl {
      */
     @Throws(IOException::class)
     abstract fun rmRf(directory: AFile<*>)
+
+    open fun createFsBashDetails(created: Long?, modified: Long, iNode: Long, symLink: Boolean, symLinkTarget: String?, name: String): FsBashDetails {
+        return FsBashDetails(created, modified, iNode, symLink, symLinkTarget, name)
+    }
 
     @Throws(IOException::class, BashToolsException::class)
     open fun stuffModifiedAfter(referenceFile: AFile<*>, directory: AFile<*>, pruneDir: AFile<*>): List<AFile<*>> {

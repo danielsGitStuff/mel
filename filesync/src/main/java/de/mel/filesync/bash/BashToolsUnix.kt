@@ -105,7 +105,7 @@ open class BashToolsUnix : BashToolsImpl() {
             parseSymLink(file, parts[6])
         else
             null
-        return FsBashDetails(created, modified, iNode, symLink, symLinkTarget, name)
+        return createFsBashDetails(created, modified, iNode, symLink, symLinkTarget, name)
     }
 
     /**
@@ -153,7 +153,7 @@ open class BashToolsUnix : BashToolsImpl() {
                 // drop quotes, spaces etc
                 symLinkTarget = parts[3].drop(absolutePath.length + 7).dropLast(1)
             }
-            val details = FsBashDetails(created, modified, iNode, symLink, symLinkTarget, name)
+            val details = createFsBashDetails(created, modified, iNode, symLink, symLinkTarget, name) //FsBashDetails(created, modified, iNode, symLink, symLinkTarget, name)
             map[details.name] = details
         }
         return map

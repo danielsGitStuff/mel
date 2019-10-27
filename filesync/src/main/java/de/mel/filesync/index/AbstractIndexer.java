@@ -532,7 +532,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 } else {
                     stage.setSize(stageFile.length());
                     stage.setModified(fsBashDetails.getModified());
-                    stage.setCreated(fsBashDetails.getCreated());
+//                    stage.setCreated(fsBashDetails.getCreated());
                     stage.setiNode(fsBashDetails.getiNode());
                     if (fastBooting && fsEntry != null
                             && fsEntry.getModified().equalsValue(fsBashDetails.getModified())
@@ -546,7 +546,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 stage.setiNode(fsBashDetails.getiNode());
                 stage.setModified(fsBashDetails.getModified());
                 stage.setCreated(fsBashDetails.getCreated());
-
             }
 
             if (timer1 != null)
