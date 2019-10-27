@@ -28,14 +28,20 @@
 /app/src/main/assets/de/mel/auth/update.server.cert
 /auth/src/main/resources/de/de/auth/update.server.cert
 
-/*/mel.data
-/*/mel.data2
+#/*/mel.data
+#/*/mel.data2
+
+/*/*
+!/*/src
+!/*/*.sh
+!/*/*.MD
+!/*/build.gradle
 
 /released.version
 /github_auth
 
-app/src/main/assets/filesync.sql
-app/src/main/assets/sql.sql
+/app/src/main/assets/filesync.sql
+/app/src/main/assets/sql.sql
 /filesyncfx/melauth.workingdir.1
 /filesyncfx/melauth.workingdir.2
 /filesyncfx/target
@@ -43,7 +49,7 @@ app/src/main/assets/sql.sql
 /auth/target
 /sql/target
 /projectFilesBackup
-settings.gradle
+/settings.gradle
 secret.properties
 /NetBeansSVGConverterProject/nbproject/private/
 /miniserver/server/secret/*

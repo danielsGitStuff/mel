@@ -120,8 +120,8 @@ public class Updater {
                 if (fos != null)
                     N.r(fos::close);
             }
-            loadFromXorserv(versionEntry, target);
         }
+        loadFromXorserv(versionEntry, target);
     }
 
     private void loadFromXorserv(VersionAnswerEntry versionEntry, File target) {
