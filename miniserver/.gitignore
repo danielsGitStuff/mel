@@ -1,0 +1,6 @@
+#/miniserver/server/secret/*
+#/miniserver/server/files/*
+#/miniserver/server/blog/*
+#!/miniserver/server/secret/README.md
+
+!/server/secret/README.md
