@@ -431,7 +431,7 @@ public class FxTest {
                 settings.setRole(ContactStrings.ROLE_SERVER);
                 settings.setMasterPhoneBookId(1L);
                 settings.setJsonFile(new File(MelBoot.Companion.getDefaultWorkingDir1(), "contactserversettings.json"));
-                ContactsBootloader contactsBootloader = (ContactsBootloader) melAuthService.getMelBoot().getBootLoader(ContactStrings.NAME);
+                ContactsBootloader contactsBootloader = (ContactsBootloader) melAuthService.getMelBoot().getBootLoader(ContactStrings.TYPE);
                 ContactsService contactsService = contactsBootloader.createService("test contacts", settings);
                 ContactsDao cDao = contactsService.getDatabaseManager().getContactsDao();
                 PhoneBookDao phoneBookDao = contactsService.getDatabaseManager().getPhoneBookDao();

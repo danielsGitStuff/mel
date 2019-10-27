@@ -1,8 +1,5 @@
 package de.mel.contacts.gui;
 
-import de.mel.auth.data.NetworkEnvironment;
-import de.mel.auth.data.db.Certificate;
-import de.mel.auth.data.db.ServiceJoinServiceType;
 import de.mel.auth.gui.EmbeddedServiceSettingsFX;
 import de.mel.auth.service.BootException;
 import de.mel.contacts.ContactsBootloader;
@@ -35,7 +32,7 @@ public class ContactsFXCreateController extends EmbeddedServiceSettingsFX {
     public boolean onPrimaryClicked() {
         try {
             String name = txtName.getText();
-            ContactsBootloader bootloader =(ContactsBootloader)  melAuthService.getMelBoot().getBootLoader(ContactStrings.NAME);
+            ContactsBootloader bootloader =(ContactsBootloader)  melAuthService.getMelBoot().getBootLoader(ContactStrings.TYPE);
             ContactsSettings contactsSettings = new ContactsSettings();
             contactsSettings.setRole(isServerSelected()? ContactStrings.ROLE_SERVER : ContactStrings.ROLE_CLIENT);
             bootloader.createService(name, contactsSettings);

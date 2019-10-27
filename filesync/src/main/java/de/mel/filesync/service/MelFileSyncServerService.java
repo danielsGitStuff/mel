@@ -108,8 +108,10 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
                 P.confine(fileSyncDatabaseManager.getTransferDao())
                         .run(() -> {
                             ClientData clientData = fileSyncSettings.getServerSettings().getClientData(authenticatedJob.getPartnerCertificate().getId().v());
-                            fileSyncDatabaseManager.getTransferDao().flagStateForRemainingTransfers(clientData.getCertId(), clientData.getServiceUuid(), TransferState.NOT_STARTED);
-                            syncHandler.researchTransfers();
+                            if (clientData != null) {
+                                fileSyncDatabaseManager.getTransferDao().flagStateForRemainingTransfers(clientData.getCertId(), clientData.getServiceUuid(), TransferState.NOT_STARTED);
+                                syncHandler.researchTransfers();
+                            }
                         })
                         .end();
             } else if (unknownJob instanceof Job.CertificateSpottedJob) {

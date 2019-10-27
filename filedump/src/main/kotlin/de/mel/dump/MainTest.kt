@@ -9,6 +9,7 @@ import de.mel.auth.service.MelBoot
 import de.mel.auth.service.power.PowerManager
 import de.mel.auth.socket.process.reg.IRegisterHandler
 import de.mel.auth.socket.process.reg.IRegisterHandlerListener
+import de.mel.auth.tools.N
 import de.mel.core.serialize.deserialize.collections.PrimitiveCollectionDeserializerFactory
 import de.mel.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository
 import de.mel.core.serialize.serialize.fieldserializer.collections.PrimitiveCollectionSerializerFactory
@@ -63,7 +64,9 @@ class MainTest {
                 })
                 mas.addRegisteredHandler { melAuthService, cert ->
                     melAuthService.databaseManager.allServices.forEach {
-                        mas.databaseManager.grant(it.serviceId.v(), cert.id.v())
+                        N.oneLine {
+                            mas.databaseManager.grant(it.serviceId.v(), cert.id.v())
+                        }
                     }
                 }
                 val helper = DumpCreateServiceHelper(mas)
