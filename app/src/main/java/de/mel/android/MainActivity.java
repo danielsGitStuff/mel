@@ -83,22 +83,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
     private int stoppedColor;
     private int runningColor;
 
-    /**
-     * show a simple dialog where the user can only click ok
-     *
-     * @param title
-     * @param message
-     */
-    public void showMessage(int title, int message) {
-        runOnUiThread(() -> {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage(message)
-                    .setTitle(title)
-                    .setPositiveButton(R.string.btnOk, null);
-            AlertDialog alertDialog = builder.create();
-            alertDialog.show();
-        });
-    }
+
 
     /**
      * show a dialog with ok and cancel option

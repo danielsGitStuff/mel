@@ -168,4 +168,8 @@
     <string name="btnExportDBs">Export DBs</string>
     <string name="knownInstances">Known Mels</string>
     <string name="commit">Commit</string>
+    <string name="permissionExplainExternalTitle">External Storage</string>
+    <string name="permissionExplainExternalText">Please choose the external storage root.</string>
+    <string name="permissionExplainInternalTitle">Internal Storage</string>
+    <string name="permissionExplainInternalText">Please choose the internal storage root.</string>
 </resources>

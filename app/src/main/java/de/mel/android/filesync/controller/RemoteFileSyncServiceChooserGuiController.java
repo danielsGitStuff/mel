@@ -139,7 +139,7 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
             activity.askUserForPermissions(new AndroidFileSyncBootloader().getPermissions()
                     , permissionsGrantedListener
                     , R.string.permissionRequiredTitle
-                    , R.string.permissionDriveWriteMessage
+                    , getPermissionsText()
                     , () -> {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 

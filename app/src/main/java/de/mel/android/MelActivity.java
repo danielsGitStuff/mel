@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 
 import com.google.android.material.navigation.NavigationView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import de.mel.Lok;
+import de.mel.R;
 import de.mel.android.service.AndroidService;
 import de.mel.auth.MelStrings;
 import de.mel.auth.tools.N;
@@ -95,6 +97,37 @@ public abstract class MelActivity extends AppCompatActivity implements Navigatio
             });
         }
         startActivityForResult(launchIntent, id);
+    }
+
+    /**
+     * show a simple dialog where the user can only click ok
+     *
+     * @param title
+     * @param message
+     */
+    public void showMessage(int title, int message, Runnable whenDone) {
+        runOnUiThread(() -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage(message)
+                    .setTitle(title)
+                    .setPositiveButton(R.string.btnOk, (dialog, which) -> {
+                        if (whenDone != null) {
+                            whenDone.run();
+                        }
+                    });
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
+        });
+    }
+
+    /**
+     * show a simple dialog where the user can only click ok
+     *
+     * @param title
+     * @param message
+     */
+    public void showMessage(int title, int message) {
+        showMessage(title, message, null);
     }
 
     @Override

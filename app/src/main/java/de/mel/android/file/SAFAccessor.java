@@ -13,12 +13,15 @@ import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.documentfile.provider.DocumentFile;
 
 import de.mel.Lok;
+import de.mel.R;
 import de.mel.android.MelActivity;
 import de.mel.android.Tools;
 import de.mel.auth.file.AFile;
@@ -65,12 +68,11 @@ public class SAFAccessor {
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public static Promise<Void, Exception, Void> setupAllStorages(MelActivity activity) {
         DeferredObject<Void, Exception, Void> deferredObject = new DeferredObject<>();
-        DeferredManager deferredManager = new DefaultDeferredManager();
-
-        deferredManager.when(askForExternalRootDirectory(activity), askForInternalRootDirectory(activity))
-                .done(result -> deferredObject.resolve(null))
-                .fail(result -> deferredObject.reject((Exception) result.getReject()));
-
+        askForInternalRootDirectory(activity)
+                .done(result -> askForExternalRootDirectory(activity)
+                        .done(result1 -> deferredObject.resolve(null))
+                        .fail(deferredObject::reject))
+                .fail(deferredObject::reject);
         return deferredObject;
 
     }
@@ -107,26 +109,6 @@ public class SAFAccessor {
         }
     }
 
-//    /**
-//     * finds the path to the internal storage and stores it.
-//     */
-//    @TargetApi(Build.VERSION_CODES.KITKAT)
-//    public static void setupInternalPath() {
-//        File internalRoot = null;
-//        File candidate = Tools.getApplicationContext().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
-//        if (candidate != null) {
-//            int cut = candidate.getAbsolutePath().lastIndexOf("/Android/data");
-//            if (cut > 0) {
-//                String path = candidate.getAbsolutePath().substring(0, cut); // let the last slash there
-//                internalRoot = new File(path);
-//            }
-//        }
-//        if (internalRoot != null) {
-//            Tools.getSharedPreferences().edit()
-//                    .putString(INT_STORAGE_PATH, internalRoot.getAbsolutePath() + File.separator)
-//                    .commit();
-//        }
-//    }
 
     /**
      * @return
@@ -183,6 +165,7 @@ public class SAFAccessor {
         return rootPath != null;
     }
 
+
     @androidx.annotation.RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public static Promise<Void, Exception, Void> askForExternalRootDirectory(MelActivity activity) {
         DeferredObject<Void, Exception, Void> deferred = new DeferredObject<>();
@@ -190,26 +173,28 @@ public class SAFAccessor {
             return deferred.resolve(null);
         if (canWriteExternal())
             return deferred.resolve(null);
-        Intent docIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-        docIntent.addCategory(Intent.CATEGORY_DEFAULT);
+        activity.showMessage(R.string.permissionExplainExternalTitle, R.string.permissionExplainExternalText, () -> {
+            Intent docIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+            docIntent.addCategory(Intent.CATEGORY_DEFAULT);
 
-        activity.launchActivityForResult(Intent.createChooser(docIntent, "choose directory"), (resultCode, result) -> {
-            if (resultCode == AppCompatActivity.RESULT_OK) {
-                Uri rootTreeUri = result.getData();
-                final int takeFlags = result.getFlags()
-                        & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                activity.getContentResolver().takePersistableUriPermission(rootTreeUri, takeFlags);
-                Tools.getSharedPreferences().edit()
-                        .putString(SAFAccessor.EXT_SD_CARD_URI, rootTreeUri.toString())
-                        .commit();
-            }
-            if (SAFAccessor.canWriteExternal()) {
-                deferred.resolve(null);
-                return;
-            }
-            SAFAccessor.askForExternalRootDirectory(activity);
-
+            activity.launchActivityForResult(Intent.createChooser(docIntent, "choose directory"), (resultCode, result) -> {
+                if (resultCode == AppCompatActivity.RESULT_OK) {
+                    Uri rootTreeUri = result.getData();
+                    final int takeFlags = result.getFlags()
+                            & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    activity.getContentResolver().takePersistableUriPermission(rootTreeUri, takeFlags);
+                    Tools.getSharedPreferences().edit()
+                            .putString(SAFAccessor.EXT_SD_CARD_URI, rootTreeUri.toString())
+                            .commit();
+                }
+                if (SAFAccessor.canWriteExternal()) {
+                    deferred.resolve(null);
+                    return;
+                }
+                SAFAccessor.askForExternalRootDirectory(activity);
+            });
         });
+
         return deferred;
     }
 
@@ -220,27 +205,29 @@ public class SAFAccessor {
             return deferred.resolve(null);
         }
 
-        Intent docIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-        docIntent.addCategory(Intent.CATEGORY_DEFAULT);
+        activity.showMessage(R.string.permissionExplainInternalTitle, R.string.permissionExplainInternalText, () -> {
+            Intent docIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+            docIntent.addCategory(Intent.CATEGORY_DEFAULT);
 
-        activity.launchActivityForResult(Intent.createChooser(docIntent, "choose internal directory"), (resultCode, result) -> {
-            if (resultCode == AppCompatActivity.RESULT_OK) {
-                Uri rootTreeUri = result.getData();
-                // this is a fools solution but should work. fuck that stupid SAF shit.
-                boolean isRoot = DocumentsContract.getTreeDocumentId(rootTreeUri).equals("primary:");
-                if (!isRoot) {
-                    deferred.reject(new Exception("directory chosen was not the root directory"));
-                    return;
-                }
-                final int takeFlags = result.getFlags()
-                        & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                activity.getContentResolver().takePersistableUriPermission(rootTreeUri, takeFlags);
-                Tools.getSharedPreferences().edit()
-                        .putString(SAFAccessor.INT_STORAGE_URI, rootTreeUri.toString())
-                        .commit();
-                deferred.resolve(null);
-            } else
-                deferred.reject(new Exception("something went wrong"));
+            activity.launchActivityForResult(Intent.createChooser(docIntent, "choose internal directory"), (resultCode, result) -> {
+                if (resultCode == AppCompatActivity.RESULT_OK) {
+                    Uri rootTreeUri = result.getData();
+                    // this is a fools solution but should work. fuck that stupid SAF shit.
+                    boolean isRoot = DocumentsContract.getTreeDocumentId(rootTreeUri).equals("primary:");
+                    if (!isRoot) {
+                        deferred.reject(new Exception("directory chosen was not the root directory"));
+                        return;
+                    }
+                    final int takeFlags = result.getFlags()
+                            & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    activity.getContentResolver().takePersistableUriPermission(rootTreeUri, takeFlags);
+                    Tools.getSharedPreferences().edit()
+                            .putString(SAFAccessor.INT_STORAGE_URI, rootTreeUri.toString())
+                            .commit();
+                    deferred.resolve(null);
+                } else
+                    deferred.reject(new Exception("something went wrong"));
+            });
         });
         return deferred;
     }
