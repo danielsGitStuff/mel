@@ -29,7 +29,7 @@ class StaticServer(private val certificateManager: CertificateManager?, val sett
             if (!stack.empty())
                 stack.pop()
         }.forEach {
-            var subUrl = "${stack.fold("/") { acc: String, file: File? -> "$acc${file!!.name}/" }}${it.name}"
+            val subUrl = "${stack.fold("/") { acc: String, file: File -> "$acc${file.name}/" }}${it.name}"
             Lok.debug("mapping $subUrl to ${it.canonicalPath}")
             if (stack.size == 0 && it.name == "index.html")
                 rootIndexHtml = it
