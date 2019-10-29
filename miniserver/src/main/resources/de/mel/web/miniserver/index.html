@@ -32,6 +32,7 @@
             <span class="">Eine Möglichkeit Dateien und Kontakte über mehrere Androidgeräte und PCs synchron zu halten.</span><br><br>
             Falls du die Fotos von deinem Telefon regelmäßig sichern möchtest, hast du mehrere Optionen:
             <ul>
+                <li>Einen der großen Anbieter nutzen.</li>
                 <li>Kabel rein, Dateien kopieren.</li>
                 <li>Kabel rein, Script starten.</li>
                 <li>W-Lan, rumtatschen und kopieren.</li>
@@ -39,6 +40,8 @@
                 <li>W-Lan, Owncloudish Software</li>
                 <li>W-Lan, Mel</li>
             </ul>
+            <p>Es gibt gute Grŭnde fŭr oder gegen die Cloudanwendungen großer Suchmaschinenbetreiber und
+                Betriebssystemhersteller. Siehe nächsten Abschnitt.</p>
             <p>Kabel sind vermutlich keine Option, Scripte sind schwer zu benutzen, wenn man sie nicht versteht.
                 In der Regel sind sie dies für Laien.</p>
             <p><a href="https://owncloud.org">Owncloud</a> kann all dies, ist nicht-trivial zu installieren und ebenso
@@ -48,6 +51,81 @@
             <p>Mel kommt als einfache ausführbare Datei. Braucht keine Accounts. Wer schonmal Bluetoothgeräte gekoppelt
                 hat, kann auch Mels koppeln.</p>
             Kurz: der Konfigurationsaufwand ist runter, die Schritte schon bekannt und Sicherheit gibt es obendrauf.
+        </div>
+    </div>
+
+    <div class="back1 center" style="alignment: center">
+        <div class="content text" style="text-align: start">
+            <h2>(private) Cloud?</h2>
+            Der große, bunte, nichtgenannte Suchmaschinenbetreiber, der unbedeutende Onlinebuchändler und der unbekannte
+            Betriebssystemhersteller bieten Cloudlösungen zur Synchronisation verschiedenster Dinge an.
+            Zwei davon zielen auch auf den Endkundengebrauch, der Buchhändler ist an dieser Stelle weniger Thema.
+            <p>Die Private-Cloud-Anbieter bieten relativ gŭnstigen Onlinespeicher, der weltweit verfügbar ist und
+                weitere Anwendungen (wie Word
+                und Excel) integriert. Mir sind soweit auch keine unabsichltichen Datenverluste bekannt.</p>
+            <p>Allerdings gibt es auch Geschichten wie die <a
+                    href="https://www.reddit.com/r/DataHoarder/comments/870ntm/google_drive_seems_to_remove_porn/">von
+                Geisterhand verschwindenden Dateien</a>.<br>
+                Als weiterer Denkanstoß, sei hier der, seit 2013 ehemalige, Mitarbeiter einer großen
+                amerikanischen Behörde mit drei Buchstaben, nicht genannt.</p>
+            <p>
+                Kleine Übersicht:
+            <table class="filesTable">
+                <thead>
+                <tr>
+                    <th>Merkmal</th>
+                    <th>Erklärung</th>
+                    <th>Private Cloud</th>
+                    <th>Mel</th>
+                    <th>Details</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>privat</td>
+                    <td>Nur kommst an die Daten</td>
+                    <td>Nein</td>
+                    <td>Ja</td>
+                    <td>Wenn deine Daten nicht auf deiner Hardware gelagert sind, sind es nicht deine Daten. Wer auch
+                        immer sie für dich aufhebt, kann sie auch löschen oder modifizieren.
+                    </td>
+                </tr>
+                <tr>
+                    <td>Automatische Sicherung</td>
+                    <td>Es werden Kopien deiner Daten angefertigt, so dass du sie durch einen Hardwareausfall nicht verlierst.
+                    </td>
+                    <td>Ja</td>
+                    <td>Nein</td>
+                    <td>Mel legt keine selbstständigen Backups an. Dafür existieren genug gute Lösungen.</td>
+                </tr>
+                <tr>
+                    <td>weltweit verfŭgbar</td>
+                    <td>Du kannst aus dem Internet darauf zugreifen.</td>
+                    <td>Ja</td>
+                    <td>Nein (Ja*)</td>
+                    <td>*Ist potenziell möglich, noch nicht implementiert und erfordert manuelle Konfiguration des
+                        Netzwerks.
+                    </td>
+                </tr>
+                <tr>
+                    <td>schnelle Dateitransfers</td>
+                    <td>Selbsterklärend.</td>
+                    <td>Ja</td>
+                    <td>Nein (Ja*)</td>
+                    <td>*Hängt maßgeblich von deiner Internetverbindung ab. Für andere Länder kann es "Ja" sein, für
+                        Deutschland "Nein".
+                    </td>
+                </tr>
+                <tr>
+                    <td>echtzeitfähig</td>
+                    <td>Änderungen, sind blitzschnell auf allen Geräten.</td>
+                    <td>Ja</td>
+                    <td>Nein</td>
+                    <td>Mel arbeitet am liebsten nachts, wenn sie am Stecker hängt.</td>
+                </tr>
+                </tbody>
+            </table>
+            </p>
         </div>
     </div>
 
@@ -135,7 +213,7 @@
     <div class="back1 center" style="alignment: center">
         <div class="content text" style="text-align: start">
             <h2 style="text-align: start">Wie steht es um Privatsspähre?</h2>
-            Keine Cloud (Modewort für "anderer Leute Computer"), keine Telemetrie, Analysen oder sonstiges Zeug. Mel
+            Keine Cloud (aka "anderer Leute Computer"), keine Telemetrie, Analysen oder sonstiges Zeug. Mel
             telefoniert
             höchstens zum Updateserver, falls du auf den Aktualisierenbutton drückst.
             Innerhalb des Netzwerks werden ebenfalls keine identifizierenden Informationen an Unbekannte versendet.
@@ -185,7 +263,7 @@
             <a href="#linkDownload">Hier</a> kannst du dir das Programm runterladen.
             Die "Apk"-Variante ist für Androidtelefone (zur Zeit ab Android 4.4.4 alias KitKat).
             Die "Jar"-Variante benötigst du für einen PC/Laptop.<br><br>
-            Hinweis: um es auf dem PC zu starten, benötigst du Java8. Gebe "java -jar fxbundle-1.0.jar" ins Termninal
+            Hinweis: um es auf dem PC zu starten, benötigst du Java 11. Gebe "java -jar fxbundle-1.0.jar" ins Terminal
             ein.<br><br>
             Wie du es installieren und konfigurieren kannst siehst du
             <a href="logandroid.html">hier, für Android</a> oder <a
