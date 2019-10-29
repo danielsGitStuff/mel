@@ -34,7 +34,7 @@ You can have Lists of different types of `SerializableEntity` though.
 Note: every serialized instance of `SerializableEntity` has a `_type` and `$id` field. If and Entity has already been serialized but appears somewhat later in the traversing process again
 it is not serialized again. Instead it appears as a reference to its `$id` field.
 Example: the following (double linked) object hierarchy
-```json
+```json5
 {
   "$id": 1,
   "_type": "MySerializableEntityClass",
