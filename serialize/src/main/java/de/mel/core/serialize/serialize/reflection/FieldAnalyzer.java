@@ -77,12 +77,8 @@ public class FieldAnalyzer {
         boolean isCollection = Collection.class.isAssignableFrom(field.getType());
         if (isCollection) {
             ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
-            Object whatEver = parameterizedType.getActualTypeArguments()[0];
-            if (whatEver instanceof ParameterizedType || whatEver instanceof TypeVariable) {
-                return false;
-            }
-            Class<?> genericType = (Class<?>) whatEver;
-            return SerializableEntity.class.isAssignableFrom(genericType);
+            Class whatEver = FieldAnalyzer.getBoundedClass(parameterizedType.getActualTypeArguments()[0]);
+            return FieldAnalyzer.isEntitySerializableClass(whatEver);
         }
         return false;
     }
@@ -165,6 +161,13 @@ public class FieldAnalyzer {
     public static boolean isMap(Field field) {
         boolean isMap = Map.class.isAssignableFrom(field.getType());
         return isMap;
+    }
+
+    public static Class getBoundedClass(Type type) {
+        if (type instanceof Class)
+            return (Class) type;
+        TypeVariable variable = (TypeVariable) type;
+        return (Class) variable.getBounds()[0];
     }
 
 

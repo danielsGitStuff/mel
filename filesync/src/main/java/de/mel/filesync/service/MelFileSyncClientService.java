@@ -82,8 +82,6 @@ public class MelFileSyncClientService extends MelFileSyncService<ClientSyncHandl
 
             } else if (job.isMessage()) {
                 if (job.getIntent().equals(FileSyncStrings.INTENT_PROPAGATE_NEW_VERSION)) {
-//                    DriveDetails driveDetails = (DriveDetails) job.getPayLoad();
-//                    driveDetails.getLastSyncVersion();
                     try {
                         addJob(new SyncClientJob());
                     } catch (Exception e) {
@@ -93,7 +91,6 @@ public class MelFileSyncClientService extends MelFileSyncService<ClientSyncHandl
                     AvailableHashes availableHashes = (AvailableHashes) job.getPayLoad();
                     syncHandler.updateHashes(availableHashes.getHashes());
                     availableHashes.clear();
-                    //addJob(new UpdateHashesJob(availableHashes.getHashes()));
                 }
             }
         } else if (unknownJob instanceof Job.CertificateSpottedJob) {

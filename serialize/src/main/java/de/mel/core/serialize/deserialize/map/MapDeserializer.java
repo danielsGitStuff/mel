@@ -45,8 +45,8 @@ public class MapDeserializer implements FieldDeserializer {
     public Object deserialize(SerializableEntityDeserializer serializableEntityDeserializer, SerializableEntity entity, Field field, Class typeClass, Object jsonFieldValue) throws IllegalAccessException, JsonDeserializationException {
         Type type = field.getGenericType();
         ParameterizedType pType = (ParameterizedType) type;
-        Class clazzK = (Class) pType.getActualTypeArguments()[0];
-        Class clazzV = (Class) pType.getActualTypeArguments()[1];
+        Class clazzK = FieldAnalyzer.getBoundedClass(pType.getActualTypeArguments()[0]);
+        Class clazzV = FieldAnalyzer.getBoundedClass(pType.getActualTypeArguments()[1]);
         KeyDeserializerFactory kFactory = new KeyDeserializerFactory(clazzK);
         FieldDeserializerFactory vFactory = createDeserializerFactory(clazzV);
         Map map = null;

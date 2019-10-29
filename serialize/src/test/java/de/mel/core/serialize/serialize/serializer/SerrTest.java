@@ -19,6 +19,8 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 /**
+ * Tests very primitive cases. Cases must be simple because the sequence of which objects are serialized is not deterministic!
+ * You better have at most one Field.
  * Created by xor on 12/20/15.
  */
 public class SerrTest {
@@ -54,6 +56,22 @@ public class SerrTest {
         System.out.println(json);
         PrimitiveSet copy = (PrimitiveSet) SerializableEntityDeserializer.deserialize(json);
         assertEquals("{\"$id\":1,\"__type\":\"de.mel.core.serialize.serialize.reflection.classes.PrimitiveSet\",\"strings\":[\"aa\",\"bb\"],\"ints\":[33,22,44]}", json);
+    }
+
+    @Test
+    public void withGenericEntity() throws Exception {
+        WithGenericEntity withGenericEntity = new WithGenericEntity();
+        withGenericEntity.child = new SimplestEntity();
+        String json = SerializableEntitySerializer.serialize(withGenericEntity);
+        assertEquals("{\"$id\":1,\"__type\":\"de.mel.core.serialize.classes.WithGenericEntity\",\"child\":{\"$id\":2,\"__type\":\"de.mel.core.serialize.classes.SimplestEntity\",\"name\":\"default name\"}}", json);
+    }
+
+    @Test
+    public void withGenericEntityType() throws Exception {
+        WithGenericTypeEntity<SimplestEntity> withGenericEntity = new WithGenericTypeEntity<>();
+        withGenericEntity.child = new SimplestEntity();
+        String json = SerializableEntitySerializer.serialize(withGenericEntity);
+        assertEquals("{\"$id\":1,\"__type\":\"de.mel.core.serialize.classes.WithGenericTypeEntity\",\"child\":{\"$id\":2,\"__type\":\"de.mel.core.serialize.classes.SimplestEntity\",\"name\":\"default name\"}}", json);
     }
 
 
@@ -115,13 +133,13 @@ public class SerrTest {
 
     @Test
     public void testWithEntitySerializableCollection() {
-        WithSerializableEntityCollection withEntitySerializableCollection = new WithSerializableEntityCollection();
+        WithCollectionGeneric withEntitySerializableCollection = new WithCollectionGeneric();
         ChildSerializableEntity pairSerializable = new ChildSerializableEntity();
         pairSerializable.setPrimitive("some test");
         withEntitySerializableCollection.entityserializables.add(pairSerializable);
-        withEntitySerializableCollection.entityserializables.add(new WithPrimitiveCollection());
+        withEntitySerializableCollection.entityserializables.add(new WithCollectionPrimitive());
         String json = serialize(withEntitySerializableCollection);
-        String result = "{\"$id\":1,\"__type\":\"de.mel.core.serialize.classes.WithSerializableEntityCollection\",\"primitive\":\"primitive\",\"entityserializables\":[{\"$id\":2,\"__type\":\"de.mel.core.serialize.classes.ChildSerializableEntity\",\"primitive\":\"some test\"},{\"$id\":3,\"__type\":\"de.mel.core.serialize.classes.WithPrimitiveCollection\",\"strings\":[],\"primitive\":\"primitive\"}]}";
+        String result = "{\"$id\":1,\"__type\":\"de.mel.core.serialize.classes.WithCollectionGeneric\",\"primitive\":\"primitive\",\"entityserializables\":[{\"$id\":2,\"__type\":\"de.mel.core.serialize.classes.ChildSerializableEntity\",\"primitive\":\"some test\"},{\"$id\":3,\"__type\":\"de.mel.core.serialize.classes.WithCollectionPrimitive\",\"strings\":[],\"primitive\":\"primitive\"}]}";
         System.out.println("should");
         System.out.println(result);
         System.out.println("is");
@@ -131,31 +149,48 @@ public class SerrTest {
 
     @Test
     public void testWithEmptyEntitySerializableCollection() {
-        WithSerializableEntityCollection withEntitySerializableCollection = new WithSerializableEntityCollection();
+        WithCollectionGeneric withEntitySerializableCollection = new WithCollectionGeneric();
         String json = serialize(withEntitySerializableCollection);
-        String result = "{\"$id\":1,\"__type\":\"de.mel.core.serialize.classes.WithSerializableEntityCollection\",\"primitive\":\"primitive\"}";
+        String result = "{\"$id\":1,\"__type\":\"de.mel.core.serialize.classes.WithCollectionGeneric\",\"primitive\":\"primitive\"}";
         assertEquals(result, json);
     }
 
     @Test
     public void testWithObjectMap() throws MalformedURLException {
-        WithObjectMap entity = new WithObjectMap();
+        WithMapURL entity = new WithMapURL();
         entity.urls.put("1", new URL("http://bla.de"));
         String json = serialize(entity);
-        String result = "{\"$id\":1,\"__type\":\"de.mel.core.serialize.classes.WithObjectMap\"}";
+        String result = "{\"$id\":1,\"__type\":\"de.mel.core.serialize.classes.WithMapURL\"}";
         assertEquals(result, json);
     }
 
     @Test
+    public void withCollectionGenericType() throws Exception {
+        WithCollectionGenericType<SimplestEntity> withCollectionGenericType = new WithCollectionGenericType<>();
+        SimplestEntity simplestEntity = new SimplestEntity();
+        withCollectionGenericType.list.add(simplestEntity);
+        String json = SerializableEntitySerializer.serialize(withCollectionGenericType);
+        assertEquals("{\"$id\":1,\"__type\":\"de.mel.core.serialize.classes.WithCollectionGenericType\",\"list\":[{\"$id\":2,\"__type\":\"de.mel.core.serialize.classes.SimplestEntity\",\"name\":\"default name\"}]}", json);
+    }
+
+    @Test
+    public void withObjectSerializable() throws Exception {
+        WithObject withObject = new WithObject();
+        withObject.child = new SimplestEntity();
+        String json = SerializableEntitySerializer.serialize(withObject);
+        assertEquals("{\"$id\":1,\"__type\":\"de.mel.core.serialize.classes.WithObject\"}", json);
+    }
+
+    @Test
     public void testWithEntityMap() throws MalformedURLException, JsonDeserializationException {
-        WithEntityMap withMap = new WithEntityMap();
+        WithMapEntity withMap = new WithMapEntity();
         SimplestEntity entity = new SimplestEntity();
         entity.name = "changed";
         withMap.entities.put("entity1", entity);
         String json = serialize(withMap);
-        String result = "{\"$id\":1,\"__type\":\"de.mel.core.serialize.classes.WithEntityMap\",\"entities\":{\"__type\":\"java.util.HashMap\",\"__k\":\"java.lang.String\",\"__v\":\"de.mel.core.serialize.classes.SimplestEntity\",\"__x\":{\"0\":\"entity1\"},\"__m\":{\"0\":{\"$id\":2,\"__type\":\"de.mel.core.serialize.classes.SimplestEntity\",\"name\":\"changed\"}}}}";
+        String result = "{\"$id\":1,\"__type\":\"de.mel.core.serialize.classes.WithMapEntity\",\"entities\":{\"__type\":\"java.util.HashMap\",\"__k\":\"java.lang.String\",\"__v\":\"de.mel.core.serialize.classes.SimplestEntity\",\"__x\":{\"0\":\"entity1\"},\"__m\":{\"0\":{\"$id\":2,\"__type\":\"de.mel.core.serialize.classes.SimplestEntity\",\"name\":\"changed\"}}}}";
         assertEquals(result, json);
-        WithEntityMap des = (WithEntityMap) SerializableEntityDeserializer.deserialize(json);
+        WithMapEntity des = (WithMapEntity) SerializableEntityDeserializer.deserialize(json);
         SimplestEntity desEntity = des.entities.get("entity1");
         assertNotNull(desEntity);
     }
@@ -194,12 +229,12 @@ public class SerrTest {
 
     @Test
     public void listWithNull() {
-        WithSerializableEntityCollection listi = new WithSerializableEntityCollection();
+        WithCollectionGeneric listi = new WithCollectionGeneric();
         listi.entityserializables.add(null);
         listi.entityserializables.add(null);
         listi.entityserializables.add(new SimpleSerializableEntity());
         String json = serialize(listi);
-        assertEquals("{\"$id\":1,\"__type\":\"de.mel.core.serialize.classes.WithSerializableEntityCollection\",\"primitive\":\"primitive\",\"entityserializables\":[null,null,{\"$id\":2,\"__type\":\"de.mel.core.serialize.classes.SimpleSerializableEntity\"}]}", json);
+        assertEquals("{\"$id\":1,\"__type\":\"de.mel.core.serialize.classes.WithCollectionGeneric\",\"primitive\":\"primitive\",\"entityserializables\":[null,null,{\"$id\":2,\"__type\":\"de.mel.core.serialize.classes.SimpleSerializableEntity\"}]}", json);
     }
 
 

@@ -5,11 +5,18 @@ import de.mel.core.serialize.JsonIgnore;
 import de.mel.core.serialize.SerializableEntity;
 
 /**
+ * Base class for messages (and requests) between two {@link de.mel.auth.service.MelService}s
  * Created by xor on 4/28/16.
  */
 public abstract class ServicePayload implements SerializableEntity {
 
+    /**
+     * If you only want to send a small text use this one.
+     */
     protected String intent;
+    /**
+     * This is to check whether a service has reached a sufficient boot level before handing it over to the service.
+     */
     @JsonIgnore
     protected Bootloader.BootLevel level = Bootloader.BootLevel.SHORT;
 

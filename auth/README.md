@@ -75,6 +75,50 @@ It must implement `bootLevelShortImpl` which returns an instance of the service.
 The bootloader has the `bootloaderDir` property which points to a folder that is unique for each `Bootloader`. 
 A custom bootloader can organise the files and databases of the various instances therein if necessary.
 
-## Message handling
+# Messaging
+## General
+Every instance of Mel tries to keep connections to all other known instances as long as its power configuration allows it.
+That means that if your phone is on battery or has no Wi-Fi Mel will shut down after a slight delay. Mel differentiates between two types of connections:
+- normal / general connection
+    - you can send messages to any other service on the other side, or to `MelAuth` itself
+    - can send and receive Messages and Requests in JSON
+    - all services share this connection
+- isolated connection
+    - ties two `MelService`s together: one on your side, one on the other
+    - allows sending binary date (aka large files)
+
+## A Message itself
+Messages that are sent from one Mel instance to another are realized by extenting `ServicePayload`.
+The class itself comes with a `bootLevel`. If your service receives a `ServicePayload` Mel creates a new instance of it and checks whether the current boot level of the targeted service is sufficient to accept this message.
+This way you can determine, which messages you service can deal with despite not being completely booted.
+If everything that you want to send is a String you may look at `EmptyPayload`. This class uses the `intent` field to store your String.
+If you want to send more than that just add new Fields to your extended `ServicePayload`. 
+Keep in mind that only primitives (Integer, String ...), `SerializableEntity`s and Collections of those are serialized.
+In case you got something you want to keep private you can annotate the field with `@JsonIgnore`. For more details [have a look here](../serialize/README.md) 
+
+## How to use?
+Let's take the POV of a `MelService`. As we know this is the component containing the business logic of whatever you are trying to do.
+`MelService` has a reference to `MelAuthService` which you can use to communicate.
+Have a look:
+```java
+Promise<MelValidationProcess, Exception, Void> connected = melAuthService.connect(PARTNER_CERTIFICATE_ID);
+connected.done(mvp -> {
+    // this becomes the message for our partner
+    EmptyPayload payload = new EmptyPayload();
+    // in this example we only send a short text
+    parload.setIntent(MY_INTENT);
+    Request<SomeAnswerType> request = mvp.request(PARTNER_SERVICE_UUID, payload);
+    request.done(someAnswer -> {
+        // do something with the answer
+    }).fail( exception ->
+        // handle exception
+    );
+}).fail( exception ->
+    // handle exception
+);
+```
+Keep in mind that code that runs in the `done()` and `fail()` methods runs in network threads. That means that you should not block that thread for too long.
+That also means that you should avoid doing GUI stuff here.
+ 
 
 

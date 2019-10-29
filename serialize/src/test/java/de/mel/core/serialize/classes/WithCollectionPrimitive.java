@@ -9,11 +9,11 @@ import java.util.List;
 /**
  * Created by xor on 26.10.2015.
  */
-public class WithPrimitiveCollection implements SerializableEntity {
+public class WithCollectionPrimitive implements SerializableEntity {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public  List<String> strings = new ArrayList();
     public String primitive = "primitive";
 
-    public WithPrimitiveCollection() {
+    public WithCollectionPrimitive() {
     }
 }

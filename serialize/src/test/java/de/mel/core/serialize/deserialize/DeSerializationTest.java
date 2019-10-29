@@ -13,21 +13,23 @@ import java.util.Base64;
 import static org.junit.Assert.*;
 
 /**
+ * This tests more complex Classes. That means {@link SerializableEntity}s containing more than one field.
+ * Their order is not deterministic. To check whether (de)serialization was successful you must check both, the original and the deserialized, objects.
  * Created by xor on 26.10.2015.
  */
 public class DeSerializationTest {
 
-    private WithPrimitiveCollection createWithPrimitiveCollection() {
-        WithPrimitiveCollection withPrimitiveCollection = new WithPrimitiveCollection();
-        withPrimitiveCollection.strings.add("primitive.test");
-        withPrimitiveCollection.strings.add("primitive.test.2");
-        return withPrimitiveCollection;
+    private WithCollectionPrimitive createWithPrimitiveCollection() {
+        WithCollectionPrimitive withCollectionPrimitive = new WithCollectionPrimitive();
+        withCollectionPrimitive.strings.add("primitive.test");
+        withCollectionPrimitive.strings.add("primitive.test.2");
+        return withCollectionPrimitive;
     }
 
-    private WithSerializableEntityCollection createWithEntitySerializableCollection() {
-        WithSerializableEntityCollection withEntitySerializableCollection = new WithSerializableEntityCollection();
-        withEntitySerializableCollection.entityserializables.add(new WithPrimitiveCollection());
-        withEntitySerializableCollection.entityserializables.add(new WithPrimitiveCollection());
+    private WithCollectionGeneric createWithEntitySerializableCollection() {
+        WithCollectionGeneric withEntitySerializableCollection = new WithCollectionGeneric();
+        withEntitySerializableCollection.entityserializables.add(new WithCollectionPrimitive());
+        withEntitySerializableCollection.entityserializables.add(new WithCollectionPrimitive());
         return withEntitySerializableCollection;
     }
 
@@ -42,11 +44,39 @@ public class DeSerializationTest {
         return null;
     }
 
-    public static SerializableEntity deserialize(String s) throws IllegalAccessException, ClassNotFoundException, InstantiationException, JsonDeserializationException {
-        SerializableEntityDeserializer deserializer = new SerializableEntityDeserializer();
-        SerializableEntity serializable = deserializer.deserialize(s);
-        return serializable;
+    @Test
+    public void withCollectionGenericType() throws Exception {
+        WithCollectionGenericType<SimplestEntity> withCollectionGenericType = new WithCollectionGenericType<>();
+        SimplestEntity simplestEntity = new SimplestEntity();
+        simplestEntity.name = "changed";
+        withCollectionGenericType.list.add(simplestEntity);
+        withCollectionGenericType.list.add(simplestEntity);
+        String json = SerializableEntitySerializer.serialize(withCollectionGenericType);
+        WithCollectionGenericType<SimplestEntity> des = (WithCollectionGenericType<SimplestEntity>) SerializableEntityDeserializer.deserialize(json);
+        assertEquals(withCollectionGenericType.list.size(), des.list.size());
+        assertNotNull(des.list.get(0));
+        assertNotNull(des.list.get(1));
+        SimplestEntity desSimplest = des.list.get(0);
+        assertSame(desSimplest, des.list.get(1));
+        assertEquals(simplestEntity.name, desSimplest.name);
     }
+
+    @Test
+    public void withMapGenericType() throws Exception {
+        WithMapGenericType<SimplestEntity> withMapGenericType = new WithMapGenericType();
+        SimplestEntity simplestEntity = new SimplestEntity();
+        simplestEntity.name = "changed name";
+        withMapGenericType.entities.put("test1", simplestEntity);
+        withMapGenericType.entities.put("test2", simplestEntity);
+        String json = SerializableEntitySerializer.serialize(withMapGenericType);
+        WithMapGenericType<SimplestEntity> des = (WithMapGenericType<SimplestEntity>) SerializableEntityDeserializer.deserialize(json);
+        SimplestEntity desSimplest = des.entities.get("test1");
+        assertNotNull(des.entities.get("test1"));
+        assertNotNull(des.entities.get("test2"));
+        assertSame(desSimplest, des.entities.get("test2"));
+        assertEquals(simplestEntity.name, des.entities.get("test1").name);
+    }
+
 // currently not implemented
 //    @Test
 //    public void withPrimitiveCollectionTest() throws IllegalAccessException, InstantiationException, ClassNotFoundException, JsonDeserializationException {
@@ -71,11 +101,11 @@ public class DeSerializationTest {
 
     @Test
     public void withEntitySerializableCollectionTest() throws IllegalAccessException, InstantiationException, ClassNotFoundException, JsonDeserializationException {
-        WithSerializableEntityCollection source = createWithEntitySerializableCollection();
+        WithCollectionGeneric source = createWithEntitySerializableCollection();
         String json = serialize(source);
-        WithSerializableEntityCollection deserialized = (WithSerializableEntityCollection) deserialize(json);
-        assertEquals(source.entityserializables.get(0).getClass(), WithPrimitiveCollection.class);
-        assertEquals(source.entityserializables.get(1).getClass(), WithPrimitiveCollection.class);
+        WithCollectionGeneric deserialized = (WithCollectionGeneric) SerializableEntityDeserializer.deserialize(json);
+        assertEquals(source.entityserializables.get(0).getClass(), WithCollectionPrimitive.class);
+        assertEquals(source.entityserializables.get(1).getClass(), WithCollectionPrimitive.class);
     }
 
     @Test
@@ -87,19 +117,19 @@ public class DeSerializationTest {
         child.setParent(root);
         child.setPrimitive("child");
         String json = serialize(root);
-        ChildSerializableEntity deserialized = (ChildSerializableEntity) deserialize(json);
+        ChildSerializableEntity deserialized = (ChildSerializableEntity) SerializableEntityDeserializer.deserialize(json);
         assertEquals(root.getChildren().get(0).getPrimitive(), deserialized.getChildren().get(0).getPrimitive());
         assertEquals(root.getPrimitive(), deserialized.getPrimitive());
     }
 
     @Test
     public void listWithNull() throws ClassNotFoundException, InstantiationException, JsonDeserializationException, IllegalAccessException {
-        WithSerializableEntityCollection original = new WithSerializableEntityCollection();
+        WithCollectionGeneric original = new WithCollectionGeneric();
         original.entityserializables.add(null);
         original.entityserializables.add(null);
         original.entityserializables.add(new SimpleSerializableEntity());
         String json = serialize(original);
-        WithSerializableEntityCollection deserial = (WithSerializableEntityCollection) deserialize(json);
+        WithCollectionGeneric deserial = (WithCollectionGeneric) SerializableEntityDeserializer.deserialize(json);
         assertNull(original.entityserializables.get(0));
         assertNull(deserial.entityserializables.get(0));
         assertNull(original.entityserializables.get(1));
@@ -113,7 +143,7 @@ public class DeSerializationTest {
         BinarySerializableEntity binarySerializable = new BinarySerializableEntity();
         binarySerializable.setBinary(Base64.getEncoder().encode("binarybla".getBytes()));
         String json = serialize(binarySerializable);
-        BinarySerializableEntity decoded = (BinarySerializableEntity) deserialize(json);
+        BinarySerializableEntity decoded = (BinarySerializableEntity) SerializableEntityDeserializer.deserialize(json);
         for (int i = 0; i < binarySerializable.getBinary().length; i++) {
             assertEquals(binarySerializable.getBinary()[i], decoded.getBinary()[i]);
         }

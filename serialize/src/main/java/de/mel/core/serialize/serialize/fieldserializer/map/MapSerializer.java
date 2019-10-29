@@ -45,8 +45,8 @@ public class MapSerializer extends FieldSerializer {
         Class insClass = ins.getClass();
         Type type = field.getGenericType();
         ParameterizedType pType = (ParameterizedType) type;
-        Class clazzK = (Class) pType.getActualTypeArguments()[0];
-        Class clazzV = (Class) pType.getActualTypeArguments()[1];
+        Class clazzK = FieldAnalyzer.getBoundedClass(pType.getActualTypeArguments()[0]);
+        Class clazzV = FieldAnalyzer.getBoundedClass(pType.getActualTypeArguments()[1]);
         KeySerializerFactory kFactory = new KeySerializerFactory(parentSerializer);
         FieldSerializerFactory vFactory = createSerializerFactory(clazzV);
         // the actual JSON

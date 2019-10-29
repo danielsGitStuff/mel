@@ -148,10 +148,7 @@ public class ClientSyncHandler extends SyncHandler {
     @SuppressWarnings("unchecked")
     private void syncToServerLocked(Long stageSetId) throws SqlQueriesException, InterruptedException {
         // stage is complete. first lock on FS
-        FsDao fsDao = fileSyncDatabaseManager.getFsDao();
         StageDao stageDao = fileSyncDatabaseManager.getStageDao();
-//        fsDao.unlockRead();
-        //fsDao.lockWrite();
         Warden warden = P.confine(P.read(stageDao));
         try {
             if (stageDao.stageSetHasContent(stageSetId)) {
@@ -159,7 +156,7 @@ public class ClientSyncHandler extends SyncHandler {
                 //todo conflict checking goes here - has to block
                 Promise<MelValidationProcess, Exception, Void> connected = melAuthService.connect(clientSettings.getServerCertId());
                 connected.done(mvp -> warden.run(() -> {
-// load to cached data structure
+                    // load to cached data structure
                     StageSet stageSet = stageDao.getStageSetById(stageSetId);
                     Commit commit = new Commit(melDriveService.getCacheDirectory(), CachedInitializer.randomId(), FileSyncSettings.CACHE_LIST_SIZE, melDriveService.getUuid());
                     N.readSqlResource(fileSyncDatabaseManager.getStageDao().getStagesByStageSetForCommitResource(stageSetId), (sqlResource, stage) -> commit.add(stage));
@@ -208,7 +205,6 @@ public class ClientSyncHandler extends SyncHandler {
                     // todo server did not commit. it probably had a local change. have to solve it here
                     Exception ex = result;
                     System.err.println("MelDriveClientService.startIndexer.could not connect :( due to: " + ex.getMessage());
-                    // fsDao.unlockWrite();
                     warden.end();
                     melDriveService.onSyncFailed();
                 }));
@@ -254,9 +250,6 @@ public class ClientSyncHandler extends SyncHandler {
         }
         warden = P.confine(fsDao);
         try {
-            // ReadLock bis hier
-            // update from server
-            //fsDao.unlockRead();
 
             // conflict check
 
@@ -273,7 +266,6 @@ public class ClientSyncHandler extends SyncHandler {
             if (updateSets.size() == 1 && stagedFromFs.size() == 1) {
                 // method should create a new CommitJob with conflict solving details
                 handleConflict(updateSets.get(0), stagedFromFs.get(0), warden);
-//                setupTransfer();
                 Lok.debug("setupTransfers() was here before");
                 //transferManager.research();
                 return;
@@ -283,8 +275,7 @@ public class ClientSyncHandler extends SyncHandler {
                 return;
             } else if (stagedFromFs.size() > 1) {
                 // merge again
-                melDriveServichttps:
-//pr0gramm.com/tope.addJob(new CommitJob());
+                melDriveService.addJob(new CommitJob());
                 return;
             } else if (commitJob.getSyncAnyway() && stagedFromFs.size() == 0 && updateSets.size() == 0) {
                 syncFromServer();
@@ -609,18 +600,15 @@ public class ClientSyncHandler extends SyncHandler {
         Promise<MelValidationProcess, Exception, Void> connected = melAuthService.connect(serverCert.getId().v());
         connected.done(mvp -> runner.runTry(() -> {
             long oldeSyncedVersion = fileSyncDatabaseManager.getFileSyncSettings().getLastSyncedVersion();
-            //todo version, what calls this?
             StageSet stageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_SERVER, clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), null, oldeSyncedVersion);
-            //prepare cached answer
             SyncRequest sentSyncRequest = new SyncRequest()
                     .setOldVersion(oldeSyncedVersion);
-//            sentSyncRequest.setServiceUuid(this.clientSettings.getServerServiceUuid());
             sentSyncRequest.setIntent(FileSyncStrings.INTENT_SYNC);
             Request<SyncAnswer> request = mvp.request(clientSettings.getServerServiceUuid(), sentSyncRequest);
             request.done(syncAnswer -> runner.runTry(() -> {
                 try {
                     syncAnswer.setStageSet(stageSet);
-                    //server might have gotten a new version in the mean time and sent us that
+                    //server might have got a new version in the meantime and sent us that
                     stageSet.setVersion(syncAnswer.getNewVersion());
                     stageSet.setBasedOnVersion(syncAnswer.getOldVersion());
                     stageDao.updateStageSet(stageSet);
@@ -645,13 +633,7 @@ public class ClientSyncHandler extends SyncHandler {
                 } finally {
                     waitLock.unlock();
                 }
-            })).fail(result -> runner.runTry(() -> {
-                try {
-
-                } finally {
-                    waitLock.unlock();
-                }
-            }));
+            })).fail(result -> waitLock.unlock());
         })).fail(result -> waitLock.unlock());
 
         Lok.debug("waiting to finish");

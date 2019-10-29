@@ -66,7 +66,7 @@ translates to:
 
 ### Deserialization
 Does the whole thing backwards. Note that every `SerializableEntity` must have a zero-parameter constructor.
-Otherwise the Deserializer cannot create a new instance of it and throws an Exception.
+Otherwise, the Deserializer cannot create a new instance of it and throws an Exception.
 The deserialization process is as follows:
 - look at the class (that implements `SerializableEntity`) that is stored in the `_type` JSON-Field.
 - create an instance of that class
@@ -76,6 +76,28 @@ The deserialization process is as follows:
     - set the value to the object using reflection
  
 The framework resolves references (via `$ref`) automatically.
+
+## Limits of generic types
+Let's assume that `Foo` and `Bar` implement `SerializableEntity`.
+
+You can (de)serialize all the constructs you can see below
+```java
+public class Working<T extends SerializableEntity> implements SerializableEntity{
+    private T child1 = new Foo();
+    private  SerializableEntity child2 = new Bar();
+    private List<T> list = new ArrayList<>();
+}
+```
+But there are limits:
+```java
+public class NotWorking<T extends Object> implements SerializableEntity{
+    private T child1 = new Foo();
+    private  Object child2 = new Bar();
+    private List<Object> list = new ArrayList<>();
+    private Object bla = "bla"; 
+}
+```
+While the first object will serialize and deserialize properly and with all of its contents the latter one will serialize to a JSON with nothing in it.
 
 ## Limit the depth for serialization
 Call `SerializableEntitySerializer.serialize(entity,depth)`. The Serializer will stop serializing after diving `depth` steps into your data structure.

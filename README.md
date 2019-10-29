@@ -34,10 +34,16 @@ All services come with a client/server role. By design all server services do no
   - client sends all files of a folder to the server
   - files deleted on the client are not deleted on the server
   - folder structure remains
-  - name conflicts are solved automatically by the server by adding dates and IDs
+  - server aitomatically resolves conflicts by adding dates and IDs to duplicate file names
+  
+Syncing can be delayed (and it is by default) until certain conditions hold:
+- you have WiFi
+- charger is plugged into the phone
+
+But this is up to you. Just keep in mind that listening for file system changes and incoming messages drains you battery.
   
  ## How to use
- - Find a devices that suits as a server (S) and at least one you want to be mobile (M).
+ - Find a device that suits as a server (S) and at least one you want to be mobile (M).
  - Install Mel on both of them
  - Have them connected to the same network
  - make sure that ports 8888 and 8889 are not blocked by any firewalls
@@ -49,7 +55,7 @@ All services come with a client/server role. By design all server services do no
  - go to "Access" on S and allow M to talk to the created service.
  - create the according client service on M
    - chose S, and S's service as server-service
-   - click "Create Service" 
+   - click "Create Service"
 
 ## Requirements
 Two devices:
@@ -58,7 +64,7 @@ Two devices:
   - Android Q not tested
   - some free storage on that device
 - PC*:
-  - a Linux distribution of you choice (Windows is mostly done but still WIP)
+  - a Linux distribution of you choice or Windows (7 and up) if you prefer that
   - with at least a Java 11 runtime installed
   - Graphical Interface of your choice (currently there is no CLI version)
 
