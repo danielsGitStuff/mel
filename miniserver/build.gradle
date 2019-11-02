@@ -1,7 +1,7 @@
 plugins {
     id 'org.springframework.boot'
-    id 'java'
     id 'org.jetbrains.kotlin.jvm'
+    id 'java'
 }
 
 version '0'
@@ -25,7 +25,7 @@ sourceSets {
 dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$KOTLIN_CR_V"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
-    implementation "org.jetbrains.kotlinx:kotlinx-io-jvm:0.1.0"
+    implementation "org.jetbrains.kotlinx:kotlinx-io-jvm:0.1.15"
     implementation project(':konsole')
     implementation project(':blog')
     implementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
