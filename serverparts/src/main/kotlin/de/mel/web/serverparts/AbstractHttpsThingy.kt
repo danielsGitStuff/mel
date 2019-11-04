@@ -4,6 +4,7 @@ import com.sun.net.httpserver.*
 import de.mel.DeferredRunnable
 import de.mel.Lok
 import de.mel.MelThread
+import de.mel.auth.data.access.CertificateManager
 import org.jdeferred.Promise
 
 import java.net.InetSocketAddress
@@ -225,20 +226,20 @@ abstract class AbstractHttpsThingy(private val port: Int, val sslContext: SSLCon
             override fun configure(params: HttpsParameters) {
                 try {
                     // initialise the SSL context
-                    val c = SSLContext.getDefault()
-                    val engine = c.createSSLEngine()
+                    val engine = sslContext.createSSLEngine()
                     params.needClientAuth = false
                     params.cipherSuites = engine.enabledCipherSuites
                     params.protocols = engine.enabledProtocols
 
                     // get the default parameters
-                    val defaultSSLParameters = c.defaultSSLParameters
-                    params.setSSLParameters(defaultSSLParameters)
+                    val sslParameters = sslContext.supportedSSLParameters
+                    sslParameters.cipherSuites = CertificateManager.filterCipherSuites(sslParameters.cipherSuites)
+                    sslParameters.protocols = arrayOf("TLSv1.2")
+                    params.setSSLParameters(sslParameters)
                 } catch (ex: Exception) {
                     Lok.error(ex)
                     Lok.error("Failed to create HTTPS port")
                 }
-
             }
         }
         server.httpsConfigurator = configurator

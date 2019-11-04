@@ -6,12 +6,12 @@ import de.mel.auth.data.db.dao.CertificateDao;
 import de.mel.auth.file.AFile;
 import de.mel.auth.file.FFile;
 import de.mel.auth.tools.Cryptor;
+import de.mel.auth.tools.N;
 import de.mel.auth.tools.lock.P;
 import de.mel.auth.tools.lock.Warden;
 import de.mel.sql.Hash;
 import de.mel.sql.ISQLQueries;
 import de.mel.sql.SqlQueriesException;
-
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 
@@ -19,7 +19,6 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.net.ssl.*;
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -31,8 +30,9 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -315,7 +315,7 @@ public class CertificateManager extends FileRelatedManager {
         tmf.init(keyStore);
         SSLContext sslContext = null;
         sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+        sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), new SecureRandom());
         return sslContext;
     }
 
@@ -369,6 +369,17 @@ public class CertificateManager extends FileRelatedManager {
         }
     }
 
+    public static String[] filterCipherSuites(String[] cipherSuites) {
+        List<String> ciphers = new ArrayList<>();
+        N.forEach(cipherSuites, s -> {
+            if (s.equals("TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384")
+                    || s.equals("TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256")
+                    || s.equals("TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256"))
+                ciphers.add(s);
+        });
+        return N.arr.fromCollection(ciphers, N.converter(String.class, element -> element));
+    }
+
     @SuppressWarnings("Duplicates")
     public Socket createSocket() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
         SSLSocket socket = (SSLSocket) getSSLContext().getSocketFactory().createSocket();
@@ -376,11 +387,15 @@ public class CertificateManager extends FileRelatedManager {
             socket.setEnabledProtocols(new String[]{"TLSv1.2"});
         } catch (Exception e) {
             try {
+                Lok.error("TLSv1.2 unavailable trying v1.1");
                 socket.setEnabledProtocols(new String[]{"TLSv1.1"});
             } catch (Exception ee) {
+                Lok.error("TLSv1.2 unavailable trying v1");
                 socket.setEnabledProtocols(new String[]{"TLSv1"});
             }
         }
+        String[] cipherArray = filterCipherSuites(socket.getEnabledCipherSuites());
+        socket.setEnabledCipherSuites(cipherArray);
         return socket;
     }
 
@@ -391,11 +406,15 @@ public class CertificateManager extends FileRelatedManager {
             socket.setEnabledProtocols(new String[]{"TLSv1.2"});
         } catch (Exception e) {
             try {
+                Lok.error("TLSv1.2 unavailable trying v1.1");
                 socket.setEnabledProtocols(new String[]{"TLSv1.1"});
             } catch (Exception ee) {
+                Lok.error("TLSv1.2 unavailable trying v1");
                 socket.setEnabledProtocols(new String[]{"TLSv1"});
             }
         }
+        String[] cipherArray = filterCipherSuites(socket.getEnabledCipherSuites());
+        socket.setEnabledCipherSuites(cipherArray);
         return socket;
     }
 
