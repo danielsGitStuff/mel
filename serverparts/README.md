@@ -14,3 +14,5 @@ The high CPU load seems to be related to TSL v1.3. It occurs when the server is 
 It proposes starting the JVM with `-Djdk.tls.disabledAlgorithms=TLSv1.3` << does not work~~
 
 Until this is properly fixed in the JDK the only available option is set to TLSv1.2.
+
+<small>To reenable the behaviour: remove restrictions to TLSv1.2 in CertificateManager and AbstractHttpsThingy</small>
