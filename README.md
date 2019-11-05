@@ -85,8 +85,6 @@ So no own crypto is used in this program.
 
 
 ## License
-Until I have chosen a proper license (BSD/GNU/Apache...) neither republishing/altering the code nor the binaries is permitted.
-There are parts of this program which are made by others. You may alter or republish these files according to their respective licsenses.
 You can find all licenses and according modules and usage under `auth/src/main/resources/de/mel/auth/licenses.html`.
 
 ## Current issues
@@ -147,10 +145,11 @@ For example:
   - some programs like `find` may accept your parameters but silently ignore them: `mindepth` for example
 - your background service might get killed at any time
 
-In Java I only found two things that are broken:
+In Java I found a few things broken:
 - the file watch service that watches folders for changes:
   It neither delivers complete nor correct results on any Platform. All you can rely on is that something had happened.
 - My JUnit tests somehow end with core dumps of the underlying JVM (on the build machine only)
+- If TLSv1.3 is enabled and running (which by default it is) all threads of the HTTPServer's executor will eventually get stuck in an infinite loop
 
 
 ### Intellij does not rebuild all changed Files when running or debugging (Linux)
