@@ -6,7 +6,7 @@ import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.data.MelRequest;
 import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.data.db.Certificate;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.socket.process.reg.IRegisterHandler;
@@ -78,7 +78,7 @@ public class TransferTest {
         //setupServer dirs
         CertificateManager.deleteDirectory(melAuthSettings.getWorkingDirectory());
         melAuthSettings.getWorkingDirectory().mkdirs();
-        AFile testDir = AFile.instance(AFile.instance(melAuthSettings.getWorkingDirectory()), ROOT_DIR_NAME);
+        AbstractFile testDir = AbstractFile.instance(AbstractFile.instance(melAuthSettings.getWorkingDirectory()), ROOT_DIR_NAME);
         testDir.mkdirs();
         Lok.debug(testDir.getAbsolutePath() + " /// " + testDir.exists());
         melAuthSettings.save();
@@ -144,7 +144,7 @@ public class TransferTest {
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
-        AFile.configure(new DefaultFileConfiguration());
+        AbstractFile.configure(new DefaultFileConfiguration());
         BashTools.init();
 
         wd1 = new File("wd1");
@@ -158,7 +158,7 @@ public class TransferTest {
         AtomicReference<MelFileSyncServerService> serverService = new AtomicReference<>();
         CountdownLock bootLock = new CountdownLock(1);
         init(workingDir, melAuthService -> {
-            AFile root = AFile.instance(AFile.instance(workingDir), ROOT_DIR_NAME);
+            AbstractFile root = AbstractFile.instance(AbstractFile.instance(workingDir), ROOT_DIR_NAME);
             Path path = Paths.get(root.getAbsolutePath() + File.separator + "text.txt");
             StringBuilder builder = new StringBuilder("start...");
             N.forLoop(1, 2000, (stoppable, index) -> builder.append(index).append("/"));
@@ -181,7 +181,7 @@ public class TransferTest {
         init(workingDir, melAuthService -> {
             Promise<MelValidationProcess, Exception, Void> paired = melAuthService.connect("localhost", 6666, 6667, true);
             paired.done(result -> new Thread(() -> N.r(() -> {
-                AFile root = AFile.instance(AFile.instance(workingDir), ROOT_DIR_NAME);
+                AbstractFile root = AbstractFile.instance(AbstractFile.instance(workingDir), ROOT_DIR_NAME);
                 FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> N.r(() -> {
                     clientService.set((MelFileSyncClientService) driveService);
                     bootLock.unlock();

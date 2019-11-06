@@ -13,15 +13,15 @@ import androidx.documentfile.provider.DocumentFile
 import de.mel.Lok
 import de.mel.android.Tools
 import de.mel.android.file.SAFAccessor.SAFException
-import de.mel.auth.file.AFile
+import de.mel.auth.file.AbstractFile
 import de.mel.auth.tools.N
 import de.mel.auth.tools.N.arr
 import java.io.*
 import java.util.*
 
-class JFile : AFile<JFile> {
+class AndroidFile : AbstractFile<AndroidFile> {
     private var file: File?
-    private var parentFile: JFile? = null
+    private var parentFile: AndroidFile? = null
     private var isExternal = false
     private var internalCache: DocFileCache? = null
     private var externalCache: DocFileCache? = null
@@ -36,13 +36,13 @@ class JFile : AFile<JFile> {
         init()
     }
 
-    constructor(parent: JFile, name: String) {
+    constructor(parent: AndroidFile, name: String) {
         parentFile = parent
         file = File(parent.absolutePath + File.separator + name)
         init()
     }
 
-    constructor(originalFile: JFile) {
+    constructor(originalFile: AndroidFile) {
         file = File(originalFile.absolutePath!!)
         init()
     }
@@ -55,7 +55,7 @@ class JFile : AFile<JFile> {
         return File.separator
     }
 
-    override fun hasSubContent(subFile: JFile?): Boolean {
+    override fun hasSubContent(subFile: AndroidFile?): Boolean {
         return if (subFile != null) subFile.file!!.absolutePath.startsWith(file!!.absolutePath) else false
     }
 
@@ -96,8 +96,8 @@ class JFile : AFile<JFile> {
 
 
     override fun equals(other: Any?): Boolean {
-        if (other != null && other is JFile) {
-            val jFile = other as JFile?
+        if (other != null && other is AndroidFile) {
+            val jFile = other as AndroidFile?
             return jFile!!.file == file
         }
         return false
@@ -111,11 +111,11 @@ class JFile : AFile<JFile> {
         return file!!.length()
     }
 
-    override fun listFiles(): Array<JFile>? {
+    override fun listFiles(): Array<AndroidFile>? {
         return list(true)
     }
 
-    override fun listDirectories(): Array<JFile>? {
+    override fun listDirectories(): Array<AndroidFile>? {
         return list(false)
     }
 
@@ -133,8 +133,8 @@ class JFile : AFile<JFile> {
         return true
     }
 
-    override fun getParentFile(): JFile {
-        return JFile(file!!.parentFile!!)
+    override fun getParentFile(): AndroidFile {
+        return AndroidFile(file!!.parentFile!!)
     }
 
     @TargetApi(VERSION_CODES.KITKAT)
@@ -323,7 +323,7 @@ class JFile : AFile<JFile> {
         return false
     }
 
-    private fun listImplPie(filterOutDirs: Boolean?): Array<JFile>? {
+    private fun listImplPie(filterOutDirs: Boolean?): Array<AndroidFile>? {
         val directory = File(file!!.absolutePath)
 
         // File not found error
@@ -345,10 +345,10 @@ class JFile : AFile<JFile> {
 
 
         Arrays.sort(listFiles) { o1: File?, o2: File? -> o1!!.name.compareTo(o2!!.name) }
-        return arr.cast(listFiles, N.converter(JFile::class.java) { file: File -> JFile(file) })
+        return arr.cast(listFiles, N.converter(AndroidFile::class.java) { file: File -> AndroidFile(file) })
     }
 
-    private fun list(filterOutDirs: Boolean?): Array<JFile>? {
+    private fun list(filterOutDirs: Boolean?): Array<AndroidFile>? {
         return if (VERSION.SDK_INT >= VERSION_CODES.Q) listImplQ(filterOutDirs) else listImplPie(filterOutDirs)
     }
 
@@ -357,7 +357,7 @@ class JFile : AFile<JFile> {
      * @return
      */
     @RequiresApi(VERSION_CODES.Q)
-    private fun listImplQ(filterOutDirs: Boolean?): Array<JFile>? {
+    private fun listImplQ(filterOutDirs: Boolean?): Array<AndroidFile>? {
         /**
          * Here we employ database queries to find the content. This reduced the time listing directory contents from 7500ms to 250ms (filtering etc included)
          * compared to using createDocFile().listFiles().
@@ -369,7 +369,7 @@ class JFile : AFile<JFile> {
         try {
             val thisDoc = createDocFile()!!
             val uri: Uri = DocumentsContract.buildChildDocumentsUriUsingTree(thisDoc.uri, DocumentsContract.getDocumentId(thisDoc.uri))
-            val contentResolver: ContentResolver = (AFile.getConfiguration() as AndroidFileConfiguration).context.contentResolver
+            val contentResolver: ContentResolver = (AbstractFile.getConfiguration() as AndroidFileConfiguration).context.contentResolver
 // this code maybe useful when someone eventually found out how that stupid query() thing works, see comment below
 //            var dirFilterSelection: String? = null
 //            var dirFilterArgs: Array<String>? = null
@@ -404,14 +404,14 @@ class JFile : AFile<JFile> {
                 }
             }
             fileList.sort()
-            return fileList.map { JFile(this, it) }.toTypedArray()
+            return fileList.map { AndroidFile(this, it) }.toTypedArray()
         } catch (e: SAFException) {
             e.printStackTrace()
         }
         return emptyArray()
     }
 
-    override fun listContent(): Array<JFile>? {
+    override fun listContent(): Array<AndroidFile>? {
         return list(null)
     }
 }

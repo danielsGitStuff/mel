@@ -2,7 +2,7 @@ package de.mel.filesync.index.watchdog;
 
 
 import de.mel.Lok;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.tools.N;
 import de.mel.filesync.bash.AutoKlausIterator;
 import de.mel.filesync.data.FileSyncSettings;
@@ -36,9 +36,9 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
         PathCollection pathCollection = new PathCollection();
         N.r(() -> {
             FileSyncSettings fileSyncSettings = melFileSyncService.getFileSyncSettings();
-            try (AutoKlausIterator<AFile<?>> paths = BashTools.stuffModifiedAfter(fileSyncSettings.getRootDirectory().getOriginalFile(), fileSyncSettings.getTransferDirectoryFile(), timeStamp)){
+            try (AutoKlausIterator<AbstractFile<?>> paths = BashTools.stuffModifiedAfter(fileSyncSettings.getRootDirectory().getOriginalFile(), fileSyncSettings.getTransferDirectoryFile(), timeStamp)){
                 while (paths.hasNext()) {
-                    AFile path = paths.next();
+                    AbstractFile path = paths.next();
                     Lok.debug("   IndexWatchDogListenerWindows.onTimerStopped: " + path);
                     pathCollection.addPath(path);
                 }
@@ -61,7 +61,7 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
                         Path eventPath = (Path) event.context();
                         String absolutePath = keyPath.toString() + File.separator + eventPath.toString();
                         if (!absolutePath.startsWith(transferDirectoryPath)) {
-                            AFile file = AFile.instance(absolutePath);
+                            AbstractFile file = AbstractFile.instance(absolutePath);
                             Lok.debug("IndexWatchdogListener[" + melFileSyncService.getFileSyncSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
                             if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {
                                 // start the timer but do not analyze. Sometimes we get the wrong WatchKey so we cannot trust it.

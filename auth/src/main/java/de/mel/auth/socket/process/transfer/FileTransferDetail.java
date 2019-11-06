@@ -1,7 +1,6 @@
 package de.mel.auth.socket.process.transfer;
 
-import de.mel.Lok;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.core.serialize.JsonIgnore;
 import de.mel.core.serialize.SerializableEntity;
 
@@ -19,7 +18,7 @@ public class FileTransferDetail implements SerializableEntity {
 
     @JsonIgnore
     private long position;
-    private AFile file;
+    private AbstractFile file;
     private int streamId;
     private FileInputStream in;
     private FileOutputStream out;
@@ -78,7 +77,7 @@ public class FileTransferDetail implements SerializableEntity {
         return this;
     }
 
-    public FileTransferDetail(AFile file, int streamId, long start, long end) {
+    public FileTransferDetail(AbstractFile file, int streamId, long start, long end) {
         this.file = file;
         this.streamId = streamId;
         this.start = start;
@@ -96,7 +95,7 @@ public class FileTransferDetail implements SerializableEntity {
         return hash;
     }
 
-    public FileTransferDetail setFile(AFile file) {
+    public FileTransferDetail setFile(AbstractFile file) {
         this.file = file;
         assertCheck();
         return this;
@@ -119,7 +118,7 @@ public class FileTransferDetail implements SerializableEntity {
     }
 
 
-    public AFile getFile() {
+    public AbstractFile getFile() {
         return file;
     }
 

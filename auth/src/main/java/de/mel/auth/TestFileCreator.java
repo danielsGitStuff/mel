@@ -1,7 +1,7 @@
 package de.mel.auth;
 
 import de.mel.Lok;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.core.serialize.serialize.tools.StringBuilder;
 
 import java.io.FileOutputStream;
@@ -23,7 +23,7 @@ public class TestFileCreator {
         return stringBuilder.toString().getBytes();
     }
 
-    public static void saveFile(byte[] data, AFile file) throws IOException {
+    public static void saveFile(byte[] data, AbstractFile file) throws IOException {
         Lok.debug("TestFileCreator.saveFile: " + file.getAbsolutePath());
         FileOutputStream fos = file.outputStream();
         fos.write(data);

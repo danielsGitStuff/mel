@@ -1,7 +1,7 @@
 package de.mel.filesync.bash
 
 import de.mel.Lok
-import de.mel.auth.file.AFile
+import de.mel.auth.file.AbstractFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -18,8 +18,8 @@ import java.nio.file.attribute.BasicFileAttributeView
  * Created by xor on 13.07.2017.
  */
 class BashToolsWindows : BashToolsImpl() {
-    override fun getContentFsBashDetails(file: AFile<*>): Map<String, FsBashDetails> {
-        val content: Array<out AFile<AFile<*>>>? = file.listContent()
+    override fun getContentFsBashDetails(file: AbstractFile<*>): Map<String, FsBashDetails> {
+        val contents: Array<out AbstractFile<AbstractFile<*>>>? = file.listContent()
 
         val symLinkMap: MutableMap<String, String> = mutableMapOf()
         val iNodeMap: MutableMap<String, Long> = mutableMapOf()
@@ -27,7 +27,7 @@ class BashToolsWindows : BashToolsImpl() {
         runBlocking(Dispatchers.IO) {
 
             // get inodes
-            content?.forEach {
+            contents?.forEach {
                 launch {
                     val fsUtil = execLine("fsutil", "file", "queryfileid", file.absolutePath)
                     val id = fsUtil!!.substringAfter(": ")
@@ -57,7 +57,7 @@ class BashToolsWindows : BashToolsImpl() {
 
             // get hard links
             val driveLetter = file.absolutePath.substring(0, 2)
-            content?.filter { !it.isDirectory }?.forEach { f ->
+            contents?.filter { !it.isDirectory }?.forEach { f ->
                 launch {
                     val path = f.absolutePath
                     execReader("fsutil", "hardlink", "list", f.absolutePath)?.useLines {
@@ -72,7 +72,7 @@ class BashToolsWindows : BashToolsImpl() {
 
         }
         val map: MutableMap<String, FsBashDetails> = mutableMapOf()
-        content?.forEach {
+        contents?.forEach {
             val name = it.name
             val isSymLink = symLinkMap.containsKey(name)
             val attr = Files.getFileAttributeView(Paths.get(File(it.absolutePath).toURI()), BasicFileAttributeView::class.java).readAttributes()
@@ -83,7 +83,7 @@ class BashToolsWindows : BashToolsImpl() {
     }
 
     @Throws(IOException::class)
-    override fun getFsBashDetails(file: AFile<*>): FsBashDetails {
+    override fun getFsBashDetails(file: AbstractFile<*>): FsBashDetails {
         var iNode: Long? = null
         val name = file.name
         var isSymLink: Boolean = false
@@ -114,7 +114,7 @@ class BashToolsWindows : BashToolsImpl() {
         return FsBashDetails(created, modified, iNode!!, isSymLink, symLinkTarget, name)
     }
 
-    override fun lnS(file: AFile<out AFile<*>>, targetString: String) {
+    override fun lnS(file: AbstractFile<out AbstractFile<*>>, targetString: String) {
         // we are limited to two ways of using 'mklink' here.
         // /J works for directories whereas /H works for linking files
         val target = File(targetString)
@@ -123,7 +123,7 @@ class BashToolsWindows : BashToolsImpl() {
     }
 
 
-    override fun isSymLink(f: AFile<out AFile<*>>): Boolean {
+    override fun isSymLink(f: AbstractFile<out AbstractFile<*>>): Boolean {
         if (Files.isSymbolicLink(Paths.get(File(f.absolutePath).toURI())))
             return true
         val path = f.absolutePath
@@ -161,7 +161,7 @@ class BashToolsWindows : BashToolsImpl() {
         Lok.debug("BashToolsWindows.setBinPath")
     }
 
-    private fun getSymLink(f: AFile<out AFile<*>>): String? {
+    private fun getSymLink(f: AbstractFile<out AbstractFile<*>>): String? {
         if (Files.isSymbolicLink(Paths.get(File(f.absolutePath).toURI())))
             return Files.readSymbolicLink(Paths.get(File(f.absolutePath).toURI())).toFile().absolutePath
         val path = f.absolutePath
@@ -200,7 +200,7 @@ class BashToolsWindows : BashToolsImpl() {
     }
 
     @Throws(IOException::class)
-    override fun rmRf(directory: AFile<*>) {
+    override fun rmRf(directory: AbstractFile<*>) {
         //        exec("rd /s /q \"" + directory.getAbsolutePath() + "\"");
         exec("rd", "/s", "/q", directory.absolutePath).waitFor()
 //        Files.delete(Paths.get(File(directory.absolutePath).toURI()))
@@ -254,16 +254,16 @@ class BashToolsWindows : BashToolsImpl() {
     }
 
     @Throws(IOException::class)
-    override fun find(directory: AFile<*>, pruneDir: AFile<*>): AutoKlausIterator<AFile<*>> {
-        return object : AutoKlausIterator<AFile<*>> {
+    override fun find(directory: AbstractFile<*>, pruneDir: AbstractFile<*>): AutoKlausIterator<AbstractFile<*>> {
+        return object : AutoKlausIterator<AbstractFile<*>> {
             val windowsBashReader = execReader("dir", "/b/s", directory.absolutePath, "|", "findstr", "/vc:\"" + pruneDir.absolutePath + "\"")!!
                     .addFirstLine(directory.absolutePath)
             val iterator = windowsBashReader!!.lines()
-                    .map { it: String -> AFile.instance(it) }.iterator()
+                    .map { it: String -> AbstractFile.instance(it) }.iterator()
 
             override fun hasNext(): Boolean = iterator.hasNext()
 
-            override fun next(): AFile<*> = iterator.next()
+            override fun next(): AbstractFile<*> = iterator.next()
 
             override fun remove() {
 
@@ -294,7 +294,7 @@ class BashToolsWindows : BashToolsImpl() {
     }
 
     @Throws(IOException::class, InterruptedException::class)
-    override fun stuffModifiedAfter(directory: AFile<*>, pruneDir: AFile<*>, timeStamp: Long): AutoKlausIterator<AFile<*>> {
+    override fun stuffModifiedAfter(directory: AbstractFile<*>, pruneDir: AbstractFile<*>, timeStamp: Long): AutoKlausIterator<AbstractFile<*>> {
         val winTimeStamp = timeStamp / 1000.0
         var prependLine: String? = null
         val lm = directory.lastModified()
@@ -304,14 +304,14 @@ class BashToolsWindows : BashToolsImpl() {
         val command = "get-childitem \"" + directory.absolutePath + "\" -recurse | " +
                 "where {(Get-Date(\$_.LastWriteTime.ToUniversalTime()) -UFormat \"%s\") -gt " + winTimeStamp + " -and -not \$_.FullName.StartsWith(\"" + pruneDir.absolutePath + "\")} " +
                 "| foreach {\$_.FullName}"
-        return object : AutoKlausIterator<AFile<*>> {
+        return object : AutoKlausIterator<AbstractFile<*>> {
             val windowsBashReader = execPowerShell(command, prependLine)
-            val iterator = windowsBashReader.lines().map { AFile.instance(it) }.iterator()
+            val iterator = windowsBashReader.lines().map { AbstractFile.instance(it) }.iterator()
 
             override fun hasNext(): Boolean = iterator.hasNext()
 
 
-            override fun next(): AFile<*> = iterator.next()
+            override fun next(): AbstractFile<*> = iterator.next()
 
             override fun remove() {
 
@@ -325,7 +325,7 @@ class BashToolsWindows : BashToolsImpl() {
     }
 
     @Throws(IOException::class)
-    override fun mkdir(dir: AFile<*>) {
+    override fun mkdir(dir: AbstractFile<*>) {
         exec("mkdir", dir.absolutePath)
     }
 

@@ -1,7 +1,7 @@
 package de.mel.filesync.data.conflict;
 
 import de.mel.Lok;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.Order;
 import de.mel.filesync.data.FileSyncStrings;
@@ -85,7 +85,7 @@ public class ConflictSolver extends SyncStageMerger {
      * @throws SqlQueriesException
      */
     @Override
-    public void stuffFound(Stage left, Stage right, AFile lFile, AFile rFile) throws SqlQueriesException {
+    public void stuffFound(Stage left, Stage right, AbstractFile lFile, AbstractFile rFile) throws SqlQueriesException {
         if (!(left == null && lFile == null || left != null && lFile != null)) {
             System.err.println("ConflictSolver.stuffFound.e1");
         }
@@ -193,13 +193,13 @@ public class ConflictSolver extends SyncStageMerger {
         List<Stage> leftDirs = stageDao.getDeletedDirectories(lStageSetId);
         List<Stage> rightDirs = stageDao.getDeletedDirectories(rStageSetId);
         for (Stage stage : leftDirs) {
-            AFile f = stageDao.getFileByStage(stage);
+            AbstractFile f = stageDao.getFileByStage(stage);
             Stage rStage = stageDao.getStageByPath(rStageSetId, f);
             Conflict conflict = new Conflict(stageDao, stage, rStage);
             deletedParents.put(f.getAbsolutePath(), conflict);
         }
         for (Stage stage : rightDirs) {
-            AFile f = stageDao.getFileByStage(stage);
+            AbstractFile f = stageDao.getFileByStage(stage);
             Stage lStage = stageDao.getStageByPath(lStageSetId, f);
             Conflict conflict = new Conflict(stageDao, lStage, stage);
             deletedParents.put(f.getAbsolutePath(), conflict);

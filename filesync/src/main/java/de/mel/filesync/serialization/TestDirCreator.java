@@ -2,7 +2,7 @@ package de.mel.filesync.serialization;
 
 
 import de.mel.auth.TestFileCreator;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.filesync.bash.BashTools;
 
 import java.io.File;
@@ -15,35 +15,35 @@ import java.util.List;
  * Created by xor on 7/10/16.
  */
 public class TestDirCreator {
-    public static List<String> createTestDir(AFile testDir) throws IOException {
+    public static List<String> createTestDir(AbstractFile testDir) throws IOException {
         return createTestDir(testDir, "");
     }
 
-    public static List<String> createTestDir(AFile testDir, String appendix) throws IOException {
+    public static List<String> createTestDir(AbstractFile testDir, String appendix) throws IOException {
 
         List<String> paths = new ArrayList<>();
         //CertificateManager.deleteDirectory(testDir);
         BashTools.mkdir(testDir);
-        AFile sub1 = AFile.instance(testDir.getPath() + File.separator + "sub1");
-        AFile sub2 = AFile.instance(testDir.getPath() + File.separator + "sub2");
+        AbstractFile sub1 = AbstractFile.instance(testDir.getPath() + File.separator + "sub1");
+        AbstractFile sub2 = AbstractFile.instance(testDir.getPath() + File.separator + "sub2");
         BashTools.mkdir(sub1);
         BashTools.mkdir(sub2);
 
-        AFile sub1txt = AFile.instance(sub1.getPath() + File.separator + "sub1.txt");
+        AbstractFile sub1txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub1.txt");
         TestFileCreator.saveFile(TestFileCreator.genBigFile(), sub1txt);
 
-        AFile sub2txt = AFile.instance(sub1.getPath() + File.separator + "sub2.txt");
+        AbstractFile sub2txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub2.txt");
         TestFileCreator.saveFile(("sub2.txt text" + appendix).getBytes(), sub2txt);
 
-        AFile sub22 = AFile.instance(sub2.getPath() + File.separator + "sub22");
+        AbstractFile sub22 = AbstractFile.instance(sub2.getPath() + File.separator + "sub22");
         BashTools.mkdir(sub22);
 
-        AFile sub22txt = AFile.instance(sub22.getPath() + File.separator + "sub22.txt");
+        AbstractFile sub22txt = AbstractFile.instance(sub22.getPath() + File.separator + "sub22.txt");
         TestFileCreator.saveFile("sub22.txt text".getBytes(), sub22txt);
-        AFile sameDir = AFile.instance(testDir.getPath() + File.separator + "samedir");
+        AbstractFile sameDir = AbstractFile.instance(testDir.getPath() + File.separator + "samedir");
         BashTools.mkdir(sameDir);
-        AFile same1txt = AFile.instance(sameDir.getPath() + File.separator + "same1.txt");
-        AFile same2txt = AFile.instance(sameDir.getPath() + File.separator + "same2.txt");
+        AbstractFile same1txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same1.txt");
+        AbstractFile same2txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same2.txt");
         TestFileCreator.saveFile("same".getBytes(), same1txt);
         TestFileCreator.saveFile("same".getBytes(), same2txt);
 
@@ -61,31 +61,31 @@ public class TestDirCreator {
         return paths;
     }
 
-    public static List<String> createFilesTestDir(AFile testDir, int noOfFiles) throws IOException {
+    public static List<String> createFilesTestDir(AbstractFile testDir, int noOfFiles) throws IOException {
 
         List<String> paths = new ArrayList<>();
         //CertificateManager.deleteDirectory(testDir);
         BashTools.mkdir(testDir);
-        AFile sub1 = AFile.instance(testDir.getPath() + File.separator + "sub1");
-        AFile sub2 = AFile.instance(testDir.getPath() + File.separator + "sub2");
+        AbstractFile sub1 = AbstractFile.instance(testDir.getPath() + File.separator + "sub1");
+        AbstractFile sub2 = AbstractFile.instance(testDir.getPath() + File.separator + "sub2");
         BashTools.mkdir(sub1);
         BashTools.mkdir(sub2);
 
-        AFile sub1txt = AFile.instance(sub1.getPath() + File.separator + "sub1.txt");
+        AbstractFile sub1txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub1.txt");
         TestFileCreator.saveFile(TestFileCreator.genBigFile(), sub1txt);
 
-        AFile sub2txt = AFile.instance(sub1.getPath() + File.separator + "sub2.txt");
+        AbstractFile sub2txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub2.txt");
         TestFileCreator.saveFile(("sub2.txt text").getBytes(), sub2txt);
 
-        AFile sub22 = AFile.instance(sub2.getPath() + File.separator + "sub22");
+        AbstractFile sub22 = AbstractFile.instance(sub2.getPath() + File.separator + "sub22");
         BashTools.mkdir(sub22);
 
-        AFile sub22txt = AFile.instance(sub22.getPath() + File.separator + "sub22.txt");
+        AbstractFile sub22txt = AbstractFile.instance(sub22.getPath() + File.separator + "sub22.txt");
         TestFileCreator.saveFile("sub22.txt text".getBytes(), sub22txt);
-        AFile sameDir = AFile.instance(testDir.getPath() + File.separator + "samedir");
+        AbstractFile sameDir = AbstractFile.instance(testDir.getPath() + File.separator + "samedir");
         BashTools.mkdir(sameDir);
-        AFile same1txt = AFile.instance(sameDir.getPath() + File.separator + "same1.txt");
-        AFile same2txt = AFile.instance(sameDir.getPath() + File.separator + "same2.txt");
+        AbstractFile same1txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same1.txt");
+        AbstractFile same2txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same2.txt");
         TestFileCreator.saveFile("same".getBytes(), same1txt);
         TestFileCreator.saveFile("same".getBytes(), same2txt);
         for (Integer i = 0; i < noOfFiles; i++) {
@@ -108,31 +108,31 @@ public class TestDirCreator {
     }
 
 
-    public static List<String> createTestDir(AFile testDir, int noOfSubdirs) throws IOException {
+    public static List<String> createTestDir(AbstractFile testDir, int noOfSubdirs) throws IOException {
 
         List<String> paths = new ArrayList<>();
         //CertificateManager.deleteDirectory(testDir);
         BashTools.mkdir(testDir);
-        AFile sub1 = AFile.instance(testDir.getPath() + File.separator + "sub1");
-        AFile sub2 = AFile.instance(testDir.getPath() + File.separator + "sub2");
+        AbstractFile sub1 = AbstractFile.instance(testDir.getPath() + File.separator + "sub1");
+        AbstractFile sub2 = AbstractFile.instance(testDir.getPath() + File.separator + "sub2");
         BashTools.mkdir(sub1);
         BashTools.mkdir(sub2);
 
-        AFile sub1txt = AFile.instance(sub1.getPath() + File.separator + "sub1.txt");
+        AbstractFile sub1txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub1.txt");
         TestFileCreator.saveFile(TestFileCreator.genBigFile(), sub1txt);
 
-        AFile sub2txt = AFile.instance(sub1.getPath() + File.separator + "sub2.txt");
+        AbstractFile sub2txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub2.txt");
         TestFileCreator.saveFile(("sub2.txt text").getBytes(), sub2txt);
 
-        AFile sub22 = AFile.instance(sub2.getPath() + File.separator + "sub22");
+        AbstractFile sub22 = AbstractFile.instance(sub2.getPath() + File.separator + "sub22");
         BashTools.mkdir(sub22);
 
-        AFile sub22txt = AFile.instance(sub22.getPath() + File.separator + "sub22.txt");
+        AbstractFile sub22txt = AbstractFile.instance(sub22.getPath() + File.separator + "sub22.txt");
         TestFileCreator.saveFile("sub22.txt text".getBytes(), sub22txt);
-        AFile sameDir = AFile.instance(testDir.getPath() + File.separator + "samedir");
+        AbstractFile sameDir = AbstractFile.instance(testDir.getPath() + File.separator + "samedir");
         BashTools.mkdir(sameDir);
-        AFile same1txt = AFile.instance(sameDir.getPath() + File.separator + "same1.txt");
-        AFile same2txt = AFile.instance(sameDir.getPath() + File.separator + "same2.txt");
+        AbstractFile same1txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same1.txt");
+        AbstractFile same2txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same2.txt");
         TestFileCreator.saveFile("same".getBytes(), same1txt);
         TestFileCreator.saveFile("same".getBytes(), same2txt);
         for (Integer i = 0; i < noOfSubdirs; i++) {
@@ -153,15 +153,15 @@ public class TestDirCreator {
         return paths;
     }
 
-    public static void createTestDirSimple(AFile rootDir) throws IOException {
+    public static void createTestDirSimple(AbstractFile rootDir) throws IOException {
         rootDir.mkdirs();
-        AFile sub = AFile.instance(rootDir, "sub");
+        AbstractFile sub = AbstractFile.instance(rootDir, "sub");
         sub.mkdirs();
 
-        AFile synced1 = AFile.instance(sub, "synced1.txt");
-        AFile synced2 = AFile.instance(sub, "synced2.txt");
-        AFile unsynced3 = AFile.instance(sub, "unsynced3.txt");
-        AFile synced4 = AFile.instance(sub, "synced4.txt");
+        AbstractFile synced1 = AbstractFile.instance(sub, "synced1.txt");
+        AbstractFile synced2 = AbstractFile.instance(sub, "synced2.txt");
+        AbstractFile unsynced3 = AbstractFile.instance(sub, "unsynced3.txt");
+        AbstractFile synced4 = AbstractFile.instance(sub, "synced4.txt");
 
 
         synced1.outputStream().write(1);

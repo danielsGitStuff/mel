@@ -3,7 +3,7 @@ package de.mel.filesync.service.sync;
 import de.mel.Lok;
 import de.mel.auth.data.cached.CachedInitializer;
 import de.mel.auth.data.db.Certificate;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.socket.MelValidationProcess;
 import de.mel.auth.socket.process.val.Request;
@@ -388,13 +388,13 @@ public class ClientSyncHandler extends SyncHandler {
 
     private void deleteObsolete(ConflictSolver conflictSolver) throws SqlQueriesException, IOException {
         N.readSqlResource(stageDao.getObsoleteFileStagesResource(conflictSolver.getObsoleteStageSet().getId().v()), (sqlResource, stage) -> {
-            AFile file = stageDao.getFileByStage(stage);
+            AbstractFile file = stageDao.getFileByStage(stage);
             if (file != null && file.exists()) {
                 wastebin.deleteUnknown(file);
             }
         });
         N.readSqlResource(stageDao.getObsoleteDirStagesResource(conflictSolver.getObsoleteStageSet().getId().v()), (sqlResource, stage) -> {
-            AFile file = stageDao.getFileByStage(stage);
+            AbstractFile file = stageDao.getFileByStage(stage);
             if (file != null && file.exists()) {
                 wastebin.deleteUnknown(file);
             }
@@ -462,7 +462,7 @@ public class ClientSyncHandler extends SyncHandler {
             private Map<Long, Long> idMapLeft = new HashMap<>();
 
             @Override
-            public void stuffFound(Stage left, Stage right, AFile lFile, AFile rFile) throws SqlQueriesException {
+            public void stuffFound(Stage left, Stage right, AbstractFile lFile, AbstractFile rFile) throws SqlQueriesException {
                 if (left != null) {
                     if (right != null) {
                         Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
@@ -506,7 +506,7 @@ public class ClientSyncHandler extends SyncHandler {
                                 stageDao.insert(stage);
                             } else {
                                 Stage rParent = stageDao.getStageById(right.getParentId());
-                                AFile rParentFile = stageDao.getFileByStage(rParent);
+                                AbstractFile rParentFile = stageDao.getFileByStage(rParent);
                                 Stage lParent = stageDao.getStageByPath(mStageSetId, rParentFile);
                                 if (lParent != null) {
                                     stage.setParentId(lParent.getId());
@@ -549,7 +549,7 @@ public class ClientSyncHandler extends SyncHandler {
             Stage lStage = lStages.getNext();
             while (lStage != null) {
                 timer1.start();
-                AFile lFile = stageDao.getFileByStage(lStage);
+                AbstractFile lFile = stageDao.getFileByStage(lStage);
                 timer1.stop();
                 timer2.start();
                 Stage rStage = stageDao.getStageByPath(rStageSet.getId().v(), lFile);
@@ -558,7 +558,7 @@ public class ClientSyncHandler extends SyncHandler {
                     conflictSolver.solve(lStage, rStage);
                 else {
                     timer3.start();
-                    AFile rFile = (rStage != null) ? AFile.instance(lFile.getAbsolutePath()) : null;
+                    AbstractFile rFile = (rStage != null) ? AbstractFile.instance(lFile.getAbsolutePath()) : null;
                     timer3.stop();
                     merger.stuffFound(lStage, rStage, lFile, rFile);
                 }
@@ -576,7 +576,7 @@ public class ClientSyncHandler extends SyncHandler {
                 if (conflictSolver != null)
                     conflictSolver.solve(null, rStage);
                 else {
-                    AFile rFile = stageDao.getFileByStage(rStage);
+                    AbstractFile rFile = stageDao.getFileByStage(rStage);
                     merger.stuffFound(null, rStage, null, rFile);
                 }
                 rStage = rStages.getNext();

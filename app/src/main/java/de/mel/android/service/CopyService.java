@@ -9,20 +9,17 @@ import androidx.documentfile.provider.DocumentFile;
 
 import android.util.Log;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.atomic.AtomicReference;
 
 import de.mel.Lok;
 import de.mel.android.Tools;
-import de.mel.android.file.JFile;
+import de.mel.android.file.AndroidFile;
 import de.mel.android.file.SAFAccessor;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.NWrap;
-import de.mel.sql.Hash;
 
 public class CopyService extends IntentService {
     public static final String TRGT_PATH = "target";
@@ -43,8 +40,8 @@ public class CopyService extends IntentService {
         final boolean move = intent.getBooleanExtra(MOVE, false);
         final String srcPath = intent.getStringExtra(SRC_PATH);
         final String targetPath = intent.getStringExtra(TRGT_PATH);
-        JFile src = new JFile(srcPath);
-        JFile target = new JFile(targetPath);
+        AndroidFile src = new AndroidFile(srcPath);
+        AndroidFile target = new AndroidFile(targetPath);
         String msg = (move ? "moving" : "copying") + " '" + srcPath + "' -> '" + targetPath + "'";
         Log.d(getClass().getSimpleName(), msg);
         NWrap<InputStream> fis = new NWrap<>(null);
@@ -56,7 +53,7 @@ public class CopyService extends IntentService {
                 DocumentFile targetParentDoc = target.createParentDocFile();
                 if (targetParentDoc == null)
                     throw new FileNotFoundException("directory does not exist: " + targetPath);
-                JFile jtarget = new JFile(target);
+                AndroidFile jtarget = new AndroidFile(target);
                 jtarget.createNewFile();
                 targetDoc = target.createDocFile();
             }

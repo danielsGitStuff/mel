@@ -1,6 +1,6 @@
 package de.mel;
 
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.tools.F;
 import de.mel.filesync.bash.AutoKlausIterator;
@@ -27,20 +27,20 @@ public class BashToolsTest {
     static {
         File f = new File("la");
         Lok.debug("running in: " + f.getAbsolutePath());
-        AFile.configure(new DefaultFileConfiguration());
+        AbstractFile.configure(new DefaultFileConfiguration());
     }
 
-    private final AFile root = AFile.instance("testdir.root");
-    private final AFile f1 = AFile.instance(root, "f1.txt");
-    private final AFile f2 = AFile.instance(root, "f2.txt");
-    private final AFile sub = AFile.instance(root, "sub");
-    private final AFile f3 = AFile.instance(sub, "f3.txt");
-    private final AFile subsub = AFile.instance(sub, "subsub");
-    private final AFile f4 = AFile.instance(subsub, "f4.txt");
-    private final AFile symFolder = AFile.instance(root, "symfolder");
-    private final AFile symFolderTarget = subsub;
-    private final AFile symFile = AFile.instance(root, "symfile.txt");
-    private final AFile symFileTarget = f3;
+    private final AbstractFile root = AbstractFile.instance("testdir.root");
+    private final AbstractFile f1 = AbstractFile.instance(root, "f1.txt");
+    private final AbstractFile f2 = AbstractFile.instance(root, "f2.txt");
+    private final AbstractFile sub = AbstractFile.instance(root, "sub");
+    private final AbstractFile f3 = AbstractFile.instance(sub, "f3.txt");
+    private final AbstractFile subsub = AbstractFile.instance(sub, "subsub");
+    private final AbstractFile f4 = AbstractFile.instance(subsub, "f4.txt");
+    private final AbstractFile symFolder = AbstractFile.instance(root, "symfolder");
+    private final AbstractFile symFolderTarget = subsub;
+    private final AbstractFile symFile = AbstractFile.instance(root, "symfile.txt");
+    private final AbstractFile symFileTarget = f3;
 
     @Before
     public void before() throws IOException {
@@ -55,7 +55,7 @@ public class BashToolsTest {
         BashTools.init();
     }
 
-    private Path toPath(AFile f) {
+    private Path toPath(AbstractFile f) {
         return Paths.get(new File(f.getAbsolutePath()).toURI());
     }
 
@@ -65,7 +65,7 @@ public class BashToolsTest {
             F.rmRf(new File(root.getAbsolutePath()));
     }
 
-    private void write(AFile f, String str) throws IOException {
+    private void write(AbstractFile f, String str) throws IOException {
         try (FileOutputStream out = f.outputStream()) {
             out.write(str.getBytes());
         }
@@ -109,7 +109,7 @@ public class BashToolsTest {
         expectedPaths.add(f1.getAbsolutePath());
         expectedPaths.add(f2.getAbsolutePath());
         expectedPaths.add(f3.getAbsolutePath());
-        try (AutoKlausIterator<AFile<?>> found = BashTools.find(root, subsub)) {
+        try (AutoKlausIterator<AbstractFile<?>> found = BashTools.find(root, subsub)) {
             while (found.hasNext()) {
                 expectedPaths.remove(found.next().getAbsolutePath());
             }

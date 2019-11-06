@@ -5,7 +5,7 @@ import de.mel.Lok;
 import de.mel.auth.tools.lock.Warden;
 import de.mel.filesync.data.PathCollection;
 import de.mel.filesync.index.IndexListener;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.filesync.service.MelFileSyncService;
 import de.mel.auth.tools.WatchDogTimer;
 import org.jdeferred.Promise;
@@ -83,7 +83,7 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
         this.stageIndexer = stageIndexer;
     }
 
-    public abstract void watchDirectory(AFile dir) throws IOException;
+    public abstract void watchDirectory(AbstractFile dir) throws IOException;
 
     @Override
     public void done(Long stageSetId, Warden warden) {

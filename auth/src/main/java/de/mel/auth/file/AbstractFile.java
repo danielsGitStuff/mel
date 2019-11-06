@@ -10,10 +10,10 @@ import de.mel.Lok;
 
 /**
  * Think of this as an abstraction of {@link java.io.File}. It is necessary cause Android 7+ restricts access to external storages via {@link java.io.File}.
- * Before using {@link AFile}, call configure() and hand over a {@link Configuration}. This determines the implementation you want to use.
- * {@link DefaultFileConfiguration} uses {@link FFile} which wraps {@link File}.
+ * Before using {@link AbstractFile}, call configure() and hand over a {@link Configuration}. This determines the implementation you want to use.
+ * {@link DefaultFileConfiguration} uses {@link StandardFile} which wraps {@link File}.
  */
-public abstract class AFile<T extends  AFile> {
+public abstract class AbstractFile<T extends AbstractFile> {
 
     private static Configuration configuration;
 
@@ -21,13 +21,13 @@ public abstract class AFile<T extends  AFile> {
         return configuration;
     }
 
-    public static AFile instance(File file) {
+    public static AbstractFile instance(File file) {
         return configuration.instance(file);
     }
 
     public abstract String getSeparator();
 
-    public static AFile instance(AFile originalFile) {
+    public static AbstractFile instance(AbstractFile originalFile) {
         return configuration.instance(originalFile);
     }
 
@@ -42,28 +42,28 @@ public abstract class AFile<T extends  AFile> {
 
 
     /**
-     * creates common instances of {@link AFile}s
+     * creates common instances of {@link AbstractFile}s
      */
     public abstract static class Configuration {
-        public abstract AFile instance(String path);
+        public abstract AbstractFile instance(String path);
 
         public abstract String separator();
 
-        public abstract AFile instance(File file);
+        public abstract AbstractFile instance(File file);
 
-        public abstract AFile instance(AFile parent, String name);
+        public abstract AbstractFile instance(AbstractFile parent, String name);
 
-        public abstract AFile instance(AFile originalFile);
+        public abstract AbstractFile instance(AbstractFile originalFile);
     }
 
     private String path;
 
     public static void configure(Configuration configuration) {
-        if (AFile.configuration != null) {
+        if (AbstractFile.configuration != null) {
             Lok.error("AFile implementation has already been set!");
             return;
         } else {
-            AFile.configuration = configuration;
+            AbstractFile.configuration = configuration;
         }
     }
 
@@ -73,14 +73,14 @@ public abstract class AFile<T extends  AFile> {
      * @param path
      * @return
      */
-    public static AFile instance(String path) {
+    public static AbstractFile instance(String path) {
         if (configuration == null)
-            Lok.error(AFile.class.getSimpleName() + ". NOT INITIALIZED! Call configure() before!");
-        AFile file = configuration.instance(path);
+            Lok.error(AbstractFile.class.getSimpleName() + ". NOT INITIALIZED! Call configure() before!");
+        AbstractFile file = configuration.instance(path);
         return file;
     }
 
-    public static AFile instance(AFile parent, String name) {
+    public static AbstractFile instance(AbstractFile parent, String name) {
         return configuration.instance(parent,name);
     }
 

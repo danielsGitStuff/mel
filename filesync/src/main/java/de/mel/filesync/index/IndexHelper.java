@@ -1,6 +1,6 @@
 package de.mel.filesync.index;
 
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.tools.Order;
 import de.mel.core.serialize.serialize.tools.OTimer;
 import de.mel.filesync.bash.BashTools;
@@ -22,7 +22,7 @@ public class IndexHelper {
     private final FsDao fsDao;
     private final StageDao stageDao;
     private final Order order;
-    private final Stack<AFile> fileStack = new Stack<>();
+    private final Stack<AbstractFile> fileStack = new Stack<>();
     private final Stack<FsEntry> fsEntryStack = new Stack<>();
     private final Stack<Stage> stageStack = new Stack<>();
     private final OTimer timer1 = new OTimer("helper 1");
@@ -50,7 +50,7 @@ public class IndexHelper {
      * @return
      * @throws SqlQueriesException
      */
-    Stage connectToFs(AFile directory) throws SqlQueriesException {
+    Stage connectToFs(AbstractFile directory) throws SqlQueriesException {
         // remember: we always deal with directories here. that means that we can ask all DAOs for
         // directories and don't have to deal with files :)
         final int rootPathLength = databaseManager.getFileSyncSettings().getRootDirectory().getPath().length();
@@ -75,10 +75,10 @@ public class IndexHelper {
         }
 
         // calculate the parts that go onto the stacks
-        Stack<AFile> remainingParts = new Stack<>();
+        Stack<AbstractFile> remainingParts = new Stack<>();
         {
             if (!fileStack.empty()) {
-                AFile currentDir = directory;
+                AbstractFile currentDir = directory;
                 while (currentDir.getAbsolutePath().length() >= fileStack.peek().getAbsolutePath().length()
                         && !currentDir.getAbsolutePath().equals(fileStack.peek().getAbsolutePath())) {
                     remainingParts.push(currentDir);
@@ -97,7 +97,7 @@ public class IndexHelper {
             stageStack.push(stageParent);
         }
         while (!remainingParts.empty()) {
-            final AFile part = remainingParts.pop();
+            final AbstractFile part = remainingParts.pop();
 
             if (parentFs != null) {
                 parentFs = fsDao.getSubDirectoryByName(parentFs.getId().v(), part.getName());
@@ -133,7 +133,7 @@ public class IndexHelper {
         return stageStack.peek();
     }
 
-    void fastBoot(AFile file, FsEntry fsEntry, Stage stage) {
+    void fastBoot(AbstractFile file, FsEntry fsEntry, Stage stage) {
         if (databaseManager.getFileSyncSettings().getFastBoot()) {
             try {
                 FsBashDetails fsBashDetails = BashTools.getFsBashDetails(file);

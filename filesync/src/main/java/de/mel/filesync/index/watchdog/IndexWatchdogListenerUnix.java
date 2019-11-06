@@ -1,7 +1,7 @@
 package de.mel.filesync.index.watchdog;
 
 import de.mel.Lok;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.filesync.data.PathCollection;
 import de.mel.filesync.service.MelFileSyncService;
 import org.jdeferred.Promise;
@@ -22,7 +22,7 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
 
     IndexWatchdogListenerUnix(MelFileSyncService melFileSyncService, WatchService watchService) {
         super(melFileSyncService, "IndexWatchdogListenerUnix", watchService);
-        unixReferenceFileHandler = new UnixReferenceFileHandler(melFileSyncService.getServiceInstanceWorkingDirectory(), melFileSyncService.getFileSyncSettings().getRootDirectory().getOriginalFile(), AFile.instance(melFileSyncService.getFileSyncSettings().getTransferDirectory().getAbsolutePath()));
+        unixReferenceFileHandler = new UnixReferenceFileHandler(melFileSyncService.getServiceInstanceWorkingDirectory(), melFileSyncService.getFileSyncSettings().getRootDirectory().getOriginalFile(), AbstractFile.instance(melFileSyncService.getFileSyncSettings().getTransferDirectory().getAbsolutePath()));
     }
 
     @Override
@@ -46,7 +46,7 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
                         Path eventPath = (Path) event.context();
                         String absolutePath = keyPath.toString() + File.separator + eventPath.toString();
                         if (!absolutePath.startsWith(transferDirectoryPath)) {
-                            AFile file = AFile.instance(absolutePath);
+                            AbstractFile file = AbstractFile.instance(absolutePath);
                             Lok.debug("IndexWatchdogListener[" + melFileSyncService.getFileSyncSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
                             if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {
                                 // start the timer but do not analyze. Sometimes we get the wrong WatchKey so we cannot trust it.
@@ -81,9 +81,9 @@ class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
              * we cannot retrieve all newly created things, so we have to do it now.
              * and watching the directories as well
              */
-            List<AFile<?>> paths = unixReferenceFileHandler.stuffModifiedAfter();
+            List<AbstractFile<?>> paths = unixReferenceFileHandler.stuffModifiedAfter();
             pathCollection.addAll(paths);
-            for (AFile f : paths) {
+            for (AbstractFile f : paths) {
                 if (f.exists() && f.isDirectory()) {
                     watchDirectory(f);
                 }

@@ -1,6 +1,6 @@
 package de.mel.filesync.nio;
 
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.tools.N;
 import de.mel.core.serialize.SerializableEntity;
 import de.mel.filesync.bash.FsBashDetails;
@@ -17,10 +17,10 @@ public class FileDistributionTask implements SerializableEntity {
     }
 
     private String sourcePath;
-    private AFile sourceFile;
+    private AbstractFile sourceFile;
     private String sourceHash;
     private List<String> targetPaths = new ArrayList<>();
-    private List<AFile> targetFiles = new ArrayList<>();
+    private List<AbstractFile> targetFiles = new ArrayList<>();
     private List<Long> targetFsIds = new ArrayList<>();
     private Boolean deleteSource;
     private boolean hasOptionals = false;
@@ -97,9 +97,9 @@ public class FileDistributionTask implements SerializableEntity {
      */
     public FileDistributionTask initFromPaths() {
         this.targetFiles = new ArrayList<>();
-        N.forEach(targetPaths, path -> targetFiles.add(AFile.instance(path)));
+        N.forEach(targetPaths, path -> targetFiles.add(AbstractFile.instance(path)));
         if (sourcePath != null)
-            this.sourceFile = AFile.instance(sourcePath);
+            this.sourceFile = AbstractFile.instance(sourcePath);
         return this;
     }
 
@@ -108,24 +108,24 @@ public class FileDistributionTask implements SerializableEntity {
     }
 
 
-    public FileDistributionTask addTargetFile(AFile targetFile, long fsId) {
+    public FileDistributionTask addTargetFile(AbstractFile targetFile, long fsId) {
         targetFiles.add(targetFile);
         targetPaths.add(targetFile.getAbsolutePath());
         targetFsIds.add(fsId);
         return this;
     }
 
-    public AFile getSourceFile() {
+    public AbstractFile getSourceFile() {
         return sourceFile;
     }
 
-    public FileDistributionTask setSourceFile(AFile sourceFile) {
+    public FileDistributionTask setSourceFile(AbstractFile sourceFile) {
         this.sourceFile = sourceFile;
         this.sourcePath = sourceFile.getAbsolutePath();
         return this;
     }
 
-    public List<AFile> getTargetFiles() {
+    public List<AbstractFile> getTargetFiles() {
         return targetFiles;
     }
 

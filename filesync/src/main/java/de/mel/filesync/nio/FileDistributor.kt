@@ -3,7 +3,7 @@ package de.mel.filesync.nio
 import de.mel.Lok
 import de.mel.MelRunnable
 import de.mel.auth.MelNotification
-import de.mel.auth.file.AFile
+import de.mel.auth.file.AbstractFile
 import de.mel.auth.service.MelAuthService
 import de.mel.auth.tools.N
 import de.mel.auth.tools.lock.P
@@ -16,7 +16,7 @@ import java.io.IOException
 import java.util.*
 
 @Suppress("FINITE_BOUNDS_VIOLATION_IN_JAVA")
-open class FileDistributor<T : AFile<*>>(val fileSyncService: MelFileSyncService<*>) : MelRunnable {
+open class FileDistributor<T : AbstractFile<*>>(val fileSyncService: MelFileSyncService<*>) : MelRunnable {
     private var stopped: Boolean = false;
     private var notification: MelNotification? = null
     private var running: Boolean = false
@@ -41,7 +41,7 @@ open class FileDistributor<T : AFile<*>>(val fileSyncService: MelFileSyncService
      * this overwrites files and does not update databases!
      */
     @Throws(IOException::class)
-    fun rawCopyFile(srcFile: AFile<*>, targetFile: AFile<*>) {
+    fun rawCopyFile(srcFile: AbstractFile<*>, targetFile: AbstractFile<*>) {
         var read: Int
         val out = targetFile.outputStream()
         val ins = srcFile.inputStream()
@@ -164,7 +164,7 @@ open class FileDistributor<T : AFile<*>>(val fileSyncService: MelFileSyncService
         val targetIds = Stack<Long>()
         targetIds.addAll(distributionTask.targetFsIds)
 
-        val sourceFile: T = AFile.instance(distributionTask.sourceFile.absolutePath) as T
+        val sourceFile: T = AbstractFile.instance(distributionTask.sourceFile.absolutePath) as T
 
         // ...the last file is arbitrary
         val lastFile = targetStack.pop()

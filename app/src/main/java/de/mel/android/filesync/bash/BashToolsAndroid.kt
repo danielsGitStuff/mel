@@ -5,12 +5,9 @@ import android.content.Context
 import java.io.IOException
 
 import de.mel.Lok
-import de.mel.auth.file.AFile
+import de.mel.auth.file.AbstractFile
 import de.mel.filesync.bash.*
 import de.mel.filesync.bash.BashToolsAndroidJavaImpl
-import java.io.BufferedReader
-import java.io.File
-import java.io.InputStreamReader
 
 /**
  * Created by xor on 7/20/17.
@@ -29,7 +26,7 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
         testCommands()
     }
 
-    override fun stuffModifiedAfter(referenceFile: AFile<*>, directory: AFile<*>, pruneDir: AFile<*>): List<AFile<*>> {
+    override fun stuffModifiedAfter(referenceFile: AbstractFile<*>, directory: AbstractFile<*>, pruneDir: AbstractFile<*>): List<AbstractFile<*>> {
         if (findNewerFallback != null)
             return findNewerFallback!!.stuffModifiedAfter(referenceFile, directory, pruneDir)
         return super.stuffModifiedAfter(referenceFile, directory, pruneDir)
@@ -44,10 +41,10 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
         // find
         // in case find fails and we are on android 5+ we can use the storage access framework instead of the bash.
         // but in case it works we will stick to that
-        val cacheDir = AFile.instance(context.cacheDir)
-        val dir = AFile.instance(cacheDir, "bash.test")
-        val prune = AFile.instance(dir, "prune")
-        val latestFile = AFile.instance(dir, "file")
+        val cacheDir = AbstractFile.instance(context.cacheDir)
+        val dir = AbstractFile.instance(cacheDir, "bash.test")
+        val prune = AbstractFile.instance(dir, "prune")
+        val latestFile = AbstractFile.instance(dir, "file")
         var cmd = ""
         try {
             dir.mkdirs()
@@ -55,7 +52,7 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
             latestFile.createNewFile()
             cmd = "find \"" + dir.absolutePath + "\" -path " + escapeQuotedAbsoluteFilePath(prune) + " -prune -o -print"
             var streams = testCommand(cmd)
-            var iterator: Iterator<AFile<*>>? = streams.stdout
+            var iterator: Iterator<AbstractFile<*>>? = streams.stdout
             while (iterator!!.hasNext()) {
                 Lok.error("no SAF")
                 val line = iterator.next()
@@ -89,7 +86,7 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
     }
 
     internal inner class Streams {
-        var stdout: Iterator<AFile<*>>? = null
+        var stdout: Iterator<AbstractFile<*>>? = null
         var stderr: Iterator<String>? = null
     }
 
@@ -134,11 +131,11 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
 //    }
 
     @Throws(IOException::class)
-    override fun find(directory: AFile<*>, pruneDir: AFile<*>): AutoKlausIterator<AFile<*>> {
+    override fun find(directory: AbstractFile<*>, pruneDir: AbstractFile<*>): AutoKlausIterator<AbstractFile<*>> {
         return if (findFallBack != null) findFallBack!!.find(directory, pruneDir) else super.find(directory, pruneDir)
     }
 
-    override fun setCreationDate(target: AFile<*>, created: Long) {
+    override fun setCreationDate(target: AbstractFile<*>, created: Long) {
         // android does not store creation dates
     }
 }

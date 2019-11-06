@@ -15,7 +15,7 @@ import java.util.Random;
 
 import de.mel.Lok;
 import de.mel.android.service.CopyService;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.filesync.bash.BashTools;
 import de.mel.sql.Hash;
@@ -32,7 +32,7 @@ public class CopyServiceTest {
     @Before
     public void before() throws IOException {
         BashTools.init();
-        AFile.configure(new DefaultFileConfiguration());
+        AbstractFile.configure(new DefaultFileConfiguration());
         testdir = new File("copy.test");
         Lok.debug("test dir = " + testdir.getAbsolutePath());
         testdir.mkdir();

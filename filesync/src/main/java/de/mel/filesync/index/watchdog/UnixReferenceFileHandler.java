@@ -1,6 +1,6 @@
 package de.mel.filesync.index.watchdog;
 
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.bash.BashToolsException;
 
@@ -15,14 +15,14 @@ import java.util.List;
  * Created by xor on 5/7/17.
  */
 public class UnixReferenceFileHandler {
-    private final AFile directoryToQuery;
-    private final AFile pruneDir;
+    private final AbstractFile directoryToQuery;
+    private final AbstractFile pruneDir;
     private final File workingDirectory;
     private boolean refOnFile1 = true;
     private final File timeReferenceFile1;
     private final File timeReferenceFile2;
 
-    public UnixReferenceFileHandler(File workingDirectory, AFile directoryToQuery, AFile pruneDir) {
+    public UnixReferenceFileHandler(File workingDirectory, AbstractFile directoryToQuery, AbstractFile pruneDir) {
         this.directoryToQuery = directoryToQuery;
         this.pruneDir = pruneDir;
         this.workingDirectory = workingDirectory;
@@ -41,7 +41,7 @@ public class UnixReferenceFileHandler {
         timeReferenceFile.mkdirs();
     }
 
-    public synchronized List<AFile<?>> stuffModifiedAfter() throws IOException, BashToolsException {
+    public synchronized List<AbstractFile<?>> stuffModifiedAfter() throws IOException, BashToolsException {
         // take the older one as reference. but to avoid data loss, we recreate the other file before.
         // so no stuff which happened while the BashTools work gets lost.
         File refFile = (refOnFile1) ? timeReferenceFile2 : timeReferenceFile1;
@@ -49,6 +49,6 @@ public class UnixReferenceFileHandler {
         refOnFile1 = !refOnFile1;
         otherFile.delete();
         otherFile.mkdirs();
-        return BashTools.stuffModifiedAfter(AFile.instance(refFile.getAbsolutePath()), directoryToQuery, pruneDir);
+        return BashTools.stuffModifiedAfter(AbstractFile.instance(refFile.getAbsolutePath()), directoryToQuery, pruneDir);
     }
 }

@@ -1,20 +1,17 @@
 package de.mel.filesync.gui;
 
 import de.mel.MelRunnable;
-import de.mel.auth.data.NetworkEnvironment;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.data.db.ServiceJoinServiceType;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.gui.EmbeddedServiceSettingsFX;
 import de.mel.auth.gui.XCBFix;
 import de.mel.auth.service.MelAuthAdminFX;
 import de.mel.auth.tools.N;
-import de.mel.filesync.FileSyncBootloader;
 import de.mel.filesync.FileSyncCreateServiceHelper;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.bash.BashToolsUnix;
 import de.mel.filesync.data.FileSyncDetails;
-import de.mel.filesync.data.FileSyncStrings;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
@@ -121,11 +118,11 @@ public class FileSyncFXCreateController extends EmbeddedServiceSettingsFX {
         return N.result(() -> {
             FileSyncCreateServiceHelper fileSyncCreateServiceHelper = new FileSyncCreateServiceHelper(melAuthService);
             if (isServer)
-                fileSyncCreateServiceHelper.createServerService(name, AFile.instance(path), 0.1f, 30, useSymLinks);
+                fileSyncCreateServiceHelper.createServerService(name, AbstractFile.instance(path), 0.1f, 30, useSymLinks);
             else {
                 Certificate certificate = this.getSelectedCertificate();
                 ServiceJoinServiceType serviceJoinServiceType = this.getSelectedService();
-                fileSyncCreateServiceHelper.createClientService(name, AFile.instance(path), certificate.getId().v(), serviceJoinServiceType.getUuid().v(), 0.1f, 30, useSymLinks);
+                fileSyncCreateServiceHelper.createClientService(name, AbstractFile.instance(path), certificate.getId().v(), serviceJoinServiceType.getUuid().v(), 0.1f, 30, useSymLinks);
             }
             return true;
         }, false);

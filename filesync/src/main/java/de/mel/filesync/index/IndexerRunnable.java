@@ -1,7 +1,7 @@
 package de.mel.filesync.index;
 
 import de.mel.Lok;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.tools.Eva;
 import de.mel.auth.tools.Order;
 import de.mel.auth.tools.lock.P;
@@ -74,10 +74,10 @@ public class IndexerRunnable extends AbstractIndexer {
             FsDirectory fsRoot;
             if (rootDirectory.getId() == null) {
                 fsRoot = (FsDirectory) new FsDirectory().setName("[root]").setVersion(0L);
-                fsRoot.setOriginalFile(AFile.instance(rootDirectory.getOriginalFile()));
+                fsRoot.setOriginalFile(AbstractFile.instance(rootDirectory.getOriginalFile()));
                 // assume that the root dir is empty -> the first indexed stageset will have no delta to the fs table if the root dir is empty.
                 // this will avoid having a conflict if the clients root is empty but the servers is not.
-                FsBashDetails details = BashTools.getFsBashDetails(AFile.instance(rootDirectory.getOriginalFile()));
+                FsBashDetails details = BashTools.getFsBashDetails(AbstractFile.instance(rootDirectory.getOriginalFile()));
                 fsRoot.calcContentHash();
                 fsRoot.setModified(details.getModified())
                         .setCreated(details.getCreated())
@@ -89,7 +89,7 @@ public class IndexerRunnable extends AbstractIndexer {
             } else {
                 fsRoot = databaseManager.getFsDao().getDirectoryById(rootDirectory.getId());
                 if (fsRoot.getOriginal() == null) {
-                    fsRoot.setOriginalFile(AFile.instance(rootDirectory.getOriginalFile()));
+                    fsRoot.setOriginalFile(AbstractFile.instance(rootDirectory.getOriginalFile()));
                 }
             }
             Warden warden = P.confine(P.read(fsDao));
@@ -99,7 +99,7 @@ public class IndexerRunnable extends AbstractIndexer {
                 ISQLQueries sqlQueries = stageDao.getSqlQueries();
                 OTimer timerFind = new OTimer("bash.find").start();
                 OTimer timerInit = new OTimer("init stageset");
-                try (AutoKlausIterator<AFile<?>> found = BashTools.find(rootDirectory.getOriginalFile(), databaseManager.getMelFileSyncService().getFileSyncSettings().getTransferDirectory())) {
+                try (AutoKlausIterator<AbstractFile<?>> found = BashTools.find(rootDirectory.getOriginalFile(), databaseManager.getMelFileSyncService().getFileSyncSettings().getTransferDirectory())) {
                     Lok.debug("starting stageset initialization");
 //                    Lok.error("TRANSACTION DISABLED!!!!!");
 //                    Lok.error("TRANSACTION DISABLED!!!!!");

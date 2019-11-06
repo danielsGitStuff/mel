@@ -54,13 +54,13 @@ import de.mel.android.controller.SettingsController;
 import de.mel.android.controller.intro.IntroWrapper;
 import de.mel.android.controller.intro.LoadingWrapper;
 import de.mel.android.file.AndroidFileConfiguration;
-import de.mel.android.file.JFile;
+import de.mel.android.file.AndroidFile;
 import de.mel.android.file.SAFAccessor;
 import de.mel.android.service.AndroidPowerManager;
 import de.mel.android.service.AndroidService;
 import de.mel.android.service.AndroidServiceBind;
 import de.mel.auth.data.db.ServiceJoinServiceType;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.service.Bootloader;
 import de.mel.auth.service.IMelService;
@@ -78,7 +78,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
     private GuiController guiController;
     private AndroidServiceBind serviceBind;
     private NavigationView navigationView;
-    private AFile driveDir;
+    private AbstractFile driveDir;
     private ImageButton btnHelp;
     private int stoppedColor;
     private int runningColor;
@@ -139,7 +139,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
         Lok.warn("DEV DEV DEV DEV DEV START");
         annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).done(result -> {
             N.r(() -> {
-                JFile f = new JFile("/storage/emulated/0/Download/mel/kkk.txt");
+                AndroidFile f = new AndroidFile("/storage/emulated/0/Download/mel/kkk.txt");
                 boolean ex = f.exists();
                 DocumentFile srcDoc = f.createDocFile();
                 Lok.debug("asd");
@@ -184,9 +184,9 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
         SAFAccessor.setupExternalPath();
 //        SAFAccessor.setupInternalPath();
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            AFile.configure(new AndroidFileConfiguration(this.getApplicationContext()));
+            AbstractFile.configure(new AndroidFileConfiguration(this.getApplicationContext()));
         } else {
-            AFile.configure(new DefaultFileConfiguration());
+            AbstractFile.configure(new DefaultFileConfiguration());
         }
         //testFileWrite();
 //        annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).done(result -> {

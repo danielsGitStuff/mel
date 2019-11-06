@@ -1,6 +1,6 @@
 package de.mel.filesync.data.fs;
 
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.core.serialize.JsonIgnore;
 import de.mel.core.serialize.SerializableEntity;
 import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer;
@@ -15,7 +15,7 @@ public class RootDirectory implements SerializableEntity {
     private String path;
     @JsonIgnore
     private RootDirectory backup;
-    private AFile originalFile;
+    private AbstractFile originalFile;
     private Long id;
 
 
@@ -46,7 +46,7 @@ public class RootDirectory implements SerializableEntity {
         return this;
     }
 
-    public RootDirectory setOriginalFile(AFile originalFile) {
+    public RootDirectory setOriginalFile(AbstractFile originalFile) {
         this.originalFile = originalFile;
         return this;
     }
@@ -60,7 +60,7 @@ public class RootDirectory implements SerializableEntity {
         return this;
     }
 
-    public AFile getOriginalFile() {
-        return AFile.instance(path);
+    public AbstractFile getOriginalFile() {
+        return AbstractFile.instance(path);
     }
 }

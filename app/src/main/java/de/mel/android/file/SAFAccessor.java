@@ -6,17 +6,12 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.DocumentsContract;
 
-import org.jdeferred.DeferredManager;
 import org.jdeferred.Promise;
-import org.jdeferred.impl.DefaultDeferredManager;
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.List;
 
 import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.documentfile.provider.DocumentFile;
 
@@ -24,7 +19,7 @@ import de.mel.Lok;
 import de.mel.R;
 import de.mel.android.MelActivity;
 import de.mel.android.Tools;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 
 public class SAFAccessor {
 
@@ -50,7 +45,7 @@ public class SAFAccessor {
         throw new SAFException();
     }
 
-    public static boolean isExternalFile(AFile file) {
+    public static boolean isExternalFile(AbstractFile file) {
         return SAFAccessor.hasExternalSdCard() && file.getAbsolutePath().startsWith(SAFAccessor.getExternalSDPath());
     }
 

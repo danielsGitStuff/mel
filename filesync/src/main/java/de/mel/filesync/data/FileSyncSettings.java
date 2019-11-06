@@ -4,7 +4,7 @@ import de.mel.auth.data.JsonSettings;
 import de.mel.core.serialize.exceptions.JsonDeserializationException;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
 import de.mel.filesync.data.fs.RootDirectory;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,12 +25,12 @@ public class FileSyncSettings extends JsonSettings {
     protected String transferDirectoryPath;
     protected Long maxWastebinSize;
     protected Long maxAge = 30L;
-    protected AFile transferDirectory;
+    protected AbstractFile transferDirectory;
     protected Boolean useSymLinks = true;
 
     protected boolean fastBoot = true;
 
-    public static RootDirectory buildRootDirectory(AFile rootFile) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException, IOException {
+    public static RootDirectory buildRootDirectory(AbstractFile rootFile) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException, IOException {
         String path = rootFile.getCanonicalPath();
         RootDirectory rootDirectory = new RootDirectory().setPath(path);
         rootDirectory.setOriginalFile(rootFile);
@@ -56,7 +56,7 @@ public class FileSyncSettings extends JsonSettings {
     }
 
 
-    public AFile getTransferDirectoryFile() {
+    public AbstractFile getTransferDirectoryFile() {
         return transferDirectory;
     }
 
@@ -125,13 +125,13 @@ public class FileSyncSettings extends JsonSettings {
         return this;
     }
 
-    public FileSyncSettings setTransferDirectory(AFile transferDirectory) {
+    public FileSyncSettings setTransferDirectory(AbstractFile transferDirectory) {
         this.transferDirectory = transferDirectory;
         this.transferDirectoryPath = transferDirectory.getAbsolutePath();
         return this;
     }
 
-    public AFile getTransferDirectory() {
+    public AbstractFile getTransferDirectory() {
         return transferDirectory;
     }
 
@@ -140,7 +140,7 @@ public class FileSyncSettings extends JsonSettings {
         if (fileSyncSettings != null) {
             fileSyncSettings.setJsonFile(jsonFile);
             fileSyncSettings.getRootDirectory().backup();
-            fileSyncSettings.setTransferDirectory(AFile.instance(fileSyncSettings.transferDirectoryPath));
+            fileSyncSettings.setTransferDirectory(AbstractFile.instance(fileSyncSettings.transferDirectoryPath));
         }
         return fileSyncSettings;
     }

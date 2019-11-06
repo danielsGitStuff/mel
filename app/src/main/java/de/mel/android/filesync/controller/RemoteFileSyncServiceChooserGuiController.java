@@ -31,11 +31,10 @@ import de.mel.android.file.SAFAccessor;
 import de.mel.android.file.StoragesManager;
 import de.mel.android.file.chooserdialog.DirectoryChooserDialog;
 import de.mel.auth.data.db.ServiceJoinServiceType;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.service.MelAuthService;
 import de.mel.filesync.data.FileSyncDetails;
 import de.mel.filesync.data.FileSyncSettings;
-import de.mel.filesync.data.FileSyncStrings;
 
 /**
  * Created by xor on 2/25/17.
@@ -57,7 +56,7 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
     private Long wastebinSize;
     // this is required for android 5+ only.
     private Uri rootTreeUri;
-    private AFile rootFile;
+    private AbstractFile rootFile;
     private RelativeLayout container;
 
     private void showIncompatibleState() {
@@ -94,7 +93,7 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
         showNormalState();
     }
 
-    public AFile getRootFile() {
+    public AbstractFile getRootFile() {
         return rootFile;
     }
 
@@ -113,8 +112,8 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
          * then start the directory chooser with the preselected storage (chooser cannot change the storage device itself)
          */
 
-        AFile[] rootDirs = StoragesManager.getStorageFiles(Tools.getApplicationContext());// N.arr.fromCollection(paths, N.converter(AFile.class, element -> AFile.instance(AFile.instance(element))));
-        Promise<AFile, Void, Void> result = DirectoryChooserDialog.showDialog(activity, rootDirs);
+        AbstractFile[] rootDirs = StoragesManager.getStorageFiles(Tools.getApplicationContext());// N.arr.fromCollection(paths, N.converter(AFile.class, element -> AFile.instance(AFile.instance(element))));
+        Promise<AbstractFile, Void, Void> result = DirectoryChooserDialog.showDialog(activity, rootDirs);
         result.done(chosenDir -> {
             setPath(chosenDir.getAbsolutePath());
         });
@@ -266,7 +265,7 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
         File dir = new File(path);
         totalSpace = dir.getTotalSpace();
         availableSpace = dir.getUsableSpace();
-        rootFile = AFile.instance(path);
+        rootFile = AbstractFile.instance(path);
         adjustMaxWasteBinRatio();
     }
 
@@ -276,7 +275,7 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
 
     public boolean isValid() {
         final String path = txtPath.getText().toString();
-        return AFile.instance(path).exists();
+        return AbstractFile.instance(path).exists();
     }
 
     @Override

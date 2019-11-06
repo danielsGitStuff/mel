@@ -2,7 +2,7 @@ package de.mel.filesync.serialization;
 
 import de.mel.Lok;
 import de.mel.auth.data.access.CertificateManager;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.filesync.bash.AutoKlausIterator;
 import de.mel.filesync.bash.BashTools;
@@ -21,24 +21,24 @@ import java.util.List;
  * Created by thefa on 7/29/2017.
  */
 public class BashCommandsTest {
-    AFile testDir;
+    AbstractFile testDir;
     List<String> paths;
-    AFile timeDir;
+    AbstractFile timeDir;
 
     @Before
     public void before() throws IOException {
-        AFile.configure(new DefaultFileConfiguration());
-        testDir = AFile.instance("testdir1");
+        AbstractFile.configure(new DefaultFileConfiguration());
+        testDir = AbstractFile.instance("testdir1");
         BashTools.init();
         CertificateManager.deleteDirectory(testDir);
         paths = TestDirCreator.createTestDir(testDir);
-        timeDir = AFile.instance(testDir.getAbsolutePath() + File.separator + "timetest");
+        timeDir = AbstractFile.instance(testDir.getAbsolutePath() + File.separator + "timetest");
 
     }
 
     @Test
     public void bashFind() throws Exception {
-        try (AutoKlausIterator<AFile<?>> iterator = BashTools.find(testDir, AFile.instance("blaaaa"))) {
+        try (AutoKlausIterator<AbstractFile<?>> iterator = BashTools.find(testDir, AbstractFile.instance("blaaaa"))) {
             while (iterator.hasNext())
                 Lok.debug(iterator.next());
             Lok.debug("BashCommandsTest.bashtest.end");

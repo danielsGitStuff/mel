@@ -2,7 +2,7 @@ package de.mel.filesync.index;
 
 import de.mel.DeferredRunnable;
 import de.mel.Lok;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.Order;
 import de.mel.core.serialize.serialize.tools.OTimer;
@@ -100,7 +100,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 // build a File
                 timer1.start();
                 String path = buildPathFromStage(stage);
-                AFile f = AFile.instance(path);
+                AbstractFile f = AbstractFile.instance(path);
 
                 if (!f.exists()) {
                     continue;
@@ -139,7 +139,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
 
-    protected void initStage(String stageSetType, Iterator<AFile<?>> iterator, IndexWatchdogListener indexWatchdogListener, long basedOnVersion) throws IOException, SqlQueriesException {
+    protected void initStage(String stageSetType, Iterator<AbstractFile<?>> iterator, IndexWatchdogListener indexWatchdogListener, long basedOnVersion) throws IOException, SqlQueriesException {
         OTimer timer = new OTimer("initStage().connect2fs");
         OTimer timerInternal1 = new OTimer("initStage.internal.1");
         OTimer timerInternal2 = new OTimer("initStage.internal.2");
@@ -153,8 +153,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
         IndexHelper indexHelper = new IndexHelper(databaseManager, stageSetId, order);
         while (iterator.hasNext()) {
-            AFile f = iterator.next();
-            AFile parent = f.getParentFile();
+            AbstractFile f = iterator.next();
+            AbstractFile parent = f.getParentFile();
 
             FsDirectory fsParent = null;
             FsEntry fsEntry = null;
@@ -244,7 +244,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         return getClass().getSimpleName() + " for " + serviceName;
     }
 
-    private void roamDirectoryStage(Stage stage, AFile stageFile) throws SqlQueriesException, IOException, InterruptedException {
+    private void roamDirectoryStage(Stage stage, AbstractFile stageFile) throws SqlQueriesException, IOException, InterruptedException {
         if (stage.getIsDirectory() && stage.getDeleted())
             return;
         //todo weiter hier"
@@ -283,8 +283,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
         FsDirectory newFsDirectory = new FsDirectory();
         // roam directory if necessary
-        AFile[] files = stageFile.listFiles();
-        AFile[] subDirs = stageFile.listDirectories();
+        AbstractFile[] files = stageFile.listFiles();
+        AbstractFile[] subDirs = stageFile.listDirectories();
         Map<String, FsBashDetails> bashDetailsMap = BashTools.getContentFsBashDetails(stageFile);
 
 
@@ -299,7 +299,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         }
         // remove deleted stuff first (because of the order)
         if (files != null) {
-            for (AFile subFile : files) {
+            for (AbstractFile subFile : files) {
                 stuffToDelete.remove(subFile.getName());
                 // check if file is supposed to be here.
                 // it just might not be transferred yet.
@@ -309,7 +309,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             }
         }
         if (subDirs != null) {
-            for (AFile subDir : subDirs) {
+            for (AbstractFile subDir : subDirs) {
                 stuffToDelete.remove(subDir.getName());
             }
         }
@@ -343,7 +343,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         }
 
         if (files != null) {
-            for (AFile subFile : files) {
+            for (AbstractFile subFile : files) {
                 // check if which subFiles are on stage or fs. if not, index them
 
                 Stage subStage = contentMap.get(subFile.getName());
@@ -387,7 +387,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         }
         if (subDirs != null)
             for (
-                    AFile subDir : subDirs) {
+                    AbstractFile subDir : subDirs) {
                 if (subDir.getAbsolutePath().equals(databaseManager.getFileSyncSettings().getTransferDirectory().getAbsolutePath()))
                     continue;
                 //                Stage subStage = stageDao.getStageByStageSetParentName(stageSetId, stage.getId(), subDir.getName());
@@ -476,14 +476,14 @@ public abstract class AbstractIndexer extends DeferredRunnable {
      * @param fsBashDetails
      * @return
      */
-    private boolean isValidSymLink(AFile file, FsBashDetails fsBashDetails) throws IOException {
+    private boolean isValidSymLink(AbstractFile file, FsBashDetails fsBashDetails) throws IOException {
         if (file.getName().equals("subb"))
             Lok.debug("debug");
         if (!fsBashDetails.isSymLink())
             return false;
         final String targetPath = fsBashDetails.getSymLinkTarget();
         final String rootPath = databaseManager.getFileSyncSettings().getRootDirectory().getPath();
-        AFile parent = file.getParentFile();
+        AbstractFile parent = file.getParentFile();
         final String path = N.result(() -> {
             if (targetPath.startsWith(File.separator))
                 return targetPath;
@@ -505,7 +505,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 //        return path.startsWith(rootPath);
     }
 
-    private void updateFileStage(Stage stage, AFile stageFile, OTimer timer1, OTimer timer2, FsBashDetails fsBashDetails) throws IOException, SqlQueriesException, InterruptedException {
+    private void updateFileStage(Stage stage, AbstractFile stageFile, OTimer timer1, OTimer timer2, FsBashDetails fsBashDetails) throws IOException, SqlQueriesException, InterruptedException {
         // skip hashing if information is complete & fastBoot is enabled-> speeds up booting
         if (stageFile.exists()) {
             if (timer1 != null)

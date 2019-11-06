@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 import de.mel.Lok;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.tools.WatchDogTimer;
 import de.mel.filesync.data.PathCollection;
 import de.mel.filesync.index.watchdog.IndexWatchdogListener;
@@ -28,9 +28,9 @@ import org.jdeferred.Promise;
  * Created by xor on 31.07.2017.
  */
 public class RecursiveWatcher extends IndexWatchdogListener {
-    private final AFile target;
+    private final AbstractFile target;
     private final Map<String, Watcher> watchers = new HashMap<>();
-    private final AFile transferDirectory;
+    private final AbstractFile transferDirectory;
     private final UnixReferenceFileHandler unixReferenceFileHandler;
 
     public RecursiveWatcher(MelFileSyncService melFileSyncService) {
@@ -64,7 +64,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
     }
 
     @Override
-    public void watchDirectory(AFile dir) {
+    public void watchDirectory(AbstractFile dir) {
         watch(dir);
     }
 
@@ -72,9 +72,9 @@ public class RecursiveWatcher extends IndexWatchdogListener {
     private class Watcher extends FileObserver {
 
         private final RecursiveWatcher recursiveWatcher;
-        private final AFile target;
+        private final AbstractFile target;
 
-        public Watcher(RecursiveWatcher recursiveWatcher, AFile target) {
+        public Watcher(RecursiveWatcher recursiveWatcher, AbstractFile target) {
             super(target.getAbsolutePath());
             this.target = target;
             this.recursiveWatcher = recursiveWatcher;
@@ -85,12 +85,12 @@ public class RecursiveWatcher extends IndexWatchdogListener {
             recursiveWatcher.onWatcherEvent(this, event, path);
         }
 
-        public AFile getTarget() {
+        public AbstractFile getTarget() {
             return target;
         }
     }
 
-    private void watch(AFile target) {
+    private void watch(AbstractFile target) {
         if (!watchers.containsKey(target.getAbsolutePath())) {
             Watcher watcher = new Watcher(this, target);
             watchers.put(target.getAbsolutePath(), watcher);
@@ -101,7 +101,7 @@ public class RecursiveWatcher extends IndexWatchdogListener {
     private Set<String> writePaths = new HashSet<>();
 
     private void onWatcherEvent(Watcher watcher, int event, String path) {
-        AFile f = path != null ? AFile.instance(watcher.getTarget().getAbsolutePath() + File.separator + path) : watcher.getTarget();
+        AbstractFile f = path != null ? AbstractFile.instance(watcher.getTarget().getAbsolutePath() + File.separator + path) : watcher.getTarget();
         if (transferDirectory.hasSubContent(watcher.getTarget()))
             return;
         if ((FileObserver.CREATE & event) != 0 && f.exists() && f.isDirectory()) {
@@ -200,9 +200,9 @@ public class RecursiveWatcher extends IndexWatchdogListener {
              * and watching the directories as well
              */
             Lok.debug("stopped");
-            List<AFile<?>> paths = unixReferenceFileHandler.stuffModifiedAfter();
+            List<AbstractFile<?>> paths = unixReferenceFileHandler.stuffModifiedAfter();
             pathCollection.addAll(paths);
-            for (AFile f : paths) {
+            for (AbstractFile f : paths) {
                 if (f.exists() && f.isDirectory()) {
                     watchDirectory(f);
                 }

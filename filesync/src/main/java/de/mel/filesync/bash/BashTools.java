@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import de.mel.Lok;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 
 /**
  * Created by xor on 10/28/16.
@@ -40,31 +40,31 @@ public abstract class BashTools {
         instance.setBinPath(binPath);
     }
 
-    public static FsBashDetails getFsBashDetails(AFile file) throws IOException, InterruptedException {
+    public static FsBashDetails getFsBashDetails(AbstractFile file) throws IOException, InterruptedException {
         return instance.getFsBashDetails(file);
     }
 
-    public static void rmRf(AFile directory) throws IOException {
+    public static void rmRf(AbstractFile directory) throws IOException {
         instance.rmRf(directory);
     }
 
     public static void rmRf(File directory) throws IOException {
-        instance.rmRf(AFile.instance(directory));
+        instance.rmRf(AbstractFile.instance(directory));
     }
 
-    public static List<AFile<?>> stuffModifiedAfter(AFile referenceFile, AFile directory, AFile pruneDir) throws IOException, BashToolsException {
+    public static List<AbstractFile<?>> stuffModifiedAfter(AbstractFile referenceFile, AbstractFile directory, AbstractFile pruneDir) throws IOException, BashToolsException {
         return instance.stuffModifiedAfter(referenceFile, directory, pruneDir);
     }
 
-    public static AutoKlausIterator<AFile<?>> find(AFile directory, AFile pruneDir) throws IOException {
+    public static AutoKlausIterator<AbstractFile<?>> find(AbstractFile directory, AbstractFile pruneDir) throws IOException {
         return instance.find(directory, pruneDir);
     }
 
-    public static AutoKlausIterator<AFile<?>> stuffModifiedAfter(AFile originalFile, AFile pruneDir, long timeStamp) throws IOException, InterruptedException {
+    public static AutoKlausIterator<AbstractFile<?>> stuffModifiedAfter(AbstractFile originalFile, AbstractFile pruneDir, long timeStamp) throws IOException, InterruptedException {
         return instance.stuffModifiedAfter(originalFile, pruneDir, timeStamp);
     }
 
-    public static AutoKlausIterator<AFile> inputStreamToFileIterator(InputStream inputStream) {
+    public static AutoKlausIterator<AbstractFile> inputStreamToFileIterator(InputStream inputStream) {
         BufferedIterator bufferedReader = new BufferedIterator.BufferedFileIterator(new InputStreamReader(inputStream));
         return bufferedReader;
     }
@@ -74,7 +74,7 @@ public abstract class BashTools {
         return bufferedReader;
     }
 
-    public static void mkdir(AFile dir) throws IOException {
+    public static void mkdir(AbstractFile dir) throws IOException {
         int i = 0;
         while (!dir.exists()) {
             dir.mkdirs();
@@ -93,20 +93,20 @@ public abstract class BashTools {
     }
 
 
-    public static boolean isSymLink(AFile f) {
+    public static boolean isSymLink(AbstractFile f) {
         return instance.isSymLink(f);
     }
 
-    public static Map<String, FsBashDetails> getContentFsBashDetails(AFile file) {
+    public static Map<String, FsBashDetails> getContentFsBashDetails(AbstractFile file) {
         return instance.getContentFsBashDetails(file);
     }
 
-    public static void lnS(AFile file, String target) {
+    public static void lnS(AbstractFile file, String target) {
         Lok.debug("creating symlink: '" + file.getAbsolutePath() + "' -> '" + target + "'");
         instance.lnS(file, target);
     }
 
-    public static void setCreationDate(AFile target, Long created) {
+    public static void setCreationDate(AbstractFile target, Long created) {
         if (created != null)
             instance.setCreationDate(target, created);
     }

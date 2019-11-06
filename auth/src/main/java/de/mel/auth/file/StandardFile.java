@@ -7,14 +7,14 @@ import java.io.*;
 /**
  * this is the default {@link File} wrapper for everything that is not recent android
  */
-public class FFile extends AFile<FFile> {
+public class StandardFile extends AbstractFile<StandardFile> {
     private File file;
 
     public File getFile() {
         return file;
     }
 
-    public FFile() {
+    public StandardFile() {
 
     }
 
@@ -23,11 +23,11 @@ public class FFile extends AFile<FFile> {
         return file.getPath();
     }
 
-    public FFile(FFile parent, String name) {
+    public StandardFile(StandardFile parent, String name) {
         file = new File(parent.file, name);
     }
 
-    public FFile(FFile originalFile) {
+    public StandardFile(StandardFile originalFile) {
         this.file = new File(originalFile.file.getAbsolutePath());
     }
 
@@ -36,15 +36,15 @@ public class FFile extends AFile<FFile> {
         return file.toString();
     }
 
-    public FFile(File parent, String name) {
+    public StandardFile(File parent, String name) {
         this.file = new File(parent, name);
     }
 
-    public FFile(File file) {
+    public StandardFile(File file) {
         this.file = file;
     }
 
-    public FFile(String path) {
+    public StandardFile(String path) {
         this(new File(path));
     }
 
@@ -90,14 +90,14 @@ public class FFile extends AFile<FFile> {
     }
 
     @Override
-    public FFile[] listFiles() {
-        return N.arr.cast(file.listFiles(File::isFile), N.converter(FFile.class, FFile::new));
+    public StandardFile[] listFiles() {
+        return N.arr.cast(file.listFiles(File::isFile), N.converter(StandardFile.class, StandardFile::new));
 
     }
 
     @Override
-    public FFile[] listDirectories() {
-        return N.arr.cast(file.listFiles(File::isDirectory), N.converter(FFile.class, FFile::new));
+    public StandardFile[] listDirectories() {
+        return N.arr.cast(file.listFiles(File::isDirectory), N.converter(StandardFile.class, StandardFile::new));
 
     }
 
@@ -108,8 +108,8 @@ public class FFile extends AFile<FFile> {
     }
 
     @Override
-    public FFile getParentFile() {
-        return new FFile(new File(file.getAbsolutePath()).getParentFile());
+    public StandardFile getParentFile() {
+        return new StandardFile(new File(file.getAbsolutePath()).getParentFile());
     }
 
     @Override
@@ -133,7 +133,7 @@ public class FFile extends AFile<FFile> {
     }
 
     @Override
-    public boolean hasSubContent(FFile subFile) {
+    public boolean hasSubContent(StandardFile subFile) {
         return subFile != null && subFile.getAbsolutePath().startsWith(file.getAbsolutePath());
     }
 
@@ -163,7 +163,7 @@ public class FFile extends AFile<FFile> {
     }
 
     @Override
-    public FFile[] listContent() {
-        return N.arr.cast(file.listFiles(), N.converter(FFile.class, FFile::new));
+    public StandardFile[] listContent() {
+        return N.arr.cast(file.listFiles(), N.converter(StandardFile.class, StandardFile::new));
     }
 }

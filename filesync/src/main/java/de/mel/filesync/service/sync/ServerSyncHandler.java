@@ -1,7 +1,7 @@
 package de.mel.filesync.service.sync;
 
 import de.mel.Lok;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
@@ -124,7 +124,7 @@ public class ServerSyncHandler extends SyncHandler {
     }
 
     @Override
-    public boolean onFileTransferred(AFile file, String hash, Warden warden) throws SqlQueriesException, IOException {
+    public boolean onFileTransferred(AbstractFile file, String hash, Warden warden) throws SqlQueriesException, IOException {
         boolean isNew = super.onFileTransferred(file, hash, warden);
         if (isNew)
             N.r(() -> hashAvailTimer.start());

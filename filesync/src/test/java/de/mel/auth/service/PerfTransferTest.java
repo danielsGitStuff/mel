@@ -10,7 +10,7 @@ import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.data.db.Service;
 import de.mel.auth.data.db.ServiceJoinServiceType;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.socket.process.reg.IRegisterHandler;
 import de.mel.auth.socket.process.reg.IRegisterHandlerListener;
@@ -162,7 +162,7 @@ public class PerfTransferTest {
         Promise<PerfTransferTest, Void, Void> promise = create();
         promise.done(test -> N.r(() -> {
             FileSyncCreateServiceHelper createController = new FileSyncCreateServiceHelper(test.mas);
-            createController.createServerService("server", AFile.instance(PerfTransferTest.SOURCE_PATH), 0.1f, 30, false);
+            createController.createServerService("server", AbstractFile.instance(PerfTransferTest.SOURCE_PATH), 0.1f, 30, false);
             Lok.debug("PerfTransferTest.startSource.done");
         }));
         lock.lockWrite().lockWrite();
@@ -187,7 +187,7 @@ public class PerfTransferTest {
                             FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
                                 Lok.debug("PerfTransferTest.startTarget.done");
                             };
-                            createController.createClientService("client", AFile.instance(PerfTransferTest.TARGET_PATH), mvp.getConnectedId(), services.get(0).getUuid().v(), 0.1f, 30, false);
+                            createController.createClientService("client", AbstractFile.instance(PerfTransferTest.TARGET_PATH), mvp.getConnectedId(), services.get(0).getUuid().v(), 0.1f, 30, false);
                         }
                     });
                 });

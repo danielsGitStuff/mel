@@ -6,7 +6,7 @@ import de.mel.auth.data.access.CertificateCreator;
 import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.data.access.DatabaseManager;
 import de.mel.auth.data.db.Certificate;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.tools.F;
 import de.mel.sql.SqlQueriesException;
@@ -17,14 +17,12 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
@@ -45,7 +43,7 @@ public class CertificateManagerTest {
 
     @Before
     public void before() throws Exception, SqlQueriesException {
-        AFile.configure(new DefaultFileConfiguration());
+        AbstractFile.configure(new DefaultFileConfiguration());
         F.rmRf(TEST_DIR);
         TEST_DIR.mkdirs();
         certificateManager = createCertificateManager(new MelAuthSettings().setWorkingDirectory(TEST_DIR));

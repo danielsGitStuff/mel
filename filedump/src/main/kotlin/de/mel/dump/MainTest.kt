@@ -3,7 +3,7 @@ package de.mel.dump
 import de.mel.auth.data.MelAuthSettings
 import de.mel.auth.data.MelRequest
 import de.mel.auth.data.db.Certificate
-import de.mel.auth.file.AFile
+import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.DefaultFileConfiguration
 import de.mel.auth.service.MelBoot
 import de.mel.auth.service.power.PowerManager
@@ -17,7 +17,6 @@ import de.mel.filesync.bash.BashTools
 import de.mel.sql.RWLock
 import de.mel.sql.deserialize.PairDeserializerFactory
 import de.mel.sql.serialize.PairSerializerFactory
-import de.mel.update.CurrentJar
 import java.io.File
 
 class MainTest {
@@ -28,13 +27,13 @@ class MainTest {
             FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance())
             FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance())
             FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance())
-            AFile.configure(DefaultFileConfiguration())
+            AbstractFile.configure(DefaultFileConfiguration())
             BashTools.init()
 
             val settings = MelAuthSettings.createDefaultSettings()
             val rootFile = File("dump.test.dir")
             rootFile.mkdir()
-            val root = AFile.instance(rootFile)
+            val root = AbstractFile.instance(rootFile)
             val boot = MelBoot(settings, PowerManager(settings), DumpBootloader::class.java)
             boot.boot().done { mas ->
                 mas.addRegisterHandler(object : IRegisterHandler {

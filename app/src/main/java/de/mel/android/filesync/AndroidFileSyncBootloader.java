@@ -19,7 +19,7 @@ import de.mel.android.Threadder;
 import de.mel.android.filesync.controller.RemoteFileSyncServiceChooserGuiController;
 import de.mel.android.filesync.controller.AndroidFileSyncEditGuiController;
 import de.mel.auth.MelNotification;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.service.IMelService;
 import de.mel.auth.service.MelAuthService;
 import de.mel.android.boot.AndroidBootLoader;
@@ -42,7 +42,7 @@ public class AndroidFileSyncBootloader extends FileSyncBootloader implements And
         super.cleanUpDeletedService(melService, uuid);
         Tools.getApplicationContext().deleteDatabase("service." + uuid + "." + FileSyncStrings.DB_FILENAME);
         File instanceDir = new File(bootLoaderDir, melService.getUuid());
-        N.r(() -> BashTools.rmRf(AFile.instance(instanceDir)));
+        N.r(() -> BashTools.rmRf(AbstractFile.instance(instanceDir)));
     }
 
     /**
@@ -65,7 +65,7 @@ public class AndroidFileSyncBootloader extends FileSyncBootloader implements And
         if (driveCreateGuiController.isValid())
             Threadder.runNoTryThread(() -> {
                 String name = driveCreateGuiController.getName();
-                AFile rootFile = driveCreateGuiController.getRootFile();
+                AbstractFile rootFile = driveCreateGuiController.getRootFile();
                 if (driveCreateGuiController.isServer()) {
                     fileSyncCreateServiceHelper.createServerService(name, rootFile, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays(), false);
                 } else {

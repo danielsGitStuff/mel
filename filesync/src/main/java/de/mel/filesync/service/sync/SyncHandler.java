@@ -1,7 +1,7 @@
 package de.mel.filesync.service.sync;
 
 import de.mel.Lok;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.lock.P;
@@ -166,7 +166,7 @@ public abstract class SyncHandler {
      * @return true if the file is new on the device (not a copy). so it can be transferred to other devices.
      * @throws SqlQueriesException
      */
-    public boolean onFileTransferred(AFile file, String hash, Warden warden, FsFile sourceFsFile) throws SqlQueriesException, IOException {
+    public boolean onFileTransferred(AbstractFile file, String hash, Warden warden, FsFile sourceFsFile) throws SqlQueriesException, IOException {
         try {
 
             List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
@@ -257,7 +257,7 @@ public abstract class SyncHandler {
             N.readSqlResourceIgnorantly(stageDao.getDeletedDirectoryStagesByStageSet(stageSetId), (sqlResource, dirStage) -> {
                 if (dirStage.getFsIdPair().notNull())
                     fsDao.deleteById(dirStage.getFsId());
-                AFile f = stageDao.getFileByStage(dirStage);
+                AbstractFile f = stageDao.getFileByStage(dirStage);
                 wastebin.deleteUnknown(f);
             });
 
@@ -318,7 +318,7 @@ public abstract class SyncHandler {
                             }
                             fsDao.insert(fsFile);
                             if (fsFile.isSymlink()) {
-                                AFile f = fsDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsFile);
+                                AbstractFile f = fsDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsFile);
                                 BashTools.lnS(f, fsFile.getSymLink().v());
                             } else if (!stageSet.fromFs() && !stage.getIsDirectory() && !stage.isSymLink()) {
                                 // this file porobably has to be transferred
@@ -366,7 +366,7 @@ public abstract class SyncHandler {
                                     wastebin.deleteFsFile(oldeFsFile);
                                 } else {
                                     // delete file. consider that it might be in the same state as the stage
-                                    AFile stageFile = stageDao.getFileByStage(stage);
+                                    AbstractFile stageFile = stageDao.getFileByStage(stage);
                                     if (stageFile.exists()) {
                                         FsBashDetails fsBashDetails = BashTools.getFsBashDetails(stageFile);
                                         if (stage.getiNode() == null || stage.getModified() == null ||
@@ -438,7 +438,7 @@ public abstract class SyncHandler {
             while (!stack.empty()) {
                 dbParent = stack.pop();
                 path += dbParent.getName().v();
-                AFile d = AFile.instance(path);
+                AbstractFile d = AbstractFile.instance(path);
                 if (!d.exists()) {
                     indexer.ignorePath(path, 1);
                     Lok.debug("SyncHandler.createDirs: " + d.getAbsolutePath());
@@ -453,7 +453,7 @@ public abstract class SyncHandler {
         }
         if (fsEntry.getIsDirectory().v()) {
             path += fsEntry.getName().v();
-            AFile target = AFile.instance(path);
+            AbstractFile target = AbstractFile.instance(path);
             if (fsEntry.isSymlink()) {
                 if (!target.exists()) {
                     BashTools.lnS(target, fsEntry.getSymLink().v());
@@ -468,7 +468,7 @@ public abstract class SyncHandler {
         }
     }
 
-    private void updateInodeModified(FsEntry entry, AFile f) throws SqlQueriesException, IOException, InterruptedException {
+    private void updateInodeModified(FsEntry entry, AbstractFile f) throws SqlQueriesException, IOException, InterruptedException {
         FsBashDetails fsBashDetails = BashTools.getFsBashDetails(f);
         entry.getiNode().v(fsBashDetails.getiNode());
         entry.getModified().v(fsBashDetails.getModified());
@@ -491,7 +491,7 @@ public abstract class SyncHandler {
         transferManager.onShutDown();
     }
 
-    public boolean onFileTransferred(AFile file, String hash, Warden warden) throws IOException, SqlQueriesException {
+    public boolean onFileTransferred(AbstractFile file, String hash, Warden warden) throws IOException, SqlQueriesException {
         return this.onFileTransferred(file, hash, warden, null);
     }
 }

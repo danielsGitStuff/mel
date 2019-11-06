@@ -4,9 +4,9 @@ import android.content.Context;
 
 import java.io.File;
 
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 
-public class AndroidFileConfiguration extends AFile.Configuration {
+public class AndroidFileConfiguration extends AbstractFile.Configuration {
     private Context context;
 
     public AndroidFileConfiguration(Context context) {
@@ -14,8 +14,8 @@ public class AndroidFileConfiguration extends AFile.Configuration {
     }
 
     @Override
-    public AFile instance(String path) {
-        return new JFile(path);
+    public AbstractFile instance(String path) {
+        return new AndroidFile(path);
     }
 
     @Override
@@ -24,23 +24,23 @@ public class AndroidFileConfiguration extends AFile.Configuration {
     }
 
     @Override
-    public AFile instance(File file) {
-        return new JFile(file);
+    public AbstractFile instance(File file) {
+        return new AndroidFile(file);
     }
 
 
     @Override
-    public AFile instance(AFile parent, String name) {
-        if (parent instanceof JFile)
-            return new JFile((JFile) parent, name);
+    public AbstractFile instance(AbstractFile parent, String name) {
+        if (parent instanceof AndroidFile)
+            return new AndroidFile((AndroidFile) parent, name);
         else
             System.err.println(getClass().getSimpleName() + "instance(AFile parent, String name), got a '" + parent.getClass().getSimpleName() + "' as parent.");
         return null;
     }
 
     @Override
-    public AFile instance(AFile originalFile) {
-        return new JFile((JFile) originalFile);
+    public AbstractFile instance(AbstractFile originalFile) {
+        return new AndroidFile((AndroidFile) originalFile);
 
     }
 

@@ -3,7 +3,7 @@ package de.mel.filesync.transfer
 import de.mel.Lok
 import de.mel.MelRunnable
 import de.mel.auth.MelNotification
-import de.mel.auth.file.AFile
+import de.mel.auth.file.AbstractFile
 import de.mel.auth.socket.process.transfer.FileTransferDetail
 import de.mel.auth.socket.process.transfer.FileTransferDetailSet
 import de.mel.auth.socket.process.transfer.MelIsolatedFileProcess
@@ -113,7 +113,7 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MelIs
 
 
                             // find out where to store
-                            val target = AFile.instance(fileSyncService.getFileSyncSettings().getTransferDirectory(), dbDetail.hash.v())
+                            val target = AbstractFile.instance(fileSyncService.getFileSyncSettings().getTransferDirectory(), dbDetail.hash.v())
                             val transferDetail = FileTransferDetail(target, Random.nextInt(), 0L, dbDetail.size.v())
                             transferDetail.hash = dbDetail.hash.v()
 

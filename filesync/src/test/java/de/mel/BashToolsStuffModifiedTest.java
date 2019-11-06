@@ -15,7 +15,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import de.mel.auth.data.access.CertificateManager;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.serialization.TestDirCreator;
 
@@ -27,15 +27,15 @@ import static org.junit.Assert.*;
 
 public class BashToolsStuffModifiedTest {
     static {
-        AFile.configure(new DefaultFileConfiguration());
+        AbstractFile.configure(new DefaultFileConfiguration());
     }
-    AFile testDir = AFile.instance("testdir1");
+    AbstractFile testDir = AbstractFile.instance("testdir1");
     Set<String> paths;
 
     @Before
     public void before() throws IOException {
         BashTools.init();
-        AFile.configure(new DefaultFileConfiguration());
+        AbstractFile.configure(new DefaultFileConfiguration());
         CertificateManager.deleteDirectory(testDir);
         paths = new HashSet<>();
         paths.addAll(TestDirCreator.createTestDir(testDir));
@@ -43,7 +43,7 @@ public class BashToolsStuffModifiedTest {
 
     @Test
     public void bashFind() throws Exception {
-        Iterator<AFile<?>> iterator = BashTools.find(testDir, AFile.instance("blaaaa"));
+        Iterator<AbstractFile<?>> iterator = BashTools.find(testDir, AbstractFile.instance("blaaaa"));
         while (iterator.hasNext())
             Lok.debug(iterator.next());
         Lok.debug("BashCommandsTest.bashtest.end");
@@ -54,7 +54,7 @@ public class BashToolsStuffModifiedTest {
         //expect one result
         CertificateManager.deleteDirectory(testDir);
         testDir.mkdirs();
-        AutoKlausIterator<AFile<?>> iterator = BashTools.stuffModifiedAfter(testDir, AFile.instance("blaa"), 0L);
+        AutoKlausIterator<AbstractFile<?>> iterator = BashTools.stuffModifiedAfter(testDir, AbstractFile.instance("blaa"), 0L);
         assertTrue(iterator.hasNext());
         iterator.next();
         assertFalse(iterator.hasNext());
@@ -66,7 +66,7 @@ public class BashToolsStuffModifiedTest {
         //expect no result
         CertificateManager.deleteDirectory(testDir);
         testDir.mkdirs();
-        AutoKlausIterator<AFile<?>> iterator = BashTools.stuffModifiedAfter(testDir, AFile.instance("blaa"), Long.MAX_VALUE);
+        AutoKlausIterator<AbstractFile<?>> iterator = BashTools.stuffModifiedAfter(testDir, AbstractFile.instance("blaa"), Long.MAX_VALUE);
         assertFalse(iterator.hasNext());
         Lok.debug("BashCommandsTest.bashtest.end");
     }
@@ -74,7 +74,7 @@ public class BashToolsStuffModifiedTest {
     @Test
     public void bashFindModifiedAfter3() throws Exception {
         // expect whole testdir
-        AutoKlausIterator<AFile<?>> iterator = BashTools.stuffModifiedAfter(testDir, AFile.instance("blaa"), 0L);
+        AutoKlausIterator<AbstractFile<?>> iterator = BashTools.stuffModifiedAfter(testDir, AbstractFile.instance("blaa"), 0L);
         while (iterator.hasNext()) {
             String path = iterator.next().getAbsolutePath();
             assertNotNull(paths.remove(path));

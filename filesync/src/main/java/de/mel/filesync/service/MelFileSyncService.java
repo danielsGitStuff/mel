@@ -14,7 +14,7 @@ import de.mel.Lok;
 import de.mel.auth.MelNotification;
 import de.mel.auth.data.ServicePayload;
 import de.mel.auth.data.db.Certificate;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.jobs.Job;
 import de.mel.auth.jobs.ServiceRequestHandlerJob;
 import de.mel.auth.service.Bootloader;
@@ -216,7 +216,7 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
 
             FileTransferDetailSet detailSet = payload.getFileTransferDetailSet();
             for (FileTransferDetail detail : detailSet.getDetails()) {
-                AFile wasteFile = wastebin.getByHash(detail.getHash());
+                AbstractFile wasteFile = wastebin.getByHash(detail.getHash());
                 Promise<MelIsolatedFileProcess, Exception, Void> promise = getIsolatedProcess(MelIsolatedFileProcess.class, partnerCertId, detailSet.getServiceUuid());
                 promise.done(fileProcess -> runner.runTry(() -> {
                     List<FsFile> fsFiles = fileSyncDatabaseManager.getFsDao().getFilesByHash(detail.getHash());
@@ -226,7 +226,7 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
                         fileProcess.sendFile(mDetail);
                     } else if (fsFiles.size() > 0) {
                         FsFile fsFile = fsFiles.get(0);
-                        AFile file = fsDao.getFileByFsFile(fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory(), fsFile);
+                        AbstractFile file = fsDao.getFileByFsFile(fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory(), fsFile);
                         if (!file.exists()) {
                             file = wastebin.getByHash(detail.getHash());
                         }
@@ -308,9 +308,9 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
 
     public DeferredObject<DeferredRunnable, Exception, Void> startIndexer() throws SqlQueriesException {
         this.fileSyncSettings = fileSyncDatabaseManager.getFileSyncSettings();
-        AFile transferDir = fileSyncSettings.getTransferDirectory();
+        AbstractFile transferDir = fileSyncSettings.getTransferDirectory();
         transferDir.mkdirs();
-        AFile wasteDir = AFile.instance(fileSyncSettings.getTransferDirectory(), FileSyncStrings.WASTEBIN);
+        AbstractFile wasteDir = AbstractFile.instance(fileSyncSettings.getTransferDirectory(), FileSyncStrings.WASTEBIN);
         wasteDir.mkdirs();
         this.stageIndexer = new StageIndexer(fileSyncDatabaseManager);
         this.indexer = new Indexer(fileSyncDatabaseManager, IndexWatchdogListener.runInstance(this), createIndexListener());

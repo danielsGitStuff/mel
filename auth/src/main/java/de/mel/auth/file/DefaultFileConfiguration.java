@@ -4,10 +4,10 @@ import java.io.File;
 
 import de.mel.Lok;
 
-public class DefaultFileConfiguration extends AFile.Configuration {
+public class DefaultFileConfiguration extends AbstractFile.Configuration {
     @Override
-    public AFile instance(String path) {
-        return new FFile(path);
+    public AbstractFile instance(String path) {
+        return new StandardFile(path);
     }
 
     @Override
@@ -16,15 +16,15 @@ public class DefaultFileConfiguration extends AFile.Configuration {
     }
 
     @Override
-    public AFile instance(File file) {
-        return new FFile(file);
+    public AbstractFile instance(File file) {
+        return new StandardFile(file);
     }
 
     @Override
-    public AFile instance(AFile parent, String name) {
-        if (parent instanceof FFile) {
-            FFile fFile = (FFile) parent;
-            return new FFile(fFile, name);
+    public AbstractFile instance(AbstractFile parent, String name) {
+        if (parent instanceof StandardFile) {
+            StandardFile standardFile = (StandardFile) parent;
+            return new StandardFile(standardFile, name);
         } else {
             Lok.error("got a '" + parent.getClass().getSimpleName() + "' as parent.");
             return null;
@@ -32,7 +32,7 @@ public class DefaultFileConfiguration extends AFile.Configuration {
     }
 
     @Override
-    public AFile instance(AFile originalFile) {
-        return new FFile((FFile) originalFile);
+    public AbstractFile instance(AbstractFile originalFile) {
+        return new StandardFile((StandardFile) originalFile);
     }
 }

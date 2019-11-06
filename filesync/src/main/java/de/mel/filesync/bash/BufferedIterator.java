@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.Reader;
 import java.util.NoSuchElementException;
 
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 
 /**
  * Created by xor on 7/24/17.
@@ -47,14 +47,14 @@ public abstract class BufferedIterator<T> extends BufferedReader implements Auto
     }
 
 
-    public static class BufferedFileIterator extends BufferedIterator<AFile> {
+    public static class BufferedFileIterator extends BufferedIterator<AbstractFile> {
         public BufferedFileIterator(Reader in) {
             super(in);
         }
 
         @Override
-        public AFile convert(String line) {
-            return AFile.instance(line);
+        public AbstractFile convert(String line) {
+            return AbstractFile.instance(line);
         }
     }
 

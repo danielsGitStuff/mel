@@ -4,7 +4,7 @@ import de.mel.Lok
 import de.mel.auth.data.MelAuthSettings
 import de.mel.auth.data.MelRequest
 import de.mel.auth.data.db.Certificate
-import de.mel.auth.file.AFile
+import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.DefaultFileConfiguration
 import de.mel.auth.service.power.PowerManager
 import de.mel.auth.socket.process.reg.IRegisterHandler
@@ -38,18 +38,18 @@ class DumpTest {
 
     @Before
     fun setUp() {
-        AFile.configure(DefaultFileConfiguration())
+        AbstractFile.configure(DefaultFileConfiguration())
         BashTools.init()
-        BashTools.rmRf(AFile.instance(testDir))
-        BashTools.rmRf(AFile.instance(MelBoot.defaultWorkingDir1))
-        BashTools.rmRf(AFile.instance(MelBoot.defaultWorkingDir2))
+        BashTools.rmRf(AbstractFile.instance(testDir))
+        BashTools.rmRf(AbstractFile.instance(MelBoot.defaultWorkingDir1))
+        BashTools.rmRf(AbstractFile.instance(MelBoot.defaultWorkingDir2))
 
         testDir.mkdirs()
         testTarget.mkdirs()
         testSource.mkdirs()
-        TestDirCreator.createFilesTestDir(AFile.instance(testSource), 0)
-        val rTarget = AFile.instance(testTarget)
-        val rSource = AFile.instance(testSource)
+        TestDirCreator.createFilesTestDir(AbstractFile.instance(testSource), 0)
+        val rTarget = AbstractFile.instance(testTarget)
+        val rSource = AbstractFile.instance(testSource)
         r1 = FileSyncSettings.buildRootDirectory(rTarget)
         r2 = FileSyncSettings.buildRootDirectory(rSource)
         s1 = DriveTest.createJson1()

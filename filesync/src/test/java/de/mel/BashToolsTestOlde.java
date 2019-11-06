@@ -1,6 +1,6 @@
 package de.mel;
 
-import de.mel.auth.file.FFile;
+import de.mel.auth.file.StandardFile;
 import de.mel.auth.tools.N;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.bash.FsBashDetails;
@@ -47,7 +47,7 @@ public class BashToolsTestOlde {
         files.stream().filter(File::exists).forEach(f -> N.r(() -> {
             Lok.debug("BashToolsTest.escapePaths");
             BashTools.init();
-            FsBashDetails fsBashDetails = BashTools.getFsBashDetails(new FFile(f));
+            FsBashDetails fsBashDetails = BashTools.getFsBashDetails(new StandardFile(f));
             Lok.debug("BashToolsTest.escapePaths: " + fsBashDetails.getiNode().toString() + " " + fsBashDetails.getModified().toString());
             count.getAndSet(count.get() + 1);
         }));

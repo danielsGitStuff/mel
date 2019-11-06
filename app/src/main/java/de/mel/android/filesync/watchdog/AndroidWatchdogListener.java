@@ -5,7 +5,7 @@ import android.os.FileObserver;
 import java.io.File;
 
 import de.mel.Lok;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.filesync.service.MelFileSyncService;
 import de.mel.filesync.index.watchdog.IndexWatchdogListener;
 import de.mel.auth.tools.WatchDogTimer;
@@ -29,7 +29,7 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
     }
 
     @Override
-    public void watchDirectory(AFile dir) {
+    public void watchDirectory(AbstractFile dir) {
 //        Lok.debug("AndroidWatchdogListener.watchDirectory");
         if (!watchesRoot)
             try {
@@ -40,7 +40,7 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
                         if (path != null)
                             try {
                                 path = melFileSyncService.getFileSyncSettings().getRootDirectory().getOriginalFile().getAbsolutePath() + File.separator + path;
-                                AFile file = AFile.instance(path);
+                                AbstractFile file = AbstractFile.instance(path);
                                 analyzeEvent(event, file);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
@@ -55,7 +55,7 @@ public class AndroidWatchdogListener extends IndexWatchdogListener {
             }
     }
 
-    private void analyzeEvent(final int event, AFile path) throws InterruptedException {
+    private void analyzeEvent(final int event, AbstractFile path) throws InterruptedException {
         if (FileObserver.CLOSE_WRITE == event
                 || FileObserver.CREATE == event
                 || FileObserver.DELETE == event

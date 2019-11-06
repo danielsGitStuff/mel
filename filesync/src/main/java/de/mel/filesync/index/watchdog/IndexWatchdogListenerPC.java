@@ -2,7 +2,7 @@ package de.mel.filesync.index.watchdog;
 
 
 import de.mel.Lok;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.tools.N;
 import de.mel.filesync.service.MelFileSyncService;
 import org.jdeferred.Promise;
@@ -32,7 +32,7 @@ public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
         this.useSymLinks = melFileSyncService.getFileSyncSettings().getUseSymLinks();
     }
 
-    protected void analyze(WatchEvent<?> event, AFile file) {
+    protected void analyze(WatchEvent<?> event, AbstractFile file) {
         try {
             if (melFileSyncService.getMelAuthService().getPowerManager().heavyWorkAllowed()) {
                 watchDogTimer.start();
@@ -77,7 +77,7 @@ public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
     }
 
     @Override
-    public void watchDirectory(AFile dir) throws IOException {
+    public void watchDirectory(AbstractFile dir) throws IOException {
         try {
             Path path = Paths.get(dir.getAbsolutePath());
             if (Files.isSymbolicLink(path))

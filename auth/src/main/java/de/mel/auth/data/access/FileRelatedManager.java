@@ -1,6 +1,5 @@
 package de.mel.auth.data.access;
 
-import de.mel.auth.file.AFile;
 import de.mel.sql.RWLock;
 
 import java.io.File;

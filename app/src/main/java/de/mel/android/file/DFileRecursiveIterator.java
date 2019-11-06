@@ -3,37 +3,35 @@ package de.mel.android.file;
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.DocumentsContract;
-import androidx.annotation.NonNull;
 import androidx.documentfile.provider.DocumentFile;
 
-import java.io.File;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 
 /**
  * maybe faster than the other find method. needs some benchmarking. if the other way is fast enough this can be removed.
  * does not work yet. probably never will.
  */
 @Deprecated
-public class DFileRecursiveIterator implements Iterator<AFile> {
+public class DFileRecursiveIterator implements Iterator<AbstractFile> {
 
-    private final AFile pruneDir;
+    private final AbstractFile pruneDir;
     private Cursor cursor;
     private final Context context;
-    private final AFile currentDir;
-    private Queue<AFile> currentSubDirs = new LinkedList<>();
+    private final AbstractFile currentDir;
+    private Queue<AbstractFile> currentSubDirs = new LinkedList<>();
     private DFileRecursiveIterator subIterator;
 
-    public DFileRecursiveIterator(Context context, AFile rootDirectory, AFile pruneDir)  {
+    public DFileRecursiveIterator(Context context, AbstractFile rootDirectory, AbstractFile pruneDir)  {
         this.context = context;
         this.pruneDir = pruneDir;
         this.currentDir = rootDirectory;
         DocumentFile rootDoc = null;
         try {
-            rootDoc = new JFile(rootDirectory.getAbsolutePath()).createDocFile();
+            rootDoc = new AndroidFile(rootDirectory.getAbsolutePath()).createDocFile();
         } catch (SAFAccessor.SAFException e) {
             e.printStackTrace();
         }
@@ -55,14 +53,14 @@ public class DFileRecursiveIterator implements Iterator<AFile> {
     }
 
     @Override
-    public AFile next() {
+    public AbstractFile next() {
         if (hasNext()) {
             if (cursor.isAfterLast()) {
                 cursor.close();
                 if (subIterator != null)
                     return subIterator.next();
                 while (!currentSubDirs.isEmpty()) {
-                    AFile subDir = currentSubDirs.poll();
+                    AbstractFile subDir = currentSubDirs.poll();
                     subIterator = new DFileRecursiveIterator(context, currentDir, null);
                     if (subIterator.hasNext())
                         return subIterator.next();
@@ -73,7 +71,7 @@ public class DFileRecursiveIterator implements Iterator<AFile> {
                 String name = cursor.getString(0);
                 String mime = cursor.getString(1);
                 String id = cursor.getString(2);
-                AFile dFile = AFile.instance(currentDir, name);
+                AbstractFile dFile = AbstractFile.instance(currentDir, name);
                 if (dFile.isDirectory()) {
                     currentSubDirs.add(dFile);
                 }

@@ -3,14 +3,14 @@ package de.mel.android.filesync.nio
 import android.os.Build
 import android.provider.DocumentsContract
 import de.mel.Lok
-import de.mel.android.file.JFile
+import de.mel.android.file.AndroidFile
 import de.mel.android.service.AndroidService
 import de.mel.filesync.nio.FileDistributor
 import de.mel.filesync.service.MelFileSyncService
 
-class FileDistributorAndroid(fileSyncService: MelFileSyncService<*>) : FileDistributor<JFile>(fileSyncService) {
+class FileDistributorAndroid(fileSyncService: MelFileSyncService<*>) : FileDistributor<AndroidFile>(fileSyncService) {
 
-    override fun moveFile(sourceFile: JFile, target: JFile, targetPath: String, fsId: Long?) {
+    override fun moveFile(sourceFile: AndroidFile, target: AndroidFile, targetPath: String, fsId: Long?) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             val srcParentDoc = sourceFile.parentFile.createDocFile()!!
             val srcDoc = sourceFile.createDocFile()!!

@@ -1,6 +1,6 @@
 package de.mel.filesync.service.sync;
 
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.filesync.sql.Stage;
 import de.mel.sql.SqlQueriesException;
 
@@ -19,7 +19,7 @@ public abstract class SyncStageMerger {
      * @param right
      * @throws SqlQueriesException
      */
-    public abstract void stuffFound(Stage left, Stage right, AFile lFile, AFile rFile) throws SqlQueriesException;
+    public abstract void stuffFound(Stage left, Stage right, AbstractFile lFile, AbstractFile rFile) throws SqlQueriesException;
 
     public SyncStageMerger(Long lStageSetId, Long rStageSetId) {
         this.lStageSetId = lStageSetId;

@@ -1,7 +1,7 @@
 package de.mel.filesync.sql.dao;
 
 import de.mel.Lok;
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.auth.tools.Eva;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.FileSyncStrings;
@@ -41,14 +41,14 @@ StageDao extends Dao.LockingDao {
      * @param f
      * @return relating Stage or null if f is not staged
      */
-    public Stage getStageByPath(Long stageSetId, AFile f) throws SqlQueriesException {
+    public Stage getStageByPath(Long stageSetId, AbstractFile f) throws SqlQueriesException {
         RootDirectory rootDirectory = fileSyncSettings.getRootDirectory();
         String rootPath = rootDirectory.getPath();
         //todo throw Exception if f is not in rootDirectory
         if (f.getAbsolutePath().length() < rootPath.length())
             return null;
-        AFile ff = AFile.instance(f.getAbsolutePath());
-        Stack<AFile> fileStack = FileTools.getFileStack(rootDirectory, ff);
+        AbstractFile ff = AbstractFile.instance(f.getAbsolutePath());
+        Stack<AbstractFile> fileStack = FileTools.getFileStack(rootDirectory, ff);
         FsEntry bottomFsEntry = fsDao.getBottomFsEntry(fileStack);
         Stage bottomStage = this.getStageByFsId(bottomFsEntry.getId().v(), stageSetId);
         while (!fileStack.empty()) {
@@ -128,7 +128,7 @@ StageDao extends Dao.LockingDao {
 
 
     @Deprecated
-    public AFile getFileByStage(Stage stage) throws SqlQueriesException {
+    public AbstractFile getFileByStage(Stage stage) throws SqlQueriesException {
         RootDirectory rootDirectory = fileSyncSettings.getRootDirectory();
         final Long stageSetId = stage.getStageSet();
         Stack<Stage> stageStack = new Stack<>();
@@ -157,12 +157,12 @@ StageDao extends Dao.LockingDao {
         } catch (Exception e) {
             System.err.println("debug93h349");
         }
-        AFile file = fsDao.getFileByFsFile(rootDirectory, bottomFsEntry);
+        AbstractFile file = fsDao.getFileByFsFile(rootDirectory, bottomFsEntry);
         StringBuilder path = new StringBuilder(file.getAbsolutePath());
         while (!stageStack.empty()) {
             path.append(File.separator).append(stageStack.pop().getName());
         }
-        return AFile.instance(path.toString());
+        return AbstractFile.instance(path.toString());
     }
 
     public void deleteServerStageSets() throws SqlQueriesException {

@@ -1,6 +1,6 @@
 package de.mel.filesync.sql;
 
-import de.mel.auth.file.AFile;
+import de.mel.auth.file.AbstractFile;
 import de.mel.core.serialize.JsonIgnore;
 
 import java.util.List;
@@ -9,7 +9,7 @@ public class FsFile extends FsEntry {
 
 
     @JsonIgnore
-    protected AFile original;
+    protected AbstractFile original;
 
     protected FsDirectory directory;
 
@@ -26,7 +26,7 @@ public class FsFile extends FsEntry {
 
     }
 
-    public FsFile(AFile f) {
+    public FsFile(AbstractFile f) {
         name.v(f.getName());
         original = f;
         init();
@@ -51,7 +51,7 @@ public class FsFile extends FsEntry {
         return directory;
     }
 
-    public AFile getOriginal() {
+    public AbstractFile getOriginal() {
         return original;
     }
 
