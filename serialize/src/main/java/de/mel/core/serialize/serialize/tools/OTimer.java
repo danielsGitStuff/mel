@@ -1,6 +1,8 @@
 package de.mel.core.serialize.serialize.tools;
 
-
+/**
+ * Helps finding methods wasting valuable runtime. Has fewer nasty side effects than profiling.
+ */
 public class OTimer {
 
     private final String name;
@@ -51,7 +53,7 @@ public class OTimer {
     }
 
     public OTimer print() {
-        System.out.println(this.getClass().getSimpleName() + ".'" + name + "'.print: " + sum / 1000000 +" ms");
+        System.out.println(this.getClass().getSimpleName() + ".'" + name + "'.print: " + sum / 1000000 + " ms");
         return this;
     }
 

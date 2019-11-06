@@ -96,12 +96,12 @@ class DocFileCache(val rootDocFile: DocumentFile, val maxItems: Int) {
     @Synchronized
     fun findDoc(parts: Array<String>): DocumentFile? {
         if (parts.isEmpty())
-            return root.docFile;
-        var docFile: DocumentFile? = null
+            return root.docFile
+        val docFile: DocumentFile?
         val queue: Queue<String> = LinkedList()
         queue.addAll(parts)
         docFile = root.findDoc(queue)
-        return docFile
+        return docFile!!
     }
 
 

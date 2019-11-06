@@ -12,9 +12,9 @@ class FileDistributorAndroid(fileSyncService: MelFileSyncService<*>) : FileDistr
 
     override fun moveFile(sourceFile: JFile, target: JFile, targetPath: String, fsId: Long?) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            val srcParentDoc = sourceFile.parentFile.createDocFile()
-            val srcDoc = sourceFile.createDocFile()
-            val targetParentDoc = target.parentFile.createDocFile()
+            val srcParentDoc = sourceFile.parentFile.createDocFile()!!
+            val srcDoc = sourceFile.createDocFile()!!
+            val targetParentDoc = target.parentFile.createDocFile()!!
             if (target.exists())
                 return
             if (target.name.contains("?")) {
@@ -27,8 +27,6 @@ class FileDistributorAndroid(fileSyncService: MelFileSyncService<*>) : FileDistr
                 sourceFile.delete()
                 return
             }
-            if (srcDoc == null)
-                Lok.debug()
             var movedUri = DocumentsContract.moveDocument(AndroidService.getInstance()!!.contentResolver, srcDoc.uri, srcParentDoc.uri, targetParentDoc.uri)
             val oldeUri = movedUri
             if (!sourceFile.name.equals(target.name)) {
