@@ -1,10 +1,17 @@
 package de.mel.android.filesync.bash
 
+import android.content.ContentResolver
 import android.content.Context
+import android.net.Uri
+import android.os.Build
+import android.provider.DocumentsContract
+import android.provider.OpenableColumns
 
 import java.io.IOException
 
 import de.mel.Lok
+import de.mel.android.file.AndroidFile
+import de.mel.android.file.AndroidFileConfiguration
 import de.mel.auth.file.AbstractFile
 import de.mel.filesync.bash.*
 import de.mel.filesync.bash.BashToolsAndroidJavaImpl
@@ -129,6 +136,41 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
 //        }
 //
 //    }
+
+    override fun getContentFsBashDetails(directory: AbstractFile<*>): MutableMap<String, FsBashDetails> {
+        val dir = directory as AndroidFile
+        // this does not work from Android 10 onwards
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
+            return super.getContentFsBashDetails(directory)
+//        val d = FsBashDetails(created,modified,inode,issymlink,symlinktarget,name)
+
+        try {
+            val thisDoc = dir.createDocFile()!!
+            val uri: Uri = DocumentsContract.buildChildDocumentsUriUsingTree(thisDoc.uri, DocumentsContract.getDocumentId(thisDoc.uri))
+            val contentResolver: ContentResolver = (AbstractFile.getConfiguration() as AndroidFileConfiguration).context.contentResolver
+            val content = mutableMapOf<String, FsBashDetails>()
+            contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME
+                    , DocumentsContract.Document.COLUMN_LAST_MODIFIED
+                    , DocumentsContract.Document.COLUMN_DOCUMENT_ID), null, null, null, null)?.use {
+                it.moveToFirst()
+                val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                val modIndex = it.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
+                val docIdIndex = it.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
+                while (!it.isAfterLast) {
+                    val name = it.getString(nameIndex)
+                    val modified = it.getLong(modIndex)
+                    val docId = it.getLong(docIdIndex)
+                    val details = FsBashDetails(modified, modified, docId, false, null, name)
+                    content[name] = details
+                    it.moveToNext()
+                }
+            }
+            return content
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+        }
+        return mutableMapOf()
+    }
 
     @Throws(IOException::class)
     override fun find(directory: AbstractFile<*>, pruneDir: AbstractFile<*>): AutoKlausIterator<AbstractFile<*>> {

@@ -20,7 +20,7 @@ public class FileTransferDetail implements SerializableEntity {
     private long position;
     private AbstractFile file;
     private int streamId;
-    private FileInputStream in;
+    private InputStream in;
     private FileOutputStream out;
     private String hash;
     @JsonIgnore
@@ -184,9 +184,13 @@ public class FileTransferDetail implements SerializableEntity {
      */
     public FReadInfo readFile(long offset, int length) throws IOException {
         byte[] bytes = new byte[length];
-        FileChannel ch = in.getChannel();
-        ch.position(offset);
-        int readBytes = ch.read(ByteBuffer.wrap(bytes));
+//        FileChannel ch = in.getChannel();
+        while (offset != 0) {
+            offset -= in.skip(offset);
+        }
+//        ch.position(offset);
+//        int readBytes = ch.read(ByteBuffer.wrap(bytes));
+        int readBytes = in.read(bytes);
         if (readBytes == -1) {
             bytes = new byte[0];
         } else if (readBytes < length) {

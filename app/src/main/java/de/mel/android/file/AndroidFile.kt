@@ -3,6 +3,7 @@ package de.mel.android.file
 import android.annotation.TargetApi
 import android.content.ContentResolver
 import android.net.Uri
+import android.os.Build
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.os.Environment
@@ -170,15 +171,11 @@ class AndroidFile : AbstractFile<AndroidFile> {
     }
 
     @Throws(FileNotFoundException::class)
-    override fun inputStream(): FileInputStream? {
-//        try {
-//            InputStream stream = getFileEditor().getInputStream();
-//            return (FileInputStream) stream;
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-
-        return FileInputStream(file)
+    override fun inputStream(): InputStream? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
+            return FileInputStream(file)
+        val contentResolver: ContentResolver = (getConfiguration() as AndroidFileConfiguration).context.contentResolver
+        return contentResolver.openInputStream(createDocFile()!!.uri)
     }
 
     @Throws(IOException::class)
@@ -389,9 +386,11 @@ class AndroidFile : AbstractFile<AndroidFile> {
 //            contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, DocumentsContract.Document.COLUMN_MIME_TYPE), dirFilterSelection, dirFilterArgs, null, null)?.use {
             contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, DocumentsContract.Document.COLUMN_MIME_TYPE), null, null, null, null)?.use {
                 it.moveToFirst()
+                val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                val mimeIndex = it.getColumnIndex(DocumentsContract.Document.COLUMN_MIME_TYPE)
                 while (!it.isAfterLast) {
-                    val name = it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
-                    val mime = it.getString(it.getColumnIndex(DocumentsContract.Document.COLUMN_MIME_TYPE))
+                    val name = it.getString(nameIndex)
+                    val mime = it.getString(mimeIndex)
                     if (filterOutDirs == null) {
                         fileList += name
                     } else {

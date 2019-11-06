@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import de.mel.Lok;
 
@@ -117,7 +118,7 @@ public abstract class AbstractFile<T extends AbstractFile> {
 
     public abstract boolean mkdirs();
 
-    public abstract FileInputStream inputStream() throws FileNotFoundException;
+    public abstract InputStream inputStream() throws FileNotFoundException;
 
     public abstract FileOutputStream outputStream() throws IOException;
 

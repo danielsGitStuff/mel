@@ -120,7 +120,7 @@ public class AndroidService extends Service {
     }
 
     public AndroidPowerManager getAndroidPowerManager() {
-        if (melAuthService.getPowerManager() == null)
+        if (melAuthService == null || melAuthService.getPowerManager() == null)
             return null;
         return (AndroidPowerManager) melAuthService.getPowerManager();
     }
