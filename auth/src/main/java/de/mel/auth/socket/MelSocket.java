@@ -149,8 +149,6 @@ public class MelSocket extends DeferredRunnable {
     public MelSocket(MelAuthService melAuthService, Socket socket) {
         this(melAuthService);
         this.socket = socket;
-        if (melAuthService != null)
-            melAuthService.addMelSocket(this);
         streams();
     }
 

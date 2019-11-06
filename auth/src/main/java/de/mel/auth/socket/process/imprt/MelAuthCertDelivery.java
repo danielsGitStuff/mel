@@ -126,7 +126,7 @@ public class MelAuthCertDelivery extends DeferredRunnable {
     @Override
     public void runImpl() {
         try {
-            serverSocket = certificateManager.createServerSocket();
+            serverSocket = serverSocketFactory.createServerSocket();
             serverSocket.setReuseAddress(true);
             Lok.debug("binding " + port);
             serverSocket.bind(new InetSocketAddress(port));
