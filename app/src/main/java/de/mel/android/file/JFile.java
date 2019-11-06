@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.Environment;
 
+import androidx.annotation.RequiresApi;
 import androidx.documentfile.provider.DocumentFile;
 
 import java.io.File;
@@ -12,7 +13,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import de.mel.Lok;
 import de.mel.android.Tools;
@@ -126,12 +129,12 @@ public class JFile extends AFile<JFile> {
 
     @Override
     public JFile[] listFiles() {
-        return list(File::isFile);
+        return list(true);
     }
 
     @Override
     public JFile[] listDirectories() {
-        return list(File::isDirectory);
+        return list(false);
     }
 
     @Override
@@ -260,12 +263,6 @@ public class JFile extends AFile<JFile> {
     }
 
     private String[] createRelativeFilePathParts(String storagePath, File file) {
-//        String storagePath;
-//        if (isExternal) {
-//            storagePath = SAFAccessor.getExternalSDPath();
-//        } else {
-//            storagePath = Environment.getExternalStorageDirectory().getAbsolutePath();
-//        }
         String path = file.getAbsolutePath();
         // if rootPath is null, there is no external sd card.
         // if it isn't the share still might be on the internal "sd card"
@@ -281,6 +278,8 @@ public class JFile extends AFile<JFile> {
         int offset = 0;
         if (!path.endsWith("/"))
             offset = 1;
+        if (path.length() == storagePath.length())
+            return new String[0];
         stripped = path.substring(storagePath.length() + offset);
         return stripped.split(File.separator);
     }
@@ -327,7 +326,6 @@ public class JFile extends AFile<JFile> {
     }
 
 
-
     private DocumentFile createExternalDoc(String[] parts) throws SAFAccessor.SAFException {
         if (externalCache == null)
             externalCache = new DocFileCache(SAFAccessor.getExternalRootDocFile(), 30);
@@ -357,7 +355,7 @@ public class JFile extends AFile<JFile> {
         return false;
     }
 
-    private JFile[] list(FileFilter fileFilter) {
+    private JFile[] listImplPie(Boolean filterOutDirs) {
 
         File directory = new File(file.getAbsolutePath());
 
@@ -369,7 +367,7 @@ public class JFile extends AFile<JFile> {
             return new JFile[0];
         }
 
-        File[] listFiles = fileFilter == null ? directory.listFiles() : directory.listFiles(fileFilter);
+        File[] listFiles = filterOutDirs != null ? filterOutDirs ? directory.listFiles(File::isFile) : directory.listFiles(File::isDirectory) : directory.listFiles();
 
 
         // Check Error in reading the directory (java.io.File do not allow any details about the error...).
@@ -382,6 +380,46 @@ public class JFile extends AFile<JFile> {
 
         JFile[] result = N.arr.cast(listFiles, N.converter(JFile.class, JFile::new));
         return result;
+    }
+
+    private JFile[] list(Boolean filterOutDirs) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+            return listImplQ(filterOutDirs);
+        return listImplPie(filterOutDirs);
+    }
+
+    /**
+     * @param filterOutDirs if null: unfiltered, if true: no dirs, if false: no files
+     * @return
+     */
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private JFile[] listImplQ(Boolean filterOutDirs) {
+
+        File directory = new File(file.getAbsolutePath());
+
+        // File not found error
+        if (!directory.exists()) {
+            return new JFile[0];
+        }
+
+        try {
+            DocumentFile thisDoc = createDocFile();
+            DocumentFile[] files = thisDoc.listFiles();
+            List<DocumentFile> filtered = new ArrayList<>();
+            if (filterOutDirs == null)
+                filtered.addAll(Arrays.asList(files));
+            else {
+                for (DocumentFile d : files) {
+                    if (filterOutDirs ^ d.isDirectory())
+                        filtered.add(d);
+                }
+            }
+            filtered.sort((o1, o2) -> o1.getName().compareTo(o2.getName()));
+            return N.arr.fromCollection(filtered, N.converter(JFile.class, doc -> new JFile(this, doc.getName())));
+        } catch (SAFAccessor.SAFException e) {
+            e.printStackTrace();
+        }
+        return new JFile[0];
     }
 
     @Override

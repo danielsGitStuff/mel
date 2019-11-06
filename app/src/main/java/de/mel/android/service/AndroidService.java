@@ -352,8 +352,8 @@ public class AndroidService extends Service {
 
         AndroidAdmin admin = new AndroidAdmin(getApplicationContext());
         AndroidPowerManager powerManager = new AndroidPowerManager(melAuthSettings, (android.os.PowerManager) getSystemService(POWER_SERVICE));
-        melBoot = new MelBoot(melAuthSettings, powerManager, AndroidFileSyncBootloader.class, AndroidContactsBootloader.class, AndroidDumpBootloader.class);
-//        melBoot = new MelBoot(melAuthSettings, powerManager, AndroidDriveBootloader.class);
+//        melBoot = new MelBoot(melAuthSettings, powerManager, AndroidFileSyncBootloader.class, AndroidContactsBootloader.class, AndroidDumpBootloader.class);
+        melBoot = new MelBoot(melAuthSettings, powerManager, AndroidDumpBootloader.class);
         melBoot.addMelAuthAdmin(admin);
         Promise<MelAuthService, Exception, Void> promise = melBoot.boot().done(melAuthService -> {
             N.r(() -> {

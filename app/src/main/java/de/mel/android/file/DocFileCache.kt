@@ -95,8 +95,8 @@ class DocFileCache(val rootDocFile: DocumentFile, val maxItems: Int) {
 
     @Synchronized
     fun findDoc(parts: Array<String>): DocumentFile? {
-        if (parts.any { it.startsWith("11 - Seit dem Tag als Michael") })
-            Lok.debug()
+        if (parts.isEmpty())
+            return root.docFile;
         var docFile: DocumentFile? = null
         val queue: Queue<String> = LinkedList()
         queue.addAll(parts)
