@@ -2,12 +2,14 @@ package de.mel.android.controller;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.text.format.Formatter;
@@ -50,10 +52,14 @@ public class InfoController extends GuiController implements PowerManager.IPower
         txtIP = rootView.findViewById(R.id.txtIP);
         //if we are on android O or higher we should request the coarse location to get WiFi info.
         //else this message is just wasting space.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !activity.hasPermission(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !activity.hasPermissions(Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION)) {
             permissionReasonContainer.setVisibility(View.VISIBLE);
             permissionReasonContainer.setOnClickListener(v -> {
-                Promise<Void, List<String>, Void> promise = activity.annoyWithPermissions(Manifest.permission.ACCESS_COARSE_LOCATION);
+                Promise<Void, List<String>, Void> promise;
+                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P)
+                    promise = activity.annoyWithPermissions(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION);
+                else
+                    promise = activity.annoyWithPermissions(Manifest.permission.ACCESS_COARSE_LOCATION);
                 promise.done(result -> {
                     Notifier.toast(activity, "granted");
                     permissionReasonContainer.setVisibility(View.GONE);
@@ -66,6 +72,13 @@ public class InfoController extends GuiController implements PowerManager.IPower
 
     private void showInfo() {
         N.r(() -> {
+
+
+//            if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//                ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 142);
+//            }
+
+
             WifiManager wifiManager = (WifiManager) Tools.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
             WifiInfo wifiInfo;
             wifiInfo = wifiManager.getConnectionInfo();

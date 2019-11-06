@@ -8,9 +8,9 @@ import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 
-import de.mel.android.filedump.AndroidDumpBootloader;
 import de.mel.auth.MelAuthAdmin;
 
 import org.jdeferred.Promise;
@@ -31,7 +31,6 @@ import de.mel.android.AndroidInjector;
 import de.mel.android.AndroidRegHandler;
 import de.mel.android.MainActivity;
 import de.mel.android.Notifier;
-import de.mel.android.contacts.AndroidContactsBootloader;
 import de.mel.android.filesync.AndroidFileSyncBootloader;
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.JsonSettings;
@@ -72,7 +71,7 @@ public class AndroidService extends Service {
     private MelAuthService melAuthService;
     private MelAuthSettings melAuthSettings;
     private MelBoot melBoot;
-    private NetworkChangeReceiver networkChangeReceiver;
+    private NetworkChangeListener networkChangeReceiver;
     private PowerChangeReceiver powerChangeReceiver;
     private PowerManager.CommunicationsListener communicationsListener = new PowerManager.CommunicationsListener() {
         @Override
@@ -109,7 +108,7 @@ public class AndroidService extends Service {
         if (melAuthService != null)
             melAuthService.shutDown();
         if (networkChangeReceiver != null)
-            unregisterReceiver(networkChangeReceiver);
+            networkChangeReceiver.onDestroy();
         if (powerChangeReceiver != null)
             unregisterReceiver(powerChangeReceiver);
     }
@@ -144,10 +143,11 @@ public class AndroidService extends Service {
                     melAuthService.addRegisterHandler(new AndroidRegHandler(this, melAuthService));
                     melAuthService.getPowerManager().addCommunicationListener(communicationsListener);
                     // listen for connectivity changes
-                    IntentFilter conIntentFilter = new IntentFilter();
-                    conIntentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-                    networkChangeReceiver = new NetworkChangeReceiver(this);
-                    this.registerReceiver(networkChangeReceiver, conIntentFilter);
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                        networkChangeReceiver = new NetworkChangeListenerOlde(this);
+                    } else {
+                        networkChangeReceiver = new NetworkChangeLollipop(this);
+                    }
                     // listen for charging state changes
                     IntentFilter powIntentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
                     powerChangeReceiver = new PowerChangeReceiver(this);
@@ -353,7 +353,7 @@ public class AndroidService extends Service {
         AndroidAdmin admin = new AndroidAdmin(getApplicationContext());
         AndroidPowerManager powerManager = new AndroidPowerManager(melAuthSettings, (android.os.PowerManager) getSystemService(POWER_SERVICE));
 //        melBoot = new MelBoot(melAuthSettings, powerManager, AndroidFileSyncBootloader.class, AndroidContactsBootloader.class, AndroidDumpBootloader.class);
-        melBoot = new MelBoot(melAuthSettings, powerManager, AndroidDumpBootloader.class);
+        melBoot = new MelBoot(melAuthSettings, powerManager, AndroidFileSyncBootloader.class);
         melBoot.addMelAuthAdmin(admin);
         Promise<MelAuthService, Exception, Void> promise = melBoot.boot().done(melAuthService -> {
             N.r(() -> {
