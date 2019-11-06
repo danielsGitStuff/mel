@@ -3,11 +3,13 @@ package de.mel.auth.socket;
 import de.mel.Lok;
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.MelRequest;
+import de.mel.auth.data.MelResponse;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.jobs.AConnectJob;
 import de.mel.auth.jobs.BlockReceivedJob;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
+import de.mel.auth.socket.process.val.MelServicesPayload;
 import de.mel.auth.tools.N;
 import de.mel.core.serialize.SerializableEntity;
 import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer;
@@ -89,6 +91,15 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
         try {
             melAuthService.getPowerManager().wakeLock(this);
             SerializableEntity deserialized = SerializableEntityDeserializer.deserialize(msg);
+            //todo debug
+            if (deserialized instanceof MelResponse) {
+                MelResponse response = (MelResponse) deserialized;
+                if (response.getPayload() instanceof MelServicesPayload) {
+                    Lok.debug();
+                }
+                if (response.getPayload() != null && response.getPayload().hasIntent("transfer"))
+                    Lok.debug();
+            }
             if (process != null) {
                 process.onMessageReceived(deserialized, this);
             } else if (deserialized instanceof MelRequest) {

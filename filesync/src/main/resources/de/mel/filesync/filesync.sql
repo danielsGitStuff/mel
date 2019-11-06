@@ -27,6 +27,7 @@ create table filedisttargets
 create TABLE fsentry
 (
     id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    slot INTEGER NOT NULL,
     name        TEXT    NOT NULL,
     parentid    INTEGER,
     version     INTEGER NOT NULL,
