@@ -27,9 +27,48 @@ class FileSyncDatabaseManager(val melFileSyncService: MelFileSyncService<*>, wor
     private val sqlQueries: ISQLQueries
     val fileDistTaskDao: FileDistTaskDao
     val fsDao: FsDao
+    val fsWriteDao: FsWriteDao
     val stageDao: StageDao
     val transferDao: TransferDao
     val wasteDao: WasteDao
+
+    init {
+        sqlQueries = sqlqueriesCreator.createConnection(this, melFileSyncService.uuid)
+        run {
+            Lok.error("synchronous PRAGMA is turned off!")
+            val st: SQLStatement = sqlQueries.sqlConnection.prepareStatement("PRAGMA synchronous=OFF")
+            st.execute()
+        }
+        run {
+            val st: SQLStatement = sqlQueries.sqlConnection.prepareStatement("PRAGMA foreign_keys=ON")
+            st.execute()
+        }
+        sqlQueries.sqlConnection.setAutoCommit(false)
+//        sqlQueries.enableWAL();
+
+
+        val sqliteExecutor = SqliteExecutor(sqlQueries.sqlConnection)
+        if (!sqliteExecutor.checkTablesExist("fsentry", "stage", "stageset", "transfer", "waste", "filedist")) {
+            //find sql file in workingdir
+
+            val creationScripts = CreationScripts()
+            sqliteExecutor.executeStream(creationScripts.createFsEntry.byteInputStream())
+            sqliteExecutor.executeStream(creationScripts.createRest.byteInputStream())
+
+            hadToInitialize = true
+        }
+        fileSyncSettings.rootDirectory.backup()
+        fsDao = FsDao(this, sqlQueries)
+        fsWriteDao = FsWriteDao(this, sqlQueries)
+        stageDao = StageDao(fileSyncSettings, sqlQueries, fsDao)
+        transferDao = TransferDao(sqlQueries)
+        wasteDao = WasteDao(sqlQueries)
+        fileDistTaskDao = FileDistTaskDao(sqlQueries)
+        fsDao.setFileSyncSettings(fileSyncSettings)
+        transferDao.resetStarted()
+        Lok.debug("DriveDatabaseManager.initialised")
+    }
+
     fun shutDown() {
         sqlQueries.onShutDown()
     }
@@ -99,39 +138,4 @@ class FileSyncDatabaseManager(val melFileSyncService: MelFileSyncService<*>, wor
     }
 
 
-    init {
-        sqlQueries = sqlqueriesCreator.createConnection(this, melFileSyncService.uuid)
-        run {
-            Lok.error("synchronous PRAGMA is turned off!")
-            val st: SQLStatement = sqlQueries.sqlConnection.prepareStatement("PRAGMA synchronous=OFF")
-            st.execute()
-        }
-        run {
-            val st: SQLStatement = sqlQueries.sqlConnection.prepareStatement("PRAGMA foreign_keys=ON")
-            st.execute()
-        }
-        sqlQueries.sqlConnection.setAutoCommit(false)
-//        sqlQueries.enableWAL();
-
-
-        val sqliteExecutor = SqliteExecutor(sqlQueries.sqlConnection)
-        if (!sqliteExecutor.checkTablesExist("fsentry", "stage", "stageset", "transfer", "waste", "filedist")) {
-            //find sql file in workingdir
-
-            val creationScripts = CreationScripts()
-            sqliteExecutor.executeStream(creationScripts.createFsEntry.byteInputStream())
-            sqliteExecutor.executeStream(creationScripts.createRest.byteInputStream())
-
-            hadToInitialize = true
-        }
-        fileSyncSettings.rootDirectory.backup()
-        fsDao = FsDao(this, sqlQueries)
-        stageDao = StageDao(fileSyncSettings, sqlQueries, fsDao)
-        transferDao = TransferDao(sqlQueries)
-        wasteDao = WasteDao(sqlQueries)
-        fileDistTaskDao = FileDistTaskDao(sqlQueries)
-        fsDao.setFileSyncSettings(fileSyncSettings)
-        transferDao.resetStarted()
-        Lok.debug("DriveDatabaseManager.initialised")
-    }
 }

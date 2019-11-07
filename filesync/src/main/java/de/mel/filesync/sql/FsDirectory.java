@@ -64,7 +64,6 @@ public class FsDirectory extends FsEntry {
     }
 
 
-    @Override
     protected void calcContentHash(List<FsDirectory> subDirectories, List<FsFile> files) {
         contentHash.v(calcDirectoryContentHash(subDirectories, files));
     }
@@ -80,7 +79,6 @@ public class FsDirectory extends FsEntry {
         return hash.toString();
     }
 
-    @Override
     public void calcContentHash() {
         calcContentHash(subDirectories, files);
     }

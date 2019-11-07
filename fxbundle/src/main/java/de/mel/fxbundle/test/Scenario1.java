@@ -1,10 +1,9 @@
-package de.mel.fxbundle;
+package de.mel.fxbundle.test;
 
 import de.mel.Lok;
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.data.access.CertificateManager;
-import de.mel.auth.data.db.Certificate;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.gui.RegisterHandlerFX;
@@ -19,12 +18,15 @@ import de.mel.contacts.ContactsFXBootloader;
 import de.mel.core.serialize.deserialize.collections.PrimitiveCollectionDeserializerFactory;
 import de.mel.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mel.core.serialize.serialize.fieldserializer.collections.PrimitiveCollectionSerializerFactory;
-import de.mel.filesync.FileSyncBootloader;
-import de.mel.filesync.bash.BashTools;
-import de.mel.filesync.boot.FileSyncFXBootloader;
 import de.mel.dump.DumpBootloader;
 import de.mel.dump.DumpFxBootloader;
-import de.mel.sql.*;
+import de.mel.filesync.FileSyncBootloader;
+import de.mel.filesync.FileSyncCreateServiceHelper;
+import de.mel.filesync.bash.BashTools;
+import de.mel.filesync.boot.FileSyncFXBootloader;
+import de.mel.filesync.data.fs.RootDirectory;
+import de.mel.fxbundle.AuthKonsoleReader;
+import de.mel.sql.RWLock;
 import de.mel.sql.deserialize.PairDeserializerFactory;
 import de.mel.sql.serialize.PairSerializerFactory;
 import de.mel.update.CurrentJar;
@@ -36,22 +38,25 @@ import java.io.File;
  * Created by xor on 1/15/17.
  */
 @SuppressWarnings("Duplicates")
-public class Main {
+public class Scenario1 {
     private static void initMel() throws Exception {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
-        CurrentJar.initCurrentJarClass(Main.class);
+        CurrentJar.initCurrentJarClass(Scenario1.class);
         AbstractFile.configure(new DefaultFileConfiguration());
         BashTools.init();
     }
 
     public static void main(String[] args) throws Exception {
         initMel();
+        // clean
+        CertificateManager.deleteDirectory(MelBoot.Companion.getDefaultWorkingDir1());
+        CertificateManager.deleteDirectory(MelAuthSettings.DEFAULT_FILE);
         RWLock lock = new RWLock();
         lock.lockWrite();
-        MelAuthSettings melAuthSettings = AuthKonsoleReader.readKonsole(MelStrings.update.VARIANT_FX, args);
+        MelAuthSettings melAuthSettings = AuthKonsoleReader.readKonsole(MelStrings.update.VARIANT_FX, new String[0]);
         melAuthSettings.save();
         if (melAuthSettings.getPreserveLogLinesInDb() > 0L) {
             if (!melAuthSettings.getWorkingDirectory().exists())
@@ -84,6 +89,11 @@ public class Main {
                 registerHandlerFX.setup(fxLoader.getMelAuthAdminFX());
                 melAuthService.addRegisterHandler(registerHandlerFX);
                 Lok.debug("Main.main.booted");
+                FileSyncCreateServiceHelper helper = new FileSyncCreateServiceHelper(melAuthService);
+                N.r(() -> {
+                    AbstractFile root = AbstractFile.instance(args[0]);
+                    helper.createServerService("test service", root, 0.5f, 20, false);
+                });
                 lock.unlockWrite();
             }).fail(Throwable::printStackTrace);
         }

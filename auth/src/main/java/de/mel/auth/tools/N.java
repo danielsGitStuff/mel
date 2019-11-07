@@ -5,7 +5,6 @@ import de.mel.sql.ISQLResource;
 import de.mel.sql.SQLTableObject;
 import de.mel.sql.SqlQueriesException;
 
-import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.*;
 
@@ -112,12 +111,12 @@ public class N {
     /**
      * closes the Resource when failing or finishing
      *
-     * @param sqlResource   is handed to the {@link INoTryRunnable}
-     * @param noTryRunnable
+     * @param sqlResource is handed to the {@link INoTryRunnable}
+     * @param sqlRunnable
      */
-    public static <T extends SQLTableObject> void sqlResource(ISQLResource<T> sqlResource, SqlTryRunnable<T> noTryRunnable) {
+    public static <T extends SQLTableObject> void sqlResource(ISQLResource<T> sqlResource, SqlRunnable<T> sqlRunnable) {
         try {
-            noTryRunnable.run(sqlResource);
+            sqlRunnable.run(sqlResource);
             sqlResource.close();
         } catch (Exception e) {
             try {
@@ -129,6 +128,29 @@ public class N {
             }
         }
     }
+
+    /**
+     * closes the Resource when failing or finishing
+     *
+     * @param sqlResource is handed to the {@link INoTryRunnable}
+     * @param sqlRunnable
+     */
+    public static <T extends SQLTableObject> void escalatingSqlResource(ISQLResource<T> sqlResource, SqlRunnable<T> sqlRunnable) throws Exception {
+        try {
+            sqlRunnable.run(sqlResource);
+            sqlResource.close();
+        } catch (Exception e) {
+            try {
+                e.printStackTrace();
+                sqlResource.close();
+            } catch (SqlQueriesException e1) {
+                Lok.error("N.sqlResource.close() FAILED!");
+                e1.printStackTrace();
+            }
+            throw e;
+        }
+    }
+
 
     /**
      * Iterates through the entire SQLResource and closes it after finish. Continues after Exception.
@@ -542,7 +564,7 @@ public class N {
 
     //####
 
-    public interface SqlTryRunnable<T extends SQLTableObject> {
+    public interface SqlRunnable<T extends SQLTableObject> {
         void run(ISQLResource<T> sqlResource) throws Exception;
     }
 

@@ -30,8 +30,8 @@ create INDEX fsentryc4
 create INDEX fsentryc5
     ON fsentry (inode);
     """.trimIndent()
-
-    val createFsWrite = createFsEntry.replace("fsentry", "fswrite")
+    val tableName = "fswrite"
+    val createFsWrite = createFsEntry.replace("fsentry", tableName)
 
     val createRest =
             """
