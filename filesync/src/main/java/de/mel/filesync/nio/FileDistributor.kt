@@ -12,6 +12,7 @@ import de.mel.filesync.data.FileSyncStrings
 import de.mel.filesync.service.MelFileSyncService
 import de.mel.filesync.sql.FsFile
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.util.*
 
@@ -43,7 +44,7 @@ open class FileDistributor<T : AbstractFile<*>>(val fileSyncService: MelFileSync
     @Throws(IOException::class)
     fun rawCopyFile(srcFile: AbstractFile<*>, targetFile: AbstractFile<*>) {
         var read: Int
-        val out = targetFile.outputStream()
+        val out = targetFile.writer()
         val ins = srcFile.inputStream()
         try {
             do {
@@ -53,7 +54,7 @@ open class FileDistributor<T : AbstractFile<*>>(val fileSyncService: MelFileSync
                 val bytes = ByteArray(BUFFER_SIZE)
                 read = ins.read(bytes)
                 if (read > 0) {
-                    out.write(bytes, 0, read)
+                    out.append(bytes, 0, read)
                 }
             } while (read > 0)
         } catch (e: Exception) {

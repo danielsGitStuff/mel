@@ -15,6 +15,8 @@ import de.mel.Lok
 import de.mel.android.Tools
 import de.mel.android.file.SAFAccessor.SAFException
 import de.mel.auth.file.AbstractFile
+import de.mel.auth.file.AbstractFileWriter
+import de.mel.auth.file.StandardFileWriter
 import de.mel.auth.tools.N
 import de.mel.auth.tools.N.arr
 import java.io.*
@@ -179,7 +181,7 @@ class AndroidFile : AbstractFile<AndroidFile> {
     }
 
     @Throws(IOException::class)
-    override fun outputStream(): OutputStream? {
+    override fun writer(): AbstractFileWriter? {
         try {
             return if (requiresSAF()) {
                 var documentFile = createDocFile()
@@ -187,12 +189,11 @@ class AndroidFile : AbstractFile<AndroidFile> {
                     val parent = createParentDocFile()
                     documentFile = parent!!.createFile(SAFAccessor.MIME_GENERIC, file!!.name)!!
                 }
-                Tools.getApplicationContext().contentResolver.openOutputStream(documentFile!!.uri) as FileOutputStream?
+                StandardFileWriter(Tools.getApplicationContext().contentResolver.openOutputStream(documentFile.uri) as FileOutputStream)
             } else if (VERSION.SDK_INT > VERSION_CODES.P) {
-                val contentResolver: ContentResolver = (getConfiguration() as AndroidFileConfiguration).context.contentResolver
-                contentResolver.openOutputStream(createDocFile()!!.uri)
+                AndroidFileWriter(this)
             } else {
-                FileOutputStream(file)
+                StandardFileWriter(FileOutputStream(file))
             }
         } catch (e: SAFException) {
             e.printStackTrace()

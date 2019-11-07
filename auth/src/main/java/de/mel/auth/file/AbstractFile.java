@@ -34,7 +34,6 @@ public abstract class AbstractFile<T extends AbstractFile> {
     }
 
     /**
-     *
      * @param subFile
      * @return true if subFile is located in a subfolder of this instance.
      */
@@ -72,6 +71,7 @@ public abstract class AbstractFile<T extends AbstractFile> {
 
     /**
      * It just creates some sort of root element.
+     *
      * @param path
      * @return
      */
@@ -83,7 +83,7 @@ public abstract class AbstractFile<T extends AbstractFile> {
     }
 
     public static AbstractFile instance(AbstractFile parent, String name) {
-        return configuration.instance(parent,name);
+        return configuration.instance(parent, name);
     }
 
 
@@ -121,7 +121,7 @@ public abstract class AbstractFile<T extends AbstractFile> {
 
     public abstract InputStream inputStream() throws FileNotFoundException;
 
-    public abstract OutputStream outputStream() throws IOException;
+    public abstract AbstractFileWriter writer() throws IOException;
 
     public abstract Long getFreeSpace();
 

@@ -3,13 +3,17 @@ package de.mel.fxbundle.test;
 import de.mel.Lok;
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.MelAuthSettings;
+import de.mel.auth.data.MelRequest;
 import de.mel.auth.data.access.CertificateManager;
+import de.mel.auth.data.db.Certificate;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.gui.RegisterHandlerFX;
 import de.mel.auth.service.MelAuthFxLoader;
 import de.mel.auth.service.MelBoot;
 import de.mel.auth.service.power.PowerManager;
+import de.mel.auth.socket.process.reg.IRegisterHandler;
+import de.mel.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mel.auth.tools.DBLokImpl;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.WaitLock;
@@ -85,9 +89,43 @@ public class Scenario1 {
             MelAuthFxLoader fxLoader = new MelAuthFxLoader();
             melBoot.addMelAuthAdmin(fxLoader);
             melBoot.boot().done(melAuthService -> {
-                RegisterHandlerFX registerHandlerFX = new RegisterHandlerFX();
-                registerHandlerFX.setup(fxLoader.getMelAuthAdminFX());
-                melAuthService.addRegisterHandler(registerHandlerFX);
+//                RegisterHandlerFX registerHandlerFX = new RegisterHandlerFX();
+//                registerHandlerFX.setup(fxLoader.getMelAuthAdminFX());
+//                melAuthService.addRegisterHandler(registerHandlerFX);
+                melAuthService.addRegisterHandler(new IRegisterHandler() {
+                    @Override
+                    public void acceptCertificate(IRegisterHandlerListener listener, MelRequest request, Certificate myCertificate, Certificate certificate) {
+                        listener.onCertificateAccepted(request, certificate);
+                    }
+
+                    @Override
+                    public void onRegistrationCompleted(Certificate partnerCertificate) {
+
+                    }
+
+                    @Override
+                    public void onRemoteRejected(Certificate partnerCertificate) {
+
+                    }
+
+                    @Override
+                    public void onLocallyRejected(Certificate partnerCertificate) {
+
+                    }
+
+                    @Override
+                    public void onRemoteAccepted(Certificate partnerCertificate) {
+
+                    }
+
+                    @Override
+                    public void onLocallyAccepted(Certificate partnerCertificate) {
+
+                    }
+                });
+                melAuthService.addRegisteredHandler((melAuthService1, registered) -> {
+                    N.forEach(melAuthService1.getDatabaseManager().getAllServices(), serviceType -> melAuthService1.getDatabaseManager().grant(serviceType.getServiceId().v(), registered.getId().v()));
+                });
                 Lok.debug("Main.main.booted");
                 FileSyncCreateServiceHelper helper = new FileSyncCreateServiceHelper(melAuthService);
                 N.r(() -> {

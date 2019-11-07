@@ -164,9 +164,9 @@ public class TestDirCreator {
         AbstractFile synced4 = AbstractFile.instance(sub, "synced4.txt");
 
 
-        synced1.outputStream().write(1);
-        synced2.outputStream().write(2);
-        unsynced3.outputStream().write(3);
-        synced4.outputStream().write(4);
+        synced1.writer().append(new byte[]{1}, 0);
+        synced2.writer().append(new byte[]{2}, 0);
+        unsynced3.writer().append(new byte[]{3}, 0);
+        synced4.writer().append(new byte[]{4}, 0);
     }
 }

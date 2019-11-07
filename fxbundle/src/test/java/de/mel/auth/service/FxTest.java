@@ -606,7 +606,7 @@ public class FxTest {
                     fsDao.update(alterFs);
                     client.get().shutDown();
                     Thread.sleep(2000);
-                    FileOutputStream out = alteredFile.outputStream();
+                    FileOutputStream out = alteredFile.writer();
                     out.write("hurrdurr".getBytes());
                     out.close();
                     System.exit(0);

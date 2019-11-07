@@ -1,6 +1,7 @@
 package de.mel.auth.socket.process.transfer;
 
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.AbstractFileWriter;
 import de.mel.core.serialize.JsonIgnore;
 import de.mel.core.serialize.SerializableEntity;
 
@@ -21,7 +22,7 @@ public class FileTransferDetail implements SerializableEntity {
     private AbstractFile file;
     private int streamId;
     private InputStream in;
-    private FileOutputStream out;
+    private AbstractFileWriter writer;
     private String hash;
     @JsonIgnore
     private boolean transferred = false;
@@ -127,11 +128,11 @@ public class FileTransferDetail implements SerializableEntity {
     }
 
     public void onReceived(long offset, byte[] data) throws IOException {
-        if (out == null)
-            out = file.outputStream();
-        FileChannel ch = out.getChannel();
-        ch.position(offset);
-        ch.write(ByteBuffer.wrap(data));
+        if (writer == null)
+            writer = file.writer();
+
+        writer.append(data, offset);
+
         /*
          * TODO there is some kind of misinformation here.
          * You could possibly receive random blocks from all over the file
@@ -141,7 +142,7 @@ public class FileTransferDetail implements SerializableEntity {
         position = offset + data.length;
         if (position >= end) {
             assert position == end;
-            out.close();
+            writer.close();
             transferred = true;
             if (transferDoneListener != null)
                 transferDoneListener.onFileTransferDone(this);

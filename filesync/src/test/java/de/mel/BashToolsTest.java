@@ -66,7 +66,7 @@ public class BashToolsTest {
     }
 
     private void write(AbstractFile f, String str) throws IOException {
-        try (FileOutputStream out = f.outputStream()) {
+        try (FileOutputStream out = f.writer()) {
             out.write(str.getBytes());
         }
     }

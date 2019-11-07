@@ -123,8 +123,8 @@ public class StandardFile extends AbstractFile<StandardFile> {
     }
 
     @Override
-    public FileOutputStream outputStream() throws FileNotFoundException {
-        return new FileOutputStream(file);
+    public AbstractFileWriter writer() throws FileNotFoundException {
+        return new StandardFileWriter(file);
     }
 
     @Override
