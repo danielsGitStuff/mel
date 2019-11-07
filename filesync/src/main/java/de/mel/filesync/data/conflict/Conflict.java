@@ -68,6 +68,7 @@ public class Conflict {
     /**
      * get you the stage that was chosen. that might be a directory higher in the hierarchy.
      * it isn't necessarily the parent stage.
+     *
      * @return
      */
     public Stage getChoice() {
@@ -87,7 +88,15 @@ public class Conflict {
     }
 
     public boolean hasDecision() {
-        return isRight != null;
+        boolean result = isRight != null;
+        // in case this is a directory and all dependent conflicts have been solved choose an arbitrary side (right here)
+        if (!result && hasLeft() && hasRight()
+                && lStage.getIsDirectory() && rStage.getIsDirectory()
+                && !lStage.getDeleted() && !rStage.getDeleted()) {
+            chooseRight();
+            return true;
+        }
+        return result;
     }
 
     public String getKey() {

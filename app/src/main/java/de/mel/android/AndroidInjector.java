@@ -122,14 +122,6 @@ public class AndroidInjector {
             };
             return new AndroidSQLQueries(new AndroidDBConnection(helper.getWritableDatabase()));
         });
-        FileSyncInjector.setDriveSqlInputStreamInjector(() -> {
-            try {
-                return assetManager.open("de/mel/filesync/filesync.sql");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        });
         // use a proper bash tools variant
         BashToolsImpl bashTools;
 //        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
