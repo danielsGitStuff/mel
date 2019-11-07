@@ -7,7 +7,7 @@ import java.io.OutputStream
 import java.nio.ByteBuffer
 
 class AndroidFileWriter(androidFile: AndroidFile) : AbstractFileWriter() {
-    override fun append(offset: Long, data: ByteArray) {
+    override fun append(data: ByteArray, offset: Long, length: Int) {
         out?.write(data)
     }
 
