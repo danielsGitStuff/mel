@@ -134,7 +134,7 @@ public abstract class ISQLQueries {
 
     public abstract <T> List<T> loadColumn(Pair<T> column, Class<T> clazz, SQLTableObject sqlTableObject, String tableReference, String where, List<Object> whereArgs, String whatElse) throws SqlQueriesException;
 
-    public abstract <T> List<T> loadColumn(Pair<T> column, Class<T> clazz, String query , List<Object> whereArgs) throws SqlQueriesException;
+    public abstract <T> List<T> loadColumn(Pair<T> column, Class<T> clazz, String query, List<Object> whereArgs) throws SqlQueriesException;
 
 
     public abstract <T extends SQLTableObject> List<T> loadString(List<Pair<?>> columns, T sqlTableObject,
@@ -160,6 +160,11 @@ public abstract class ISQLQueries {
     public abstract <T> T queryValue(String query, Class<T> clazz, List<Object> args) throws SqlQueriesException;
 
     public abstract void execute(String statement, List<Object> args) throws SqlQueriesException;
+
+    public void execute(String statement) throws SqlQueriesException {
+        execute(statement, null);
+    }
+
 
     public abstract Long insert(SQLTableObject sqlTableObject) throws SqlQueriesException;
 

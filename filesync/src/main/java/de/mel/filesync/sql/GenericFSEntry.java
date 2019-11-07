@@ -26,15 +26,15 @@ public class GenericFSEntry extends FsEntry {
 
     }
 
-    @Override
-    protected void calcContentHash(List<FsDirectory> subDirectories, List<FsFile> files) {
-
-    }
-
-    @Override
-    public void calcContentHash() {
-
-    }
+//    @Override
+//    protected void calcContentHash(List<FsDirectory> subDirectories, List<FsFile> files) {
+//
+//    }
+//
+//    @Override
+//    public void calcContentHash() {
+//
+//    }
 
     public FsEntry ins() {
         FsEntry ins;

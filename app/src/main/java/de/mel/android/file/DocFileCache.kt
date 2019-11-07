@@ -101,6 +101,8 @@ class DocFileCache(val rootDocFile: DocumentFile, val maxItems: Int) {
         val queue: Queue<String> = LinkedList()
         queue.addAll(parts)
         docFile = root.findDoc(queue)
+        if (docFile == null)
+            Lok.debug()
         return docFile!!
     }
 

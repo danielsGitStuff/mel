@@ -1,5 +1,41 @@
-begin TRANSACTION;
+package de.mel.filesync.sql
+
+class CreationScripts {
+    val createFsEntry = """
 DROP TABLE IF EXISTS fsentry;
+create TABLE fsentry
+(
+    id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name        TEXT    NOT NULL,
+    parentid    INTEGER,
+    version     INTEGER NOT NULL,
+    contenthash TEXT    NOT NULL,
+    dir         INTEGER NOT NULL,
+    synced      INTEGER NOT NULL,
+    inode       INTEGER,
+    modified    INTEGER,
+    created     INTEGER,
+    size        INTEGER,
+    sym         text,
+    FOREIGN KEY (parentid) REFERENCES fsentry (id)
+);
+create INDEX fsentryc1
+    ON fsentry (version);
+create INDEX fsentryc2
+    ON fsentry (parentid, dir);
+create INDEX fsentryc3
+    ON fsentry (parentid);
+create INDEX fsentryc4
+    ON fsentry (contenthash);
+create INDEX fsentryc5
+    ON fsentry (inode);
+    """.trimIndent()
+    val tableName = "fswrite"
+    val createFsWrite = createFsEntry.replace("fsentry", tableName)
+
+    val createRest =
+            """
+begin TRANSACTION;
 DROP TABLE IF EXISTS stage;
 DROP TABLE IF EXISTS stageset;
 DROP TABLE IF EXISTS transfer;
@@ -24,33 +60,6 @@ create table filedisttargets
     tfsid  integer,
     foreign key (taskid) references filedist (id) on delete cascade
 );
-create TABLE fsentry
-(
-    id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    slot INTEGER NOT NULL,
-    name        TEXT    NOT NULL,
-    parentid    INTEGER,
-    version     INTEGER NOT NULL,
-    contenthash TEXT    NOT NULL,
-    dir         INTEGER NOT NULL,
-    synced      INTEGER NOT NULL,
-    inode       INTEGER,
-    modified    INTEGER,
-    created     INTEGER,
-    size        INTEGER,
-    sym         text,
-    FOREIGN KEY (parentid) REFERENCES fsentry (id)
-);
-create INDEX eversion
-    ON fsentry (version);
-create INDEX edir
-    ON fsentry (parentid, dir);
-create INDEX eparent
-    ON fsentry (parentid);
-create INDEX ehash
-    ON fsentry (contenthash);
-create INDEX enode
-    ON fsentry (inode);
 /*staging*/
 create TABLE stage
 (
@@ -161,3 +170,7 @@ end;
 create INDEX inodeIndex
     ON waste (inode);
 commit;
+
+        """.trimIndent()
+
+}

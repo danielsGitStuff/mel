@@ -45,9 +45,13 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
         init();
     }
 
-    protected abstract void calcContentHash(List<FsDirectory> subDirectories, List<FsFile> files);
+    public FsWriteEntry toFsWriteEntry() {
+        return new FsWriteEntry(this);
+    }
 
-    public abstract void calcContentHash();
+//    protected abstract void calcContentHash(List<FsDirectory> subDirectories, List<FsFile> files);
+//
+//    public abstract void calcContentHash();
 
 
     public String getTableName() {

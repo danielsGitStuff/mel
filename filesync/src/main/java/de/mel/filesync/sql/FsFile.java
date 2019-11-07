@@ -16,15 +16,15 @@ public class FsFile extends FsEntry {
     public FsFile() {
     }
 
-    @Override
-    protected void calcContentHash(List<FsDirectory> subDirectories, List<FsFile> files) {
-
-    }
-
-    @Override
-    public void calcContentHash() {
-
-    }
+//    @Override
+//    protected void calcContentHash(List<FsDirectory> subDirectories, List<FsFile> files) {
+//
+//    }
+//
+//    @Override
+//    public void calcContentHash() {
+//
+//    }
 
     public FsFile(AbstractFile f) {
         name.v(f.getName());
@@ -59,5 +59,9 @@ public class FsFile extends FsEntry {
     public FsFile setName(String name) {
         this.name.v(name);
         return this;
+    }
+
+    public FsFile newDummyInstance() {
+        return new FsFile();
     }
 }
