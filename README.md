@@ -1,4 +1,5 @@
 # Welcome to M[e](https://xorserv.spdns.de)l - Beta*
+<span style="color:red">warning: Just live tested the build/update system. Once functional builds arrive this text will be removed.</span>
 
 If you are looking for a solution to synchronize files and contacts between various Android devices and PCs you might want to read further.
 It has no "cloud" thing built in and is intended for home network use. 
