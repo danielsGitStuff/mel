@@ -60,4 +60,8 @@ public class FsFile extends FsEntry {
         this.name.v(name);
         return this;
     }
+
+    public FsFile newDummyInstance() {
+        return new FsFile();
+    }
 }

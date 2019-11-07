@@ -264,5 +264,8 @@ public class FsDirectory extends FsEntry {
             }
         }
     }
+    public FsDirectory newDummyInstance() {
+        return new FsDirectory();
+    }
 }
 
