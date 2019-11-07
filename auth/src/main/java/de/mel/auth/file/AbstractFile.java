@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import de.mel.Lok;
 
@@ -120,7 +121,7 @@ public abstract class AbstractFile<T extends AbstractFile> {
 
     public abstract InputStream inputStream() throws FileNotFoundException;
 
-    public abstract FileOutputStream outputStream() throws IOException;
+    public abstract OutputStream outputStream() throws IOException;
 
     public abstract Long getFreeSpace();
 

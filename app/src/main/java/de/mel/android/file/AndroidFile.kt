@@ -172,14 +172,14 @@ class AndroidFile : AbstractFile<AndroidFile> {
 
     @Throws(FileNotFoundException::class)
     override fun inputStream(): InputStream? {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
+        if (VERSION.SDK_INT < Build.VERSION_CODES.Q)
             return FileInputStream(file)
         val contentResolver: ContentResolver = (getConfiguration() as AndroidFileConfiguration).context.contentResolver
         return contentResolver.openInputStream(createDocFile()!!.uri)
     }
 
     @Throws(IOException::class)
-    override fun outputStream(): FileOutputStream? {
+    override fun outputStream(): OutputStream? {
         try {
             return if (requiresSAF()) {
                 var documentFile = createDocFile()
@@ -188,6 +188,9 @@ class AndroidFile : AbstractFile<AndroidFile> {
                     documentFile = parent!!.createFile(SAFAccessor.MIME_GENERIC, file!!.name)!!
                 }
                 Tools.getApplicationContext().contentResolver.openOutputStream(documentFile!!.uri) as FileOutputStream?
+            } else if (VERSION.SDK_INT > VERSION_CODES.P) {
+                val contentResolver: ContentResolver = (getConfiguration() as AndroidFileConfiguration).context.contentResolver
+                contentResolver.openOutputStream(createDocFile()!!.uri)
             } else {
                 FileOutputStream(file)
             }
