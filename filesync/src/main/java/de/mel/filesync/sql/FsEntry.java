@@ -23,7 +23,6 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
     private static final String CREATED = "created";
     private static final String SIZE = "size";
     private static final String SYMLINK = "sym";
-    private static final String SLOT = "slot";
 
     protected Pair<Long> id = new Pair<>(Long.class, ID);
     protected Pair<String> name = new Pair<>(String.class, NAME);
@@ -41,8 +40,6 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
     protected Pair<Boolean> synced = new Pair<>(Boolean.class, SYNCED);
     protected Pair<Long> size = new Pair<>(Long.class, SIZE);
     protected Pair<String> symLink = new Pair<>(String.class, SYMLINK);
-    @JsonIgnore
-    protected Pair<Integer> slot = new Pair<>(Integer.class, SLOT);
 
     public FsEntry() {
         init();
@@ -63,12 +60,8 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
 
     @Override
     protected void init() {
-        populateInsert(name, parentId, version, contentHash, isDirectory, synced, iNode, modified, created, size, symLink, slot);
+        populateInsert(name, parentId, version, contentHash, isDirectory, synced, iNode, modified, created, size, symLink);
         populateAll(id);
-    }
-
-    public Pair<Integer> getSlot() {
-        return slot;
     }
 
     public Pair<Long> getVersion() {

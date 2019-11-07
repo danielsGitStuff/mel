@@ -160,7 +160,7 @@ public abstract class SyncHandler {
     }
 
     /**
-     * @param file        file in working directory
+     * @param file   file in working directory
      * @param hash
      * @param warden
      * @return true if the file is new on the device (not a copy). so it can be transferred to other devices.

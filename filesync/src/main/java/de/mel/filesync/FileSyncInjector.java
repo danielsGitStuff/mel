@@ -11,12 +11,9 @@ import de.mel.filesync.index.watchdog.IndexWatchdogListener;
  */
 
 public class FileSyncInjector {
-    public static void setDriveSqlInputStreamInjector(FileSyncDatabaseManager.FileSyncSqlInputStreamInjector fileSyncSqlInputStreamInjector) {
-        FileSyncDatabaseManager.setFileSyncSqlInputStreamInjector(fileSyncSqlInputStreamInjector);
-    }
 
     public static void setSqlConnectionCreator(FileSyncDatabaseManager.SQLConnectionCreator connectionCreator) {
-        FileSyncDatabaseManager.setSqlqueriesCreator(connectionCreator);
+        FileSyncDatabaseManager.Companion.setSqlqueriesCreator(connectionCreator);
     }
 
     public static void setWatchDogRunner(IndexWatchdogListener.WatchDogRunner watchDogRunner) {
