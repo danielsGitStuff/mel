@@ -1,5 +1,6 @@
 # Welcome to M[e](https://xorserv.spdns.de)l - Beta*
-<span style="color:red">warning: Just live tested the build/update system. Once functional builds arrive this text will be removed.</span>
+
+**warning: Just tested the build/update system. Once functional builds arrive this text will be removed. My phone just got Android 10 recently. Therefore it is not compatible with Android 10 yet. Things broke. Fix is in progress.**
 
 If you are looking for a solution to synchronize files and contacts between various Android devices and PCs you might want to read further.
 It has no "cloud" thing built in and is intended for home network use. 
