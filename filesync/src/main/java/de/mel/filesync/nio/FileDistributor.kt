@@ -31,7 +31,7 @@ open class FileDistributor<T : AbstractFile<*>>(val fileSyncService: MelFileSync
 
         val BUFFER_SIZE = 1024 * 64
 
-        var factory: FileDistributorFactory? = null
+        var factory: FileDistributorFactory? = FileDistributorFactory()
             set
 
 

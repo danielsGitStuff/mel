@@ -41,7 +41,7 @@ create INDEX fsindex5
 
         var str = createFsEntry.replace("fsentry", tableName)
         while (str.contains("fsindex"))
-            str = str.replaceFirst("fsindex", "fsindex_${CertificateManager.randomUUID()}${Date().time}")
+            str = str.replaceFirst("fsindex", "fsentryindex_${CertificateManager.randomUUID()}${Date().time}")
         createFsWrite = str
     }
 
