@@ -39,9 +39,9 @@ create INDEX fsindex5
 
     init {
 
-        val str = createFsEntry.replace("fsentry", tableName)
+        var str = createFsEntry.replace("fsentry", tableName)
         while (str.contains("fsindex"))
-            str.replaceFirst("fsindex", "fsindex_${CertificateManager.randomUUID()}${Date().time}")
+            str = str.replaceFirst("fsindex", "fsindex_${CertificateManager.randomUUID()}${Date().time}")
         createFsWrite = str
     }
 
