@@ -1,6 +1,8 @@
 package de.mel.filesync.sql
 
 import de.mel.auth.data.access.CertificateManager
+import java.time.LocalDateTime
+import java.util.*
 
 class CreationScripts {
     val createFsEntry = """
@@ -36,9 +38,10 @@ create INDEX fsindex5
     val createFsWrite: String
 
     init {
+
         val str = createFsEntry.replace("fsentry", tableName)
         while (str.contains("fsindex"))
-            str.replaceFirst("fsindex", "fsindex_${CertificateManager.randomUUID()}")
+            str.replaceFirst("fsindex", "fsindex_${CertificateManager.randomUUID()}${Date().time}")
         createFsWrite = str
     }
 

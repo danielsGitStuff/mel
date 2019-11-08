@@ -12,6 +12,7 @@ import de.mel.auth.tools.lock.Warden;
 import de.mel.sql.Hash;
 import de.mel.sql.ISQLQueries;
 import de.mel.sql.SqlQueriesException;
+
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 
@@ -19,6 +20,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.net.ssl.*;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -31,6 +33,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -371,12 +374,14 @@ public class CertificateManager extends FileRelatedManager {
 
     public static String[] filterCipherSuites(String[] cipherSuites) {
         List<String> ciphers = new ArrayList<>();
-        N.forEach(cipherSuites, s -> {
-            if (s.equals("TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384")
-                    || s.equals("TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256")
-                    || s.equals("TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256"))
-                ciphers.add(s);
-        });
+//        N.forEach(cipherSuites, s -> {
+//            if (s.equals("TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384")
+//                    || s.equals("TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256")
+//                    || s.equals("TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256"))
+//                ciphers.add(s);
+//        });
+        //todo debug
+        ciphers.addAll(Arrays.asList(cipherSuites));
         return N.arr.fromCollection(ciphers, N.converter(String.class, element -> element));
     }
 
