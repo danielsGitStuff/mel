@@ -221,26 +221,30 @@ class AndroidFile : AbstractFile<AndroidFile> {
 
     /**
      * Checks whether or not you have to employ the Storage Access Framework to write to that location.
+     * Check only works until Android Pie.
      *
      * @return
      */
     private fun requiresSAF(): Boolean {
-        val internalDataPath: String? = Environment.getDataDirectory().absolutePath
-        // no external sd card available
+        val internalDataPath: String = Environment.getDataDirectory().absolutePath
 
-
-        if (!SAFAccessor.hasExternalSdCard()) return false
         // file is in data directory
+        if (absolutePath.startsWith(internalDataPath))
+            return true
 
+        //android 10 onwards check
+        if (VERSION.SDK_INT > VERSION_CODES.P && !absolutePath.startsWith(AndroidFileConfiguration.getDataDir().absolutePath))
+            return true
 
-        if (file!!.absolutePath.startsWith(internalDataPath!!)) return false
+        // no external sd card available
+        if (!SAFAccessor.hasExternalSdCard()) return false
+
         // file is not on external sd card
+        if (file!!.absolutePath.startsWith(internalDataPath!!)) return false
 
 
-        return if (!file!!.absolutePath.startsWith(SAFAccessor.getExternalSDPath())) false else VERSION.SDK_INT > VERSION_CODES.KITKAT
         // SAF is only available from kitkat onwards
-
-
+        return if (!file!!.absolutePath.startsWith(SAFAccessor.getExternalSDPath())) false else VERSION.SDK_INT > VERSION_CODES.KITKAT
     }
 
     private fun createRelativeFilePathParts(storagePath: String, file: File): Array<String> {
