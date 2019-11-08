@@ -374,14 +374,12 @@ public class CertificateManager extends FileRelatedManager {
 
     public static String[] filterCipherSuites(String[] cipherSuites) {
         List<String> ciphers = new ArrayList<>();
-//        N.forEach(cipherSuites, s -> {
-//            if (s.equals("TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384")
-//                    || s.equals("TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256")
-//                    || s.equals("TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256"))
-//                ciphers.add(s);
-//        });
-        //todo debug
-        ciphers.addAll(Arrays.asList(cipherSuites));
+        N.forEach(cipherSuites, s -> {
+            if (s.equals("TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384")
+                    || s.equals("TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256")
+                    || s.equals("TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256"))
+                ciphers.add(s);
+        });
         return N.arr.fromCollection(ciphers, N.converter(String.class, element -> element));
     }
 
