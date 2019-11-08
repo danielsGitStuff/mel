@@ -384,7 +384,7 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     @SuppressWarnings("Duplicates")
-    public Socket createSocket() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
+    public SSLSocket createSocket() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
         SSLSocket socket = (SSLSocket) getSSLContext().getSocketFactory().createSocket();
         try {
             socket.setEnabledProtocols(new String[]{"TLSv1.2"});
@@ -403,7 +403,7 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     @SuppressWarnings("Duplicates")
-    public ServerSocket createServerSocket() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
+    public SSLServerSocket createServerSocket() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
         SSLServerSocket socket = (SSLServerSocket) getSSLContext().getServerSocketFactory().createServerSocket();
         try {
             socket.setEnabledProtocols(new String[]{"TLSv1.2"});
