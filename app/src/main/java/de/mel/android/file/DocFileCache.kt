@@ -4,10 +4,10 @@ import androidx.documentfile.provider.DocumentFile
 import de.mel.Lok
 import java.util.*
 
-class DocFileCache(val rootDocFile: DocumentFile, val maxItems: Int) {
-    private val root = DocTreeRoot(this, rootDocFile)
+class DocFileCache(storageRootDoc: DocumentFile, private val maxItems: Int) {
+    private val storageRoot = DocTreeRoot(this, storageRootDoc)
 
-    class DocTreeRoot(cache: DocFileCache, rootDocFile: DocumentFile) : DocTreeNode(cache, rootDocFile, 1, "[root]", null) {
+    class DocTreeRoot(cache: DocFileCache, rootDocFile: DocumentFile) : DocTreeNode(cache, rootDocFile, 1, "[storageRoot]", null) {
         fun findDoc(queue: Queue<String>): DocumentFile? {
             val currentPath = mutableSetOf<DocTreeNode>()
             currentPath.add(this)
@@ -38,7 +38,7 @@ class DocFileCache(val rootDocFile: DocumentFile, val maxItems: Int) {
             if (queue.size == 0)
                 return docFile
 
-            val name = queue.poll()
+            val name = queue.poll()!!
             currentPath.add(this)
             if (nodes.containsKey(name)) {
                 //got a matching child
@@ -46,7 +46,8 @@ class DocFileCache(val rootDocFile: DocumentFile, val maxItems: Int) {
                 return nodes[name]!!.findDoc(queue, currentPath)
             }
             // doc is not present in tree now
-            return cache.createNode(this, name, docFile, currentPath)?.findDoc(queue, currentPath);
+            return cache.createNode(this, name, docFile, currentPath)
+                    ?.findDoc(queue, currentPath)
         }
 
         fun isLeaf() = nodes.isEmpty()
@@ -96,14 +97,17 @@ class DocFileCache(val rootDocFile: DocumentFile, val maxItems: Int) {
     @Synchronized
     fun findDoc(parts: Array<String>): DocumentFile? {
         if (parts.isEmpty())
-            return root.docFile
+            return storageRoot.docFile
         val docFile: DocumentFile?
         val queue: Queue<String> = LinkedList()
         queue.addAll(parts)
-        docFile = root.findDoc(queue)
+        //todo debug
+        if (parts.last() == "1cba3c77b5249829037b8e87468b0fac")
+            Lok.debug()
+        docFile = storageRoot.findDoc(queue)
         if (docFile == null)
             Lok.debug()
-        return docFile!!
+        return docFile
     }
 
 

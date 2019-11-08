@@ -1,5 +1,7 @@
 package de.mel.filesync.sql
 
+import de.mel.auth.data.access.CertificateManager
+
 class CreationScripts {
     val createFsEntry = """
 DROP TABLE IF EXISTS fsentry;
@@ -19,19 +21,26 @@ create TABLE fsentry
     sym         text,
     FOREIGN KEY (parentid) REFERENCES fsentry (id)
 );
-create INDEX fsentryc1
+create INDEX fsindex1
     ON fsentry (version);
-create INDEX fsentryc2
+create INDEX fsindex2
     ON fsentry (parentid, dir);
-create INDEX fsentryc3
+create INDEX fsindex3
     ON fsentry (parentid);
-create INDEX fsentryc4
+create INDEX fsindex4
     ON fsentry (contenthash);
-create INDEX fsentryc5
+create INDEX fsindex5
     ON fsentry (inode);
     """.trimIndent()
     val tableName = "fswrite"
-    val createFsWrite = createFsEntry.replace("fsentry", tableName)
+    val createFsWrite: String
+
+    init {
+        val str = createFsEntry.replace("fsentry", tableName)
+        while (str.contains("fsindex"))
+            str.replaceFirst("fsindex", "fsindex_${CertificateManager.randomUUID()}")
+        createFsWrite = str
+    }
 
     val createRest =
             """

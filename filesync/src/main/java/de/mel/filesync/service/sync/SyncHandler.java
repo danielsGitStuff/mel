@@ -13,6 +13,7 @@ import de.mel.filesync.data.fs.RootDirectory;
 import de.mel.filesync.index.Indexer;
 import de.mel.filesync.nio.FileDistributionTask;
 import de.mel.filesync.nio.FileDistributor;
+import de.mel.filesync.nio.FileDistributorFactory;
 import de.mel.filesync.quota.OutOfSpaceException;
 import de.mel.filesync.quota.QuotaManager;
 import de.mel.filesync.service.MelFileSyncService;
@@ -70,7 +71,7 @@ public abstract class SyncHandler {
 //        this.transferManager = new TransferManager(melAuthService, melDriveService, melDriveService.getDriveDatabaseManager().getTransferDao()
 //                , wastebin, this);
         this.quotaManager = new QuotaManager(melFileSyncService);
-        this.fileDistributor = new FileDistributor(melFileSyncService);
+        this.fileDistributor = FileDistributor.Companion.getFactory().createInstance(melFileSyncService);
     }
 
     public FileDistTaskDao getFileDistTaskDao() {
@@ -412,7 +413,7 @@ public abstract class SyncHandler {
                     transferManager.research();
                 });
                 wastebin.maintenance();
-            }catch (Exception e){
+            } catch (Exception e) {
                 N.r(() -> fsWriteDao.cleanUp());
                 throw e;
             }

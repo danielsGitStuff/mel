@@ -145,17 +145,21 @@ class AndroidFile : AbstractFile<AndroidFile> {
     @TargetApi(VERSION_CODES.KITKAT)
     private fun mkdir(): Boolean {
         try {
-            val folderDoc = createParentDocFile()
-            val name: String? = file!!.name
-            val found = folderDoc!!.findFile(name!!)
-            if (found != null && found.isFile) {
-                found.delete()
+            if (requiresSAF()) {
+                val folderDoc = createParentDocFile()
+                val name: String? = file!!.name
+                val found = folderDoc!!.findFile(name!!)
+                if (found != null && found.isFile) {
+                    found.delete()
+                }
+                if (found != null) {
+                    return false
+                }
+                val created = folderDoc.createDirectory(name)
+                return created != null && created.exists()
+            } else {
+                File(absolutePath).mkdir()
             }
-            if (found != null) {
-                return false
-            }
-            val created = folderDoc.createDirectory(name)
-            return created != null && created.exists()
         } catch (e: SAFException) {
             e.printStackTrace()
         }
@@ -230,7 +234,7 @@ class AndroidFile : AbstractFile<AndroidFile> {
 
         // file is in data directory
         if (absolutePath.startsWith(internalDataPath))
-            return true
+            return false
 
         //android 10 onwards check
         if (VERSION.SDK_INT > VERSION_CODES.P && !absolutePath.startsWith(AndroidFileConfiguration.getDataDir().absolutePath))
