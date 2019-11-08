@@ -4,7 +4,6 @@ import android.content.ContentResolver
 import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.AbstractFileWriter
 import java.io.OutputStream
-import java.nio.ByteBuffer
 
 class AndroidFileWriter(androidFile: AndroidFile) : AbstractFileWriter() {
     override fun append(data: ByteArray, offset: Long, length: Int) {
@@ -19,7 +18,9 @@ class AndroidFileWriter(androidFile: AndroidFile) : AbstractFileWriter() {
 
     init {
         val contentResolver: ContentResolver = (AbstractFile.getConfiguration() as AndroidFileConfiguration).context.contentResolver
-        val uri = androidFile.createDocFile()!!.uri
+        if (!androidFile.exists())
+            androidFile.createNewFile()
+        val uri = androidFile.getDocFile()!!.uri
         out = contentResolver.openOutputStream(uri, "wa")
     }
 }

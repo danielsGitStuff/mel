@@ -2,6 +2,8 @@ package de.mel.android.file
 
 import android.annotation.TargetApi
 import android.content.ContentResolver
+import android.content.Context
+import android.content.ContextWrapper
 import android.net.Uri
 import android.os.Build
 import android.os.Build.VERSION
@@ -125,7 +127,7 @@ class AndroidFile : AbstractFile<AndroidFile> {
     override fun delete(): Boolean {
         if (requiresSAF()) {
             try {
-                val documentFile = createDocFile()
+                val documentFile = getDocFile()
                 if (documentFile != null) return documentFile.delete()
             } catch (e: SAFException) {
                 e.printStackTrace()
@@ -177,14 +179,14 @@ class AndroidFile : AbstractFile<AndroidFile> {
         if (VERSION.SDK_INT < Build.VERSION_CODES.Q)
             return FileInputStream(file)
         val contentResolver: ContentResolver = (getConfiguration() as AndroidFileConfiguration).context.contentResolver
-        return contentResolver.openInputStream(createDocFile()!!.uri)
+        return contentResolver.openInputStream(getDocFile()!!.uri)
     }
 
     @Throws(IOException::class)
     override fun writer(): AbstractFileWriter? {
         try {
             return if (requiresSAF()) {
-                var documentFile = createDocFile()
+                var documentFile = getDocFile()
                 if (documentFile == null) {
                     val parent = createParentDocFile()
                     documentFile = parent!!.createFile(SAFAccessor.MIME_GENERIC, file!!.name)!!
@@ -277,27 +279,27 @@ class AndroidFile : AbstractFile<AndroidFile> {
     fun createParentDocFile(): DocumentFile? {
         var parts = createRelativeFilePathParts(storagePath, file!!)
         parts = Arrays.copyOf(parts, parts!!.size - 1)
-        return if (isExternal) createExternalDoc(parts) else createInternalDoc(parts)
+        return if (isExternal) getExternalDoc(parts) else getInternalDoc(parts)
     }
 
     @Throws(SAFException::class)
-    fun createDocFile(): DocumentFile? {
+    fun getDocFile(): DocumentFile? {
         val storagePath = storagePath
         val parts: Array<String>
         parts = createRelativeFilePathParts(storagePath, file!!)
         return if (!isExternal) {
-            createInternalDoc(parts)
-        } else createExternalDoc(parts)
+            getInternalDoc(parts)
+        } else getExternalDoc(parts)
     }
 
     @Throws(SAFException::class)
-    private fun createInternalDoc(parts: Array<String>): DocumentFile? {
+    private fun getInternalDoc(parts: Array<String>): DocumentFile? {
         if (internalCache == null) internalCache = DocFileCache(SAFAccessor.getInternalRootDocFile(), 50)
         return internalCache!!.findDoc(parts)
     }
 
     @Throws(SAFException::class)
-    private fun createExternalDoc(parts: Array<String>): DocumentFile? {
+    private fun getExternalDoc(parts: Array<String>): DocumentFile? {
         if (externalCache == null) externalCache = DocFileCache(SAFAccessor.getExternalRootDocFile(), 50)
         return externalCache!!.findDoc(parts)
     }
@@ -314,10 +316,16 @@ class AndroidFile : AbstractFile<AndroidFile> {
                 val created = folderDoc.createFile(SAFAccessor.MIME_GENERIC, file!!.name)
                 return if (created != null) {
                     true
-                } else false
+                } else
+                    false
             } catch (e: SAFException) {
                 e.printStackTrace()
             }
+        } else if (VERSION.SDK_INT > VERSION_CODES.P && !absolutePath.startsWith(AndroidFileConfiguration.getDataDir().absolutePath)) {
+            val parentDoc = getParentFile().getDocFile()
+            val contentResolver: ContentResolver = (getConfiguration() as AndroidFileConfiguration).context.contentResolver
+            val uri = DocumentsContract.createDocument(contentResolver, parentDoc!!.uri, SAFAccessor.MIME_GENERIC, name)
+            return uri != null
         } else {
             return file!!.createNewFile()
         }
@@ -361,16 +369,16 @@ class AndroidFile : AbstractFile<AndroidFile> {
     private fun listImplQ(filterOutDirs: Boolean?): Array<AndroidFile>? {
         /**
          * Here we employ database queries to find the content. This reduced the time listing directory contents from 7500ms to 250ms (filtering etc included)
-         * compared to using createDocFile().listFiles().
+         * compared to using getDocFile().listFiles().
          */
         val directory = File(file!!.absolutePath)
         if (!directory.exists()) {
             return emptyArray()
         }
         try {
-            val thisDoc = createDocFile()!!
+            val thisDoc = getDocFile()!!
             val uri: Uri = DocumentsContract.buildChildDocumentsUriUsingTree(thisDoc.uri, DocumentsContract.getDocumentId(thisDoc.uri))
-            val contentResolver: ContentResolver = (AbstractFile.getConfiguration() as AndroidFileConfiguration).context.contentResolver
+            val contentResolver: ContentResolver = (getConfiguration() as AndroidFileConfiguration).context.contentResolver
 // this code maybe useful when someone eventually found out how that stupid query() thing works, see comment below
 //            var dirFilterSelection: String? = null
 //            var dirFilterArgs: Array<String>? = null

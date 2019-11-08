@@ -7,10 +7,16 @@ import java.io.File;
 import de.mel.auth.file.AbstractFile;
 
 public class AndroidFileConfiguration extends AbstractFile.Configuration {
+    private static File dataDir;
     private Context context;
+
+    public static File getDataDir() {
+        return dataDir;
+    }
 
     public AndroidFileConfiguration(Context context) {
         this.context = context;
+        AndroidFileConfiguration.dataDir = context.getFilesDir().getParentFile();
     }
 
     @Override

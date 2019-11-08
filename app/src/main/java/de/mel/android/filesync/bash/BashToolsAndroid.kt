@@ -145,7 +145,7 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
 //        val d = FsBashDetails(created,modified,inode,issymlink,symlinktarget,name)
 
         try {
-            val thisDoc = dir.createDocFile()!!
+            val thisDoc = dir.getDocFile()!!
             val uri: Uri = DocumentsContract.buildChildDocumentsUriUsingTree(thisDoc.uri, DocumentsContract.getDocumentId(thisDoc.uri))
             val contentResolver: ContentResolver = (AbstractFile.getConfiguration() as AndroidFileConfiguration).context.contentResolver
             val content = mutableMapOf<String, FsBashDetails>()

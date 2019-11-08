@@ -47,15 +47,15 @@ public class CopyService extends IntentService {
         NWrap<InputStream> fis = new NWrap<>(null);
         NWrap<OutputStream> fos = new NWrap<>(null);
         try {
-            DocumentFile srcDoc = src.createDocFile();
-            DocumentFile targetDoc = target.createDocFile();
+            DocumentFile srcDoc = src.getDocFile();
+            DocumentFile targetDoc = target.getDocFile();
             if (targetDoc == null) {
                 DocumentFile targetParentDoc = target.createParentDocFile();
                 if (targetParentDoc == null)
                     throw new FileNotFoundException("directory does not exist: " + targetPath);
                 AndroidFile jtarget = new AndroidFile(target);
                 jtarget.createNewFile();
-                targetDoc = target.createDocFile();
+                targetDoc = target.getDocFile();
             }
             ContentResolver resolver = Tools.getApplicationContext().getContentResolver();
             fis.v = resolver.openInputStream(srcDoc.getUri());

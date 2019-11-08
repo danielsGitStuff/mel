@@ -141,7 +141,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
             N.r(() -> {
                 AndroidFile f = new AndroidFile("/storage/emulated/0/Download/mel/kkk.txt");
                 boolean ex = f.exists();
-                DocumentFile srcDoc = f.createDocFile();
+                DocumentFile srcDoc = f.getDocFile();
                 Lok.debug("asd");
             });
 //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

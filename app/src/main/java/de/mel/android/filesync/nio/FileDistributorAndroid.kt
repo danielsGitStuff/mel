@@ -12,9 +12,9 @@ class FileDistributorAndroid(fileSyncService: MelFileSyncService<*>) : FileDistr
 
     override fun moveFile(sourceFile: AndroidFile, target: AndroidFile, targetPath: String, fsId: Long?) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            val srcParentDoc = sourceFile.parentFile.createDocFile()!!
-            val srcDoc = sourceFile.createDocFile()!!
-            val targetParentDoc = target.parentFile.createDocFile()!!
+            val srcParentDoc = sourceFile.parentFile.getDocFile()!!
+            val srcDoc = sourceFile.getDocFile()!!
+            val targetParentDoc = target.parentFile.getDocFile()!!
             if (target.exists())
                 return
             if (target.name.contains("?")) {
