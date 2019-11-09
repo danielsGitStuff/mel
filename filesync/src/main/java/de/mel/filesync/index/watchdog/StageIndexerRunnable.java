@@ -16,13 +16,13 @@ import de.mel.filesync.sql.dao.FsDao;
 public class StageIndexerRunnable extends AbstractIndexer {
 
     private final PathCollection pathCollection;
-    private final IndexWatchdogListener indexWatchdogListener;
+    private final FileWatcher fileWatcher;
     private StageIndexer.StagingDoneListener stagingDoneListener;
 
-    public StageIndexerRunnable(FileSyncDatabaseManager databaseManager, PathCollection pathCollection, IndexWatchdogListener indexWatchdogListener) {
+    public StageIndexerRunnable(FileSyncDatabaseManager databaseManager, PathCollection pathCollection, FileWatcher fileWatcher) {
         super(databaseManager);
         this.pathCollection = pathCollection;
-        this.indexWatchdogListener = indexWatchdogListener;
+        this.fileWatcher = fileWatcher;
     }
 
 
@@ -37,7 +37,7 @@ public class StageIndexerRunnable extends AbstractIndexer {
         if (pathCollection.getPaths().size() > 0) {
             Warden warden = P.confine(P.read(fsDao));
             try {
-                initStage(FileSyncStrings.STAGESET_SOURCE_FS, pathCollection.getPaths().iterator(), indexWatchdogListener, databaseManager.getFileSyncSettings().getLastSyncedVersion());
+                initStage(FileSyncStrings.STAGESET_SOURCE_FS, pathCollection.getPaths().iterator(), fileWatcher, databaseManager.getFileSyncSettings().getLastSyncedVersion());
                 examineStage();
                 warden.end();
                 unlocked = true;

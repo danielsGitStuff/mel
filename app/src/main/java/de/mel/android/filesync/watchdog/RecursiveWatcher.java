@@ -15,7 +15,7 @@ import de.mel.Lok;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.tools.WatchDogTimer;
 import de.mel.filesync.data.PathCollection;
-import de.mel.filesync.index.watchdog.IndexWatchdogListener;
+import de.mel.filesync.index.watchdog.FileWatcher;
 import de.mel.filesync.index.watchdog.UnixReferenceFileHandler;
 import de.mel.filesync.service.MelFileSyncService;
 import org.jdeferred.Promise;
@@ -27,7 +27,7 @@ import org.jdeferred.Promise;
  * for every new directory.
  * Created by xor on 31.07.2017.
  */
-public class RecursiveWatcher extends IndexWatchdogListener {
+public class RecursiveWatcher extends FileWatcher {
     private final AbstractFile target;
     private final Map<String, Watcher> watchers = new HashMap<>();
     private final AbstractFile transferDirectory;

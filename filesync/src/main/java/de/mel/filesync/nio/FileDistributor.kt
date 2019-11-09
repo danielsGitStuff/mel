@@ -12,7 +12,6 @@ import de.mel.filesync.data.FileSyncStrings
 import de.mel.filesync.service.MelFileSyncService
 import de.mel.filesync.sql.FsFile
 import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
 import java.util.*
 
@@ -25,7 +24,7 @@ open class FileDistributor<T : AbstractFile<*>>(val fileSyncService: MelFileSync
     val melAuthService: MelAuthService = fileSyncService.melAuthService
     val fsDao = fileSyncService.fileSyncDatabaseManager.fsDao
     val transferDao = fileSyncService.fileSyncDatabaseManager.transferDao
-    val watchDogTimer = fileSyncService.indexer.indexerRunnable.indexWatchdogListener.watchDogTimer
+    val watchDogTimer = fileSyncService.indexer.indexerRunnable.fileWatcher.watchDogTimer
 
     companion object {
 

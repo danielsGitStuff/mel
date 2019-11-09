@@ -22,27 +22,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * Created by xor on 7/11/16.
  */
 @SuppressWarnings("Duplicates")
-public abstract class IndexWatchdogListener extends DeferredRunnable implements IndexListener, Runnable, WatchDogTimer.WatchDogTimerFinished {
+public abstract class FileWatcher extends DeferredRunnable implements IndexListener, Runnable, WatchDogTimer.WatchDogTimerFinished {
 
-    private static WatchDogRunner watchDogRunner = melDriveService1 -> {
-        WatchService watchService1 = null;
-        IndexWatchdogListener watchdogListener;
-        try {
-            watchService1 = FileSystems.getDefault().newWatchService();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (System.getProperty("os.name").toLowerCase().startsWith("windows")) {
-            Lok.debug("WatchDog.windows");
-            watchdogListener = new IndexWatchDogListenerWindows(melDriveService1, watchService1);
-        } else {
-            Lok.debug("WatchDog.unix");
-            watchdogListener = new IndexWatchdogListenerUnix(melDriveService1, watchService1);
-        }
-        watchdogListener.melFileSyncService = melDriveService1;
-        watchdogListener.melFileSyncService.execute(watchdogListener);
-        return watchdogListener;
-    };
     protected String name;
     protected WatchDogTimer watchDogTimer = new WatchDogTimer("Indexer",this, 20, 100, 150);
     protected MelFileSyncService melFileSyncService;
@@ -55,16 +36,8 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
     private boolean hasSupressedEvents = false;
 
 
-    public IndexWatchdogListener(MelFileSyncService melFileSyncService) {
+    public FileWatcher(MelFileSyncService melFileSyncService) {
         this.melFileSyncService = melFileSyncService;
-    }
-
-    public static void setWatchDogRunner(WatchDogRunner watchDogRunner) {
-        IndexWatchdogListener.watchDogRunner = watchDogRunner;
-    }
-
-    public static IndexWatchdogListener runInstance(MelFileSyncService melFileSyncService) {
-        return IndexWatchdogListener.watchDogRunner.runInstance(melFileSyncService);
     }
 
     @Override
@@ -98,7 +71,7 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
         ignoredSemaphore.release();
     }
 
-    public IndexWatchdogListener setTransferDirectoryPath(String transferDirectoryPath) {
+    public FileWatcher setTransferDirectoryPath(String transferDirectoryPath) {
         this.transferDirectoryPath = transferDirectoryPath;
         return this;
     }
@@ -131,6 +104,6 @@ public abstract class IndexWatchdogListener extends DeferredRunnable implements 
 
 
     public interface WatchDogRunner {
-        IndexWatchdogListener runInstance(MelFileSyncService melFileSyncService);
+        FileWatcher runInstance(MelFileSyncService melFileSyncService);
     }
 }

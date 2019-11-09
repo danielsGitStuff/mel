@@ -9,7 +9,7 @@ import de.mel.core.serialize.serialize.tools.OTimer;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.bash.FsBashDetails;
 import de.mel.filesync.data.FileSyncStrings;
-import de.mel.filesync.index.watchdog.IndexWatchdogListener;
+import de.mel.filesync.index.watchdog.FileWatcher;
 import de.mel.filesync.sql.*;
 import de.mel.filesync.sql.dao.FsDao;
 import de.mel.filesync.sql.dao.StageDao;
@@ -139,7 +139,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
 
-    protected void initStage(String stageSetType, Iterator<AbstractFile<?>> iterator, IndexWatchdogListener indexWatchdogListener, long basedOnVersion) throws IOException, SqlQueriesException {
+    protected void initStage(String stageSetType, Iterator<AbstractFile<?>> iterator, FileWatcher fileWatcher, long basedOnVersion) throws IOException, SqlQueriesException {
         OTimer timer = new OTimer("initStage().connect2fs");
         OTimer timerInternal1 = new OTimer("initStage.internal.1");
         OTimer timerInternal2 = new OTimer("initStage.internal.2");
@@ -224,7 +224,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             stage.setStageSet(stageSet.getId().v());
             stage.setDeleted(!f.exists());
             if (f.isDirectory()) {
-                indexWatchdogListener.watchDirectory(f);
+                fileWatcher.watchDirectory(f);
             }
 
             stage.setOrder(order.ord());

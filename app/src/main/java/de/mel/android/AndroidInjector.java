@@ -14,6 +14,8 @@ import de.mel.Lok;
 import de.mel.MelInjector;
 import de.mel.android.filesync.bash.BashToolsAndroid;
 import de.mel.android.filesync.nio.FileDistributorFactoryAndroid;
+import de.mel.android.filesync.watchdog.AndroidFileWatcher;
+import de.mel.android.filesync.watchdog.AndroidFileWatcherFactory;
 import de.mel.android.filesync.watchdog.RecursiveWatcher;
 import de.mel.auth.tools.N;
 import de.mel.contacts.ContactsInjector;
@@ -130,7 +132,7 @@ public class AndroidInjector {
         bashTools = new BashToolsAndroid(context);
 //        }
         BashTools.setInstance(bashTools);
-        FileSyncInjector.setWatchDogRunner(RecursiveWatcher::new);
+        FileSyncInjector.setFileWatcherFactory(new AndroidFileWatcherFactory());
         FileSyncInjector.setBinPath("/system/bin/sh");
 
         //contacts

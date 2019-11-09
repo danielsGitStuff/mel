@@ -16,15 +16,14 @@ import java.nio.file.*;
 /**
  * Created by xor on 12.08.2016.
  */
-public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
+public class FileWatcherWindows extends FileWatcherPC {
 
     private boolean watchesRoot = false;
     private long latestTimeStamp = System.currentTimeMillis();
 
-    public IndexWatchDogListenerWindows(MelFileSyncService melFileSyncService, WatchService watchService) {
+    public FileWatcherWindows(MelFileSyncService melFileSyncService, WatchService watchService) {
         super(melFileSyncService, "IndexWatchDogListenerWindows", watchService);
     }
-
 
 
     @Override
@@ -32,11 +31,11 @@ public class IndexWatchDogListenerWindows extends IndexWatchdogListenerPC {
         Lok.debug("IndexWatchdogListener.onTimerStopped");
         long newTimeStamp = System.currentTimeMillis();
         long timeStamp = latestTimeStamp;
-        latestTimeStamp =newTimeStamp;
+        latestTimeStamp = newTimeStamp;
         PathCollection pathCollection = new PathCollection();
         N.r(() -> {
             FileSyncSettings fileSyncSettings = melFileSyncService.getFileSyncSettings();
-            try (AutoKlausIterator<AbstractFile<?>> paths = BashTools.stuffModifiedAfter(fileSyncSettings.getRootDirectory().getOriginalFile(), fileSyncSettings.getTransferDirectoryFile(), timeStamp)){
+            try (AutoKlausIterator<AbstractFile<?>> paths = BashTools.stuffModifiedAfter(fileSyncSettings.getRootDirectory().getOriginalFile(), fileSyncSettings.getTransferDirectoryFile(), timeStamp)) {
                 while (paths.hasNext()) {
                     AbstractFile path = paths.next();
                     Lok.debug("   IndexWatchDogListenerWindows.onTimerStopped: " + path);

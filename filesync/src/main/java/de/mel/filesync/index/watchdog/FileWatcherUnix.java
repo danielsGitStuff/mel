@@ -15,12 +15,12 @@ import java.util.List;
  * Created by xor on 7/11/16.
  */
 @SuppressWarnings("Duplicates")
-class IndexWatchdogListenerUnix extends IndexWatchdogListenerPC {
+class FileWatcherUnix extends FileWatcherPC {
     // we
     private final UnixReferenceFileHandler unixReferenceFileHandler;
     private boolean firstRun = true;
 
-    IndexWatchdogListenerUnix(MelFileSyncService melFileSyncService, WatchService watchService) {
+    FileWatcherUnix(MelFileSyncService melFileSyncService, WatchService watchService) {
         super(melFileSyncService, "IndexWatchdogListenerUnix", watchService);
         unixReferenceFileHandler = new UnixReferenceFileHandler(melFileSyncService.getServiceInstanceWorkingDirectory(), melFileSyncService.getFileSyncSettings().getRootDirectory().getOriginalFile(), AbstractFile.instance(melFileSyncService.getFileSyncSettings().getTransferDirectory().getAbsolutePath()));
     }

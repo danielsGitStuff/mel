@@ -12,7 +12,7 @@ import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.bash.FsBashDetails;
 import de.mel.filesync.data.FileSyncStrings;
 import de.mel.filesync.data.fs.RootDirectory;
-import de.mel.filesync.index.watchdog.IndexWatchdogListener;
+import de.mel.filesync.index.watchdog.FileWatcher;
 import de.mel.filesync.service.sync.SyncHandler;
 import de.mel.filesync.sql.FileSyncDatabaseManager;
 import de.mel.filesync.sql.FsDirectory;
@@ -28,7 +28,7 @@ import java.util.List;
  */
 public class IndexerRunnable extends AbstractIndexer {
 
-    private final IndexWatchdogListener indexWatchdogListener;
+    private final FileWatcher fileWatcher;
     private SyncHandler syncHandler;
     private List<IndexListener> listeners = new ArrayList<>();
     private RootDirectory rootDirectory;
@@ -39,16 +39,16 @@ public class IndexerRunnable extends AbstractIndexer {
      * the @IndexWatchdogListener is somewhat special. we need it elsewhere
      *
      * @param databaseManager
-     * @param indexWatchdogListener
+     * @param fileWatcher
      * @param listeners
      * @throws SqlQueriesException
      */
-    public IndexerRunnable(FileSyncDatabaseManager databaseManager, IndexWatchdogListener indexWatchdogListener, IndexListener... listeners) throws SqlQueriesException {
+    public IndexerRunnable(FileSyncDatabaseManager databaseManager, FileWatcher fileWatcher, IndexListener... listeners) throws SqlQueriesException {
         super(databaseManager);
-        this.listeners.add(indexWatchdogListener);
+        this.listeners.add(fileWatcher);
         for (IndexListener listener : listeners)
             this.listeners.add(listener);
-        this.indexWatchdogListener = indexWatchdogListener;
+        this.fileWatcher = fileWatcher;
         this.rootDirectory = databaseManager.getFileSyncSettings().getRootDirectory();
     }
 
@@ -57,13 +57,13 @@ public class IndexerRunnable extends AbstractIndexer {
         return this;
     }
 
-    public IndexWatchdogListener getIndexWatchdogListener() {
-        return indexWatchdogListener;
+    public FileWatcher getFileWatcher() {
+        return fileWatcher;
     }
 
     @Override
     public Promise<Void, Void, Void> onShutDown() {
-        return indexWatchdogListener.shutDown();
+        return fileWatcher.shutDown();
     }
 
     @Override
@@ -95,7 +95,7 @@ public class IndexerRunnable extends AbstractIndexer {
             Warden warden = P.confine(P.read(fsDao));
             try {
 
-                indexWatchdogListener.watchDirectory(rootDirectory.getOriginalFile());
+                fileWatcher.watchDirectory(rootDirectory.getOriginalFile());
                 ISQLQueries sqlQueries = stageDao.getSqlQueries();
                 OTimer timerFind = new OTimer("bash.find").start();
                 OTimer timerInit = new OTimer("init stageset");
@@ -108,7 +108,7 @@ public class IndexerRunnable extends AbstractIndexer {
 //                    Lok.error("TRANSACTION DISABLED!!!!!");
                     sqlQueries.beginTransaction();
                     timerInit.start();
-                    initStage(FileSyncStrings.STAGESET_SOURCE_FS, found, indexWatchdogListener, databaseManager.getFileSyncSettings().getLastSyncedVersion());
+                    initStage(FileSyncStrings.STAGESET_SOURCE_FS, found, fileWatcher, databaseManager.getFileSyncSettings().getLastSyncedVersion());
                 } catch (Exception e) {
                     //todo abort transaction
                     e.printStackTrace();
@@ -164,6 +164,6 @@ public class IndexerRunnable extends AbstractIndexer {
     }
 
     public void stop() {
-        indexWatchdogListener.stop();
+        fileWatcher.stop();
     }
 }

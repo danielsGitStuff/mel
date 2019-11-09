@@ -7,7 +7,7 @@ import java.io.File;
 import de.mel.Lok;
 import de.mel.auth.file.AbstractFile;
 import de.mel.filesync.service.MelFileSyncService;
-import de.mel.filesync.index.watchdog.IndexWatchdogListener;
+import de.mel.filesync.index.watchdog.FileWatcher;
 import de.mel.auth.tools.WatchDogTimer;
 import de.mel.sql.RWLock;
 import org.jdeferred.Promise;
@@ -16,12 +16,12 @@ import org.jdeferred.Promise;
  * Created by xor on 2/6/17.
  */
 
-public class AndroidWatchdogListener extends IndexWatchdogListener {
+public class AndroidFileWatcher extends FileWatcher {
     private boolean watchesRoot = false;
     private FileObserver fileObserver;
     private WatchDogTimer watchDogTimer;
 
-    public AndroidWatchdogListener(MelFileSyncService melFileSyncService) {
+    public AndroidFileWatcher(MelFileSyncService melFileSyncService) {
         super(melFileSyncService);
         this.setStageIndexer(melFileSyncService.getStageIndexer());
         watchDogTimer = new WatchDogTimer("AndroidWatchDogListener",this, 20, 100, 100);

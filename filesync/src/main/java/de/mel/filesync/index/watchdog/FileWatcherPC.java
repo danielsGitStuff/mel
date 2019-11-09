@@ -16,14 +16,14 @@ import java.nio.file.*;
  * Created by xor on 2/6/17.
  */
 
-public abstract class IndexWatchdogListenerPC extends IndexWatchdogListener {
+public abstract class FileWatcherPC extends FileWatcher {
     protected final boolean useSymLinks;
     protected WatchService watchService;
     protected WatchEvent.Kind<?>[] KINDS = new WatchEvent.Kind<?>[]{StandardWatchEventKinds.ENTRY_MODIFY,
             StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE};
 
 
-    public IndexWatchdogListenerPC(MelFileSyncService melFileSyncService, String name, WatchService watchService) {
+    public FileWatcherPC(MelFileSyncService melFileSyncService, String name, WatchService watchService) {
         super(melFileSyncService);
         this.name = name;
         this.watchService = watchService;

@@ -42,8 +42,8 @@ public class StageIndexer extends BackgroundExecutor {
     }
 
 
-    public void examinePaths(IndexWatchdogListener indexWatchdogListener, PathCollection pathCollection) {
-        StageIndexerRunnable indexerRunnable = new StageIndexerRunnable(databaseManager, pathCollection, indexWatchdogListener);
+    public void examinePaths(FileWatcher fileWatcher, PathCollection pathCollection) {
+        StageIndexerRunnable indexerRunnable = new StageIndexerRunnable(databaseManager, pathCollection, fileWatcher);
         indexerRunnable.setStagingDoneListener(stagingDoneListener);
         Lok.debug(getClass().getSimpleName() + ".examinePaths.execute.on: " + Thread.currentThread().getName());
         execute(indexerRunnable);

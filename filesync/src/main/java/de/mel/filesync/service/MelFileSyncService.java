@@ -1,6 +1,7 @@
 package de.mel.filesync.service;
 
 import de.mel.filesync.index.InitialIndexConflictHelper;
+import de.mel.filesync.index.watchdog.FileWatcherFactory;
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -35,7 +36,7 @@ import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.FileSyncStrings;
 import de.mel.filesync.index.IndexListener;
 import de.mel.filesync.index.Indexer;
-import de.mel.filesync.index.watchdog.IndexWatchdogListener;
+import de.mel.filesync.index.watchdog.FileWatcher;
 import de.mel.filesync.index.watchdog.StageIndexer;
 import de.mel.filesync.service.sync.SyncHandler;
 import de.mel.filesync.sql.FileSyncDatabaseManager;
@@ -313,7 +314,7 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
         AbstractFile wasteDir = AbstractFile.instance(fileSyncSettings.getTransferDirectory(), FileSyncStrings.WASTEBIN);
         wasteDir.mkdirs();
         this.stageIndexer = new StageIndexer(fileSyncDatabaseManager);
-        this.indexer = new Indexer(fileSyncDatabaseManager, IndexWatchdogListener.runInstance(this), createIndexListener());
+        this.indexer = new Indexer(fileSyncDatabaseManager, FileWatcherFactory.Companion.getFactory().runInstance(this), createIndexListener());
         if (conflictHelper != null)
             indexer.setConflictHelper(conflictHelper);
         this.wastebin = new Wastebin(this);

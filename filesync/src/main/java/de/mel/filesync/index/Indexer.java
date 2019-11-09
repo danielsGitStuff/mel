@@ -6,7 +6,7 @@ import de.mel.filesync.data.fs.RootDirectory;
 import de.mel.filesync.service.MelFileSyncService;
 import de.mel.filesync.service.sync.SyncHandler;
 import de.mel.filesync.sql.FileSyncDatabaseManager;
-import de.mel.filesync.index.watchdog.IndexWatchdogListener;
+import de.mel.filesync.index.watchdog.FileWatcher;
 import de.mel.sql.SqlQueriesException;
 
 import org.jdeferred.impl.DeferredObject;
@@ -24,9 +24,9 @@ public class Indexer {
         return indexerRunnable;
     }
 
-    public Indexer(FileSyncDatabaseManager databaseManager, IndexWatchdogListener indexWatchdogListener, IndexListener... listeners) throws SqlQueriesException {
+    public Indexer(FileSyncDatabaseManager databaseManager, FileWatcher fileWatcher, IndexListener... listeners) throws SqlQueriesException {
         melFileSyncService = databaseManager.getMelFileSyncService();
-        indexerRunnable = new IndexerRunnable(databaseManager, indexWatchdogListener, listeners);
+        indexerRunnable = new IndexerRunnable(databaseManager, fileWatcher, listeners);
     }
 
     public void setSyncHandler(SyncHandler syncHandler) {
@@ -36,20 +36,20 @@ public class Indexer {
     public void ignorePath(String path, int amount) {
         //todo escalate?
         try {
-            indexerRunnable.getIndexWatchdogListener().ignore(path, amount);
+            indexerRunnable.getFileWatcher().ignore(path, amount);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
     public void stopIgnore(String path) throws InterruptedException {
-        indexerRunnable.getIndexWatchdogListener().stopIgnore(path);
+        indexerRunnable.getFileWatcher().stopIgnore(path);
     }
 
 
 
     public void watchDirectory(AbstractFile dir) throws IOException {
-        indexerRunnable.getIndexWatchdogListener().watchDirectory(dir);
+        indexerRunnable.getFileWatcher().watchDirectory(dir);
     }
 
     public RootDirectory getRootDirectory() {
