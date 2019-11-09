@@ -27,6 +27,7 @@ class FileDistributorAndroid(fileSyncService: MelFileSyncService<*>) : FileDistr
                 sourceFile.delete()
                 return
             }
+            Lok.debug("moving uri '${srcDoc.uri}' with parent '${srcParentDoc.uri}' to '${targetParentDoc.uri}'")
             var movedUri = DocumentsContract.moveDocument(AndroidService.getInstance()!!.contentResolver, srcDoc.uri, srcParentDoc.uri, targetParentDoc.uri)
             val oldeUri = movedUri
             if (!sourceFile.name.equals(target.name)) {
