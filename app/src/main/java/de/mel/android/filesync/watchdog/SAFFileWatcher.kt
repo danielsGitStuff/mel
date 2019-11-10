@@ -9,6 +9,7 @@ import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import de.mel.Lok
 import de.mel.android.file.AndroidFile
+import de.mel.android.file.AndroidFileConfiguration
 import de.mel.android.service.AndroidService
 import de.mel.auth.file.AbstractFile
 import de.mel.filesync.index.watchdog.FileWatcher
@@ -23,7 +24,8 @@ class SAFFileWatcher(melFileSyncService: MelFileSyncService<*>) : FileWatcher(me
             Lok.debug("something happened to $uri")
             if (uri != null)
                 AndroidService.getInstance()?.contentResolver?.let { contentResolver ->
-
+                    val id = uri.toString().split("/").last()
+                    val selection = "${MediaStore.Files.FileColumns.DOCUMENT_ID}"
                     val cursor = contentResolver.query(uri, null, null, null)
                     cursor?.use {
                         try {
@@ -48,10 +50,16 @@ class SAFFileWatcher(melFileSyncService: MelFileSyncService<*>) : FileWatcher(me
             val androidFile = dir as AndroidFile
             Lok.debug("registering observer for ${androidFile.absolutePath}")
             val uri = androidFile.getDocFile()!!.uri
-//            contentResolver.registerContentObserver(MediaStore.getMediaScannerUri(), true, contentObserver)
-//            contentResolver.registerContentObserver(MediaStore.Images.Media.INTERNAL_CONTENT_URI, true, contentObserver)
+            val config = AbstractFile.getConfiguration() as AndroidFileConfiguration
+            val root = melFileSyncService.fileSyncSettings.rootDirectory.originalFile as AndroidFile
 
-            it.registerContentObserver(MediaStore.Files.getContentUri("external"), true, contentObserver)
+            it.registerContentObserver(root.getDocFile()!!.uri, true, contentObserver)
+//            MediaStore.Files.getContentUri()
+
+
+//works
+//            it.registerContentObserver(MediaStore.Files.getContentUri("external"), true, contentObserver)
+
 
         }
 
