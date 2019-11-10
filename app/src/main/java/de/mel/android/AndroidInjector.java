@@ -126,12 +126,9 @@ public class AndroidInjector {
         });
         // use a proper bash tools variant
         BashToolsImpl bashTools;
-//        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-//           bashTools = new SAFBashTools(context);
-//        } else {
         bashTools = new BashToolsAndroid(context);
-//        }
         BashTools.setInstance(bashTools);
+        // use a proper file watcher
         FileSyncInjector.setFileWatcherFactory(new AndroidFileWatcherFactory());
         FileSyncInjector.setBinPath("/system/bin/sh");
 

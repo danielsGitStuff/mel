@@ -152,7 +152,8 @@ public class AndroidPowerManager extends PowerManager {
             if (shouldRun != running) {
                 N.r(() -> wakeTimer.start());
             } else {
-                N.forEach(listeners, iPowerStateListener -> iPowerStateListener.onStateChanged(AndroidPowerManager.this));
+                Set<IPowerStateListener<? extends PowerManager>> listenersCopy = new HashSet<>(listeners);
+                N.forEach(listenersCopy, iPowerStateListener -> iPowerStateListener.onStateChanged(AndroidPowerManager.this));
             }
         }
     }
