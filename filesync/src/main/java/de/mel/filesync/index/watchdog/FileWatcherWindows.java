@@ -35,7 +35,7 @@ public class FileWatcherWindows extends FileWatcherPC {
         PathCollection pathCollection = new PathCollection();
         N.r(() -> {
             FileSyncSettings fileSyncSettings = melFileSyncService.getFileSyncSettings();
-            try (AutoKlausIterator<AbstractFile<?>> paths = BashTools.stuffModifiedAfter(fileSyncSettings.getRootDirectory().getOriginalFile(), fileSyncSettings.getTransferDirectoryFile(), timeStamp)) {
+            try (AutoKlausIterator<AbstractFile<?>> paths = BashTools.Companion.stuffModifiedAfter(fileSyncSettings.getRootDirectory().getOriginalFile(), fileSyncSettings.getTransferDirectoryFile(), timeStamp)) {
                 while (paths.hasNext()) {
                     AbstractFile path = paths.next();
                     Lok.debug("   IndexWatchDogListenerWindows.onTimerStopped: " + path);

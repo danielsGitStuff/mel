@@ -27,9 +27,9 @@ public class InsertPerformance {
 //        FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance());
 //        FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
 //        AFile.configure(new DefaultFileConfiguration());
-//        BashTools.init();
+//        BashTools.Companion.init();
 //        WORKING_DIR = AFile.instance("/home/xor/Downloads/perf.test");
-//        BashTools.rmRf(WORKING_DIR);
+//        BashTools.Companion.rmRf(WORKING_DIR);
 //        ROOT_DIR = AFile.instance(WORKING_DIR, "root");
 //
 //        TestDirCreator.createFilesTestDir(ROOT_DIR, 4000);
@@ -58,9 +58,9 @@ public class InsertPerformance {
 //        FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance());
 //        FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
 //        AFile.configure(new DefaultFileConfiguration());
-//        BashTools.init();
+//        BashTools.Companion.init();
 //        WORKING_DIR = AFile.instance("/home/xor/Downloads/perf.test");
-//        BashTools.rmRf(WORKING_DIR);
+//        BashTools.Companion.rmRf(WORKING_DIR);
 //        ROOT_DIR = AFile.instance(WORKING_DIR, "root");
 //
 //        TestDirCreator.createFilesTestDir(ROOT_DIR, 4000);
@@ -134,6 +134,6 @@ public class InsertPerformance {
 //    @After
 //    public void after() throws InterruptedException, IOException {
 ////        melBoot.shutDown();
-////        BashTools.rmRf(WORKING_DIR);
+////        BashTools.Companion.rmRf(WORKING_DIR);
 //    }
 }

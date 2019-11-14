@@ -34,7 +34,7 @@ public class BashToolsStuffModifiedTest {
 
     @Before
     public void before() throws IOException {
-        BashTools.init();
+        BashTools.Companion.init();
         AbstractFile.configure(new DefaultFileConfiguration());
         CertificateManager.deleteDirectory(testDir);
         paths = new HashSet<>();
@@ -43,7 +43,7 @@ public class BashToolsStuffModifiedTest {
 
     @Test
     public void bashFind() throws Exception {
-        Iterator<AbstractFile<?>> iterator = BashTools.find(testDir, AbstractFile.instance("blaaaa"));
+        Iterator<AbstractFile<?>> iterator = BashTools.Companion.find(testDir, AbstractFile.instance("blaaaa"));
         while (iterator.hasNext())
             Lok.debug(iterator.next());
         Lok.debug("BashCommandsTest.bashtest.end");
@@ -54,7 +54,7 @@ public class BashToolsStuffModifiedTest {
         //expect one result
         CertificateManager.deleteDirectory(testDir);
         testDir.mkdirs();
-        AutoKlausIterator<AbstractFile<?>> iterator = BashTools.stuffModifiedAfter(testDir, AbstractFile.instance("blaa"), 0L);
+        AutoKlausIterator<AbstractFile<?>> iterator = BashTools.Companion.stuffModifiedAfter(testDir, AbstractFile.instance("blaa"), 0L);
         assertTrue(iterator.hasNext());
         iterator.next();
         assertFalse(iterator.hasNext());
@@ -66,7 +66,7 @@ public class BashToolsStuffModifiedTest {
         //expect no result
         CertificateManager.deleteDirectory(testDir);
         testDir.mkdirs();
-        AutoKlausIterator<AbstractFile<?>> iterator = BashTools.stuffModifiedAfter(testDir, AbstractFile.instance("blaa"), Long.MAX_VALUE);
+        AutoKlausIterator<AbstractFile<?>> iterator = BashTools.Companion.stuffModifiedAfter(testDir, AbstractFile.instance("blaa"), Long.MAX_VALUE);
         assertFalse(iterator.hasNext());
         Lok.debug("BashCommandsTest.bashtest.end");
     }
@@ -74,9 +74,9 @@ public class BashToolsStuffModifiedTest {
     @Test
     public void bashFindModifiedAfter3() throws Exception {
         // expect whole testdir
-        AutoKlausIterator<AbstractFile<?>> iterator = BashTools.stuffModifiedAfter(testDir, AbstractFile.instance("blaa"), 0L);
+        AutoKlausIterator<AbstractFile<?>> iterator = BashTools.Companion.stuffModifiedAfter(testDir, AbstractFile.instance("blaa"), 0L);
         while (iterator.hasNext()) {
-            String path = iterator.next().getAbsolutePath();
+            String path = iterator.next().absolutePath;
             assertNotNull(paths.remove(path));
         }
         assertTrue(paths.isEmpty());
@@ -88,7 +88,7 @@ public class BashToolsStuffModifiedTest {
         testDir.mkdirs();
         Long t1 = testDir.lastModified();
         Thread.sleep(100);
-        File dir = new File(testDir.getAbsolutePath() + File.separator + "ttttttt");
+        File dir = new File(testDir.absolutePath + File.separator + "ttttttt");
         dir.mkdirs();
         Long t2 = testDir.lastModified();
         Lok.debug("before: " + t1);
@@ -102,7 +102,7 @@ public class BashToolsStuffModifiedTest {
         dir.mkdirs();
         Long t1 = dir.lastModified();
         Long tt1 = testDir.lastModified();
-        File source = new File(testDir.getAbsolutePath());
+        File source = new File(testDir.absolutePath);
         File target = new File(source.getAbsolutePath(),"movedTest");
         source.renameTo(target);
         Long t2 = dir.lastModified();

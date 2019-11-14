@@ -22,6 +22,6 @@ public class FileViewHolder extends RecyclerView.ViewHolder {
 
     public void setDir(AbstractFile directory) {
         this.directory = directory;
-        this.lblDir.setText(directory.getName());
+        this.lblDir.setText(directory.name);
     }
 }

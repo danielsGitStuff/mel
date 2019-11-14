@@ -45,14 +45,14 @@ StageDao extends Dao.LockingDao {
         RootDirectory rootDirectory = fileSyncSettings.getRootDirectory();
         String rootPath = rootDirectory.getPath();
         //todo throw Exception if f is not in rootDirectory
-        if (f.getAbsolutePath().length() < rootPath.length())
+        if (f.absolutePath.length() < rootPath.length())
             return null;
-        AbstractFile ff = AbstractFile.instance(f.getAbsolutePath());
+        AbstractFile ff = AbstractFile.instance(f.absolutePath);
         Stack<AbstractFile> fileStack = FileTools.getFileStack(rootDirectory, ff);
         FsEntry bottomFsEntry = fsDao.getBottomFsEntry(fileStack);
         Stage bottomStage = this.getStageByFsId(bottomFsEntry.getId().v(), stageSetId);
         while (!fileStack.empty()) {
-            String name = fileStack.pop().getName();
+            String name = fileStack.pop().name;
             if (bottomStage == null)
                 continue;
             bottomStage = this.getSubStageByNameAndParent(stageSetId, bottomStage.getId(), name);
@@ -158,7 +158,7 @@ StageDao extends Dao.LockingDao {
             System.err.println("debug93h349");
         }
         AbstractFile file = fsDao.getFileByFsFile(rootDirectory, bottomFsEntry);
-        StringBuilder path = new StringBuilder(file.getAbsolutePath());
+        StringBuilder path = new StringBuilder(file.absolutePath);
         while (!stageStack.empty()) {
             path.append(File.separator).append(stageStack.pop().getName());
         }

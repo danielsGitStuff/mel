@@ -31,7 +31,7 @@ public class FsDao extends Dao {
         FsEntry lastFsEntry = null;
         do {
             Long parentId = (lastFsEntry != null) ? lastFsEntry.getId().v() : fileSyncSettings.getRootDirectory().getId();
-            lastFsEntry = getGenericSubByName(parentId, fileStack.peek().getName());
+            lastFsEntry = getGenericSubByName(parentId, fileStack.peek().name);
             if (lastFsEntry != null) {
                 bottomFsEntry = lastFsEntry;
                 fileStack.pop();
@@ -250,19 +250,19 @@ public class FsDao extends Dao {
             RootDirectory rootDirectory = fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory();
             String rootPath = rootDirectory.getPath();
             //todo Exception here
-            if (!f.getAbsolutePath().startsWith(rootPath))
+            if (!f.absolutePath.startsWith(rootPath))
                 return null;
-            if (f.getAbsolutePath().length() == rootPath.length())
+            if (f.absolutePath.length() == rootPath.length())
                 return getRootDirectory();
             FsDirectory parent = this.getRootDirectory();
             Stack<AbstractFile> fileStack = new Stack<>();
             AbstractFile ff = f;
-            while (ff.getAbsolutePath().length() > rootPath.length()) {
+            while (ff.absolutePath.length() > rootPath.length()) {
                 fileStack.push(ff);
-                ff = ff.getParentFile();
+                ff = ff.parentFile;
             }
             while (!fileStack.empty()) {
-                String name = fileStack.pop().getName();
+                String name = fileStack.pop().name;
                 if (parent == null)
                     return null;
                 parent = this.getSubDirectoryByName(parent.getId().v(), name);

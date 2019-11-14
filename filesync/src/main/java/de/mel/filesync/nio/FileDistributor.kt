@@ -16,7 +16,7 @@ import java.io.IOException
 import java.util.*
 
 @Suppress("FINITE_BOUNDS_VIOLATION_IN_JAVA")
-open class FileDistributor<T : AbstractFile<*>>(val fileSyncService: MelFileSyncService<*>) : MelRunnable {
+open class FileDistributor<T : AbstractFile>(val fileSyncService: MelFileSyncService<*>) : MelRunnable {
     private var stopped: Boolean = false;
     private var notification: MelNotification? = null
     private var running: Boolean = false
@@ -41,7 +41,7 @@ open class FileDistributor<T : AbstractFile<*>>(val fileSyncService: MelFileSync
      * this overwrites files and does not update databases!
      */
     @Throws(IOException::class)
-    fun rawCopyFile(srcFile: AbstractFile<*>, targetFile: AbstractFile<*>) {
+    fun rawCopyFile(srcFile: AbstractFile, targetFile: AbstractFile) {
         var read: Int
         val out = targetFile.writer()
         val ins = srcFile.inputStream()
@@ -197,9 +197,9 @@ open class FileDistributor<T : AbstractFile<*>>(val fileSyncService: MelFileSync
     }
 
     protected fun updateFs(fsId: Long?, target: T): FsFile {
-        val fsBashDetails = BashTools.getFsBashDetails(target)
+        val fsBashDetails = BashTools.Companion.getFsBashDetails(target)
         val fsTarget = fsDao.getFile(fsId)
-        BashTools.setCreationDate(target, fsBashDetails.created)
+        BashTools.Companion.setCreationDate(target, fsBashDetails.created)
         fsTarget.getiNode().v(fsBashDetails.getiNode())
         fsTarget.modified.v(fsBashDetails.modified)
         fsTarget.size.v(target.length())
@@ -209,7 +209,7 @@ open class FileDistributor<T : AbstractFile<*>>(val fileSyncService: MelFileSync
     }
 
     protected fun setCreationDate(file: T, timestamp: Long) {
-        BashTools.setCreationDate(file, timestamp)
+        BashTools.Companion.setCreationDate(file, timestamp)
     }
 
     open protected fun moveFile(sourceFile: T, lastFile: T, lastPath: String, lastId: Long?) {

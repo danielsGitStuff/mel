@@ -31,7 +31,7 @@ public class DFileRecursiveIterator implements Iterator<AbstractFile> {
         this.currentDir = rootDirectory;
         DocumentFile rootDoc = null;
         try {
-            rootDoc = new AndroidFile(rootDirectory.getAbsolutePath()).getDocFile();
+            rootDoc = new AndroidFile(rootDirectory.absolutePath).getDocFile();
         } catch (SAFAccessor.SAFException e) {
             e.printStackTrace();
         }

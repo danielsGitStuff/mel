@@ -41,7 +41,7 @@ public class FileSyncBootloader extends Bootloader<MelFileSyncService> {
     private MelFileSyncService melFileSyncService;
     private FileSyncSettings fileSyncSettings;
     public FileSyncBootloader() {
-        BashTools.init();
+        BashTools.Companion.init();
     }
 
     @Override

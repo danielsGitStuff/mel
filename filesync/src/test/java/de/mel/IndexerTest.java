@@ -43,14 +43,14 @@ public class IndexerTest {
     @Before
     public void before() throws Exception {
         AbstractFile.configure(new DefaultFileConfiguration());
-        BashTools.init();
+        BashTools.Companion.init();
         Eva.enable();
         RWLock bootLock = new RWLock().lockWrite();
-        rootFile = AbstractFile.instance(AbstractFile.instance("indextest").getAbsolutePath());
-        rootDirectory = new RootDirectory().setOriginalFile(rootFile).setPath(rootFile.getPath());
+        rootFile = AbstractFile.instance(AbstractFile.instance("indextest").absolutePath);
+        rootDirectory = new RootDirectory().setOriginalFile(rootFile).setPath(rootFile.path);
 
-        BashTools.rmRf(rootFile);
-        BashTools.rmRf(AbstractFile.instance(MelBoot.Companion.getDefaultWorkingDir1()));
+        BashTools.Companion.rmRf(rootFile);
+        BashTools.Companion.rmRf(AbstractFile.instance(MelBoot.Companion.getDefaultWorkingDir1()));
 
         TestDirCreator.createTestDirSimple(rootFile);
         MelAuthSettings melAuthSettings = MelAuthSettings.createDefaultSettings();

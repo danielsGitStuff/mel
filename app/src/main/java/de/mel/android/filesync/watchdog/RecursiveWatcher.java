@@ -40,7 +40,7 @@ public class RecursiveWatcher extends FileWatcher {
         this.melFileSyncService = melFileSyncService;
         this.setStageIndexer(melFileSyncService.getStageIndexer());
         this.transferDirectory = melFileSyncService.getFileSyncSettings().getTransferDirectoryFile();
-        this.transferDirectoryPath = transferDirectory.getAbsolutePath();
+        this.transferDirectoryPath = transferDirectory.absolutePath;
         this.watchDogTimer = new WatchDogTimer("recursive watcher",this::onTimerStopped, 15, 100, 1000);
         unixReferenceFileHandler = new UnixReferenceFileHandler(melFileSyncService.getServiceInstanceWorkingDirectory(), target, melFileSyncService.getFileSyncSettings().getTransferDirectory());
         unixReferenceFileHandler.onStart();
@@ -75,7 +75,7 @@ public class RecursiveWatcher extends FileWatcher {
         private final AbstractFile target;
 
         public Watcher(RecursiveWatcher recursiveWatcher, AbstractFile target) {
-            super(target.getAbsolutePath());
+            super(target.absolutePath);
             this.target = target;
             this.recursiveWatcher = recursiveWatcher;
         }
@@ -91,9 +91,9 @@ public class RecursiveWatcher extends FileWatcher {
     }
 
     private void watch(AbstractFile target) {
-        if (!watchers.containsKey(target.getAbsolutePath())) {
+        if (!watchers.containsKey(target.absolutePath)) {
             Watcher watcher = new Watcher(this, target);
-            watchers.put(target.getAbsolutePath(), watcher);
+            watchers.put(target.absolutePath, watcher);
             watcher.startWatching();
         }
     }
@@ -101,17 +101,17 @@ public class RecursiveWatcher extends FileWatcher {
     private Set<String> writePaths = new HashSet<>();
 
     private void onWatcherEvent(Watcher watcher, int event, String path) {
-        AbstractFile f = path != null ? AbstractFile.instance(watcher.getTarget().getAbsolutePath() + File.separator + path) : watcher.getTarget();
+        AbstractFile f = path != null ? AbstractFile.instance(watcher.getTarget().absolutePath + File.separator + path) : watcher.getTarget();
         if (transferDirectory.hasSubContent(watcher.getTarget()))
             return;
         if ((FileObserver.CREATE & event) != 0 && f.exists() && f.isDirectory()) {
             watch(f);
         }
         try {
-            String fPath = f.getAbsolutePath();
+            String fPath = f.absolutePath;
             if (checkEvent(event, FileObserver.DELETE_SELF)) {
 //                Lok.warn("delete self" + positiveList);
-                this.watchers.remove(f.getAbsolutePath());
+                this.watchers.remove(f.absolutePath);
                 // folder was deleted. so check if we are still waiting for a writing event and remove it.
                 Set<String> newWritePaths = new HashSet<>();
                 for (String writePath : writePaths) {
@@ -122,7 +122,7 @@ public class RecursiveWatcher extends FileWatcher {
                 startTimer();
             } else if (checkEvent(event, FileObserver.CLOSE_WRITE)) {
 //                Lok.warn("close.write: " + positiveList);
-                writePaths.remove(f.getAbsolutePath());
+                writePaths.remove(f.absolutePath);
                 startTimer();
             } else if (checkEvent(event,
                     FileObserver.DELETE,
@@ -135,7 +135,7 @@ public class RecursiveWatcher extends FileWatcher {
                 startTimer();
             } else if (checkEvent(event, FileObserver.MODIFY)) {
 //                Lok.warn("modify: " + positiveList);
-                writePaths.add(f.getAbsolutePath());
+                writePaths.add(f.absolutePath);
                 startTimer();
             } else {
 //                Lok.warn("something else: " + positiveList);

@@ -14,7 +14,7 @@ public class StoragesManager {
         // sorry for that. here is what it does:
         // '/storage/emulated/0/Android/data/de.mel.meldrive/files/external' -> '/storage/emulated/0'
         AbstractFile[] result = N.arr.cast(externals, N.converter(AbstractFile.class, file -> AbstractFile.instance(file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf("/Android/data")))));
-        Arrays.sort(result, (o1, o2) -> o1.getName().compareTo(o2.getName()));
+        Arrays.sort(result, (o1, o2) -> o1.name.compareTo(o2.name));
         return result;
 
     }

@@ -46,8 +46,8 @@ public class BashToolsTestOlde {
         AtomicReference<Integer> count = new AtomicReference<>(0);
         files.stream().filter(File::exists).forEach(f -> N.r(() -> {
             Lok.debug("BashToolsTest.escapePaths");
-            BashTools.init();
-            FsBashDetails fsBashDetails = BashTools.getFsBashDetails(new StandardFile(f));
+            BashTools.Companion.init();
+            FsBashDetails fsBashDetails = BashTools.Companion.getFsBashDetails(new StandardFile(f));
             Lok.debug("BashToolsTest.escapePaths: " + fsBashDetails.getiNode().toString() + " " + fsBashDetails.getModified().toString());
             count.getAndSet(count.get() + 1);
         }));

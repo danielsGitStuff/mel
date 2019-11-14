@@ -27,7 +27,7 @@ public class FsFile extends FsEntry {
 //    }
 
     public FsFile(AbstractFile f) {
-        name.v(f.getName());
+        name.v(f.name);
         original = f;
         init();
     }

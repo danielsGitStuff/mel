@@ -2,6 +2,7 @@ package de.mel.filesync.bash
 
 import de.mel.Lok
 import de.mel.auth.file.AbstractFile
+import de.mel.auth.file.StandardFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -17,9 +18,9 @@ import java.nio.file.attribute.BasicFileAttributeView
  * Reason: Windoof permits creating symlinks without higher privileges in out of the box configuration
  * Created by xor on 13.07.2017.
  */
-class BashToolsWindows : BashToolsImpl() {
-    override fun getContentFsBashDetails(file: AbstractFile<*>): Map<String, FsBashDetails> {
-        val contents: Array<out AbstractFile<AbstractFile<*>>>? = file.listContent()
+class BashToolsWindows : BashTools<String, StandardFile> {
+    override fun getContentFsBashDetails(file: StandardFile): Map<String, FsBashDetails> {
+        val contents: Array<out StandardFile>? = file.listContent()
 
         val symLinkMap: MutableMap<String, String> = mutableMapOf()
         val iNodeMap: MutableMap<String, Long> = mutableMapOf()
@@ -83,7 +84,7 @@ class BashToolsWindows : BashToolsImpl() {
     }
 
     @Throws(IOException::class)
-    override fun getFsBashDetails(file: AbstractFile<*>): FsBashDetails {
+    override fun getFsBashDetails(file: StandardFile): FsBashDetails {
         var iNode: Long? = null
         val name = file.name
         var isSymLink: Boolean = false
@@ -114,7 +115,7 @@ class BashToolsWindows : BashToolsImpl() {
         return FsBashDetails(created, modified, iNode!!, isSymLink, symLinkTarget, name)
     }
 
-    override fun lnS(file: AbstractFile<out AbstractFile<*>>, targetString: String) {
+    override fun lnS(file: StandardFile, targetString: String) {
         // we are limited to two ways of using 'mklink' here.
         // /J works for directories whereas /H works for linking files
         val target = File(targetString)
@@ -123,7 +124,7 @@ class BashToolsWindows : BashToolsImpl() {
     }
 
 
-    override fun isSymLink(f: AbstractFile<out AbstractFile<*>>): Boolean {
+    override fun isSymLink(f: StandardFile): Boolean {
         if (Files.isSymbolicLink(Paths.get(File(f.absolutePath).toURI())))
             return true
         val path = f.absolutePath
@@ -161,7 +162,7 @@ class BashToolsWindows : BashToolsImpl() {
         Lok.debug("BashToolsWindows.setBinPath")
     }
 
-    private fun getSymLink(f: AbstractFile<out AbstractFile<*>>): String? {
+    private fun getSymLink(f: StandardFile): String? {
         if (Files.isSymbolicLink(Paths.get(File(f.absolutePath).toURI())))
             return Files.readSymbolicLink(Paths.get(File(f.absolutePath).toURI())).toFile().absolutePath
         val path = f.absolutePath
@@ -200,7 +201,7 @@ class BashToolsWindows : BashToolsImpl() {
     }
 
     @Throws(IOException::class)
-    override fun rmRf(directory: AbstractFile<*>) {
+    override fun rmRf(directory: StandardFile) {
         //        exec("rd /s /q \"" + directory.getAbsolutePath() + "\"");
         exec("rd", "/s", "/q", directory.absolutePath).waitFor()
 //        Files.delete(Paths.get(File(directory.absolutePath).toURI()))
@@ -254,8 +255,8 @@ class BashToolsWindows : BashToolsImpl() {
     }
 
     @Throws(IOException::class)
-    override fun find(directory: AbstractFile<*>, pruneDir: AbstractFile<*>): AutoKlausIterator<AbstractFile<*>> {
-        return object : AutoKlausIterator<AbstractFile<*>> {
+    override fun find(directory: StandardFile, pruneDir: StandardFile): AutoKlausIterator<StandardFile> {
+        return object : AutoKlausIterator<StandardFile> {
             val windowsBashReader = execReader("dir", "/b/s", directory.absolutePath, "|", "findstr", "/vc:\"" + pruneDir.absolutePath + "\"")!!
                     .addFirstLine(directory.absolutePath)
             val iterator = windowsBashReader!!.lines()
@@ -263,7 +264,7 @@ class BashToolsWindows : BashToolsImpl() {
 
             override fun hasNext(): Boolean = iterator.hasNext()
 
-            override fun next(): AbstractFile<*> = iterator.next()
+            override fun next(): StandardFile = iterator.next()
 
             override fun remove() {
 
@@ -294,24 +295,25 @@ class BashToolsWindows : BashToolsImpl() {
     }
 
     @Throws(IOException::class, InterruptedException::class)
-    override fun stuffModifiedAfter(directory: AbstractFile<*>, pruneDir: AbstractFile<*>, timeStamp: Long): AutoKlausIterator<AbstractFile<*>> {
+    override fun stuffModifiedAfter(directory: StandardFile, pruneDir: StandardFile, timeStamp: Long): AutoKlausIterator<StandardFile> {
         val winTimeStamp = timeStamp / 1000.0
         var prependLine: String? = null
         val lm = directory.lastModified()
-        if (directory.lastModified() >= timeStamp) {
+        // todo null
+        if (directory.lastModified()!! >= timeStamp) {
             prependLine = directory.absolutePath
         }
         val command = "get-childitem \"" + directory.absolutePath + "\" -recurse | " +
                 "where {(Get-Date(\$_.LastWriteTime.ToUniversalTime()) -UFormat \"%s\") -gt " + winTimeStamp + " -and -not \$_.FullName.StartsWith(\"" + pruneDir.absolutePath + "\")} " +
                 "| foreach {\$_.FullName}"
-        return object : AutoKlausIterator<AbstractFile<*>> {
+        return object : AutoKlausIterator<StandardFile> {
             val windowsBashReader = execPowerShell(command, prependLine)
             val iterator = windowsBashReader.lines().map { AbstractFile.instance(it) }.iterator()
 
             override fun hasNext(): Boolean = iterator.hasNext()
 
 
-            override fun next(): AbstractFile<*> = iterator.next()
+            override fun next(): StandardFile = iterator.next()
 
             override fun remove() {
 
@@ -324,13 +326,10 @@ class BashToolsWindows : BashToolsImpl() {
         }
     }
 
-    @Throws(IOException::class)
-    override fun mkdir(dir: AbstractFile<*>) {
-        exec("mkdir", dir.absolutePath)
-    }
-
     companion object {
         private val BIN_PATH = "cmd"
         private val CHARSET = StandardCharsets.ISO_8859_1
     }
+
+    override fun stuffModifiedAfter(referenceFile: StandardFile, directory: StandardFile, pruneDir: StandardFile): List<StandardFile> = emptyList()
 }

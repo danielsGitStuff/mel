@@ -23,11 +23,11 @@ public class TestDirCreator {
 
         List<String> paths = new ArrayList<>();
         //CertificateManager.deleteDirectory(testDir);
-        BashTools.mkdir(testDir);
+        testDir.mkdirs();
         AbstractFile sub1 = AbstractFile.instance(testDir.getPath() + File.separator + "sub1");
         AbstractFile sub2 = AbstractFile.instance(testDir.getPath() + File.separator + "sub2");
-        BashTools.mkdir(sub1);
-        BashTools.mkdir(sub2);
+        sub1.mkdirs();
+        sub2.mkdirs();
 
         AbstractFile sub1txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub1.txt");
         TestFileCreator.saveFile(TestFileCreator.genBigFile(), sub1txt);
@@ -36,12 +36,12 @@ public class TestDirCreator {
         TestFileCreator.saveFile(("sub2.txt text" + appendix).getBytes(), sub2txt);
 
         AbstractFile sub22 = AbstractFile.instance(sub2.getPath() + File.separator + "sub22");
-        BashTools.mkdir(sub22);
+        sub22.mkdirs();
 
         AbstractFile sub22txt = AbstractFile.instance(sub22.getPath() + File.separator + "sub22.txt");
         TestFileCreator.saveFile("sub22.txt text".getBytes(), sub22txt);
         AbstractFile sameDir = AbstractFile.instance(testDir.getPath() + File.separator + "samedir");
-        BashTools.mkdir(sameDir);
+        sameDir.mkdirs();
         AbstractFile same1txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same1.txt");
         AbstractFile same2txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same2.txt");
         TestFileCreator.saveFile("same".getBytes(), same1txt);
@@ -65,11 +65,11 @@ public class TestDirCreator {
 
         List<String> paths = new ArrayList<>();
         //CertificateManager.deleteDirectory(testDir);
-        BashTools.mkdir(testDir);
+        testDir.mkdirs();
         AbstractFile sub1 = AbstractFile.instance(testDir.getPath() + File.separator + "sub1");
         AbstractFile sub2 = AbstractFile.instance(testDir.getPath() + File.separator + "sub2");
-        BashTools.mkdir(sub1);
-        BashTools.mkdir(sub2);
+        sub1.mkdirs();
+        sub2.mkdirs();
 
         AbstractFile sub1txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub1.txt");
         TestFileCreator.saveFile(TestFileCreator.genBigFile(), sub1txt);
@@ -78,12 +78,12 @@ public class TestDirCreator {
         TestFileCreator.saveFile(("sub2.txt text").getBytes(), sub2txt);
 
         AbstractFile sub22 = AbstractFile.instance(sub2.getPath() + File.separator + "sub22");
-        BashTools.mkdir(sub22);
+        sub22.mkdirs();
 
         AbstractFile sub22txt = AbstractFile.instance(sub22.getPath() + File.separator + "sub22.txt");
         TestFileCreator.saveFile("sub22.txt text".getBytes(), sub22txt);
         AbstractFile sameDir = AbstractFile.instance(testDir.getPath() + File.separator + "samedir");
-        BashTools.mkdir(sameDir);
+        sameDir.mkdirs();
         AbstractFile same1txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same1.txt");
         AbstractFile same2txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same2.txt");
         TestFileCreator.saveFile("same".getBytes(), same1txt);
@@ -112,11 +112,11 @@ public class TestDirCreator {
 
         List<String> paths = new ArrayList<>();
         //CertificateManager.deleteDirectory(testDir);
-        BashTools.mkdir(testDir);
+        testDir.mkdirs();
         AbstractFile sub1 = AbstractFile.instance(testDir.getPath() + File.separator + "sub1");
         AbstractFile sub2 = AbstractFile.instance(testDir.getPath() + File.separator + "sub2");
-        BashTools.mkdir(sub1);
-        BashTools.mkdir(sub2);
+        sub1.mkdirs();
+        sub2.mkdirs();
 
         AbstractFile sub1txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub1.txt");
         TestFileCreator.saveFile(TestFileCreator.genBigFile(), sub1txt);
@@ -125,12 +125,12 @@ public class TestDirCreator {
         TestFileCreator.saveFile(("sub2.txt text").getBytes(), sub2txt);
 
         AbstractFile sub22 = AbstractFile.instance(sub2.getPath() + File.separator + "sub22");
-        BashTools.mkdir(sub22);
+        sub22.mkdirs();
 
         AbstractFile sub22txt = AbstractFile.instance(sub22.getPath() + File.separator + "sub22.txt");
         TestFileCreator.saveFile("sub22.txt text".getBytes(), sub22txt);
         AbstractFile sameDir = AbstractFile.instance(testDir.getPath() + File.separator + "samedir");
-        BashTools.mkdir(sameDir);
+        sameDir.mkdirs();
         AbstractFile same1txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same1.txt");
         AbstractFile same2txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same2.txt");
         TestFileCreator.saveFile("same".getBytes(), same1txt);

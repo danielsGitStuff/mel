@@ -182,7 +182,7 @@ class AndroidFile : AbstractFile<AndroidFile> {
     override fun inputStream(): InputStream? {
         if (VERSION.SDK_INT < Build.VERSION_CODES.Q)
             return FileInputStream(file)
-        val contentResolver: ContentResolver = (getConfiguration() as AndroidFileConfiguration).context.contentResolver
+        val contentResolver: ContentResolver = (configuration as AndroidFileConfiguration).context.contentResolver
         return contentResolver.openInputStream(getDocFile()!!.uri)
     }
 
@@ -331,7 +331,7 @@ class AndroidFile : AbstractFile<AndroidFile> {
             }
         } else if (VERSION.SDK_INT > VERSION_CODES.P && !absolutePath.startsWith(AndroidFileConfiguration.getDataDir().absolutePath)) {
             val parentDoc = getParentFile().getDocFile()
-            val contentResolver: ContentResolver = (getConfiguration() as AndroidFileConfiguration).context.contentResolver
+            val contentResolver: ContentResolver = (configuration as AndroidFileConfiguration).context.contentResolver
             val uri = DocumentsContract.createDocument(contentResolver, parentDoc!!.uri, SAFAccessor.MIME_GENERIC, name)
             return uri != null
         } else {
@@ -386,7 +386,7 @@ class AndroidFile : AbstractFile<AndroidFile> {
         try {
             val thisDoc = getDocFile()!!
             val uri: Uri = DocumentsContract.buildChildDocumentsUriUsingTree(thisDoc.uri, DocumentsContract.getDocumentId(thisDoc.uri))
-            val contentResolver: ContentResolver = (getConfiguration() as AndroidFileConfiguration).context.contentResolver
+            val contentResolver: ContentResolver = (configuration as AndroidFileConfiguration).context.contentResolver
 // this code maybe useful when someone eventually found out how that stupid query() thing works, see comment below
 //            var dirFilterSelection: String? = null
 //            var dirFilterArgs: Array<String>? = null

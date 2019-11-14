@@ -101,11 +101,11 @@ public class ConflictSolver extends SyncStageMerger {
                 if ((left.getDeleted() ^ right.getDeleted()) || (left.getIsDirectory() ^ right.getIsDirectory())) {
                     // there might already exist a Conflict. in this case we have more detailed information now (on stage should be null)
                     // and therefore must replace it but retain the dependencies
-                    if (deletedParents.get(lFile.getParentFile().getAbsolutePath()) != null) {
-                        Conflict oldeConflict = deletedParents.get(lFile.getParentFile().getAbsolutePath());
+                    if (deletedParents.get(lFile.parentFile.absolutePath) != null) {
+                        Conflict oldeConflict = deletedParents.get(lFile.parentFile.absolutePath);
                         conflict.dependOn(oldeConflict);
                     }
-                    deletedParents.put(lFile.getAbsolutePath(), conflict);
+                    deletedParents.put(lFile.absolutePath, conflict);
                 } else if (leftIdConflictsMap.containsKey(left.getParentId())) {
                     Conflict parent = leftIdConflictsMap.get(left.getParentId());
                     conflict.dependOn(parent);
@@ -196,13 +196,13 @@ public class ConflictSolver extends SyncStageMerger {
             AbstractFile f = stageDao.getFileByStage(stage);
             Stage rStage = stageDao.getStageByPath(rStageSetId, f);
             Conflict conflict = new Conflict(stageDao, stage, rStage);
-            deletedParents.put(f.getAbsolutePath(), conflict);
+            deletedParents.put(f.absolutePath, conflict);
         }
         for (Stage stage : rightDirs) {
             AbstractFile f = stageDao.getFileByStage(stage);
             Stage lStage = stageDao.getStageByPath(lStageSetId, f);
             Conflict conflict = new Conflict(stageDao, lStage, stage);
-            deletedParents.put(f.getAbsolutePath(), conflict);
+            deletedParents.put(f.absolutePath, conflict);
         }
     }
 

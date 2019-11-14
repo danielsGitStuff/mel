@@ -44,7 +44,7 @@ public class Main {
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
         CurrentJar.initCurrentJarClass(Main.class);
         AbstractFile.configure(new DefaultFileConfiguration());
-        BashTools.init();
+        BashTools.Companion.init();
     }
 
     public static void main(String[] args) throws Exception {

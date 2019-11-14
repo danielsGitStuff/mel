@@ -47,14 +47,14 @@ class SAFFileWatcher(melFileSyncService: MelFileSyncService<*>) : FileWatcher(me
 
     override fun getRunnableName(): String = "file watcher for ${melFileSyncService.runnableName}"
 
-    override fun watchDirectory(dir: AbstractFile<out AbstractFile<*>>?) {
+    override fun watchDirectory(dir: AbstractFile<out AbstractFile>?) {
         Lok.debug("trying to register observer for ${dir?.absolutePath}")
 
         AndroidService.getInstance()?.contentResolver?.let {
             val androidFile = dir as AndroidFile
             Lok.debug("registering observer for ${androidFile.absolutePath}")
             val docUri = androidFile.getDocFile()!!.uri
-            val config = AbstractFile.getConfiguration() as AndroidFileConfiguration
+            val config = AbstractFile.configuration as AndroidFileConfiguration
             val root = melFileSyncService.fileSyncSettings.rootDirectory.originalFile as AndroidFile
 
             obs = object : FileObserver(File(dir.absolutePath)) {

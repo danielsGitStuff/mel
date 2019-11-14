@@ -47,12 +47,12 @@ public class IndexTest {
     @Before
     public void before() throws Exception {
         AbstractFile.configure(new DefaultFileConfiguration());
-        BashTools.init();
+        BashTools.Companion.init();
         testRoot = AbstractFile.instance(new File("indextest"));
-        BashTools.rmRf(testRoot);
+        BashTools.Companion.rmRf(testRoot);
         wd = new File("indexwd");
         if (index) {
-            BashTools.rmRf(AbstractFile.instance(wd));
+            BashTools.Companion.rmRf(AbstractFile.instance(wd));
             TestDirCreator.createTestDir(testRoot);
             MelAuthSettings settings = MelAuthSettings.createDefaultSettings().setWorkingDirectory(wd).setName("First");
             CountWaitLock lock = new CountWaitLock();
@@ -85,7 +85,7 @@ public class IndexTest {
 
     @After
     public void after() throws IOException {
-        BashTools.rmRf(testRoot);
+        BashTools.Companion.rmRf(testRoot);
         CertificateManager.deleteDirectory(wd);
     }
 

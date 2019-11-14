@@ -106,7 +106,7 @@ public class FsDirectory extends FsEntry {
 
     public FsDirectory(AbstractFile dir) {
         if (!dir.isFile()) {
-            name.v(dir.getName());
+            name.v(dir.name);
             original = dir;
         } else {
             System.err.println("Directory.Directory() ... got a non Directory");

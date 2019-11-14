@@ -29,16 +29,16 @@ public class BashCommandsTest {
     public void before() throws IOException {
         AbstractFile.configure(new DefaultFileConfiguration());
         testDir = AbstractFile.instance("testdir1");
-        BashTools.init();
+        BashTools.Companion.init();
         CertificateManager.deleteDirectory(testDir);
         paths = TestDirCreator.createTestDir(testDir);
-        timeDir = AbstractFile.instance(testDir.getAbsolutePath() + File.separator + "timetest");
+        timeDir = AbstractFile.instance(testDir.absolutePath + File.separator + "timetest");
 
     }
 
     @Test
     public void bashFind() throws Exception {
-        try (AutoKlausIterator<AbstractFile<?>> iterator = BashTools.find(testDir, AbstractFile.instance("blaaaa"))) {
+        try (AutoKlausIterator<AbstractFile<?>> iterator = BashTools.Companion.find(testDir, AbstractFile.instance("blaaaa"))) {
             while (iterator.hasNext())
                 Lok.debug(iterator.next());
             Lok.debug("BashCommandsTest.bashtest.end");
@@ -47,11 +47,11 @@ public class BashCommandsTest {
 
     @Test
     public void bashFindModifiedAfter1() throws Exception {
-        //todo disabled for now because platform specific -> merge BashTools.stuffModifiedAfter methods
+        //todo disabled for now because platform specific -> merge BashTools.Companion.stuffModifiedAfter methods
         //expect one result
 //        CertificateManager.deleteDirectory(testDir);
 //        testDir.mkdirs();
-//        Iterator<AFile> iterator = BashTools.stuffModifiedAfter(testDir, AFile.instance("blaa"), 0L);
+//        Iterator<AFile> iterator = BashTools.Companion.stuffModifiedAfter(testDir, AFile.instance("blaa"), 0L);
 //        assertTrue(iterator.hasNext());
 //        iterator.next();
 //        assertFalse(iterator.hasNext());
@@ -64,7 +64,7 @@ public class BashCommandsTest {
         //expect no result
 //        CertificateManager.deleteDirectory(testDir);
 //        testDir.mkdirs();
-//        Iterator<AFile> iterator = BashTools.stuffModifiedAfter(testDir, AFile.instance("blaa"), Long.MAX_VALUE);
+//        Iterator<AFile> iterator = BashTools.Companion.stuffModifiedAfter(testDir, AFile.instance("blaa"), Long.MAX_VALUE);
 //        assertFalse(iterator.hasNext());
 //        Lok.debug("BashCommandsTest.bashtest.end");
     }
@@ -73,7 +73,7 @@ public class BashCommandsTest {
     public void bashFindModifiedAfter3() throws Exception {
         //todo disabled for now because platform specific
         // expect whole testdir
-//        Iterator<AFile> iterator = BashTools.stuffModifiedAfter( testDir, new FFile("blaa"), 0L);
+//        Iterator<AFile> iterator = BashTools.Companion.stuffModifiedAfter( testDir, new FFile("blaa"), 0L);
 //        Iterator<String> expectedIterator = paths.iterator();
 //        while (iterator.hasNext()) {
 //            String path = iterator.next().getAbsolutePath();
@@ -102,7 +102,7 @@ public class BashCommandsTest {
         Long t1 = timeDir.lastModified();
         Long tt1 = testDir.lastModified();
 
-        File source = new File(testDir.getAbsolutePath());
+        File source = new File(testDir.absolutePath);
         File target = new File(source.getAbsolutePath(), "movedTest");
         source.renameTo(target);
 

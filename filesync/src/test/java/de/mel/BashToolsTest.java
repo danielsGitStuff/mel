@@ -1,6 +1,7 @@
 package de.mel;
 
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.AbstractFileWriter;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.tools.F;
 import de.mel.filesync.bash.AutoKlausIterator;
@@ -43,7 +44,7 @@ public class BashToolsTest {
     private final AbstractFile symFileTarget = f3;
 
     @Before
-    public void before() throws IOException {
+    public void before() throws Exception {
         if (root.exists())
             F.rmRf(new File(root.getAbsolutePath()));
         subsub.mkdirs();
@@ -52,7 +53,7 @@ public class BashToolsTest {
         write(f3, "f3");
         write(f4, "f4");
 //        createSymlink(symlink, symTarget);
-        BashTools.init();
+        BashTools.Companion.init();
     }
 
     private Path toPath(AbstractFile f) {
@@ -65,15 +66,15 @@ public class BashToolsTest {
             F.rmRf(new File(root.getAbsolutePath()));
     }
 
-    private void write(AbstractFile f, String str) throws IOException {
-        try (FileOutputStream out = f.writer()) {
-            out.write(str.getBytes());
+    private void write(AbstractFile f, String str) throws Exception {
+        try (AbstractFileWriter writer = f.writer()) {
+            writer.append(str.getBytes(), 0, str.length());
         }
     }
 
     @Test
     public void getFsBashDetails() throws IOException, InterruptedException {
-        FsBashDetails fsBashDetails = BashTools.getFsBashDetails(f2);
+        FsBashDetails fsBashDetails = BashTools.Companion.getFsBashDetails(f2);
         assertNotNull(fsBashDetails);
         assertNotNull(fsBashDetails.getiNode());
         assertNotNull(fsBashDetails.getModified());
@@ -86,7 +87,7 @@ public class BashToolsTest {
     public void getFsBashDetailsModified() throws IOException, InterruptedException {
         Thread.sleep(1001);
         write(f2, "NEIN!");
-        FsBashDetails fsBashDetails = BashTools.getFsBashDetails(f2);
+        FsBashDetails fsBashDetails = BashTools.Companion.getFsBashDetails(f2);
 
         assertNotEquals(f2.lastModified(), fsBashDetails.getCreated());
         Long diff = f2.lastModified() - fsBashDetails.getCreated();
@@ -97,7 +98,7 @@ public class BashToolsTest {
 
     @Test
     public void rmRf() throws IOException {
-        BashTools.rmRf(subsub);
+        BashTools.Companion.rmRf(subsub);
         assertFalse(subsub.exists());
     }
 
@@ -109,7 +110,7 @@ public class BashToolsTest {
         expectedPaths.add(f1.getAbsolutePath());
         expectedPaths.add(f2.getAbsolutePath());
         expectedPaths.add(f3.getAbsolutePath());
-        try (AutoKlausIterator<AbstractFile<?>> found = BashTools.find(root, subsub)) {
+        try (AutoKlausIterator<AbstractFile> found = BashTools.Companion.find(root, subsub)) {
             while (found.hasNext()) {
                 expectedPaths.remove(found.next().getAbsolutePath());
             }
@@ -121,17 +122,17 @@ public class BashToolsTest {
     @Test
     public void isSymLink() {
         lnS();
-        assertTrue(BashTools.isSymLink(symFolder));
-        assertTrue(BashTools.isSymLink(symFile));
-        assertFalse(BashTools.isSymLink(f1));
-        assertFalse(BashTools.isSymLink(sub));
+        assertTrue(BashTools.Companion.isSymLink(symFolder));
+        assertTrue(BashTools.Companion.isSymLink(symFile));
+        assertFalse(BashTools.Companion.isSymLink(f1));
+        assertFalse(BashTools.Companion.isSymLink(sub));
     }
 
     @Test
     public void getContentFsBashDetails() throws IOException, InterruptedException {
         // create symlinks first
         lnS();
-        Map<String, FsBashDetails> details = BashTools.getContentFsBashDetails(root);
+        Map<String, FsBashDetails> details = BashTools.Companion.getContentFsBashDetails(root);
         Set<String> expectedNames = new HashSet<>();
         expectedNames.add(f1.getName());
         expectedNames.add(f2.getName());
@@ -160,9 +161,9 @@ public class BashToolsTest {
 
     @Test
     public void lnS() {
-        BashTools.lnS(symFolder, symFolderTarget.getAbsolutePath());
-        BashTools.lnS(symFile, symFileTarget.getAbsolutePath());
-        if (BashTools.isWindows) {
+        BashTools.Companion.lnS(symFolder, symFolderTarget.getAbsolutePath());
+        BashTools.Companion.lnS(symFile, symFileTarget.getAbsolutePath());
+        if (BashTools.Companion.isWindows()) {
             assertTrue(symFolder.exists());
             assertTrue(symFile.exists());
         } else {

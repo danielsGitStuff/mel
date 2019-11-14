@@ -42,7 +42,7 @@ public class AndroidFileSyncBootloader extends FileSyncBootloader implements And
         super.cleanUpDeletedService(melService, uuid);
         Tools.getApplicationContext().deleteDatabase("service." + uuid + "." + FileSyncStrings.DB_FILENAME);
         File instanceDir = new File(bootLoaderDir, melService.getUuid());
-        N.r(() -> BashTools.rmRf(AbstractFile.instance(instanceDir)));
+        N.r(() -> BashTools.Companion.rmRf(AbstractFile.instance(instanceDir)));
     }
 
     /**

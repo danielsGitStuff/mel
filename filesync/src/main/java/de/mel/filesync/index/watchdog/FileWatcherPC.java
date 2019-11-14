@@ -28,7 +28,7 @@ public abstract class FileWatcherPC extends FileWatcher {
         this.name = name;
         this.watchService = watchService;
         this.setStageIndexer(melFileSyncService.getStageIndexer());
-        this.transferDirectoryPath = melFileSyncService.getFileSyncSettings().getTransferDirectory().getAbsolutePath();
+        this.transferDirectoryPath = melFileSyncService.getFileSyncSettings().getTransferDirectory().absolutePath;
         this.useSymLinks = melFileSyncService.getFileSyncSettings().getUseSymLinks();
     }
 
@@ -42,13 +42,13 @@ public abstract class FileWatcherPC extends FileWatcher {
                 // figure out whether or not writing to the file is still in progress
                 try {
                     double r = Math.random();
-                    Lok.debug("IndexWatchdogListener.analyze.attempt to open " + file.getAbsolutePath() + " " + r);
+                    Lok.debug("IndexWatchdogListener.analyze.attempt to open " + file.absolutePath + " " + r);
                     InputStream is = file.inputStream();
                     is.close();
                     Lok.debug("IndexWatchdogListener.analyze.success " + r);
                     watchDogTimer.resume();
                 } catch (FileNotFoundException e) {
-                    Lok.debug("IndexWatchdogListener.analyze.file not found: " + file.getAbsolutePath());
+                    Lok.debug("IndexWatchdogListener.analyze.file not found: " + file.absolutePath);
                 } catch (Exception e) {
                     Lok.debug("IndexWatchdogListener.analyze.writing in progress");
                     watchDogTimer.waite();
@@ -56,7 +56,7 @@ public abstract class FileWatcherPC extends FileWatcher {
             } else if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE) && file.exists() && file.isDirectory()) {
                 this.watchDirectory(file);
             }
-            Lok.debug("IndexWatchdogListener[" + melFileSyncService.getFileSyncSettings().getRole() + "].analyze[" + event.kind() + "]: " + file.getAbsolutePath());
+            Lok.debug("IndexWatchdogListener[" + melFileSyncService.getFileSyncSettings().getRole() + "].analyze[" + event.kind() + "]: " + file.absolutePath);
             pathCollection.addPath(file);
         } catch (Exception e) {
             e.printStackTrace();
@@ -79,7 +79,7 @@ public abstract class FileWatcherPC extends FileWatcher {
     @Override
     public void watchDirectory(AbstractFile dir) throws IOException {
         try {
-            Path path = Paths.get(dir.getAbsolutePath());
+            Path path = Paths.get(dir.absolutePath);
             if (Files.isSymbolicLink(path))
                 return;
             path.register(watchService, KINDS);

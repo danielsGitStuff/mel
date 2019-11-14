@@ -54,18 +54,18 @@ public class IndexHelper {
         // remember: we always deal with directories here. that means that we can ask all DAOs for
         // directories and don't have to deal with files :)
         final int rootPathLength = databaseManager.getFileSyncSettings().getRootDirectory().getPath().length();
-        String targetPath = directory.getAbsolutePath();
+        String targetPath = directory.absolutePath;
         if (targetPath.length() < rootPathLength)
             return null;
         // find out where the stacks point to
-        String stackPath = databaseManager.getFileSyncSettings().getRootDirectory().getOriginalFile().getAbsolutePath();
+        String stackPath = databaseManager.getFileSyncSettings().getRootDirectory().getOriginalFile().absolutePath;
         if (!fileStack.empty())
-            stackPath = fileStack.peek().getAbsolutePath();
+            stackPath = fileStack.peek().absolutePath;
 
         // remove everything from the stacks that does not lead to the directory
         while (fileStack.size() > 1 && (stackPath.length() > targetPath.length() || !targetPath.startsWith(stackPath))) {
             fileStack.pop();
-            stackPath = fileStack.peek().getAbsolutePath();
+            stackPath = fileStack.peek().absolutePath;
             if (stageStack.size() > 0) {
                 Stage stage = stageStack.pop();
             }
@@ -79,10 +79,10 @@ public class IndexHelper {
         {
             if (!fileStack.empty()) {
                 AbstractFile currentDir = directory;
-                while (currentDir.getAbsolutePath().length() >= fileStack.peek().getAbsolutePath().length()
-                        && !currentDir.getAbsolutePath().equals(fileStack.peek().getAbsolutePath())) {
+                while (currentDir.absolutePath.length() >= fileStack.peek().absolutePath.length()
+                        && !currentDir.absolutePath.equals(fileStack.peek().absolutePath)) {
                     remainingParts.push(currentDir);
-                    currentDir = currentDir.getParentFile();
+                    currentDir = currentDir.parentFile;
                 }
             }
         }
@@ -100,12 +100,12 @@ public class IndexHelper {
             final AbstractFile part = remainingParts.pop();
 
             if (parentFs != null) {
-                parentFs = fsDao.getSubDirectoryByName(parentFs.getId().v(), part.getName());
+                parentFs = fsDao.getSubDirectoryByName(parentFs.getId().v(), part.name);
             }
             if (stageParent == null && parentFs != null) {
                 stageParent = stageDao.getStageParentByFsId(stageSetId, parentFs.getId().v());
             } else if (stageParent != null) {
-                Stage newStageParent = stageDao.getSubStageByName(stageParent.getId(), part.getName());
+                Stage newStageParent = stageDao.getSubStageByName(stageParent.getId(), part.name);
                 if (newStageParent == null) {
                     /*
                      * this may happen if the output of find is not hierarchicly coherent:
@@ -113,7 +113,7 @@ public class IndexHelper {
                      * /home/user/subdir/file.txt
                      */
                     newStageParent = new Stage()
-                            .setName(part.getName())
+                            .setName(part.name)
                             .setOrder(order.ord())
                             .setStageSet(stageSetId)
                             .setDeleted(false);
@@ -136,7 +136,7 @@ public class IndexHelper {
     void fastBoot(AbstractFile file, FsEntry fsEntry, Stage stage) {
         if (databaseManager.getFileSyncSettings().getFastBoot()) {
             try {
-                FsBashDetails fsBashDetails = BashTools.getFsBashDetails(file);
+                FsBashDetails fsBashDetails = BashTools.Companion.getFsBashDetails(file);
                 if (fsEntry.getModified().equalsValue(fsBashDetails.getModified())
                         && fsEntry.getiNode().equalsValue(fsBashDetails.getiNode())
                         && ((fsEntry.getIsDirectory().v() && file.isDirectory()) || fsEntry.getSize().equalsValue(file.length()))) {

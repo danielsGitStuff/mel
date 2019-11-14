@@ -26,6 +26,6 @@ public class FileSyncInjector {
     }
 
     public static void setBinPath(String path) {
-        BashTools.setBinPath(path);
+        BashTools.Companion.setBinPath(path);
     }
 }

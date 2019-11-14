@@ -39,10 +39,10 @@ class DumpTest {
     @Before
     fun setUp() {
         AbstractFile.configure(DefaultFileConfiguration())
-        BashTools.init()
-        BashTools.rmRf(AbstractFile.instance(testDir))
-        BashTools.rmRf(AbstractFile.instance(MelBoot.defaultWorkingDir1))
-        BashTools.rmRf(AbstractFile.instance(MelBoot.defaultWorkingDir2))
+        BashTools.Companion.init()
+        BashTools.Companion.rmRf(AbstractFile.instance(testDir))
+        BashTools.Companion.rmRf(AbstractFile.instance(MelBoot.defaultWorkingDir1))
+        BashTools.Companion.rmRf(AbstractFile.instance(MelBoot.defaultWorkingDir2))
 
         testDir.mkdirs()
         testTarget.mkdirs()

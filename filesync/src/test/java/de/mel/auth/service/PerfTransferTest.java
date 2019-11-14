@@ -59,7 +59,7 @@ public class PerfTransferTest {
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
-        BashTools.init();
+        BashTools.Companion.init();
         CertificateManager.deleteDirectory(MelBoot.Companion.getDefaultWorkingDir1());
 
         DeferredObject result = new DeferredObject();

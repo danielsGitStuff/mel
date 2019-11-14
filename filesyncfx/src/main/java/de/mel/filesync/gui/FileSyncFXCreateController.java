@@ -56,7 +56,7 @@ public class FileSyncFXCreateController extends EmbeddedServiceSettingsFX {
                 public void run() {
                     N.r(() -> {
 
-                        BashToolsUnix bashToolsUnix = (BashToolsUnix) BashTools.getInstance();
+                        BashToolsUnix bashToolsUnix = (BashToolsUnix) BashTools.Companion.getInstance();
                         BashToolsUnix.ShareFolderProperties props = bashToolsUnix.getShareFolderPropeties(dir);
                         Long inotifyLimit = bashToolsUnix.getInotifyLimit();
                         Long proposedInotifyThreshold = Double.valueOf(props.getCounted() * 1.33).longValue();
@@ -101,7 +101,7 @@ public class FileSyncFXCreateController extends EmbeddedServiceSettingsFX {
 
             return false;
         }
-        if (!BashTools.isWindows && !shareWasChecked) {
+        if (!BashTools.Companion.isWindows && !shareWasChecked) {
             checkShare();
             return false;
         }
@@ -131,7 +131,7 @@ public class FileSyncFXCreateController extends EmbeddedServiceSettingsFX {
     @Override
     public void configureParentGui(MelAuthAdminFX melAuthAdminFX) {
         super.configureParentGui(melAuthAdminFX);
-        if (BashTools.isWindows) {
+        if (BashTools.Companion.isWindows) {
             melAuthAdminFX.setPrimaryButtonText(DEFAULT_PRIMARY_BTN_TEXT);
         } else {
             melAuthAdminFX.setPrimaryButtonText(getString("choose.btn.checkDir"));

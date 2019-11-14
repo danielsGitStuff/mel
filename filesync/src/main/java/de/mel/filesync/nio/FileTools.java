@@ -14,11 +14,11 @@ public class FileTools {
      * @return
      */
     public static Stack<AbstractFile> getFileStack(RootDirectory rootDirectory, AbstractFile f) {
-        AbstractFile ff = AbstractFile.instance(f.getAbsolutePath());
+        AbstractFile ff = AbstractFile.instance(f.absolutePath);
         Stack<AbstractFile> fileStack = new Stack<>();
-        while (ff.getAbsolutePath().length() > rootDirectory.getPath().length()) {
+        while (ff.absolutePath.length() > rootDirectory.getPath().length()) {
             fileStack.push(ff);
-            ff = ff.getParentFile();
+            ff = ff.parentFile;
         }
         return fileStack;
     }

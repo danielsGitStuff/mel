@@ -41,12 +41,12 @@ public class SqliteThreadingTest {
         RootDirectory root = new RootDirectory();
         root.setOriginalFile(rootFile);
         root.setId(1L);
-        root.setPath(rootFile.getAbsolutePath());
+        root.setPath(rootFile.absolutePath);
         FileSyncSettings fileSyncSettings = new FileSyncSettings().setLastSyncedVersion(0L).setRole(FileSyncStrings.ROLE_CLIENT)
                 .setRootDirectory(root)
-                .setTransferDirectory(AbstractFile.instance(testDir.getPath() + File.separator + "transfer"));
+                .setTransferDirectory(AbstractFile.instance(testDir.path + File.separator + "transfer"));
 
-        FileSyncDatabaseManager.SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> new SQLQueries(SQLConnector.createSqliteConnection(new File(testDir.getPath(), "test.db")), true, new RWLock(), SqlResultTransformer.sqliteResultSetTransformer());
+        FileSyncDatabaseManager.SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> new SQLQueries(SQLConnector.createSqliteConnection(new File(testDir.path, "test.db")), true, new RWLock(), SqlResultTransformer.sqliteResultSetTransformer());
         ISQLQueries sqlQueries = sqlqueriesCreator.createConnection(null, null);
         SQLStatement st = sqlQueries.getSQLConnection().prepareStatement("PRAGMA synchronous=OFF");
         st.execute();

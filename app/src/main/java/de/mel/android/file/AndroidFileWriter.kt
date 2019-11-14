@@ -17,7 +17,7 @@ class AndroidFileWriter(androidFile: AndroidFile) : AbstractFileWriter() {
     val out: OutputStream?
 
     init {
-        val contentResolver: ContentResolver = (AbstractFile.getConfiguration() as AndroidFileConfiguration).context.contentResolver
+        val contentResolver: ContentResolver = (AbstractFile.configuration as AndroidFileConfiguration).context.contentResolver
         if (!androidFile.exists())
             androidFile.createNewFile()
         val uri = androidFile.getDocFile()!!.uri

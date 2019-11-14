@@ -31,7 +31,7 @@ public class FileSyncSettings extends JsonSettings {
     protected boolean fastBoot = true;
 
     public static RootDirectory buildRootDirectory(AbstractFile rootFile) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException, IOException {
-        String path = rootFile.getCanonicalPath();
+        String path = rootFile.canonicalPath;
         RootDirectory rootDirectory = new RootDirectory().setPath(path);
         rootDirectory.setOriginalFile(rootFile);
         rootDirectory.backup();
@@ -127,7 +127,7 @@ public class FileSyncSettings extends JsonSettings {
 
     public FileSyncSettings setTransferDirectory(AbstractFile transferDirectory) {
         this.transferDirectory = transferDirectory;
-        this.transferDirectoryPath = transferDirectory.getAbsolutePath();
+        this.transferDirectoryPath = transferDirectory.absolutePath;
         return this;
     }
 

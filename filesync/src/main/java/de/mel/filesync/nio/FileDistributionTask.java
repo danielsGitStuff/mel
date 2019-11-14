@@ -110,7 +110,7 @@ public class FileDistributionTask implements SerializableEntity {
 
     public FileDistributionTask addTargetFile(AbstractFile targetFile, long fsId) {
         targetFiles.add(targetFile);
-        targetPaths.add(targetFile.getAbsolutePath());
+        targetPaths.add(targetFile.absolutePath);
         targetFsIds.add(fsId);
         return this;
     }
@@ -121,7 +121,7 @@ public class FileDistributionTask implements SerializableEntity {
 
     public FileDistributionTask setSourceFile(AbstractFile sourceFile) {
         this.sourceFile = sourceFile;
-        this.sourcePath = sourceFile.getAbsolutePath();
+        this.sourcePath = sourceFile.absolutePath;
         return this;
     }
 

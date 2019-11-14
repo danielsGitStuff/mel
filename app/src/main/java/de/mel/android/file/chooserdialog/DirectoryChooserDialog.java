@@ -69,7 +69,7 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
             currentDir = clickedDir;
             depth++;
             if (currentDir!= null){
-                txtPath.setText(currentDir.getAbsolutePath());
+                txtPath.setText(currentDir.absolutePath);
             }
             Lok.debug("DirectoryChooserDialog.init.depth " + depth);
             AbstractFile[] subDirs = clickedDir.listDirectories();
@@ -87,7 +87,7 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
                 AbstractFile[] subDirs;
                 if (currentDir != null) {
                     subDirs = currentDir.listDirectories();
-                    txtPath.setText(currentDir.getAbsolutePath());
+                    txtPath.setText(currentDir.absolutePath);
                 } else {
                     subDirs = rootDirs;
                     txtPath.setText(R.string.invalidDirectory);
@@ -99,7 +99,7 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
         btnOk.setOnClickListener(v -> {
             if (currentDir != null) {
                 Intent result = new Intent();
-                result.putExtra(AndroidFileSyncStrings.DIR_CHOOSER_KEY, currentDir.getAbsolutePath());
+                result.putExtra(AndroidFileSyncStrings.DIR_CHOOSER_KEY, currentDir.absolutePath);
                 setResult(RESULT_OK, result);
                 finish();
             } else {
@@ -116,7 +116,7 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
         List<String> strings = new ArrayList<>();
         if (!isRoot.v())
             strings.add("..");
-        N.forEachAdv(files, (stoppable, index, aFile) -> strings.add(aFile.getName()));
+        N.forEachAdv(files, (stoppable, index, aFile) -> strings.add(aFile.name));
         return strings;
     }
 

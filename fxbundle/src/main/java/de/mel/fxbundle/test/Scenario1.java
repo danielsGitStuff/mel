@@ -50,7 +50,7 @@ public class Scenario1 {
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
         CurrentJar.initCurrentJarClass(Scenario1.class);
         AbstractFile.configure(new DefaultFileConfiguration());
-        BashTools.init();
+        BashTools.Companion.init();
     }
 
     public static void main(String[] args) throws Exception {

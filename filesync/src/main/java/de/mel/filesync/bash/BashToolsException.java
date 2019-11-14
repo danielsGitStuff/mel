@@ -25,7 +25,7 @@ public class BashToolsException extends IOException {
     }
 
     public BashToolsException(Process proc) {
-        Iterator<String> lines = BashTools.inputStreamToIterator(proc.getErrorStream());
+        Iterator<String> lines = BashTools.Companion.inputStreamToIterator(proc.getErrorStream());
         readLines(lines);
     }
 

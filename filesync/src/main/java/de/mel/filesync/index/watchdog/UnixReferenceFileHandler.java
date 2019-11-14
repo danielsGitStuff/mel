@@ -49,6 +49,6 @@ public class UnixReferenceFileHandler {
         refOnFile1 = !refOnFile1;
         otherFile.delete();
         otherFile.mkdirs();
-        return BashTools.stuffModifiedAfter(AbstractFile.instance(refFile.getAbsolutePath()), directoryToQuery, pruneDir);
+        return BashTools.Companion.stuffModifiedAfter(AbstractFile.instance(refFile.getAbsolutePath()), directoryToQuery, pruneDir);
     }
 }

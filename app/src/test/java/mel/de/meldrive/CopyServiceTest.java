@@ -31,7 +31,7 @@ public class CopyServiceTest {
 
     @Before
     public void before() throws IOException {
-        BashTools.init();
+        BashTools.Companion.init();
         AbstractFile.configure(new DefaultFileConfiguration());
         testdir = new File("copy.test");
         Lok.debug("test dir = " + testdir.getAbsolutePath());
@@ -64,6 +64,6 @@ public class CopyServiceTest {
 
     @After
     public void after() throws IOException {
-//        BashTools.rmRf(AFile.instance(testdir));
+//        BashTools.Companion.rmRf(AFile.instance(testdir));
     }
 }

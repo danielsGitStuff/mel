@@ -74,23 +74,23 @@ public class DriveTest {
         shutdownLock.lock();
         melAuthService1 = melAuthService2 = null;
         lock = null;
-        BashTools.rmRf(MelBoot.Companion.getDefaultWorkingDir1());
-        BashTools.rmRf(MelBoot.Companion.getDefaultWorkingDir2());
-        BashTools.rmRf(testdir1);
-        BashTools.rmRf(testdir2);
+        BashTools.Companion.rmRf(MelBoot.Companion.getDefaultWorkingDir1());
+        BashTools.Companion.rmRf(MelBoot.Companion.getDefaultWorkingDir2());
+        BashTools.Companion.rmRf(testdir1);
+        BashTools.Companion.rmRf(testdir2);
     }
 
     @Before
     public void before() throws IOException {
         AbstractFile.configure(new DefaultFileConfiguration());
-        BashTools.init();
+        BashTools.Companion.init();
         lock = new RWLock();
         testdir1 = AbstractFile.instance("testdir1");
         testdir2 = AbstractFile.instance("testdir2");
-        BashTools.rmRf(MelBoot.Companion.getDefaultWorkingDir1());
-        BashTools.rmRf(MelBoot.Companion.getDefaultWorkingDir2());
-        BashTools.rmRf(testdir1);
-        BashTools.rmRf(testdir2);
+        BashTools.Companion.rmRf(MelBoot.Companion.getDefaultWorkingDir1());
+        BashTools.Companion.rmRf(MelBoot.Companion.getDefaultWorkingDir2());
+        BashTools.Companion.rmRf(testdir1);
+        BashTools.Companion.rmRf(testdir2);
     }
 
     //    @Test
@@ -118,7 +118,7 @@ public class DriveTest {
                         Lok.debug("DriveTest.onSyncFailed.creating new file...");
                         rootPath = ins.testStructure.serverDriveService.getFileSyncSettings().getRootDirectory().getPath();
                         File delFile = new File(rootPath + File.separator + "samedir");
-                        BashTools.rmRf(new StandardFile(delFile));
+                        BashTools.Companion.rmRf(new StandardFile(delFile));
                         MelBoot melBoot = (restartMelBoot != null) ? restartMelBoot : new MelBoot(json1, new PowerManager(json1), FileSyncBootloader.class);
                         Promise<MelAuthService, Exception, Void> rebooted = melBoot.boot();
                         rebooted.done(res -> N.r(() -> {
@@ -626,7 +626,7 @@ public class DriveTest {
                         for (FsFile f : rootFiles) {
                             Lok.debug(f.getName().v());
                         }
-                        File newFile = new File(testStructure.testdir1.getAbsolutePath() + "/sub1/sub3.txt");
+                        File newFile = new File(testStructure.testdir1.absolutePath + "/sub1/sub3.txt");
                         newFile.createNewFile();
                     } else if (getCount() == 1) {
                         Lok.debug("DriveFXTest.onSyncDoneImpl :)");
@@ -677,7 +677,7 @@ public class DriveTest {
                         for (FsFile f : rootFiles) {
                             Lok.debug(f.getName().v());
                         }
-                        File deleteFile = new File(testStructure.testdir1.getAbsolutePath() + "/sub1/sub2.txt");
+                        File deleteFile = new File(testStructure.testdir1.absolutePath + "/sub1/sub2.txt");
                         deleteFile.delete();
                     } else if (getCount() == 1) {
                         Lok.debug("DriveFXTest.onSyncDoneImpl :)");

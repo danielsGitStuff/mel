@@ -572,8 +572,8 @@ public class FxTest {
         lock.lockWrite();
         AbstractFile rootServer = AbstractFile.instance("t1");
         AbstractFile rootClient = AbstractFile.instance("t2");
-        BashTools.rmRf(rootClient);
-        BashTools.rmRf(rootClient);
+        BashTools.Companion.rmRf(rootClient);
+        BashTools.Companion.rmRf(rootClient);
         AbstractFile alteredFile = AbstractFile.instance("t2" + File.separator + "samedir" + File.separator + "same1.txt");
         TestDirCreator.createTestDir(rootServer);
         rootClient.mkdirs();
@@ -599,7 +599,7 @@ public class FxTest {
                     Thread.sleep(1000);
                     // change fs table
                     FsDao fsDao = clientService.get().getFileSyncDatabaseManager().getFsDao();
-                    FsFile alterFs = fsDao.getFsFileByFile(new File(alteredFile.getAbsolutePath()));
+                    FsFile alterFs = fsDao.getFsFileByFile(new File(alteredFile.absolutePath));
                     alterFs.getSynced().v(false);
                     alterFs.getiNode().nul();
                     alterFs.getModified().nul();
@@ -1030,7 +1030,7 @@ public class FxTest {
                         for (FsFile f : rootFiles) {
                             Lok.debug(f.getName().v());
                         }
-                        File newFile = new File(testStructure.testdir1.getAbsolutePath() + "/sub1/sub2.txt");
+                        File newFile = new File(testStructure.testdir1.absolutePath + "/sub1/sub2.txt");
                         newFile.createNewFile();
                     } else if (count == 1) {
                         Lok.debug("FxTest.onSyncDoneImpl :)");
@@ -1073,7 +1073,7 @@ public class FxTest {
     public void before() {
         lock = new RWLock();
         AbstractFile.configure(new DefaultFileConfiguration());
-        BashTools.init();
+        BashTools.Companion.init();
     }
 
 

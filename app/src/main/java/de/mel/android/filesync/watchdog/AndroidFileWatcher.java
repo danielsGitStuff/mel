@@ -34,12 +34,12 @@ public class AndroidFileWatcher extends FileWatcher {
         if (!watchesRoot)
             try {
                 watchesRoot = true;
-                fileObserver = new FileObserver(dir.getAbsolutePath()) {
+                fileObserver = new FileObserver(dir.absolutePath) {
                     @Override
                     public void onEvent(int event, String path) {
                         if (path != null)
                             try {
-                                path = melFileSyncService.getFileSyncSettings().getRootDirectory().getOriginalFile().getAbsolutePath() + File.separator + path;
+                                path = melFileSyncService.getFileSyncSettings().getRootDirectory().getOriginalFile().absolutePath + File.separator + path;
                                 AbstractFile file = AbstractFile.instance(path);
                                 analyzeEvent(event, file);
                             } catch (InterruptedException e) {

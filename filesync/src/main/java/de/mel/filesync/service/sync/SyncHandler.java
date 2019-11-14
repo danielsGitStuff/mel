@@ -97,7 +97,7 @@ public abstract class SyncHandler {
 //            Lok.debug("SyncHandler.moveFile (" + source.getAbsolutePath() + ") -> (" + target.getAbsolutePath() + ")");
 //            // check if there already is a file & delete
 //            if (target.exists()) {
-//                FsBashDetails fsBashDetails = BashTools.getFsBashDetails(target);
+//                FsBashDetails fsBashDetails = BashTools.Companion.getFsBashDetails(target);
 //                // file had to be marked as deleted before, which means the inode and so on appear in the wastebin
 //                Waste waste = melDriveService.getDriveDatabaseManager().getWasteDao().getWasteByInode(fsBashDetails.getiNode());
 //                GenericFSEntry genericFSEntry = fsDao.getGenericByINode(fsBashDetails.getiNode());
@@ -120,7 +120,7 @@ public abstract class SyncHandler {
 //                }
 //            }
 //            indexer.ignorePath(target.getAbsolutePath(), 1);
-//            FsBashDetails fsBashDetails = BashTools.getFsBashDetails(source);
+//            FsBashDetails fsBashDetails = BashTools.Companion.getFsBashDetails(source);
 //            fsTarget.getiNode().v(fsBashDetails.getiNode());
 //            fsTarget.getModified().v(fsBashDetails.getModified());
 //            fsTarget.getSize().v(source.length());
@@ -180,9 +180,9 @@ public abstract class SyncHandler {
             distributionTask.setSourceHash(hash);
 
             // file found in transfer dir
-            if (file.getAbsolutePath().startsWith(fileSyncDatabaseManager.getFileSyncSettings().getTransferDirectory().getAbsolutePath())) {
+            if (file.absolutePath.startsWith(fileSyncDatabaseManager.getFileSyncSettings().getTransferDirectory().absolutePath)) {
                 // assuming that noone moves or copies files in this directory at runtime. some day someone will do it any, things will break and he will complain.
-                FsBashDetails bashDetails = BashTools.getFsBashDetails(file);
+                FsBashDetails bashDetails = BashTools.Companion.getFsBashDetails(file);
                 distributionTask.setOptionals(bashDetails, file.length());
                 distributionTask.setDeleteSource(true);
                 if (fsFiles.isEmpty())
@@ -193,7 +193,7 @@ public abstract class SyncHandler {
                 // and in this case sourceFsFile must not be null.
                 // set what the copy service is expected to find as a source file.
                 // in case it has changed it can abort
-                FsBashDetails bashDetails = new FsBashDetails(sourceFsFile.getCreated().v(), sourceFsFile.getModified().v(), sourceFsFile.getiNode().v(), sourceFsFile.isSymlink(), null, sourceFsFile.getName().v()); //BashTools.getFsBashDetails(file);
+                FsBashDetails bashDetails = new FsBashDetails(sourceFsFile.getCreated().v(), sourceFsFile.getModified().v(), sourceFsFile.getiNode().v(), sourceFsFile.isSymlink(), null, sourceFsFile.getName().v()); //BashTools.Companion.getFsBashDetails(file);
                 distributionTask.setOptionals(bashDetails, file.length());
                 distributionTask.setDeleteSource(false);
                 N.forEach(fsFiles, fsFile -> {
@@ -319,7 +319,7 @@ public abstract class SyncHandler {
                                 fsWriteDao.insert(fsFile.toFsWriteEntry());
                                 if (fsFile.isSymlink()) {
                                     AbstractFile f = fsWriteDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsFile);
-                                    BashTools.lnS(f, fsFile.getSymLink().v());
+                                    BashTools.Companion.lnS(f, fsFile.getSymLink().v());
                                 } else if (!stageSet.fromFs() && !stage.getIsDirectory() && !stage.isSymLink()) {
                                     // this file porobably has to be transferred
                                     DbTransferDetails details = new DbTransferDetails();
@@ -368,7 +368,7 @@ public abstract class SyncHandler {
                                         // delete file. consider that it might be in the same state as the stage
                                         AbstractFile stageFile = stageDao.getFileByStage(stage);
                                         if (stageFile.exists()) {
-                                            FsBashDetails fsBashDetails = BashTools.getFsBashDetails(stageFile);
+                                            FsBashDetails fsBashDetails = BashTools.Companion.getFsBashDetails(stageFile);
                                             if (stage.getiNode() == null || stage.getModified() == null ||
                                                     !(fsBashDetails.getiNode().equals(stage.getiNode()) && fsBashDetails.getModified().equals(stage.getModified()))) {
                                                 wastebin.deleteUnknown(stageFile);
@@ -446,7 +446,7 @@ public abstract class SyncHandler {
                 AbstractFile d = AbstractFile.instance(path);
                 if (!d.exists()) {
                     indexer.ignorePath(path, 1);
-                    Lok.debug("SyncHandler.createDirs: " + d.getAbsolutePath());
+                    Lok.debug("SyncHandler.createDirs: " + d.absolutePath);
                     d.mkdirs();
                     indexer.watchDirectory(d);
                     updateInodeModified(dbParent, d);
@@ -461,11 +461,11 @@ public abstract class SyncHandler {
             AbstractFile target = AbstractFile.instance(path);
             if (fsEntry.isSymlink()) {
                 if (!target.exists()) {
-                    BashTools.lnS(target, fsEntry.getSymLink().v());
+                    BashTools.Companion.lnS(target, fsEntry.getSymLink().v());
                 }
             } else if (!target.exists()) {
                 indexer.ignorePath(path, 1);
-                Lok.debug("SyncHandler.createDirs: " + target.getAbsolutePath());
+                Lok.debug("SyncHandler.createDirs: " + target.absolutePath);
                 target.mkdirs();
                 indexer.watchDirectory(target);
                 updateInodeModified(fsEntry, target);
@@ -474,7 +474,7 @@ public abstract class SyncHandler {
     }
 
     private void updateInodeModified(FsEntry entry, AbstractFile f) throws SqlQueriesException, IOException, InterruptedException {
-        FsBashDetails fsBashDetails = BashTools.getFsBashDetails(f);
+        FsBashDetails fsBashDetails = BashTools.Companion.getFsBashDetails(f);
         entry.getiNode().v(fsBashDetails.getiNode());
         entry.getModified().v(fsBashDetails.getModified());
         entry.getCreated().v(fsBashDetails.getCreated());

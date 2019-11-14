@@ -33,7 +33,7 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
         testCommands()
     }
 
-    override fun stuffModifiedAfter(referenceFile: AbstractFile<*>, directory: AbstractFile<*>, pruneDir: AbstractFile<*>): List<AbstractFile<*>> {
+    override fun stuffModifiedAfter(referenceFile: AbstractFile, directory: AbstractFile, pruneDir: AbstractFile): List<AbstractFile> {
         if (findNewerFallback != null)
             return findNewerFallback!!.stuffModifiedAfter(referenceFile, directory, pruneDir)
         return super.stuffModifiedAfter(referenceFile, directory, pruneDir)
@@ -59,7 +59,7 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
             latestFile.createNewFile()
             cmd = "find \"" + dir.absolutePath + "\" -path " + escapeQuotedAbsoluteFilePath(prune) + " -prune -o -print"
             var streams = testCommand(cmd)
-            var iterator: Iterator<AbstractFile<*>>? = streams.stdout
+            var iterator: Iterator<AbstractFile>? = streams.stdout
             while (iterator!!.hasNext()) {
                 Lok.error("no SAF")
                 val line = iterator.next()
@@ -93,7 +93,7 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
     }
 
     internal inner class Streams {
-        var stdout: Iterator<AbstractFile<*>>? = null
+        var stdout: Iterator<AbstractFile>? = null
         var stderr: Iterator<String>? = null
     }
 
@@ -108,8 +108,8 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
         }
         Lok.debug("BashTest.exec." + proc.exitValue())
         val streams = Streams()
-        streams.stdout = BashTools.inputStreamToFileIterator(proc.inputStream)
-        streams.stderr = BashTools.inputStreamToIterator(proc.errorStream)
+        streams.stdout = BashTools.Companion.inputStreamToFileIterator(proc.inputStream)
+        streams.stderr = BashTools.Companion.inputStreamToIterator(proc.errorStream)
         return streams
     }
 
@@ -137,7 +137,7 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
 //
 //    }
 
-    override fun getContentFsBashDetails(directory: AbstractFile<*>): MutableMap<String, FsBashDetails> {
+    override fun getContentFsBashDetails(directory: AbstractFile): MutableMap<String, FsBashDetails> {
         val dir = directory as AndroidFile
         // this does not work from Android 10 onwards
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
@@ -147,7 +147,7 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
         try {
             val thisDoc = dir.getDocFile()!!
             val uri: Uri = DocumentsContract.buildChildDocumentsUriUsingTree(thisDoc.uri, DocumentsContract.getDocumentId(thisDoc.uri))
-            val contentResolver: ContentResolver = (AbstractFile.getConfiguration() as AndroidFileConfiguration).context.contentResolver
+            val contentResolver: ContentResolver = (AbstractFile.configuration as AndroidFileConfiguration).context.contentResolver
             val content = mutableMapOf<String, FsBashDetails>()
             contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME
                     , DocumentsContract.Document.COLUMN_LAST_MODIFIED
@@ -173,11 +173,11 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
     }
 
     @Throws(IOException::class)
-    override fun find(directory: AbstractFile<*>, pruneDir: AbstractFile<*>): AutoKlausIterator<AbstractFile<*>> {
+    override fun find(directory: AbstractFile, pruneDir: AbstractFile): AutoKlausIterator<AbstractFile> {
         return if (findFallBack != null) findFallBack!!.find(directory, pruneDir) else super.find(directory, pruneDir)
     }
 
-    override fun setCreationDate(target: AbstractFile<*>, created: Long) {
+    override fun setCreationDate(target: AbstractFile, created: Long) {
         // android does not store creation dates
     }
 }

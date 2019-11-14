@@ -20,9 +20,9 @@ public class PathCollection {
     }
 
     public PathCollection addPath(AbstractFile<?> file) {
-        if (!pathSet.contains(file.getAbsolutePath())) {
+        if (!pathSet.contains(file.absolutePath)) {
             paths.add(file);
-            pathSet.add(file.getAbsolutePath());
+            pathSet.add(file.absolutePath);
         }
         return this;
     }

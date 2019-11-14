@@ -28,7 +28,7 @@ class MainTest {
             FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance())
             FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance())
             AbstractFile.configure(DefaultFileConfiguration())
-            BashTools.init()
+            BashTools.Companion.init()
 
             val settings = MelAuthSettings.createDefaultSettings()
             val rootFile = File("dump.test.dir")
