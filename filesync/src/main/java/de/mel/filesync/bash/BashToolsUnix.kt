@@ -135,7 +135,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
         val escaped = escapeAbsoluteFilePath(directory)
         // the secont path below fixed something but I forgot what it is. it also returns "." and ".."
         val path = "\"$escaped${File.separator}\"* \"$escaped${File.separator}\".*"
-        val args = arrayOf(BIN_PATH, "-c", "stat -c %i\\ //\\ %W\\ //\\ '%F'\\ //\\ %N\\ //\\ %n " + path)
+        val args = arrayOf(BIN_PATH, "-c", "LANG=en_US.UTF-8 ; stat -c %i\\ //\\ %W\\ //\\ '%F'\\ //\\ %N\\ //\\ %n $path;")
 
         val proc = ProcessBuilder(*args).start()
         //proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false

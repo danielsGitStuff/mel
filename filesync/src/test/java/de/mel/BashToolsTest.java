@@ -46,6 +46,7 @@ public class BashToolsTest {
 
     @Before
     public void before() throws Exception {
+        Lok.debug("running in " + System.getProperties().get("user.dir"));
         if (root.exists())
             F.rmRf(new File(root.getAbsolutePath()));
         subsub.mkdirs();

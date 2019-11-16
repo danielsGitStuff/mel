@@ -19,15 +19,16 @@ abstract class BashTools<A : IFile> {
     companion object {
         var binPath: String? = null
         val isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows")
-        lateinit var implementation: BashTools<IFile>
+        private var implementation: BashTools<IFile> = if (BashTools.isWindows) {
+            BashToolsWindows() as BashTools<IFile>
+        } else {
+            BashToolsUnix() as BashTools<IFile>
+        }
+
         fun <F : IFile> getFsBashDetails(file: F): FsBashDetails? = implementation.getFsBashDetails(file)
 
         fun init() {
-            if (implementation == null) if (BashTools.isWindows) {
-                implementation = BashToolsWindows() as BashTools<IFile>
-            } else {
-                implementation = BashToolsUnix() as BashTools<IFile>
-            }
+
         }
 
         fun inputStreamToFileIterator(inputStream: InputStream): AutoKlausIterator<AbstractFile<*>> {
