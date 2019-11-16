@@ -1,44 +1,40 @@
 package de.mel.filesync.bash
 
-import java.io.File
-import java.io.IOException
-import java.util.*
-
 import de.mel.Lok
 import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.DefaultFileConfiguration
+import de.mel.auth.file.StandardFile
+import java.io.File
+import java.io.IOException
+import java.util.*
 
 /**
  * Created by xor on 7/24/17.
  */
 
-class BashToolsAndroidJavaImpl : BashToolsImpl() {
+class BashToolsAndroidJavaImpl : BashToolsUnix() {
+    override fun stuffModifiedAfter(directory: StandardFile, pruneDir: StandardFile, timeStamp: Long): AutoKlausIterator<StandardFile> = AutoKlausIterator.EmptyAutoKlausIterator()
 
-
-    override fun setBinPath(binPath: String) {
-
-    }
 
     @Throws(IOException::class)
-    override fun getFsBashDetails(file: AbstractFile): FsBashDetails? {
+    override fun getFsBashDetails(file: StandardFile): FsBashDetails? {
         Lok.error("NOT:IMPLEMENTED")
         return null
     }
 
     @Throws(IOException::class)
-    override fun rmRf(directory: AbstractFile) {
+    override fun rmRf(directory: StandardFile) {
         Lok.error("NOT:IMPLEMENTED")
     }
 
 
-
     @Throws(IOException::class)
-    override fun find(directory: AbstractFile, pruneDir: AbstractFile): AutoKlausIterator<AbstractFile> {
-        val fileStack = Stack<Iterator<AbstractFile>>()
+    override fun find(directory: StandardFile, pruneDir: StandardFile): AutoKlausIterator<StandardFile> {
+        val fileStack = Stack<Iterator<StandardFile>>()
         val prunePath = pruneDir.absolutePath
         Lok.debug("BashToolsAndroidJavaImpl.find.prune: $prunePath")
-        fileStack.push(Arrays.asList<AbstractFile>(*directory.listContent()).iterator())
-        return object : AutoKlausIterator<AbstractFile> {
+        fileStack.push(Arrays.asList<StandardFile>(*directory.listContent()).iterator())
+        return object : AutoKlausIterator<StandardFile> {
             override fun close() {
 
             }
@@ -46,7 +42,7 @@ class BashToolsAndroidJavaImpl : BashToolsImpl() {
             internal var nextLine: String? = null
 
             private fun fastForward() {
-                var iterator: Iterator<AbstractFile>? = fileStack.peek()
+                var iterator: Iterator<StandardFile>? = fileStack.peek()
                 while (iterator != null) {
                     while (iterator.hasNext()) {
                         val f = iterator.next()
@@ -61,10 +57,6 @@ class BashToolsAndroidJavaImpl : BashToolsImpl() {
                     } else
                         return
                 }
-            }
-
-            override fun remove() {
-
             }
 
             override fun hasNext(): Boolean {
@@ -83,7 +75,7 @@ class BashToolsAndroidJavaImpl : BashToolsImpl() {
                         if (iterator.hasNext()) {
                             val nextFile = iterator.next()
                             if (nextFile.isDirectory)
-                                fileStack.push(Arrays.asList<AbstractFile>(*nextFile.listContent()).iterator())
+                                fileStack.push(Arrays.asList<StandardFile>(*nextFile.listContent()).iterator())
                             nextLine = nextFile.absolutePath
                             return if (nextLine!!.startsWith(prunePath)) {
                                 hasNext()
@@ -114,11 +106,11 @@ class BashToolsAndroidJavaImpl : BashToolsImpl() {
             //                    max = depth;
             //            }
 
-            override fun next(): AbstractFile {
+            override fun next(): StandardFile {
                 if (nextLine != null || hasNext()) {
                     val line = nextLine
                     nextLine = null
-                    return AbstractFile.instance(line)
+                    return AbstractFile.instance(line!!) as StandardFile
                 } else {
                     throw NoSuchElementException()
                 }
@@ -126,34 +118,21 @@ class BashToolsAndroidJavaImpl : BashToolsImpl() {
         }
     }
 
+    override fun isSymLink(f: StandardFile): Boolean = false
 
 
-    @Throws(IOException::class)
-    override fun mkdir(dir: AbstractFile) {
-        val i = 0
-        while (!dir.exists()) {
-            dir.mkdirs()
-            Lok.debug("BashToolsAndroidJavaImpl.mkdir.$i")
-        }
+    override fun getContentFsBashDetails(file: StandardFile): MutableMap<String, FsBashDetails> {
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
+        return mutableMapOf()
     }
 
-
-    override fun isSymLink(f: AbstractFile): Boolean {
-        return false
-    }
-
-    override fun getContentFsBashDetails(file: AbstractFile): Map<String, FsBashDetails> {
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        return mapOf()
-    }
-
-    override fun lnS(file: AbstractFile, target: String) {
+    override fun lnS(file: StandardFile, target: String) {
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
@@ -173,8 +152,8 @@ class BashToolsAndroidJavaImpl : BashToolsImpl() {
         @JvmStatic
         fun main(args: Array<String>) {
             AbstractFile.configure(DefaultFileConfiguration())
-            val dir = AbstractFile.instance("bash.test")
-            val prune = AbstractFile.instance(dir.absolutePath + File.separator + "prune")
+            val dir = AbstractFile.instance("bash.test") as StandardFile
+            val prune = AbstractFile.instance(dir.absolutePath + File.separator + "prune") as StandardFile
             val file = File(dir.absolutePath + File.separator + "file")
             dir.mkdirs()
             prune.mkdirs()

@@ -2,6 +2,7 @@ package de.mel.filesync.sql.dao;
 
 import de.mel.Lok;
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 import de.mel.auth.tools.Eva;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.FileSyncStrings;
@@ -48,7 +49,7 @@ StageDao extends Dao.LockingDao {
         if (f.absolutePath.length() < rootPath.length())
             return null;
         AbstractFile ff = AbstractFile.instance(f.absolutePath);
-        Stack<AbstractFile> fileStack = FileTools.getFileStack(rootDirectory, ff);
+        Stack<IFile> fileStack = FileTools.getFileStack(rootDirectory, ff);
         FsEntry bottomFsEntry = fsDao.getBottomFsEntry(fileStack);
         Stage bottomStage = this.getStageByFsId(bottomFsEntry.getId().v(), stageSetId);
         while (!fileStack.empty()) {

@@ -1,6 +1,7 @@
 package de.mel.filesync.index;
 
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 import de.mel.auth.tools.Order;
 import de.mel.core.serialize.serialize.tools.OTimer;
 import de.mel.filesync.bash.BashTools;
@@ -22,7 +23,7 @@ public class IndexHelper {
     private final FsDao fsDao;
     private final StageDao stageDao;
     private final Order order;
-    private final Stack<AbstractFile> fileStack = new Stack<>();
+    private final Stack<IFile> fileStack = new Stack<>();
     private final Stack<FsEntry> fsEntryStack = new Stack<>();
     private final Stack<Stage> stageStack = new Stack<>();
     private final OTimer timer1 = new OTimer("helper 1");
@@ -54,18 +55,18 @@ public class IndexHelper {
         // remember: we always deal with directories here. that means that we can ask all DAOs for
         // directories and don't have to deal with files :)
         final int rootPathLength = databaseManager.getFileSyncSettings().getRootDirectory().getPath().length();
-        String targetPath = directory.absolutePath;
+        String targetPath = directory.getAbsolutePath();
         if (targetPath.length() < rootPathLength)
             return null;
         // find out where the stacks point to
-        String stackPath = databaseManager.getFileSyncSettings().getRootDirectory().getOriginalFile().absolutePath;
+        String stackPath = databaseManager.getFileSyncSettings().getRootDirectory().getOriginalFile().getAbsolutePath();
         if (!fileStack.empty())
-            stackPath = fileStack.peek().absolutePath;
+            stackPath = fileStack.peek().getAbsolutePath();
 
         // remove everything from the stacks that does not lead to the directory
         while (fileStack.size() > 1 && (stackPath.length() > targetPath.length() || !targetPath.startsWith(stackPath))) {
             fileStack.pop();
-            stackPath = fileStack.peek().absolutePath;
+            stackPath = fileStack.peek().getAbsolutePath();
             if (stageStack.size() > 0) {
                 Stage stage = stageStack.pop();
             }
@@ -75,14 +76,14 @@ public class IndexHelper {
         }
 
         // calculate the parts that go onto the stacks
-        Stack<AbstractFile> remainingParts = new Stack<>();
+        Stack<IFile> remainingParts = new Stack<>();
         {
             if (!fileStack.empty()) {
-                AbstractFile currentDir = directory;
-                while (currentDir.absolutePath.length() >= fileStack.peek().absolutePath.length()
-                        && !currentDir.absolutePath.equals(fileStack.peek().absolutePath)) {
+                IFile currentDir = directory;
+                while (currentDir.getAbsolutePath().length() >= fileStack.peek().getAbsolutePath().length()
+                        && !currentDir.getAbsolutePath().equals(fileStack.peek().getAbsolutePath())) {
                     remainingParts.push(currentDir);
-                    currentDir = currentDir.parentFile;
+                    currentDir = currentDir.getParentFile();
                 }
             }
         }
@@ -97,15 +98,15 @@ public class IndexHelper {
             stageStack.push(stageParent);
         }
         while (!remainingParts.empty()) {
-            final AbstractFile part = remainingParts.pop();
+            final IFile part = remainingParts.pop();
 
             if (parentFs != null) {
-                parentFs = fsDao.getSubDirectoryByName(parentFs.getId().v(), part.name);
+                parentFs = fsDao.getSubDirectoryByName(parentFs.getId().v(), part.getName());
             }
             if (stageParent == null && parentFs != null) {
                 stageParent = stageDao.getStageParentByFsId(stageSetId, parentFs.getId().v());
             } else if (stageParent != null) {
-                Stage newStageParent = stageDao.getSubStageByName(stageParent.getId(), part.name);
+                Stage newStageParent = stageDao.getSubStageByName(stageParent.getId(), part.getName());
                 if (newStageParent == null) {
                     /*
                      * this may happen if the output of find is not hierarchicly coherent:
@@ -113,7 +114,7 @@ public class IndexHelper {
                      * /home/user/subdir/file.txt
                      */
                     newStageParent = new Stage()
-                            .setName(part.name)
+                            .setName(part.getName())
                             .setOrder(order.ord())
                             .setStageSet(stageSetId)
                             .setDeleted(false);
@@ -148,7 +149,7 @@ public class IndexHelper {
                     if (fsBashDetails.isSymLink())
                         stage.setSymLink(fsBashDetails.getSymLinkTarget());
                 }
-            } catch (IOException | InterruptedException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

@@ -69,11 +69,11 @@ class StandardFile : AbstractFile<StandardFile> {
     }
 
     override fun listFiles(): Array<StandardFile> {
-        return N.arr.cast(file.listFiles { obj: File -> obj.isFile }, N.converter(StandardFile::class.java) { file: File? -> StandardFile(file) })
+        return N.arr.cast(file.listFiles { obj: File -> obj.isFile }, N.converter(StandardFile::class.java) { file: File -> StandardFile(file) })
     }
 
     override fun listDirectories(): Array<StandardFile> {
-        return N.arr.cast(file.listFiles { obj: File -> obj.isDirectory }, N.converter(StandardFile::class.java) { file: File? -> StandardFile(file) })
+        return N.arr.cast(file.listFiles { obj: File -> obj.isDirectory }, N.converter(StandardFile::class.java) { file: File -> StandardFile(file) })
     }
 
     override fun delete(): Boolean {
@@ -123,7 +123,7 @@ class StandardFile : AbstractFile<StandardFile> {
         return file.createNewFile()
     }
 
-    override fun listContent(): Array<StandardFile>? {
+    override fun listContent(): Array<StandardFile> {
         return N.arr.cast(file.listFiles(), N.converter(StandardFile::class.java) { file: File? -> StandardFile(file!!) })
     }
 }

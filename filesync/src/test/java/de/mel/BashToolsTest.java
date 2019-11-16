@@ -84,7 +84,7 @@ public class BashToolsTest {
     }
 
     @Test
-    public void getFsBashDetailsModified() throws IOException, InterruptedException {
+    public void getFsBashDetailsModified() throws Exception {
         Thread.sleep(1001);
         write(f2, "NEIN!");
         FsBashDetails fsBashDetails = BashTools.Companion.getFsBashDetails(f2);

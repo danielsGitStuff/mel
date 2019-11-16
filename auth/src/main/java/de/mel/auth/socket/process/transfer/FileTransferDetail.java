@@ -2,6 +2,7 @@ package de.mel.auth.socket.process.transfer;
 
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.AbstractFileWriter;
+import de.mel.auth.tools.N;
 import de.mel.core.serialize.JsonIgnore;
 import de.mel.core.serialize.SerializableEntity;
 
@@ -142,7 +143,7 @@ public class FileTransferDetail implements SerializableEntity {
         position = offset + data.length;
         if (position >= end) {
             assert position == end;
-            writer.close();
+            N.r(() -> writer.close());
             transferred = true;
             if (transferDoneListener != null)
                 transferDoneListener.onFileTransferDone(this);

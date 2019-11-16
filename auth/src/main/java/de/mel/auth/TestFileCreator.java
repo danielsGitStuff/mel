@@ -24,8 +24,8 @@ public class TestFileCreator {
         return stringBuilder.toString().getBytes();
     }
 
-    public static void saveFile(byte[] data, AbstractFile file) throws IOException {
-        Lok.debug("TestFileCreator.saveFile: " + file.absolutePath);
+    public static void saveFile(byte[] data, AbstractFile file) throws Exception {
+        Lok.debug("TestFileCreator.saveFile: " + file.getAbsolutePath());
         AbstractFileWriter fos = file.writer();
 //        fos.write(data);
         fos.close();

@@ -13,8 +13,10 @@ import de.mel.Lok
 import de.mel.android.file.AndroidFile
 import de.mel.android.file.AndroidFileConfiguration
 import de.mel.auth.file.AbstractFile
+import de.mel.auth.file.IFile
 import de.mel.filesync.bash.*
 import de.mel.filesync.bash.BashToolsAndroidJavaImpl
+import java.io.InputStreamReader
 
 /**
  * Created by xor on 7/20/17.
@@ -93,8 +95,8 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
     }
 
     internal inner class Streams {
-        var stdout: Iterator<AbstractFile>? = null
-        var stderr: Iterator<String>? = null
+        var stdout: AutoKlausIterator<AbstractFile<*>>? = null
+        var stderr: AutoKlausIterator<String>? = null
     }
 
     @Throws(IOException::class, InterruptedException::class)
@@ -109,7 +111,7 @@ class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
         Lok.debug("BashTest.exec." + proc.exitValue())
         val streams = Streams()
         streams.stdout = BashTools.Companion.inputStreamToFileIterator(proc.inputStream)
-        streams.stderr = BashTools.Companion.inputStreamToIterator(proc.errorStream)
+        streams.stderr = BufferedIterator.BufferedStringIterator(InputStreamReader(proc.errorStream))
         return streams
     }
 

@@ -18,8 +18,8 @@ import java.nio.file.attribute.BasicFileAttributeView
  * Reason: Windoof permits creating symlinks without higher privileges in out of the box configuration
  * Created by xor on 13.07.2017.
  */
-class BashToolsWindows : BashTools<String, StandardFile> {
-    override fun getContentFsBashDetails(file: StandardFile): Map<String, FsBashDetails> {
+class BashToolsWindows : BashTools<StandardFile>() {
+    override fun getContentFsBashDetails(file: StandardFile): MutableMap<String, FsBashDetails> {
         val contents: Array<out StandardFile>? = file.listContent()
 
         val symLinkMap: MutableMap<String, String> = mutableMapOf()
@@ -260,15 +260,11 @@ class BashToolsWindows : BashTools<String, StandardFile> {
             val windowsBashReader = execReader("dir", "/b/s", directory.absolutePath, "|", "findstr", "/vc:\"" + pruneDir.absolutePath + "\"")!!
                     .addFirstLine(directory.absolutePath)
             val iterator = windowsBashReader!!.lines()
-                    .map { it: String -> AbstractFile.instance(it) }.iterator()
+                    .map { it: String -> AbstractFile.instance(it) as StandardFile}.iterator()
 
             override fun hasNext(): Boolean = iterator.hasNext()
 
             override fun next(): StandardFile = iterator.next()
-
-            override fun remove() {
-
-            }
 
             override fun close() {
                 windowsBashReader!!.close()
@@ -308,16 +304,13 @@ class BashToolsWindows : BashTools<String, StandardFile> {
                 "| foreach {\$_.FullName}"
         return object : AutoKlausIterator<StandardFile> {
             val windowsBashReader = execPowerShell(command, prependLine)
-            val iterator = windowsBashReader.lines().map { AbstractFile.instance(it) }.iterator()
+            val iterator = windowsBashReader.lines().map { AbstractFile.instance(it) as StandardFile }.iterator()
 
             override fun hasNext(): Boolean = iterator.hasNext()
 
 
             override fun next(): StandardFile = iterator.next()
 
-            override fun remove() {
-
-            }
 
             override fun close() {
                 windowsBashReader.close()
@@ -331,5 +324,5 @@ class BashToolsWindows : BashTools<String, StandardFile> {
         private val CHARSET = StandardCharsets.ISO_8859_1
     }
 
-    override fun stuffModifiedAfter(referenceFile: StandardFile, directory: StandardFile, pruneDir: StandardFile): List<StandardFile> = emptyList()
+    override fun stuffModifiedAfter(referenceFile: StandardFile, directory: StandardFile, pruneDir: StandardFile): List<StandardFile> = mutableListOf()
 }

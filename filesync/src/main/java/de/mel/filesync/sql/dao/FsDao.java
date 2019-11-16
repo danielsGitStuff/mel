@@ -3,6 +3,7 @@ package de.mel.filesync.sql.dao;
 
 import de.mel.Lok;
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.RWSemaphore;
 import de.mel.filesync.data.FileSyncSettings;
@@ -23,7 +24,7 @@ public class FsDao extends Dao {
     protected FsFile dummy = new FsFile();
     protected FsDirectory dir = new FsDirectory();
 
-    public FsEntry getBottomFsEntry(Stack<AbstractFile> fileStack) throws SqlQueriesException {
+    public FsEntry getBottomFsEntry(Stack<IFile> fileStack) throws SqlQueriesException {
         if (fileStack.size() == 0) { //&& fileStack[0].length() == 0) {
             return getRootDirectory();
         }
@@ -31,7 +32,7 @@ public class FsDao extends Dao {
         FsEntry lastFsEntry = null;
         do {
             Long parentId = (lastFsEntry != null) ? lastFsEntry.getId().v() : fileSyncSettings.getRootDirectory().getId();
-            lastFsEntry = getGenericSubByName(parentId, fileStack.peek().name);
+            lastFsEntry = getGenericSubByName(parentId, fileStack.peek().getName());
             if (lastFsEntry != null) {
                 bottomFsEntry = lastFsEntry;
                 fileStack.pop();
@@ -245,24 +246,24 @@ public class FsDao extends Dao {
 
     }
 
-    public FsDirectory getFsDirectoryByPath(AbstractFile f) throws SqlQueriesException {
+    public FsDirectory getFsDirectoryByPath(IFile f) throws SqlQueriesException {
         try {
             RootDirectory rootDirectory = fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory();
             String rootPath = rootDirectory.getPath();
             //todo Exception here
-            if (!f.absolutePath.startsWith(rootPath))
+            if (!f.getAbsolutePath().startsWith(rootPath))
                 return null;
-            if (f.absolutePath.length() == rootPath.length())
+            if (f.getAbsolutePath().length() == rootPath.length())
                 return getRootDirectory();
             FsDirectory parent = this.getRootDirectory();
-            Stack<AbstractFile> fileStack = new Stack<>();
-            AbstractFile ff = f;
-            while (ff.absolutePath.length() > rootPath.length()) {
+            Stack<IFile> fileStack = new Stack<>();
+            IFile ff = f;
+            while (ff.getAbsolutePath().length() > rootPath.length()) {
                 fileStack.push(ff);
-                ff = ff.parentFile;
+                ff = ff.getParentFile();
             }
             while (!fileStack.empty()) {
-                String name = fileStack.pop().name;
+                String name = fileStack.pop().getName();
                 if (parent == null)
                     return null;
                 parent = this.getSubDirectoryByName(parent.getId().v(), name);

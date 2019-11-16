@@ -12,13 +12,12 @@ import java.io.InputStream
  * Before using [AbstractFile], call configure() and hand over a [Configuration]. This determines the implementation you want to use.
  * [DefaultFileConfiguration] uses [StandardFile] which wraps [File].
  */
-abstract class AbstractFile<out T> {
-    abstract val separator: String?
+abstract class AbstractFile<out T : IFile> :IFile {
     /**
      * @param subFile
      * @return true if subFile is located in a subfolder of this instance.
      */
-    fun hasSubContent(subFile: AbstractFile<*>): Boolean = subFile.absolutePath.startsWith(absolutePath)
+    override fun hasSubContent(subFile: AbstractFile<*>): Boolean = subFile.absolutePath.startsWith(absolutePath)
 
     @get:Throws(IOException::class)
     abstract val canonicalPath: String?
@@ -27,53 +26,26 @@ abstract class AbstractFile<out T> {
      * creates common instances of [AbstractFile]s
      */
     abstract class Configuration {
-        abstract fun instance(path: String): AbstractFile<Any>
+        abstract fun instance(path: String): AbstractFile<IFile>
         abstract fun separator(): String
-        abstract fun instance(file: File): AbstractFile<Any>
-        abstract fun instance(parent: AbstractFile<Any>, name: String): AbstractFile<Any>
-        abstract fun instance(originalFile: AbstractFile<Any>): AbstractFile<Any>
+        abstract fun instance(file: File): AbstractFile<IFile>
+        abstract fun instance(parent: AbstractFile<IFile>, name: String): AbstractFile<IFile>
+        abstract fun instance(originalFile: AbstractFile<IFile>): AbstractFile<IFile>
     }
 
     open var path: String? = null
-
-    abstract val name: String
-    abstract val absolutePath: String
-    abstract fun exists(): Boolean
-    abstract val isFile: Boolean
-    //    public abstract boolean move(T target);
-    abstract val isDirectory: Boolean
-
-    abstract fun length(): Long
-    abstract fun listFiles(): Array<out T>
-    abstract fun listDirectories(): Array<out T>
-    abstract fun delete(): Boolean
-    abstract val parentFile: T
-    abstract fun mkdirs(): Boolean
-    @Throws(FileNotFoundException::class)
-    abstract fun inputStream(): InputStream?
-
-    @Throws(IOException::class)
-    abstract fun writer(): AbstractFileWriter?
-
-    abstract val freeSpace: Long?
-    abstract val usableSpace: Long?
-    abstract fun lastModified(): Long?
-    @Throws(IOException::class)
-    abstract fun createNewFile(): Boolean
-
-    abstract fun listContent(): Array<out T>?
 
     companion object {
         var configuration: Configuration? = null
             private set
 
         @JvmStatic
-        fun instance(file: File): AbstractFile<Any> {
+        fun instance(file: File): AbstractFile<IFile> {
             return configuration!!.instance(file)
         }
 
         @JvmStatic
-        fun instance(originalFile: AbstractFile<Any>): AbstractFile<Any> {
+        fun instance(originalFile: AbstractFile<IFile>): AbstractFile<IFile> {
             return configuration!!.instance(originalFile)
         }
 
@@ -94,13 +66,13 @@ abstract class AbstractFile<out T> {
          * @return
          */
         @JvmStatic
-        fun instance(path: String): AbstractFile<Any> {
+        fun instance(path: String): AbstractFile<IFile> {
             if (configuration == null) Lok.error(AbstractFile::class.java.simpleName + ". NOT INITIALIZED! Call configure() before!")
             return configuration!!.instance(path)
         }
 
         @JvmStatic
-        fun instance(parent: AbstractFile<Any>, name: String): AbstractFile<Any> {
+        fun instance(parent: AbstractFile<IFile>, name: String): AbstractFile<IFile> {
             return configuration!!.instance(parent, name)
         }
 

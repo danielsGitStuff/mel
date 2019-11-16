@@ -2,6 +2,7 @@ package de.mel.filesync.bash
 
 import de.mel.Lok
 import de.mel.auth.file.AbstractFile
+import de.mel.auth.file.IFile
 import de.mel.auth.file.StandardFile
 import de.mel.auth.tools.N
 
@@ -18,7 +19,7 @@ import java.util.concurrent.Executors
  * Created by xor on 13.07.2017.
  */
 open class BashToolsUnix : BashTools<StandardFile>() {
-    override fun lnS(file: AbstractFile, target: String) {
+    override fun lnS(file: StandardFile, target: String) {
         val escapedFilePath = escapeQuotedAbsoluteFilePath(file)
         val escapedTarget = escapeQuotedPath(target)
         val args = arrayOf(BIN_PATH, "-c", "ln -s ${escapedTarget} ${escapedFilePath} ")
@@ -50,7 +51,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
      * @param file
      * @return
      */
-    protected fun escapeQuotedAbsoluteFilePath(file: AbstractFile): String {
+    protected fun escapeQuotedAbsoluteFilePath(file: StandardFile): String {
         return ("\"${escapeAbsoluteFilePath(file)}\"")
     }
 
@@ -60,7 +61,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
      * @param file
      * @return
      */
-    protected fun escapeAbsoluteFilePath(file: AbstractFile): String {
+    protected fun escapeAbsoluteFilePath(file: StandardFile): String {
         return escapePath(file.absolutePath)
 
     }
@@ -79,7 +80,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
 
     // todo null
     @Throws(IOException::class, InterruptedException::class)
-    override fun getFsBashDetails(file: StandardFile): FsBashDetails {
+    override fun getFsBashDetails(file: StandardFile): FsBashDetails? {
         val args = arrayOf(BIN_PATH, "-c", "stat -c %i\\ %W\\ '%F'\\ %N " + escapeQuotedAbsoluteFilePath(file))
         val proc = ProcessBuilder(*args).start()
         //proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false
@@ -114,7 +115,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
     /**
      * parses an output line from stat
      */
-    private fun parseSymLink(file: AbstractFile, line: String): String {
+    private fun parseSymLink(file: StandardFile, line: String): String {
         var symLinkTarget: String? = null
         val originalSym = line.drop(1).dropLast(1)
         val parentCanonical = file.parentFile.canonicalPath
@@ -189,8 +190,8 @@ open class BashToolsUnix : BashTools<StandardFile>() {
         processBuilder.redirectErrorStream(true)
         val proc = processBuilder.start()
         Lok.debug("BashTools.Companion.stuffModifiedAfter.collecting.result")
-        val result = ArrayList<AbstractFile>()
-        val iterator = BashTools.Companion.inputStreamToFileIterator(proc.inputStream)
+        val result = ArrayList<StandardFile>()
+        val iterator = BufferedIterator.BufferedFileIterator<StandardFile>(InputStreamReader(proc.inputStream))
         while (iterator.hasNext()) {
             val path = iterator.next()
 //            Lok.debug(javaClass.simpleName + ".stuffModifiedAfter.collected: " + path)
@@ -201,25 +202,19 @@ open class BashToolsUnix : BashTools<StandardFile>() {
     }
 
     @Throws(IOException::class)
-    private fun exec(cmd: String): AutoKlausIterator<AbstractFile> {
+    private fun exec(cmd: String): AutoKlausIterator<StandardFile> {
         val args = arrayOf(BIN_PATH, "-c", cmd)
         Lok.debug("BashToolsUnix.exec: $cmd")
         val proc = ProcessBuilder(*args).start()
-        return BashTools.Companion.inputStreamToFileIterator(proc.inputStream)
+        return BufferedIterator.BufferedFileIterator(InputStreamReader(proc.inputStream))
     }
 
     @Throws(IOException::class)
-    override fun find(directory: AbstractFile, pruneDir: AbstractFile): AutoKlausIterator<AbstractFile> {
+    override fun find(directory: StandardFile, pruneDir: StandardFile): AutoKlausIterator<StandardFile> {
         return exec("find ${escapeQuotedAbsoluteFilePath(directory)} -path ${escapeQuotedAbsoluteFilePath(pruneDir)} -prune -o -print")
 //        return exec("find " + escapeQuotedAbsoluteFilePath(directory) + " -mindepth 1" + " -path " + escapeQuotedAbsoluteFilePath(pruneDir) + " -prune -o -print")
     }
 
-
-    @Throws(IOException::class)
-    override fun mkdir(dir: AbstractFile) {
-        val args = arrayOf(BIN_PATH, "-c", "mkdir " + escapeQuotedAbsoluteFilePath(dir))
-        ProcessBuilder(*args).start()
-    }
 
     @Throws(IOException::class)
     fun mv(source: File, target: File): Boolean {
@@ -259,5 +254,8 @@ open class BashToolsUnix : BashTools<StandardFile>() {
         thread.join()
         return ShareFolderProperties(count, containsSymLinks)
     }
+
+
+    override fun stuffModifiedAfter(directory: StandardFile, pruneDir: StandardFile, timeStamp: Long): AutoKlausIterator<StandardFile> = AutoKlausIterator.EmptyAutoKlausIterator()
 
 }

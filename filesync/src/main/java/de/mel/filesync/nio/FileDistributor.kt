@@ -16,7 +16,7 @@ import java.io.IOException
 import java.util.*
 
 @Suppress("FINITE_BOUNDS_VIOLATION_IN_JAVA")
-open class FileDistributor<T : AbstractFile>(val fileSyncService: MelFileSyncService<*>) : MelRunnable {
+open class FileDistributor<T : AbstractFile<*>>(val fileSyncService: MelFileSyncService<*>) : MelRunnable {
     private var stopped: Boolean = false;
     private var notification: MelNotification? = null
     private var running: Boolean = false
@@ -41,10 +41,10 @@ open class FileDistributor<T : AbstractFile>(val fileSyncService: MelFileSyncSer
      * this overwrites files and does not update databases!
      */
     @Throws(IOException::class)
-    fun rawCopyFile(srcFile: AbstractFile, targetFile: AbstractFile) {
+    fun rawCopyFile(srcFile: AbstractFile<*>, targetFile: AbstractFile<*>) {
         var read: Int
-        val out = targetFile.writer()
-        val ins = srcFile.inputStream()
+        val out = targetFile.writer() ?: throw IOException("could not write to ${targetFile.absolutePath}")
+        val ins = srcFile.inputStream() ?: throw IOException("could not read from ${srcFile.absolutePath}")
         try {
             do {
                 if (stopped || Thread.currentThread().isInterrupted) {
@@ -197,9 +197,10 @@ open class FileDistributor<T : AbstractFile>(val fileSyncService: MelFileSyncSer
     }
 
     protected fun updateFs(fsId: Long?, target: T): FsFile {
-        val fsBashDetails = BashTools.Companion.getFsBashDetails(target)
+        val fsBashDetails = BashTools.getFsBashDetails(target)
+                ?: throw IOException("could not read FsBashDetails from ${target.absolutePath}")
         val fsTarget = fsDao.getFile(fsId)
-        BashTools.Companion.setCreationDate(target, fsBashDetails.created)
+        BashTools.setCreationDate(target, fsBashDetails.created)
         fsTarget.getiNode().v(fsBashDetails.getiNode())
         fsTarget.modified.v(fsBashDetails.modified)
         fsTarget.size.v(target.length())

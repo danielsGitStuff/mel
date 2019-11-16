@@ -22,7 +22,7 @@ class FileWatcherUnix extends FileWatcherPC {
 
     FileWatcherUnix(MelFileSyncService melFileSyncService, WatchService watchService) {
         super(melFileSyncService, "IndexWatchdogListenerUnix", watchService);
-        unixReferenceFileHandler = new UnixReferenceFileHandler(melFileSyncService.getServiceInstanceWorkingDirectory(), melFileSyncService.getFileSyncSettings().getRootDirectory().getOriginalFile(), AbstractFile.instance(melFileSyncService.getFileSyncSettings().getTransferDirectory().absolutePath));
+        unixReferenceFileHandler = new UnixReferenceFileHandler(melFileSyncService.getServiceInstanceWorkingDirectory(), melFileSyncService.getFileSyncSettings().getRootDirectory().getOriginalFile(), AbstractFile.instance(melFileSyncService.getFileSyncSettings().getTransferDirectory().getAbsolutePath()));
     }
 
     @Override
