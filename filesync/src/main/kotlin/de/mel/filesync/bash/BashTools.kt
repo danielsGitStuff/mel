@@ -19,14 +19,14 @@ abstract class BashTools<A : IFile> {
     companion object {
         var binPath: String? = null
         val isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows")
-        lateinit var implementation: BashTools<AbstractFile<*>>
-        fun <F : AbstractFile<Any>> getFsBashDetails(file: F): FsBashDetails? = implementation.getFsBashDetails(file)
+        lateinit var implementation: BashTools<IFile>
+        fun <F : IFile> getFsBashDetails(file: F): FsBashDetails? = implementation.getFsBashDetails(file)
 
         fun init() {
             if (implementation == null) if (BashTools.isWindows) {
-                implementation = BashToolsWindows() as BashTools<AbstractFile<*>>
+                implementation = BashToolsWindows() as BashTools<IFile>
             } else {
-                implementation = BashToolsUnix() as BashTools<AbstractFile<*>>
+                implementation = BashToolsUnix() as BashTools<IFile>
             }
         }
 
@@ -34,14 +34,17 @@ abstract class BashTools<A : IFile> {
             return BufferedFileIterator(InputStreamReader(inputStream))
         }
 
-        fun rmRf(file: AbstractFile<*>) = implementation.rmRf(file)
-        fun find(root: AbstractFile<*>, pruneDir: AbstractFile<*>): AutoKlausIterator<AbstractFile<*>> = implementation.find(root, pruneDir)
-        fun isSymLink(file: AbstractFile<*>) = implementation.isSymLink(file)
+        fun rmRf(file: IFile) = implementation.rmRf(file)
+        fun rmRf(file: File) = implementation.rmRf(AbstractFile.instance(file))
 
-        fun getContentFsBashDetails(dir: AbstractFile<*>) = implementation.getContentFsBashDetails(dir)
-        fun lnS(symbolic: AbstractFile<*>, target: String) = implementation.lnS(symbolic, target)
+        fun find(root: IFile, pruneDir: IFile): AutoKlausIterator<IFile> = implementation.find(root, pruneDir)
+        fun isSymLink(file: IFile) = implementation.isSymLink(file)
+
+        fun getContentFsBashDetails(dir: IFile) = implementation.getContentFsBashDetails(dir)
+        fun lnS(symbolic: IFile, target: String) = implementation.lnS(symbolic, target)
         fun stuffModifiedAfter(directory: IFile, pruneDir: IFile, timeStamp: Long): AutoKlausIterator<IFile> = implementation.stuffModifiedAfter(directory, pruneDir, timeStamp)
-        fun setCreationDate(target: AbstractFile<*>, created: Long) = implementation.setCreationDate(target = target, created = created)
+        fun stuffModifiedAfter(referenceFile: IFile, directory: IFile, pruneDir: IFile): List<IFile> = implementation.stuffModifiedAfter(referenceFile, directory, pruneDir)
+        fun setCreationDate(target: IFile, created: Long) = implementation.setCreationDate(target = target, created = created)
     }
 
     open fun isSymLink(f: A): Boolean = Files.isSymbolicLink(Paths.get(File(f.absolutePath).toURI()))
@@ -66,6 +69,7 @@ abstract class BashTools<A : IFile> {
     @Throws(exceptionClasses = [IOException::class])
     abstract fun rmRf(directory: A)
 
+    //todo replace return type with AutoKlausIterator
     @Throws(exceptionClasses = [IOException::class, de.mel.filesync.bash.BashToolsException::class])
     abstract fun stuffModifiedAfter(referenceFile: A, directory: A, pruneDir: A): List<A>
 

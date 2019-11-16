@@ -4,6 +4,7 @@ import de.mel.Lok;
 import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
+import de.mel.auth.file.IFile;
 import de.mel.filesync.bash.AutoKlausIterator;
 import de.mel.filesync.bash.BashTools;
 
@@ -26,19 +27,19 @@ public class BashCommandsTest {
     AbstractFile timeDir;
 
     @Before
-    public void before() throws IOException {
+    public void before() throws Exception {
         AbstractFile.configure(new DefaultFileConfiguration());
         testDir = AbstractFile.instance("testdir1");
         BashTools.Companion.init();
         CertificateManager.deleteDirectory(testDir);
         paths = TestDirCreator.createTestDir(testDir);
-        timeDir = AbstractFile.instance(testDir.absolutePath + File.separator + "timetest");
+        timeDir = AbstractFile.instance(testDir.getAbsolutePath() + File.separator + "timetest");
 
     }
 
     @Test
     public void bashFind() throws Exception {
-        try (AutoKlausIterator<AbstractFile<?>> iterator = BashTools.Companion.find(testDir, AbstractFile.instance("blaaaa"))) {
+        try (AutoKlausIterator<IFile> iterator = BashTools.Companion.find(testDir, AbstractFile.instance("blaaaa"))) {
             while (iterator.hasNext())
                 Lok.debug(iterator.next());
             Lok.debug("BashCommandsTest.bashtest.end");
@@ -102,7 +103,7 @@ public class BashCommandsTest {
         Long t1 = timeDir.lastModified();
         Long tt1 = testDir.lastModified();
 
-        File source = new File(testDir.absolutePath);
+        File source = new File(testDir.getAbsolutePath());
         File target = new File(source.getAbsolutePath(), "movedTest");
         source.renameTo(target);
 

@@ -180,7 +180,7 @@ public abstract class SyncHandler {
             distributionTask.setSourceHash(hash);
 
             // file found in transfer dir
-            if (file.absolutePath.startsWith(fileSyncDatabaseManager.getFileSyncSettings().getTransferDirectory().absolutePath)) {
+            if (file.getAbsolutePath().startsWith(fileSyncDatabaseManager.getFileSyncSettings().getTransferDirectory().getAbsolutePath())) {
                 // assuming that noone moves or copies files in this directory at runtime. some day someone will do it any, things will break and he will complain.
                 FsBashDetails bashDetails = BashTools.Companion.getFsBashDetails(file);
                 distributionTask.setOptionals(bashDetails, file.length());
@@ -446,7 +446,7 @@ public abstract class SyncHandler {
                 AbstractFile d = AbstractFile.instance(path);
                 if (!d.exists()) {
                     indexer.ignorePath(path, 1);
-                    Lok.debug("SyncHandler.createDirs: " + d.absolutePath);
+                    Lok.debug("SyncHandler.createDirs: " + d.getAbsolutePath());
                     d.mkdirs();
                     indexer.watchDirectory(d);
                     updateInodeModified(dbParent, d);
@@ -465,7 +465,7 @@ public abstract class SyncHandler {
                 }
             } else if (!target.exists()) {
                 indexer.ignorePath(path, 1);
-                Lok.debug("SyncHandler.createDirs: " + target.absolutePath);
+                Lok.debug("SyncHandler.createDirs: " + target.getAbsolutePath());
                 target.mkdirs();
                 indexer.watchDirectory(target);
                 updateInodeModified(fsEntry, target);

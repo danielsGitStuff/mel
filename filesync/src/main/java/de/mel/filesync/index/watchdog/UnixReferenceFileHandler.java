@@ -1,6 +1,7 @@
 package de.mel.filesync.index.watchdog;
 
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.bash.BashToolsException;
 
@@ -41,7 +42,7 @@ public class UnixReferenceFileHandler {
         timeReferenceFile.mkdirs();
     }
 
-    public synchronized List<AbstractFile<?>> stuffModifiedAfter() throws IOException, BashToolsException {
+    public synchronized List<IFile> stuffModifiedAfter() throws IOException, BashToolsException {
         // take the older one as reference. but to avoid data loss, we recreate the other file before.
         // so no stuff which happened while the BashTools work gets lost.
         File refFile = (refOnFile1) ? timeReferenceFile2 : timeReferenceFile1;

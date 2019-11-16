@@ -1,6 +1,7 @@
 package de.mel.filesync.bash;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -25,7 +26,7 @@ public class BashToolsException extends IOException {
     }
 
     public BashToolsException(Process proc) {
-        Iterator<String> lines = BashTools.Companion.inputStreamToIterator(proc.getErrorStream());
+        Iterator<String> lines = new BufferedIterator.BufferedStringIterator(new InputStreamReader(proc.getErrorStream()));
         readLines(lines);
     }
 

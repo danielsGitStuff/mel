@@ -3,6 +3,7 @@ package de.mel.filesync.index.watchdog;
 
 import de.mel.Lok;
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 import de.mel.auth.tools.N;
 import de.mel.filesync.bash.AutoKlausIterator;
 import de.mel.filesync.data.FileSyncSettings;
@@ -35,9 +36,9 @@ public class FileWatcherWindows extends FileWatcherPC {
         PathCollection pathCollection = new PathCollection();
         N.r(() -> {
             FileSyncSettings fileSyncSettings = melFileSyncService.getFileSyncSettings();
-            try (AutoKlausIterator<AbstractFile<?>> paths = BashTools.Companion.stuffModifiedAfter(fileSyncSettings.getRootDirectory().getOriginalFile(), fileSyncSettings.getTransferDirectoryFile(), timeStamp)) {
+            try (AutoKlausIterator<IFile> paths = BashTools.Companion.stuffModifiedAfter(fileSyncSettings.getRootDirectory().getOriginalFile(), fileSyncSettings.getTransferDirectoryFile(), timeStamp)) {
                 while (paths.hasNext()) {
-                    AbstractFile path = paths.next();
+                    IFile path = paths.next();
                     Lok.debug("   IndexWatchDogListenerWindows.onTimerStopped: " + path);
                     pathCollection.addPath(path);
                 }

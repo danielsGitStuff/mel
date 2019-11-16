@@ -3,6 +3,7 @@ package de.mel;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.AbstractFileWriter;
 import de.mel.auth.file.DefaultFileConfiguration;
+import de.mel.auth.file.IFile;
 import de.mel.auth.tools.F;
 import de.mel.filesync.bash.AutoKlausIterator;
 import de.mel.filesync.bash.BashTools;
@@ -110,7 +111,7 @@ public class BashToolsTest {
         expectedPaths.add(f1.getAbsolutePath());
         expectedPaths.add(f2.getAbsolutePath());
         expectedPaths.add(f3.getAbsolutePath());
-        try (AutoKlausIterator<AbstractFile> found = BashTools.Companion.find(root, subsub)) {
+        try (AutoKlausIterator<IFile> found = BashTools.Companion.find(root, subsub)) {
             while (found.hasNext()) {
                 expectedPaths.remove(found.next().getAbsolutePath());
             }

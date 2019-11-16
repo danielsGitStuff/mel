@@ -558,7 +558,7 @@ public class ClientSyncHandler extends SyncHandler {
                     conflictSolver.solve(lStage, rStage);
                 else {
                     timer3.start();
-                    AbstractFile rFile = (rStage != null) ? AbstractFile.instance(lFile.absolutePath) : null;
+                    AbstractFile rFile = (rStage != null) ? AbstractFile.instance(lFile.getAbsolutePath()) : null;
                     timer3.stop();
                     merger.stuffFound(lStage, rStage, lFile, rFile);
                 }

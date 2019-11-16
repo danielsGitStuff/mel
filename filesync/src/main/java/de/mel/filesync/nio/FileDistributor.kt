@@ -4,6 +4,7 @@ import de.mel.Lok
 import de.mel.MelRunnable
 import de.mel.auth.MelNotification
 import de.mel.auth.file.AbstractFile
+import de.mel.auth.file.IFile
 import de.mel.auth.service.MelAuthService
 import de.mel.auth.tools.N
 import de.mel.auth.tools.lock.P
@@ -16,7 +17,7 @@ import java.io.IOException
 import java.util.*
 
 @Suppress("FINITE_BOUNDS_VIOLATION_IN_JAVA")
-open class FileDistributor<T : AbstractFile<*>>(val fileSyncService: MelFileSyncService<*>) : MelRunnable {
+open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>) : MelRunnable {
     private var stopped: Boolean = false;
     private var notification: MelNotification? = null
     private var running: Boolean = false
@@ -41,7 +42,7 @@ open class FileDistributor<T : AbstractFile<*>>(val fileSyncService: MelFileSync
      * this overwrites files and does not update databases!
      */
     @Throws(IOException::class)
-    fun rawCopyFile(srcFile: AbstractFile<*>, targetFile: AbstractFile<*>) {
+    fun rawCopyFile(srcFile: IFile, targetFile: IFile) {
         var read: Int
         val out = targetFile.writer() ?: throw IOException("could not write to ${targetFile.absolutePath}")
         val ins = srcFile.inputStream() ?: throw IOException("could not read from ${srcFile.absolutePath}")

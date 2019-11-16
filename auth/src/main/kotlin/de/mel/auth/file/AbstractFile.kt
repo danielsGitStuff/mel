@@ -19,8 +19,7 @@ abstract class AbstractFile<out T : IFile> :IFile {
      */
     override fun hasSubContent(subFile: AbstractFile<*>): Boolean = subFile.absolutePath.startsWith(absolutePath)
 
-    @get:Throws(IOException::class)
-    abstract val canonicalPath: String?
+
 
     /**
      * creates common instances of [AbstractFile]s
@@ -32,8 +31,6 @@ abstract class AbstractFile<out T : IFile> :IFile {
         abstract fun instance(parent: AbstractFile<IFile>, name: String): AbstractFile<IFile>
         abstract fun instance(originalFile: AbstractFile<IFile>): AbstractFile<IFile>
     }
-
-    open var path: String? = null
 
     companion object {
         var configuration: Configuration? = null

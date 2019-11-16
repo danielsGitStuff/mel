@@ -72,7 +72,7 @@ public class QuotaManager {
                 0,//synced
                 1,//inplace
                 stageSetId));
-        final Long availableSpace = fileSyncSettings.getRootDirectory().getOriginalFile().freeSpace;
+        final Long availableSpace = fileSyncSettings.getRootDirectory().getOriginalFile().getFreeSpace();
         //try to clean up wastebin if that happens
         if (requiredSpace == null) {
             System.err.println("QuotaManager.freeSpaceForStageSet.FIX:THIS!!!");

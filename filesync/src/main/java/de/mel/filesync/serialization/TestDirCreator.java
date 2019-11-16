@@ -3,6 +3,7 @@ package de.mel.filesync.serialization;
 
 import de.mel.auth.TestFileCreator;
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 import de.mel.filesync.bash.BashTools;
 
 import java.io.File;
@@ -15,11 +16,15 @@ import java.util.List;
  * Created by xor on 7/10/16.
  */
 public class TestDirCreator {
-    public static List<String> createTestDir(AbstractFile testDir) throws IOException {
+    public static List<String> createTestDir(IFile testDir) throws Exception {
         return createTestDir(testDir, "");
     }
 
-    public static List<String> createTestDir(AbstractFile testDir, String appendix) throws IOException {
+    public static List<String> createTestDir(File testDir) throws Exception {
+        return createTestDir(AbstractFile.instance(testDir), "");
+    }
+
+    public static List<String> createTestDir(IFile testDir, String appendix) throws Exception {
 
         List<String> paths = new ArrayList<>();
         //CertificateManager.deleteDirectory(testDir);
@@ -61,7 +66,7 @@ public class TestDirCreator {
         return paths;
     }
 
-    public static List<String> createFilesTestDir(AbstractFile testDir, int noOfFiles) throws IOException {
+    public static List<String> createFilesTestDir(AbstractFile testDir, int noOfFiles) throws Exception {
 
         List<String> paths = new ArrayList<>();
         //CertificateManager.deleteDirectory(testDir);
@@ -108,7 +113,7 @@ public class TestDirCreator {
     }
 
 
-    public static List<String> createTestDir(AbstractFile testDir, int noOfSubdirs) throws IOException {
+    public static List<String> createTestDir(AbstractFile testDir, int noOfSubdirs) throws Exception {
 
         List<String> paths = new ArrayList<>();
         //CertificateManager.deleteDirectory(testDir);

@@ -80,7 +80,7 @@ public class TransferTest {
         melAuthSettings.getWorkingDirectory().mkdirs();
         AbstractFile testDir = AbstractFile.instance(AbstractFile.instance(melAuthSettings.getWorkingDirectory()), ROOT_DIR_NAME);
         testDir.mkdirs();
-        Lok.debug(testDir.absolutePath + " /// " + testDir.exists());
+        Lok.debug(testDir.getAbsolutePath() + " /// " + testDir.exists());
         melAuthSettings.save();
         MelBoot melBoot = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncBootloader.class);
         melBoot.boot().done(melAuthService -> {
@@ -159,7 +159,7 @@ public class TransferTest {
         CountdownLock bootLock = new CountdownLock(1);
         init(workingDir, melAuthService -> {
             AbstractFile root = AbstractFile.instance(AbstractFile.instance(workingDir), ROOT_DIR_NAME);
-            Path path = Paths.get(root.absolutePath + File.separator + "text.txt");
+            Path path = Paths.get(root.getAbsolutePath() + File.separator + "text.txt");
             StringBuilder builder = new StringBuilder("start...");
             N.forLoop(1, 2000, (stoppable, index) -> builder.append(index).append("/"));
             Files.write(path, builder.toString().getBytes());

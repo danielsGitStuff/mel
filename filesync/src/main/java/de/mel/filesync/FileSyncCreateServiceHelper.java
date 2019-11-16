@@ -61,7 +61,7 @@ public class FileSyncCreateServiceHelper {
         AbstractFile transferDir = AbstractFile.instance(rootDirectory.getOriginalFile(), FileSyncStrings.TRANSFER_DIR);
         transferDir.mkdirs();
         fileSyncSettings.setTransferDirectory(transferDir);
-        fileSyncSettings.setMaxWastebinSize((long) (fileSyncSettings.getRootDirectory().getOriginalFile().usableSpace * wastebinRatio));
+        fileSyncSettings.setMaxWastebinSize((long) (fileSyncSettings.getRootDirectory().getOriginalFile().getUsableSpace() * wastebinRatio));
         createService(fileSyncSettings, name);
     }
 
@@ -76,7 +76,7 @@ public class FileSyncCreateServiceHelper {
         RootDirectory rootDirectory = FileSyncSettings.buildRootDirectory(rootFile);
         FileSyncSettings fileSyncSettingsCfg = new FileSyncSettings().setRole(FileSyncStrings.ROLE_CLIENT).setRootDirectory(rootDirectory);
         fileSyncSettingsCfg.setTransferDirectory(AbstractFile.instance(rootDirectory.getOriginalFile(), FileSyncStrings.TRANSFER_DIR));
-        fileSyncSettingsCfg.setMaxWastebinSize((long) (fileSyncSettingsCfg.getRootDirectory().getOriginalFile().usableSpace * wastebinRatio));
+        fileSyncSettingsCfg.setMaxWastebinSize((long) (fileSyncSettingsCfg.getRootDirectory().getOriginalFile().getUsableSpace() * wastebinRatio));
         fileSyncSettingsCfg.setMaxAge(maxDays);
         fileSyncSettingsCfg.setUseSymLinks(useSymLinks);
         fileSyncSettingsCfg.getClientSettings().setInitFinished(false);

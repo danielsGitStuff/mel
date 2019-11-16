@@ -51,7 +51,7 @@ public class IndexHelper {
      * @return
      * @throws SqlQueriesException
      */
-    Stage connectToFs(AbstractFile directory) throws SqlQueriesException {
+    Stage connectToFs(IFile directory) throws SqlQueriesException {
         // remember: we always deal with directories here. that means that we can ask all DAOs for
         // directories and don't have to deal with files :)
         final int rootPathLength = databaseManager.getFileSyncSettings().getRootDirectory().getPath().length();
@@ -134,7 +134,7 @@ public class IndexHelper {
         return stageStack.peek();
     }
 
-    void fastBoot(AbstractFile file, FsEntry fsEntry, Stage stage) {
+    void fastBoot(IFile file, FsEntry fsEntry, Stage stage) {
         if (databaseManager.getFileSyncSettings().getFastBoot()) {
             try {
                 FsBashDetails fsBashDetails = BashTools.Companion.getFsBashDetails(file);

@@ -2,6 +2,7 @@ package de.mel.filesync.index;
 
 import de.mel.Lok;
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 import de.mel.auth.tools.Eva;
 import de.mel.auth.tools.Order;
 import de.mel.auth.tools.lock.P;
@@ -99,7 +100,7 @@ public class IndexerRunnable extends AbstractIndexer {
                 ISQLQueries sqlQueries = stageDao.getSqlQueries();
                 OTimer timerFind = new OTimer("bash.find").start();
                 OTimer timerInit = new OTimer("init stageset");
-                try (AutoKlausIterator<AbstractFile<?>> found = BashTools.Companion.find(rootDirectory.getOriginalFile(), databaseManager.getMelFileSyncService().getFileSyncSettings().getTransferDirectory())) {
+                try (AutoKlausIterator<IFile> found = BashTools.Companion.find(rootDirectory.getOriginalFile(), databaseManager.getMelFileSyncService().getFileSyncSettings().getTransferDirectory())) {
                     Lok.debug("starting stageset initialization");
 //                    Lok.error("TRANSACTION DISABLED!!!!!");
 //                    Lok.error("TRANSACTION DISABLED!!!!!");

@@ -46,8 +46,8 @@ public class IndexerTest {
         BashTools.Companion.init();
         Eva.enable();
         RWLock bootLock = new RWLock().lockWrite();
-        rootFile = AbstractFile.instance(AbstractFile.instance("indextest").absolutePath);
-        rootDirectory = new RootDirectory().setOriginalFile(rootFile).setPath(rootFile.path);
+        rootFile = AbstractFile.instance(AbstractFile.instance("indextest").getAbsolutePath());
+        rootDirectory = new RootDirectory().setOriginalFile(rootFile).setPath(rootFile.getPath());
 
         BashTools.Companion.rmRf(rootFile);
         BashTools.Companion.rmRf(AbstractFile.instance(MelBoot.Companion.getDefaultWorkingDir1()));

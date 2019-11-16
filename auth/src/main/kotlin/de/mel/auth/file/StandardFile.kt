@@ -15,18 +15,18 @@ class StandardFile : AbstractFile<StandardFile> {
 
     constructor() {}
 
-    override var path: String?
-        get() = file!!.path
+    override var path: String
+        get() = file.path
         set(path) {
             file = File(path)
         }
 
-    constructor(parent: StandardFile, name: String?) {
+    constructor(parent: StandardFile, name: String) {
         file = File(parent.file, name)
     }
 
     constructor(originalFile: StandardFile) {
-        file = File(originalFile.file!!.absolutePath)
+        file = File(originalFile.file.absolutePath)
     }
 
     override fun toString(): String {
@@ -50,11 +50,11 @@ class StandardFile : AbstractFile<StandardFile> {
         get() = file.absolutePath
 
     override fun exists(): Boolean {
-        return file!!.exists()
+        return file.exists()
     }
 
     override val isFile: Boolean
-        get() = file!!.isFile
+        get() = file.isFile
 
 
     //    @Override
@@ -62,10 +62,10 @@ class StandardFile : AbstractFile<StandardFile> {
 //        return file.renameTo(new File(target.getAbsolutePath()));
 //    }
     override val isDirectory: Boolean
-        get() = file!!.isDirectory
+        get() = file.isDirectory
 
     override fun length(): Long {
-        return file!!.length()
+        return file.length()
     }
 
     override fun listFiles(): Array<StandardFile> {
@@ -77,14 +77,14 @@ class StandardFile : AbstractFile<StandardFile> {
     }
 
     override fun delete(): Boolean {
-        return file!!.delete()
+        return file.delete()
     }
 
     override val parentFile: StandardFile
         get() = StandardFile(File(file!!.absolutePath).parentFile)
 
     override fun mkdirs(): Boolean {
-        return file!!.mkdirs()
+        return file.mkdirs()
     }
 
     @Throws(FileNotFoundException::class)
@@ -94,7 +94,7 @@ class StandardFile : AbstractFile<StandardFile> {
 
     @Throws(FileNotFoundException::class)
     override fun writer(): AbstractFileWriter? {
-        return StandardFileWriter(file!!)
+        return StandardFileWriter(file)
     }
 
     override val separator: String
@@ -109,19 +109,21 @@ class StandardFile : AbstractFile<StandardFile> {
         get() = file!!.canonicalPath
 
     override val freeSpace: Long
-        get() = file!!.freeSpace
+        get() = file.freeSpace
 
     override val usableSpace: Long
-        get() = file!!.usableSpace
+        get() = file.usableSpace
 
     override fun lastModified(): Long? {
-        return file!!.lastModified()
+        return file.lastModified()
     }
 
     @Throws(IOException::class)
     override fun createNewFile(): Boolean {
         return file.createNewFile()
     }
+
+
 
     override fun listContent(): Array<StandardFile> {
         return N.arr.cast(file.listFiles(), N.converter(StandardFile::class.java) { file: File? -> StandardFile(file!!) })

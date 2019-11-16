@@ -2,6 +2,7 @@ package de.mel.filesync.index.watchdog;
 
 import de.mel.Lok;
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 import de.mel.filesync.data.PathCollection;
 import de.mel.filesync.service.MelFileSyncService;
 import org.jdeferred.Promise;
@@ -81,9 +82,9 @@ class FileWatcherUnix extends FileWatcherPC {
              * we cannot retrieve all newly created things, so we have to do it now.
              * and watching the directories as well
              */
-            List<AbstractFile<?>> paths = unixReferenceFileHandler.stuffModifiedAfter();
+            List<IFile> paths = unixReferenceFileHandler.stuffModifiedAfter();
             pathCollection.addAll(paths);
-            for (AbstractFile f : paths) {
+            for (IFile f : paths) {
                 if (f.exists() && f.isDirectory()) {
                     watchDirectory(f);
                 }

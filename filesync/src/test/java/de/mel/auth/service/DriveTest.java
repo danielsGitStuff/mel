@@ -626,7 +626,7 @@ public class DriveTest {
                         for (FsFile f : rootFiles) {
                             Lok.debug(f.getName().v());
                         }
-                        File newFile = new File(testStructure.testdir1.absolutePath + "/sub1/sub3.txt");
+                        File newFile = new File(testStructure.testdir1.getAbsolutePath() + "/sub1/sub3.txt");
                         newFile.createNewFile();
                     } else if (getCount() == 1) {
                         Lok.debug("DriveFXTest.onSyncDoneImpl :)");
@@ -677,7 +677,7 @@ public class DriveTest {
                         for (FsFile f : rootFiles) {
                             Lok.debug(f.getName().v());
                         }
-                        File deleteFile = new File(testStructure.testdir1.absolutePath + "/sub1/sub2.txt");
+                        File deleteFile = new File(testStructure.testdir1.getAbsolutePath() + "/sub1/sub2.txt");
                         deleteFile.delete();
                     } else if (getCount() == 1) {
                         Lok.debug("DriveFXTest.onSyncDoneImpl :)");

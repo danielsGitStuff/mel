@@ -2,6 +2,7 @@ package de.mel.filesync.sql;
 
 import de.mel.Lok;
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 import de.mel.auth.tools.N;
 import de.mel.core.serialize.JsonIgnore;
 import de.mel.sql.Hash;
@@ -84,9 +85,9 @@ public class FsDirectory extends FsEntry {
     }
 
     @JsonIgnore
-    protected AbstractFile original;
+    protected IFile original;
 
-    public AbstractFile getOriginal() {
+    public IFile getOriginal() {
         return original;
     }
 
@@ -104,9 +105,9 @@ public class FsDirectory extends FsEntry {
         return subDirectories;
     }
 
-    public FsDirectory(AbstractFile dir) {
+    public FsDirectory(IFile dir) {
         if (!dir.isFile()) {
-            name.v(dir.name);
+            name.v(dir.getName());
             original = dir;
         } else {
             System.err.println("Directory.Directory() ... got a non Directory");
@@ -131,7 +132,7 @@ public class FsDirectory extends FsEntry {
         isDirectory.v(true);
     }
 
-    public AbstractFile[] listFiles() {
+    public IFile[] listFiles() {
         if (original == null) {
             // ...
         }
@@ -139,7 +140,7 @@ public class FsDirectory extends FsEntry {
     }
 
 
-    public AbstractFile[] listDirectories() {
+    public IFile[] listDirectories() {
         if (original == null) {
             // ...
         }

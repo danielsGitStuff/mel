@@ -14,6 +14,7 @@ interface IFile {
     val parentFile: IFile
     val freeSpace: Long?
     val usableSpace: Long?
+    val path:String
     /**
      * @param subFile
      * @return true if subFile is located in a subfolder of this instance.
@@ -28,6 +29,7 @@ interface IFile {
     fun mkdirs(): Boolean
     @Throws(FileNotFoundException::class)
     fun inputStream(): InputStream?
+
     @Throws(IOException::class)
     fun writer(): AbstractFileWriter?
 
@@ -35,5 +37,11 @@ interface IFile {
     @Throws(IOException::class)
     fun createNewFile(): Boolean
 
+//    @Throws(IOException::class)
+//    fun getUsableSpace(): Long
+
     fun listContent(): Array<out IFile>?
+
+    @get:Throws(IOException::class)
+    val canonicalPath: String?
 }
