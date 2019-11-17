@@ -27,9 +27,11 @@ open class BashToolsUnix : BashTools<StandardFile>() {
         proc.waitFor()
     }
 
+    // use this command to return the result of the actual command in English.
+    private val unfrench = "LC_ALL='C' "
     protected var readCreated: Boolean = true
     // todo use BashTools.binPath
-    protected var BIN_PATH = "/bin/sh"
+    protected var BIN_PATH = "bash"
     private val executorService = Executors.newCachedThreadPool()
 
     val inotifyLimit: Long?
@@ -81,7 +83,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
     // todo null
     @Throws(IOException::class, InterruptedException::class)
     override fun getFsBashDetails(file: StandardFile): FsBashDetails? {
-        val args = arrayOf(BIN_PATH, "-c", "stat -c %i\\ %W\\ '%F'\\ %N " + escapeQuotedAbsoluteFilePath(file))
+        val args = arrayOf(BIN_PATH, "-c", "$unfrench stat -c %i\\ %W\\ '%F'\\ %N " + escapeQuotedAbsoluteFilePath(file))
         val proc = ProcessBuilder(*args).start()
         //proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false
         val reader = BufferedReader(InputStreamReader(proc.inputStream))
@@ -135,10 +137,10 @@ open class BashToolsUnix : BashTools<StandardFile>() {
         val escaped = escapeAbsoluteFilePath(directory)
         // the secont path below fixed something but I forgot what it is. it also returns "." and ".."
         val path = "\"$escaped${File.separator}\"* \"$escaped${File.separator}\".*"
-        val args = arrayOf(BIN_PATH, "-c", "LANG=en_US.UTF-8 ; stat -c %i\\ //\\ %W\\ //\\ '%F'\\ //\\ %N\\ //\\ %n $path;")
+        val args = arrayOf(BIN_PATH, "-c", "$unfrench stat -c %i\\ //\\ %W\\ //\\ '%F'\\ //\\ %N\\ //\\ %n $path;")
 
         val proc = ProcessBuilder(*args).start()
-        //proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false
+//        proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false
         val reader = BufferedReader(InputStreamReader(proc.inputStream))
         reader.lines().forEach { line ->
             val parts = line.split("\\ //\\ ".toRegex()).toTypedArray()
