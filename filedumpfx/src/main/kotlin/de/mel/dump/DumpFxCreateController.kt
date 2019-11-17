@@ -7,7 +7,7 @@ import de.mel.auth.tools.N
 import de.mel.filesync.gui.FileSyncFXCreateController
 
 class DumpFxCreateController : FileSyncFXCreateController() {
-    override fun createInstance(name: String?, isServer: Boolean, path: String?, useSymLinks: Boolean): Boolean {
+    override fun createInstance(name: String, isServer: Boolean, path: String, useSymLinks: Boolean): Boolean {
         return N.result({
             val dumpCreateServiceHelper = DumpCreateServiceHelper(melAuthService)
             if (isServer) dumpCreateServiceHelper.createServerService(name, AbstractFile.instance(path), 0.1f, 30, useSymLinks) else {

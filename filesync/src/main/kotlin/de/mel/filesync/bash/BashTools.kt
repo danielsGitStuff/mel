@@ -19,11 +19,15 @@ abstract class BashTools<A : IFile> {
     companion object {
         var binPath: String? = null
         val isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows")
-        private var implementation: BashTools<IFile> = if (BashTools.isWindows) {
+        var implementation: BashTools<IFile> = if (isWindows) {
             BashToolsWindows() as BashTools<IFile>
         } else {
             BashToolsUnix() as BashTools<IFile>
         }
+            get
+
+        var unixImplementation = implementation as BashToolsUnix
+            private set
 
         fun <F : IFile> getFsBashDetails(file: F): FsBashDetails? = implementation.getFsBashDetails(file)
 

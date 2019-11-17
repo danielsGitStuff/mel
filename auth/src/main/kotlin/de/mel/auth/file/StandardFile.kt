@@ -68,13 +68,11 @@ class StandardFile : AbstractFile<StandardFile> {
         return file.length()
     }
 
-    override fun listFiles(): Array<StandardFile> {
-        return N.arr.cast(file.listFiles { obj: File -> obj.isFile }, N.converter(StandardFile::class.java) { file: File -> StandardFile(file) })
-    }
+    override fun listFiles(): Array<StandardFile> = file.listFiles { dir, _ -> dir.isFile }?.map { StandardFile(it) }?.toTypedArray()
+            ?: emptyArray()
 
-    override fun listDirectories(): Array<StandardFile> {
-        return N.arr.cast(file.listFiles { obj: File -> obj.isDirectory }, N.converter(StandardFile::class.java) { file: File -> StandardFile(file) })
-    }
+    override fun listDirectories(): Array<StandardFile> = file.listFiles { dir, _ -> dir.isDirectory }?.map { StandardFile(it) }?.toTypedArray()
+            ?: emptyArray()
 
     override fun delete(): Boolean {
         return file.delete()
@@ -124,8 +122,7 @@ class StandardFile : AbstractFile<StandardFile> {
     }
 
 
-
     override fun listContent(): Array<StandardFile> {
-        return N.arr.cast(file.listFiles(), N.converter(StandardFile::class.java) { file: File? -> StandardFile(file!!) })
+        return file.listFiles()?.map { StandardFile(it) }?.toTypedArray() ?: emptyArray()
     }
 }
