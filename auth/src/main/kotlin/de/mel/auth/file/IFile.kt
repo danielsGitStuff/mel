@@ -11,16 +11,17 @@ interface IFile {
     val isFile: Boolean
     //    public abstract boolean move(T target);
     val isDirectory: Boolean
-    val parentFile: IFile
+    //    var parentFile: IFile
     val freeSpace: Long?
     val usableSpace: Long?
-    val path:String
+    val path: String
     /**
      * @param subFile
      * @return true if subFile is located in a subfolder of this instance.
      */
     fun hasSubContent(subFile: AbstractFile<*>): Boolean
 
+    fun canRead(): Boolean
     fun exists(): Boolean
     fun length(): Long
     fun listFiles(): Array<out IFile>

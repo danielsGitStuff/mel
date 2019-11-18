@@ -12,14 +12,15 @@ import java.io.InputStream
  * Before using [AbstractFile], call configure() and hand over a [Configuration]. This determines the implementation you want to use.
  * [DefaultFileConfiguration] uses [StandardFile] which wraps [File].
  */
-abstract class AbstractFile<out T : IFile> :IFile {
+abstract class AbstractFile<T : IFile> : IFile {
     /**
      * @param subFile
      * @return true if subFile is located in a subfolder of this instance.
      */
     override fun hasSubContent(subFile: AbstractFile<*>): Boolean = subFile.absolutePath.startsWith(absolutePath)
 
-
+    open var parentFile: T? = null
+        protected set
 
     /**
      * creates common instances of [AbstractFile]s

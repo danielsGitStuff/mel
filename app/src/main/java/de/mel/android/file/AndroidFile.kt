@@ -18,15 +18,18 @@ import de.mel.android.Tools
 import de.mel.android.file.SAFAccessor.SAFException
 import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.AbstractFileWriter
+import de.mel.auth.file.IFile
 import de.mel.auth.file.StandardFileWriter
 import de.mel.auth.tools.N
 import de.mel.auth.tools.N.arr
 import java.io.*
 import java.util.*
 
+/**
+ * File replacement for Android KitKat to Pie
+ */
 class AndroidFile : AbstractFile<AndroidFile> {
     private var file: File?
-    private var parentFile: AndroidFile? = null
     private var isExternal = false
     private var internalCache: DocFileCache? = null
     private var externalCache: DocFileCache? = null
@@ -56,34 +59,19 @@ class AndroidFile : AbstractFile<AndroidFile> {
         isExternal = SAFAccessor.isExternalFile(this)
     }
 
-    override fun getSeparator(): String? {
-        return File.separator
+    override val separator: String?
+        get() = File.separator
+
+
+    override fun hasSubContent(subFile: AbstractFile<*>): Boolean {
+        return subFile.absolutePath.startsWith(file!!.absolutePath) ?: false
     }
 
-    override fun hasSubContent(subFile: AndroidFile?): Boolean {
-        return if (subFile != null) subFile.file!!.absolutePath.startsWith(file!!.absolutePath) else false
-    }
-
-    @Throws(IOException::class)
-    override fun getCanonicalPath(): String {
-        return file!!.canonicalPath
-    }
-
-    override fun getName(): String {
-        return file!!.name
-    }
-
-    override fun getAbsolutePath(): String {
-        return file!!.absolutePath
-    }
 
     override fun exists(): Boolean {
         return file!!.exists()
     }
 
-    override fun isFile(): Boolean {
-        return file!!.isFile
-    }
 
 //    @Override
 //    public boolean move(JFile target) {
@@ -108,19 +96,15 @@ class AndroidFile : AbstractFile<AndroidFile> {
         return false
     }
 
-    override fun isDirectory(): Boolean {
-        return file!!.isDirectory
-    }
-
-    override fun length(): Long? {
+    override fun length(): Long {
         return file!!.length()
     }
 
-    override fun listFiles(): Array<AndroidFile>? {
+    override fun listFiles(): Array<AndroidFile> {
         return list(true)
     }
 
-    override fun listDirectories(): Array<AndroidFile>? {
+    override fun listDirectories(): Array<AndroidFile> {
         return list(false)
     }
 
@@ -138,9 +122,6 @@ class AndroidFile : AbstractFile<AndroidFile> {
         return true
     }
 
-    override fun getParentFile(): AndroidFile {
-        return AndroidFile(file!!.parentFile!!)
-    }
 
     @TargetApi(VERSION_CODES.KITKAT)
     private fun mkdir(): Boolean {
@@ -205,18 +186,6 @@ class AndroidFile : AbstractFile<AndroidFile> {
             e.printStackTrace()
         }
         return null
-    }
-
-    override fun getFreeSpace(): Long? {
-//        File ioFile = new File(file.getUri().getEncodedPath());
-//        if (ioFile.exists())
-//            return ioFile.getFreeSpace();
-
-        return file!!.freeSpace
-    }
-
-    override fun getUsableSpace(): Long? {
-        return file!!.usableSpace
     }
 
     override fun lastModified(): Long? {
@@ -330,7 +299,7 @@ class AndroidFile : AbstractFile<AndroidFile> {
                 e.printStackTrace()
             }
         } else if (VERSION.SDK_INT > VERSION_CODES.P && !absolutePath.startsWith(AndroidFileConfiguration.getDataDir().absolutePath)) {
-            val parentDoc = getParentFile().getDocFile()
+            val parentDoc = (parentFile as AndroidFile).getDocFile()
             val contentResolver: ContentResolver = (configuration as AndroidFileConfiguration).context.contentResolver
             val uri = DocumentsContract.createDocument(contentResolver, parentDoc!!.uri, SAFAccessor.MIME_GENERIC, name)
             return uri != null
@@ -340,7 +309,7 @@ class AndroidFile : AbstractFile<AndroidFile> {
         return false
     }
 
-    private fun listImplPie(filterOutDirs: Boolean?): Array<AndroidFile>? {
+    private fun listImplPie(filterOutDirs: Boolean?): Array<AndroidFile> {
         val directory = File(file!!.absolutePath)
 
         // File not found error
@@ -353,9 +322,7 @@ class AndroidFile : AbstractFile<AndroidFile> {
             return emptyArray()
         }
         val listFiles: Array<File> = (if (filterOutDirs != null) if (filterOutDirs) directory.listFiles { obj: File -> obj.isFile } else directory.listFiles { obj: File -> obj.isDirectory } else directory.listFiles())
-                ?: //                postError(ListingEngine.ErrorEnum.ERROR_UNKNOWN);
-
-                return emptyArray()
+                ?: return emptyArray()
 
 
         // Check Error in reading the directory (java.io.File do not allow any details about the error...).
@@ -365,7 +332,7 @@ class AndroidFile : AbstractFile<AndroidFile> {
         return arr.cast(listFiles, N.converter(AndroidFile::class.java) { file: File -> AndroidFile(file) })
     }
 
-    private fun list(filterOutDirs: Boolean?): Array<AndroidFile>? {
+    private fun list(filterOutDirs: Boolean?): Array<AndroidFile> {
         return if (VERSION.SDK_INT >= VERSION_CODES.Q) listImplQ(filterOutDirs) else listImplPie(filterOutDirs)
     }
 
@@ -374,7 +341,7 @@ class AndroidFile : AbstractFile<AndroidFile> {
      * @return
      */
     @RequiresApi(VERSION_CODES.Q)
-    private fun listImplQ(filterOutDirs: Boolean?): Array<AndroidFile>? {
+    private fun listImplQ(filterOutDirs: Boolean?): Array<AndroidFile> {
         /**
          * Here we employ database queries to find the content. This reduced the time listing directory contents from 7500ms to 250ms (filtering etc included)
          * compared to using getDocFile().listFiles().
@@ -433,4 +400,25 @@ class AndroidFile : AbstractFile<AndroidFile> {
     override fun listContent(): Array<AndroidFile>? {
         return list(null)
     }
+
+    override val name: String
+        get() = file!!.name
+    override val absolutePath: String
+        get() = file!!.absolutePath
+    override val isFile: Boolean
+        get() = file!!.isFile
+    override val isDirectory: Boolean
+        get() = file!!.isDirectory
+
+    override val freeSpace: Long?
+        get() = file!!.freeSpace
+    override val usableSpace: Long?
+        get() = file!!.usableSpace
+    override val path: String
+        get() = file!!.path
+    override val canonicalPath: String?
+        get() = file!!.canonicalPath
+    override var parentFile: AndroidFile?
+        get() = if (file != null && file!!.parentFile != null) AbstractFile.instance(file!!.parentFile!!) as AndroidFile else null
+        set(value) {}
 }

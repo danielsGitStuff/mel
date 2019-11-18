@@ -22,7 +22,7 @@ import java.io.InputStreamReader
  * Created by xor on 7/20/17.
  */
 
-class BashToolsAndroid(private val context: Context) : BashToolsUnix() {
+class BashToolsAndroid(private val context: Context) : BashTools<AndroidFile>() {
     private var findNewerFallback: BashToolsAndroidJavaImpl? = null
     private val javaBashTools: BashToolsAndroidJavaImpl
     private var findFallBack: BashToolsAndroidJavaImpl? = null
