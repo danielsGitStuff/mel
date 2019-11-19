@@ -3,9 +3,11 @@ package de.mel.android.file
 import android.content.ContentResolver
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import androidx.annotation.RequiresApi
+import androidx.documentfile.provider.DocumentFile
 import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.AbstractFileWriter
 import de.mel.auth.file.IFile
@@ -18,26 +20,70 @@ import java.util.*
  * File replacement for Android 10+
  */
 class SAFFile : AbstractFile<SAFFile> {
-    constructor(path: String) {
 
+    private var isExternal = false
+    private var file: File
+    val fileConfig: SAFFileConfiguration
+
+    constructor(fileConfig: SAFFileConfiguration, path: String) {
+        this.fileConfig = fileConfig
+        file = File(path)
+        init()
     }
 
-    constructor(parent: AbstractFile<IFile>, name: String) {
-
+    constructor(fileConfig: SAFFileConfiguration, file: File) {
+        this.fileConfig = fileConfig
+        this.file = file
+        init()
     }
 
-    constructor(originalFile: AbstractFile<IFile>) {
-
+    constructor(parent: SAFFile, name: String) {
+        this.fileConfig = parent.fileConfig
+        file = File(parent.absolutePath + File.separator + name)
+        init()
     }
 
+    constructor(fileConfig: SAFFileConfiguration, originalFile: SAFFile) {
+        this.fileConfig = fileConfig
+        file = File(originalFile.absolutePath)
+        init()
+    }
+
+    private fun init() {
+        isExternal = SAFAccessor.isExternalFile(this)
+    }
 
     private fun query() {
 
     }
 
+    @Throws(SAFAccessor.SAFException::class)
+    fun getDocFile(): DocumentFile? {
+        val storagePath = storagePath
+        val parts: Array<String>
+        parts = AndroidFile.createRelativeFilePathParts(storagePath, file!!)
+        return if (!isExternal) {
+            fileConfig.getInternalDoc(parts)
+        } else fileConfig.getExternalDoc(parts)
+    }
 
-    private fun listImplPie(filterOutDirs: Boolean?): Array<AndroidFile>? {
-        val directory = this
+    /**
+     * @return the path of the storage the file is stored on
+     */
+    private val storagePath: String
+        private get() {
+            val storagePath: String?
+            storagePath = if (isExternal) {
+                SAFAccessor.getExternalSDPath()
+            } else {
+                Environment.getExternalStorageDirectory().absolutePath
+            }
+            return storagePath
+        }
+
+
+    private fun listImplPie(filterOutDirs: Boolean?): Array<SAFFile>? {
+        val directory = file
 
         // File not found error
 
@@ -49,17 +95,17 @@ class SAFFile : AbstractFile<SAFFile> {
             return emptyArray()
         }
         val listFiles: Array<File> = (if (filterOutDirs != null) if (filterOutDirs) directory.listFiles { obj: File -> obj.isFile } else directory.listFiles { obj: File -> obj.isDirectory } else directory.listFiles())
-                ?: return emptyArray()
+                ?: emptyArray()
 
 
         // Check Error in reading the directory (java.io.File do not allow any details about the error...).
 
 
         Arrays.sort(listFiles) { o1: File?, o2: File? -> o1!!.name.compareTo(o2!!.name) }
-        return N.arr.cast(listFiles, N.converter(AndroidFile::class.java) { file: File -> AndroidFile(file) })
+        return listFiles.map { SAFFile(fileConfig, it) }.toTypedArray()
     }
 
-    private fun list(filterOutDirs: Boolean?): Array<AndroidFile>? {
+    private fun list(filterOutDirs: Boolean?): Array<SAFFile>? {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) listImplQ(filterOutDirs) else listImplPie(filterOutDirs)
     }
 

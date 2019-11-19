@@ -1,17 +1,37 @@
 package de.mel.android.file
 
+import android.content.Context
+import androidx.documentfile.provider.DocumentFile
 import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.IFile
 import java.io.File
 
-class SAFFileConfiguration : AbstractFile.Configuration() {
-    override fun instance(path: String): AbstractFile<IFile> = SAFFile(path) as AbstractFile<IFile>
+class SAFFileConfiguration(context: Context) : AbstractFile.Configuration<SAFFile>() {
+    private var internalCache: DocFileCache? = null
+    private var externalCache: DocFileCache? = null
 
-    override fun instance(file: File): AbstractFile<IFile> = SAFFile(file.absolutePath) as AbstractFile<IFile>
+    val androidFileConfiguration = AndroidFileConfiguration(context)
 
-    override fun instance(parent: AbstractFile<IFile>, name: String): AbstractFile<IFile> = SAFFile(parent,name) as AbstractFile<IFile>
+    @Throws(SAFAccessor.SAFException::class)
+    fun getInternalDoc(parts: Array<String>): DocumentFile? {
+        if (internalCache == null) internalCache = DocFileCache(SAFAccessor.getInternalRootDocFile(), 50)
+        return internalCache!!.findDoc(parts)
+    }
 
-    override fun instance(originalFile: AbstractFile<IFile>): AbstractFile<IFile> = SAFFile(originalFile) as AbstractFile<IFile>
+    @Throws(SAFAccessor.SAFException::class)
+    fun getExternalDoc(parts: Array<String>): DocumentFile? {
+        if (externalCache == null) externalCache = DocFileCache(SAFAccessor.getExternalRootDocFile(), 50)
+        return externalCache!!.findDoc(parts)
+    }
 
-    override fun separator(): String = "This separator is useless"
+    override fun instance(path: String): SAFFile = SAFFile(path)
+
+    override fun instance(file: File): SAFFile = SAFFile(file.absolutePath)
+
+    override fun instance(parent: SAFFile, name: String): SAFFile = SAFFile(parent, name)
+
+    override fun separator(): String = androidFileConfiguration.separator()
+
+    override fun instance(originalFile: SAFFile): SAFFile = SAFFile(originalFile)
+
 }

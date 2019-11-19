@@ -34,6 +34,26 @@ class AndroidFile : AbstractFile<AndroidFile> {
     private var internalCache: DocFileCache? = null
     private var externalCache: DocFileCache? = null
 
+    companion object{
+        fun createRelativeFilePathParts(storagePath: String, file: File): Array<String> {
+            val path: String? = file.absolutePath
+            // if rootPath is null, there is no external sd card.
+            // if it isn't the share still might be on the internal "sd card"
+            // todo test, because it is untested cause I go to bed now
+
+            val stripped: String?
+            if (!path!!.startsWith(storagePath)) Lok.error("INVALID PATH! tried to find [$path] in [$storagePath]")
+            // +1 to get rid of the leading slash
+
+
+            var offset = 0
+            if (!path.endsWith("/")) offset = 1
+            if (path.length == storagePath.length) return emptyArray()
+            stripped = path.substring(storagePath.length + offset)
+            return stripped.split(File.separator).toTypedArray()
+        }
+    }
+
     constructor(path: String) {
         file = File(path)
         name = file.name
@@ -221,23 +241,7 @@ class AndroidFile : AbstractFile<AndroidFile> {
         return if (!file!!.absolutePath.startsWith(SAFAccessor.getExternalSDPath())) false else VERSION.SDK_INT > VERSION_CODES.KITKAT
     }
 
-    private fun createRelativeFilePathParts(storagePath: String, file: File): Array<String> {
-        val path: String? = file.absolutePath
-        // if rootPath is null, there is no external sd card.
-        // if it isn't the share still might be on the internal "sd card"
-        // todo test, because it is untested cause I go to bed now
 
-        val stripped: String?
-        if (!path!!.startsWith(storagePath)) Lok.error("INVALID PATH! tried to find [$path] in [$storagePath]")
-        // +1 to get rid of the leading slash
-
-
-        var offset = 0
-        if (!path.endsWith("/")) offset = 1
-        if (path.length == storagePath.length) return emptyArray()
-        stripped = path.substring(storagePath.length + offset)
-        return stripped.split(File.separator).toTypedArray()
-    }
 
     /**
      * @return the path of the storage the file is stored on
