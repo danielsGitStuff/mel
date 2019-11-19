@@ -17,10 +17,20 @@ import java.util.*
 /**
  * File replacement for Android 10+
  */
-class SAFFile : AbstractFile<SAFFile>() {
+class SAFFile : AbstractFile<SAFFile> {
+    constructor(path: String) {
+
+    }
+
+    constructor(parent: AbstractFile<IFile>, name: String){
+
+    }
+
+
     private fun query() {
 
     }
+
 
     private fun listImplPie(filterOutDirs: Boolean?): Array<AndroidFile>? {
         val directory = this
@@ -154,7 +164,7 @@ class SAFFile : AbstractFile<SAFFile>() {
     }
 
     override val separator: String?
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+        get() = File.separator
     override val name: String
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
     override val absolutePath: String
@@ -163,14 +173,17 @@ class SAFFile : AbstractFile<SAFFile>() {
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
     override val isDirectory: Boolean
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
-    override val parentFile: IFile
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
     override val freeSpace: Long?
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
     override val usableSpace: Long?
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
     override val path: String
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+
+    override fun canRead(): Boolean {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     override val canonicalPath: String?
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
 }

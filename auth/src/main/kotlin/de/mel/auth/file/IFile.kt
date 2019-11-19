@@ -6,7 +6,6 @@ import java.io.InputStream
 
 interface IFile {
     val separator: String?
-    val name: String
     val absolutePath: String
     val isFile: Boolean
     //    public abstract boolean move(T target);
@@ -30,6 +29,8 @@ interface IFile {
     fun mkdirs(): Boolean
     @Throws(FileNotFoundException::class)
     fun inputStream(): InputStream?
+
+//    fun getName(): String
 
     @Throws(IOException::class)
     fun writer(): AbstractFileWriter?

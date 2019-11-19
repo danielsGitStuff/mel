@@ -29,13 +29,14 @@ import java.util.*
  * File replacement for Android KitKat to Pie
  */
 class AndroidFile : AbstractFile<AndroidFile> {
-    private var file: File?
+    private var file: File
     private var isExternal = false
     private var internalCache: DocFileCache? = null
     private var externalCache: DocFileCache? = null
 
     constructor(path: String) {
         file = File(path)
+        name = file.name
         init()
     }
 
@@ -401,8 +402,6 @@ class AndroidFile : AbstractFile<AndroidFile> {
         return list(null)
     }
 
-    override val name: String
-        get() = file!!.name
     override val absolutePath: String
         get() = file!!.absolutePath
     override val isFile: Boolean
@@ -416,6 +415,9 @@ class AndroidFile : AbstractFile<AndroidFile> {
         get() = file!!.usableSpace
     override val path: String
         get() = file!!.path
+
+    override fun canRead(): Boolean = file!!.canRead()
+
     override val canonicalPath: String?
         get() = file!!.canonicalPath
     override var parentFile: AndroidFile?
