@@ -5,8 +5,9 @@ import android.content.Context;
 import java.io.File;
 
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 
-public class AndroidFileConfiguration extends AbstractFile.Configuration {
+public class AndroidFileConfiguration extends AbstractFile.Configuration<AndroidFile> {
     private static File dataDir;
     private Context context;
 
@@ -20,7 +21,7 @@ public class AndroidFileConfiguration extends AbstractFile.Configuration {
     }
 
     @Override
-    public AbstractFile instance(String path) {
+    public AndroidFile instance(String path) {
         return new AndroidFile(path);
     }
 
@@ -30,13 +31,13 @@ public class AndroidFileConfiguration extends AbstractFile.Configuration {
     }
 
     @Override
-    public AbstractFile instance(File file) {
+    public AndroidFile instance(File file) {
         return new AndroidFile(file);
     }
 
 
     @Override
-    public AbstractFile instance(AbstractFile parent, String name) {
+    public AndroidFile instance(AndroidFile parent, String name) {
         if (parent instanceof AndroidFile)
             return new AndroidFile((AndroidFile) parent, name);
         else
@@ -45,7 +46,7 @@ public class AndroidFileConfiguration extends AbstractFile.Configuration {
     }
 
     @Override
-    public AbstractFile instance(AbstractFile originalFile) {
+    public AndroidFile instance(AndroidFile originalFile) {
         return new AndroidFile((AndroidFile) originalFile);
 
     }

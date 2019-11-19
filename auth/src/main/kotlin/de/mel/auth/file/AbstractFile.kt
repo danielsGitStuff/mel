@@ -27,30 +27,30 @@ abstract class AbstractFile<T : IFile> : IFile {
     /**
      * creates common instances of [AbstractFile]s
      */
-    abstract class Configuration {
-        abstract fun instance(path: String): AbstractFile<IFile>
+    abstract class Configuration<H : IFile> {
+        abstract fun instance(path: String): H
         abstract fun separator(): String
-        abstract fun instance(file: File): AbstractFile<IFile>
-        abstract fun instance(parent: AbstractFile<IFile>, name: String): AbstractFile<IFile>
-        abstract fun instance(originalFile: AbstractFile<IFile>): AbstractFile<IFile>
+        abstract fun instance(file: File): H
+        abstract fun instance(parent: H, name: String): H
+        abstract fun instance(originalFile: H): H
     }
 
     companion object {
-        var configuration: Configuration? = null
+        var configuration: Configuration<IFile>? = null
             private set
 
         @JvmStatic
-        fun instance(file: File): AbstractFile<IFile> {
+        fun instance(file: File): IFile {
             return configuration!!.instance(file)
         }
 
         @JvmStatic
-        fun instance(originalFile: AbstractFile<IFile>): AbstractFile<IFile> {
+        fun instance(originalFile: IFile): IFile {
             return configuration!!.instance(originalFile)
         }
 
         @JvmStatic
-        fun configure(configuration: Configuration) {
+        fun configure(configuration: Configuration<IFile>) {
             if (Companion.configuration != null) {
                 Lok.error("AFile implementation has already been set!")
                 return
@@ -66,13 +66,13 @@ abstract class AbstractFile<T : IFile> : IFile {
          * @return
          */
         @JvmStatic
-        fun instance(path: String): AbstractFile<IFile> {
+        fun instance(path: String): IFile {
             if (configuration == null) Lok.error(AbstractFile::class.java.simpleName + ". NOT INITIALIZED! Call configure() before!")
             return configuration!!.instance(path)
         }
 
         @JvmStatic
-        fun instance(parent: AbstractFile<IFile>, name: String): AbstractFile<IFile> {
+        fun instance(parent: IFile, name: String): IFile {
             return configuration!!.instance(parent, name)
         }
 

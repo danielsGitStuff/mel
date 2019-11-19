@@ -30,6 +30,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.navigation.NavigationView;
 
+import de.mel.android.file.SAFFileConfiguration;
 import org.jdeferred.FailCallback;
 import org.jdeferred.Promise;
 
@@ -82,7 +83,6 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
     private ImageButton btnHelp;
     private int stoppedColor;
     private int runningColor;
-
 
 
     /**
@@ -183,7 +183,9 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
         AndroidLok.setupDbLok(this);
         SAFAccessor.setupExternalPath();
 //        SAFAccessor.setupInternalPath();
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            AbstractFile.configure(new SAFFileConfiguration());
+        else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             AbstractFile.configure(new AndroidFileConfiguration(this.getApplicationContext()));
         } else {
             AbstractFile.configure(new DefaultFileConfiguration());

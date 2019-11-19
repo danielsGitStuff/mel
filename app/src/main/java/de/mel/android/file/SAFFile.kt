@@ -22,7 +22,11 @@ class SAFFile : AbstractFile<SAFFile> {
 
     }
 
-    constructor(parent: AbstractFile<IFile>, name: String){
+    constructor(parent: AbstractFile<IFile>, name: String) {
+
+    }
+
+    constructor(originalFile: AbstractFile<IFile>) {
 
     }
 
@@ -164,9 +168,7 @@ class SAFFile : AbstractFile<SAFFile> {
     }
 
     override val separator: String?
-        get() = File.separator
-    override val name: String
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+        get() = "%2F"
     override val absolutePath: String
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
     override val isFile: Boolean
