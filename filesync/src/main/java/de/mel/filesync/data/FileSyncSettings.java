@@ -1,6 +1,7 @@
 package de.mel.filesync.data;
 
 import de.mel.auth.data.JsonSettings;
+import de.mel.auth.file.IFile;
 import de.mel.core.serialize.exceptions.JsonDeserializationException;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
 import de.mel.filesync.data.fs.RootDirectory;
@@ -25,12 +26,12 @@ public class FileSyncSettings extends JsonSettings {
     protected String transferDirectoryPath;
     protected Long maxWastebinSize;
     protected Long maxAge = 30L;
-    protected AbstractFile transferDirectory;
+    protected IFile transferDirectory;
     protected Boolean useSymLinks = true;
 
     protected boolean fastBoot = true;
 
-    public static RootDirectory buildRootDirectory(AbstractFile rootFile) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException, IOException {
+    public static RootDirectory buildRootDirectory(IFile rootFile) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException, IOException {
         String path = rootFile.getCanonicalPath();
         RootDirectory rootDirectory = new RootDirectory().setPath(path);
         rootDirectory.setOriginalFile(rootFile);
@@ -56,7 +57,7 @@ public class FileSyncSettings extends JsonSettings {
     }
 
 
-    public AbstractFile getTransferDirectoryFile() {
+    public IFile getTransferDirectoryFile() {
         return transferDirectory;
     }
 
@@ -125,13 +126,13 @@ public class FileSyncSettings extends JsonSettings {
         return this;
     }
 
-    public FileSyncSettings setTransferDirectory(AbstractFile transferDirectory) {
+    public FileSyncSettings setTransferDirectory(IFile transferDirectory) {
         this.transferDirectory = transferDirectory;
         this.transferDirectoryPath = transferDirectory.getAbsolutePath();
         return this;
     }
 
-    public AbstractFile getTransferDirectory() {
+    public IFile getTransferDirectory() {
         return transferDirectory;
     }
 

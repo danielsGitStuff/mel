@@ -29,26 +29,26 @@ public class TestDirCreator {
         List<String> paths = new ArrayList<>();
         //CertificateManager.deleteDirectory(testDir);
         testDir.mkdirs();
-        AbstractFile sub1 = AbstractFile.instance(testDir.getPath() + File.separator + "sub1");
-        AbstractFile sub2 = AbstractFile.instance(testDir.getPath() + File.separator + "sub2");
+        IFile sub1 = AbstractFile.instance(testDir.getPath() + File.separator + "sub1");
+        IFile sub2 = AbstractFile.instance(testDir.getPath() + File.separator + "sub2");
         sub1.mkdirs();
         sub2.mkdirs();
 
-        AbstractFile sub1txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub1.txt");
+        IFile sub1txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub1.txt");
         TestFileCreator.saveFile(TestFileCreator.genBigFile(), sub1txt);
 
-        AbstractFile sub2txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub2.txt");
+        IFile sub2txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub2.txt");
         TestFileCreator.saveFile(("sub2.txt text" + appendix).getBytes(), sub2txt);
 
-        AbstractFile sub22 = AbstractFile.instance(sub2.getPath() + File.separator + "sub22");
+        IFile sub22 = AbstractFile.instance(sub2.getPath() + File.separator + "sub22");
         sub22.mkdirs();
 
-        AbstractFile sub22txt = AbstractFile.instance(sub22.getPath() + File.separator + "sub22.txt");
+        IFile sub22txt = AbstractFile.instance(sub22.getPath() + File.separator + "sub22.txt");
         TestFileCreator.saveFile("sub22.txt text".getBytes(), sub22txt);
-        AbstractFile sameDir = AbstractFile.instance(testDir.getPath() + File.separator + "samedir");
+        IFile sameDir = AbstractFile.instance(testDir.getPath() + File.separator + "samedir");
         sameDir.mkdirs();
-        AbstractFile same1txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same1.txt");
-        AbstractFile same2txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same2.txt");
+        IFile same1txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same1.txt");
+        IFile same2txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same2.txt");
         TestFileCreator.saveFile("same".getBytes(), same1txt);
         TestFileCreator.saveFile("same".getBytes(), same2txt);
 
@@ -71,26 +71,26 @@ public class TestDirCreator {
         List<String> paths = new ArrayList<>();
         //CertificateManager.deleteDirectory(testDir);
         testDir.mkdirs();
-        AbstractFile sub1 = AbstractFile.instance(testDir.getPath() + File.separator + "sub1");
-        AbstractFile sub2 = AbstractFile.instance(testDir.getPath() + File.separator + "sub2");
+        IFile sub1 = AbstractFile.instance(testDir.getPath() + File.separator + "sub1");
+        IFile sub2 = AbstractFile.instance(testDir.getPath() + File.separator + "sub2");
         sub1.mkdirs();
         sub2.mkdirs();
 
-        AbstractFile sub1txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub1.txt");
+        IFile sub1txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub1.txt");
         TestFileCreator.saveFile(TestFileCreator.genBigFile(), sub1txt);
 
-        AbstractFile sub2txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub2.txt");
+        IFile sub2txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub2.txt");
         TestFileCreator.saveFile(("sub2.txt text").getBytes(), sub2txt);
 
-        AbstractFile sub22 = AbstractFile.instance(sub2.getPath() + File.separator + "sub22");
+        IFile sub22 = AbstractFile.instance(sub2.getPath() + File.separator + "sub22");
         sub22.mkdirs();
 
-        AbstractFile sub22txt = AbstractFile.instance(sub22.getPath() + File.separator + "sub22.txt");
+        IFile sub22txt = AbstractFile.instance(sub22.getPath() + File.separator + "sub22.txt");
         TestFileCreator.saveFile("sub22.txt text".getBytes(), sub22txt);
-        AbstractFile sameDir = AbstractFile.instance(testDir.getPath() + File.separator + "samedir");
+        IFile sameDir = AbstractFile.instance(testDir.getPath() + File.separator + "samedir");
         sameDir.mkdirs();
-        AbstractFile same1txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same1.txt");
-        AbstractFile same2txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same2.txt");
+        IFile same1txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same1.txt");
+        IFile same2txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same2.txt");
         TestFileCreator.saveFile("same".getBytes(), same1txt);
         TestFileCreator.saveFile("same".getBytes(), same2txt);
         for (Integer i = 0; i < noOfFiles; i++) {
@@ -118,26 +118,26 @@ public class TestDirCreator {
         List<String> paths = new ArrayList<>();
         //CertificateManager.deleteDirectory(testDir);
         testDir.mkdirs();
-        AbstractFile sub1 = AbstractFile.instance(testDir.getPath() + File.separator + "sub1");
-        AbstractFile sub2 = AbstractFile.instance(testDir.getPath() + File.separator + "sub2");
+        IFile sub1 = AbstractFile.instance(testDir.getPath() + File.separator + "sub1");
+        IFile sub2 = AbstractFile.instance(testDir.getPath() + File.separator + "sub2");
         sub1.mkdirs();
         sub2.mkdirs();
 
-        AbstractFile sub1txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub1.txt");
+        IFile sub1txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub1.txt");
         TestFileCreator.saveFile(TestFileCreator.genBigFile(), sub1txt);
 
-        AbstractFile sub2txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub2.txt");
+        IFile sub2txt = AbstractFile.instance(sub1.getPath() + File.separator + "sub2.txt");
         TestFileCreator.saveFile(("sub2.txt text").getBytes(), sub2txt);
 
-        AbstractFile sub22 = AbstractFile.instance(sub2.getPath() + File.separator + "sub22");
+        IFile sub22 = AbstractFile.instance(sub2.getPath() + File.separator + "sub22");
         sub22.mkdirs();
 
-        AbstractFile sub22txt = AbstractFile.instance(sub22.getPath() + File.separator + "sub22.txt");
+        IFile sub22txt = AbstractFile.instance(sub22.getPath() + File.separator + "sub22.txt");
         TestFileCreator.saveFile("sub22.txt text".getBytes(), sub22txt);
-        AbstractFile sameDir = AbstractFile.instance(testDir.getPath() + File.separator + "samedir");
+        IFile sameDir = AbstractFile.instance(testDir.getPath() + File.separator + "samedir");
         sameDir.mkdirs();
-        AbstractFile same1txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same1.txt");
-        AbstractFile same2txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same2.txt");
+        IFile same1txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same1.txt");
+        IFile same2txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same2.txt");
         TestFileCreator.saveFile("same".getBytes(), same1txt);
         TestFileCreator.saveFile("same".getBytes(), same2txt);
         for (Integer i = 0; i < noOfSubdirs; i++) {
@@ -160,13 +160,13 @@ public class TestDirCreator {
 
     public static void createTestDirSimple(AbstractFile rootDir) throws IOException {
         rootDir.mkdirs();
-        AbstractFile sub = AbstractFile.instance(rootDir, "sub");
+        IFile sub = AbstractFile.instance(rootDir, "sub");
         sub.mkdirs();
 
-        AbstractFile synced1 = AbstractFile.instance(sub, "synced1.txt");
-        AbstractFile synced2 = AbstractFile.instance(sub, "synced2.txt");
-        AbstractFile unsynced3 = AbstractFile.instance(sub, "unsynced3.txt");
-        AbstractFile synced4 = AbstractFile.instance(sub, "synced4.txt");
+        IFile synced1 = AbstractFile.instance(sub, "synced1.txt");
+        IFile synced2 = AbstractFile.instance(sub, "synced2.txt");
+        IFile unsynced3 = AbstractFile.instance(sub, "unsynced3.txt");
+        IFile synced4 = AbstractFile.instance(sub, "synced4.txt");
 
 
         synced1.writer().append(new byte[]{1}, 0);

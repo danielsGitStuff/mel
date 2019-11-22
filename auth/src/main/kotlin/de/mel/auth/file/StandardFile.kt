@@ -21,6 +21,8 @@ class StandardFile : AbstractFile<StandardFile> {
             file = File(path)
         }
 
+    override fun canRead(): Boolean = file.canRead()
+
     constructor(parent: StandardFile, name: String) {
         file = File(parent.file, name)
     }
@@ -42,9 +44,6 @@ class StandardFile : AbstractFile<StandardFile> {
     }
 
     constructor(path: String) : this(File(path)) {}
-
-    override val name: String
-        get() = file.name
 
     override val absolutePath: String
         get() = file.absolutePath
@@ -78,9 +77,6 @@ class StandardFile : AbstractFile<StandardFile> {
         return file.delete()
     }
 
-    override val parentFile: StandardFile
-        get() = StandardFile(File(file!!.absolutePath).parentFile)
-
     override fun mkdirs(): Boolean {
         return file.mkdirs()
     }
@@ -89,6 +85,8 @@ class StandardFile : AbstractFile<StandardFile> {
     override fun inputStream(): FileInputStream? {
         return FileInputStream(file)
     }
+
+    override fun getName(): String = file.name
 
     @Throws(FileNotFoundException::class)
     override fun writer(): AbstractFileWriter? {

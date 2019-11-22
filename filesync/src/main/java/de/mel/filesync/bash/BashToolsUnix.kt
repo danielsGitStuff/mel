@@ -105,7 +105,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
         val iNode = java.lang.Long.parseLong(parts[0])
         val created = if (readCreated) java.lang.Long.parseLong(parts[1]) * 1000 else null
         val symLink = parts[2].startsWith("sym")
-        val name = file.name
+        val name = file.getName()
         val modified = file.lastModified()
         val symLinkTarget: String? = if (symLink)
             parseSymLink(file, parts[6])
@@ -120,7 +120,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
     private fun parseSymLink(file: StandardFile, line: String): String {
         var symLinkTarget: String? = null
         val originalSym = line.drop(1).dropLast(1)
-        val parentCanonical = file.parentFile.canonicalPath
+        val parentCanonical = file.parentFile!!.canonicalPath
         val completePath = parentCanonical + File.separator + originalSym
         val ComplecteCanonical = File(completePath).canonicalPath
         symLinkTarget = ComplecteCanonical.drop(parentCanonical.length)
@@ -179,7 +179,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
 
     @Throws(IOException::class, BashToolsException::class)
     override fun stuffModifiedAfter(referenceFile: StandardFile, directory: StandardFile, pruneDir: StandardFile): List<StandardFile> {
-        Lok.debug("BashTools.Companion.stuffModifiedAfter: " + referenceFile.name + " mod: " + referenceFile.lastModified())
+        Lok.debug("BashTools.Companion.stuffModifiedAfter: " + referenceFile.getName() + " mod: " + referenceFile.lastModified())
         //        String cmd = "find \"" + directory.getAbsolutePath() + "\"  "
         //                + " -path \"" + pruneDir + "\" -prune"
         //                + " -o -newer \"" + referenceFile.getAbsolutePath() + "\" -print";

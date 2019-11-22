@@ -33,7 +33,7 @@ class BashToolsWindows : BashTools<StandardFile>() {
                     val fsUtil = execLine("fsutil", "file", "queryfileid", file.absolutePath)
                     val id = fsUtil!!.substringAfter(": ")
                     val iNode = java.lang.Long.decode(id)
-                    iNodeMap[it.name] = iNode
+                    iNodeMap[it.getName()] = iNode
                 }
             }
 
@@ -65,7 +65,7 @@ class BashToolsWindows : BashTools<StandardFile>() {
                         it.iterator().forEach {
                             val readPath = driveLetter + it
                             if (path != readPath)
-                                symLinkMap[f.name] = readPath
+                                symLinkMap[f.getName()] = readPath
                         }
                     }
                 }
@@ -74,7 +74,7 @@ class BashToolsWindows : BashTools<StandardFile>() {
         }
         val map: MutableMap<String, FsBashDetails> = mutableMapOf()
         contents?.forEach {
-            val name = it.name
+            val name = it.getName()
             val isSymLink = symLinkMap.containsKey(name)
             val attr = Files.getFileAttributeView(Paths.get(File(it.absolutePath).toURI()), BasicFileAttributeView::class.java).readAttributes()
             val details = FsBashDetails(attr.creationTime().toMillis(), attr.lastModifiedTime().toMillis(), iNodeMap[name], isSymLink, symLinkMap[name], name)
@@ -86,7 +86,7 @@ class BashToolsWindows : BashTools<StandardFile>() {
     @Throws(IOException::class)
     override fun getFsBashDetails(file: StandardFile): FsBashDetails {
         var iNode: Long? = null
-        val name = file.name
+        val name = file.getName()
         var isSymLink: Boolean = false
         var symLinkTarget: String? = null
         var created: Long? = null
@@ -131,11 +131,11 @@ class BashToolsWindows : BashTools<StandardFile>() {
         if (f.isDirectory) {
             // check if junction
             var countDown = 5;
-            execReader("dir", "/al", f.parentFile.absolutePath)?.useLines {
+            execReader("dir", "/al", f.parentFile!!.absolutePath)?.useLines {
                 it.iterator().forEach {
                     if (countDown == 0) {
                         var stripped = it.substringAfter("<JUNCTION>").substring(5)
-                        if (stripped.startsWith(f.name)) {
+                        if (stripped.startsWith(f.getName())) {
                             return true
                         }
                     }
@@ -169,12 +169,12 @@ class BashToolsWindows : BashTools<StandardFile>() {
         if (f.isDirectory) {
             // check if junction
             var countDown = 5;
-            execReader("dir", "/al", f.parentFile.absolutePath)?.useLines {
+            execReader("dir", "/al", f.parentFile!!.absolutePath)?.useLines {
                 it.iterator().forEach {
                     if (countDown == 0) {
                         var stripped = it.substringAfter("<JUNCTION>").substring(5)
-                        if (stripped.startsWith(f.name)) {
-                            stripped = stripped.substringAfter(f.name).trim()
+                        if (stripped.startsWith(f.getName())) {
+                            stripped = stripped.substringAfter(f.getName()).trim()
                             stripped = stripped.substring(1, stripped.length - 1)
                             if (path != stripped)
                                 return stripped

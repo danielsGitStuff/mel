@@ -19,7 +19,8 @@ abstract class AbstractFile<T : IFile> : IFile {
      */
     override fun hasSubContent(subFile: AbstractFile<*>): Boolean = subFile.absolutePath.startsWith(absolutePath)
 
-    open lateinit var name: String
+//    open lateinit var nameString: String
+
 
     open var parentFile: T? = null
         protected set

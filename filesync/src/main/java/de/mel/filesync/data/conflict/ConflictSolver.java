@@ -2,6 +2,7 @@ package de.mel.filesync.data.conflict;
 
 import de.mel.Lok;
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.Order;
 import de.mel.filesync.data.FileSyncStrings;
@@ -85,7 +86,7 @@ public class ConflictSolver extends SyncStageMerger {
      * @throws SqlQueriesException
      */
     @Override
-    public void stuffFound(Stage left, Stage right, AbstractFile lFile, AbstractFile rFile) throws SqlQueriesException {
+    public void stuffFound(Stage left, Stage right, IFile lFile, IFile rFile) throws SqlQueriesException {
         if (!(left == null && lFile == null || left != null && lFile != null)) {
             System.err.println("ConflictSolver.stuffFound.e1");
         }

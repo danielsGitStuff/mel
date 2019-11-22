@@ -24,9 +24,9 @@ class SAFFileConfiguration(context: Context) : AbstractFile.Configuration<SAFFil
         return externalCache!!.findDoc(parts)
     }
 
-    override fun instance(path: String): SAFFile = SAFFile(path)
+    override fun instance(path: String): SAFFile = SAFFile(this,path)
 
-    override fun instance(file: File): SAFFile = SAFFile(file.absolutePath)
+    override fun instance(file: File): SAFFile = SAFFile(this,file.absolutePath)
 
     override fun instance(parent: SAFFile, name: String): SAFFile = SAFFile(parent, name)
 

@@ -1,6 +1,7 @@
 package de.mel.filesync.nio;
 
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 import de.mel.auth.tools.N;
 import de.mel.core.serialize.SerializableEntity;
 import de.mel.filesync.bash.FsBashDetails;
@@ -17,10 +18,10 @@ public class FileDistributionTask implements SerializableEntity {
     }
 
     private String sourcePath;
-    private AbstractFile sourceFile;
+    private IFile sourceFile;
     private String sourceHash;
     private List<String> targetPaths = new ArrayList<>();
-    private List<AbstractFile> targetFiles = new ArrayList<>();
+    private List<IFile> targetFiles = new ArrayList<>();
     private List<Long> targetFsIds = new ArrayList<>();
     private Boolean deleteSource;
     private boolean hasOptionals = false;
@@ -108,24 +109,24 @@ public class FileDistributionTask implements SerializableEntity {
     }
 
 
-    public FileDistributionTask addTargetFile(AbstractFile targetFile, long fsId) {
+    public FileDistributionTask addTargetFile(IFile targetFile, long fsId) {
         targetFiles.add(targetFile);
         targetPaths.add(targetFile.getAbsolutePath());
         targetFsIds.add(fsId);
         return this;
     }
 
-    public AbstractFile getSourceFile() {
+    public IFile getSourceFile() {
         return sourceFile;
     }
 
-    public FileDistributionTask setSourceFile(AbstractFile sourceFile) {
+    public FileDistributionTask setSourceFile(IFile sourceFile) {
         this.sourceFile = sourceFile;
         this.sourcePath = sourceFile.getAbsolutePath();
         return this;
     }
 
-    public List<AbstractFile> getTargetFiles() {
+    public List<IFile> getTargetFiles() {
         return targetFiles;
     }
 

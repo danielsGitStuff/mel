@@ -43,8 +43,8 @@ class SAFFile : AbstractFile<SAFFile> {
         init()
     }
 
-    constructor(fileConfig: SAFFileConfiguration, originalFile: SAFFile) {
-        this.fileConfig = fileConfig
+    constructor(originalFile: SAFFile) {
+        this.fileConfig = originalFile.fileConfig
         file = File(originalFile.absolutePath)
         init()
     }

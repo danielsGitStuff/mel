@@ -2,6 +2,7 @@ package de.mel.filesync.service.sync;
 
 import de.mel.Lok;
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.lock.P;
@@ -164,7 +165,7 @@ public abstract class SyncHandler {
      * @return true if the file is new on the device (not a copy). so it can be transferred to other devices.
      * @throws SqlQueriesException
      */
-    public boolean onFileTransferred(AbstractFile file, String hash, Warden warden, FsFile sourceFsFile) throws SqlQueriesException, IOException {
+    public boolean onFileTransferred(IFile file, String hash, Warden warden, FsFile sourceFsFile) throws SqlQueriesException, IOException {
         try {
 
             List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
@@ -443,7 +444,7 @@ public abstract class SyncHandler {
             while (!stack.empty()) {
                 dbParent = stack.pop();
                 path += dbParent.getName().v();
-                AbstractFile d = AbstractFile.instance(path);
+                IFile d = AbstractFile.instance(path);
                 if (!d.exists()) {
                     indexer.ignorePath(path, 1);
                     Lok.debug("SyncHandler.createDirs: " + d.getAbsolutePath());
@@ -458,7 +459,7 @@ public abstract class SyncHandler {
         }
         if (fsEntry.getIsDirectory().v()) {
             path += fsEntry.getName().v();
-            AbstractFile target = AbstractFile.instance(path);
+            IFile target = AbstractFile.instance(path);
             if (fsEntry.isSymlink()) {
                 if (!target.exists()) {
                     BashTools.Companion.lnS(target, fsEntry.getSymLink().v());
@@ -473,7 +474,7 @@ public abstract class SyncHandler {
         }
     }
 
-    private void updateInodeModified(FsEntry entry, AbstractFile f) throws SqlQueriesException, IOException, InterruptedException {
+    private void updateInodeModified(FsEntry entry, IFile f) throws SqlQueriesException, IOException, InterruptedException {
         FsBashDetails fsBashDetails = BashTools.Companion.getFsBashDetails(f);
         entry.getiNode().v(fsBashDetails.getiNode());
         entry.getModified().v(fsBashDetails.getModified());
@@ -496,7 +497,7 @@ public abstract class SyncHandler {
         transferManager.onShutDown();
     }
 
-    public boolean onFileTransferred(AbstractFile file, String hash, Warden warden) throws IOException, SqlQueriesException {
+    public boolean onFileTransferred(IFile file, String hash, Warden warden) throws IOException, SqlQueriesException {
         return this.onFileTransferred(file, hash, warden, null);
     }
 }

@@ -4,6 +4,7 @@ import de.mel.Lok;
 import de.mel.auth.data.cached.CachedInitializer;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.socket.MelValidationProcess;
 import de.mel.auth.socket.process.val.Request;
@@ -462,7 +463,7 @@ public class ClientSyncHandler extends SyncHandler {
             private Map<Long, Long> idMapLeft = new HashMap<>();
 
             @Override
-            public void stuffFound(Stage left, Stage right, AbstractFile lFile, AbstractFile rFile) throws SqlQueriesException {
+            public void stuffFound(Stage left, Stage right, IFile lFile, IFile rFile) throws SqlQueriesException {
                 if (left != null) {
                     if (right != null) {
                         Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
@@ -558,7 +559,7 @@ public class ClientSyncHandler extends SyncHandler {
                     conflictSolver.solve(lStage, rStage);
                 else {
                     timer3.start();
-                    AbstractFile rFile = (rStage != null) ? AbstractFile.instance(lFile.getAbsolutePath()) : null;
+                    IFile rFile = (rStage != null) ? AbstractFile.instance(lFile.getAbsolutePath()) : null;
                     timer3.stop();
                     merger.stuffFound(lStage, rStage, lFile, rFile);
                 }

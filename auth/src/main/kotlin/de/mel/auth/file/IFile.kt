@@ -14,6 +14,8 @@ interface IFile {
     val freeSpace: Long?
     val usableSpace: Long?
     val path: String
+
+
     /**
      * @param subFile
      * @return true if subFile is located in a subfolder of this instance.
@@ -30,7 +32,7 @@ interface IFile {
     @Throws(FileNotFoundException::class)
     fun inputStream(): InputStream?
 
-//    fun getName(): String
+    fun getName(): String
 
     @Throws(IOException::class)
     fun writer(): AbstractFileWriter?

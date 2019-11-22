@@ -32,17 +32,17 @@ public class BashToolsTest {
         AbstractFile.configure(new DefaultFileConfiguration());
     }
 
-    private final AbstractFile root = AbstractFile.instance("testdir.root");
-    private final AbstractFile f1 = AbstractFile.instance(root, "f1.txt");
-    private final AbstractFile f2 = AbstractFile.instance(root, "f2.txt");
-    private final AbstractFile sub = AbstractFile.instance(root, "sub");
-    private final AbstractFile f3 = AbstractFile.instance(sub, "f3.txt");
-    private final AbstractFile subsub = AbstractFile.instance(sub, "subsub");
-    private final AbstractFile f4 = AbstractFile.instance(subsub, "f4.txt");
-    private final AbstractFile symFolder = AbstractFile.instance(root, "symfolder");
-    private final AbstractFile symFolderTarget = subsub;
-    private final AbstractFile symFile = AbstractFile.instance(root, "symfile.txt");
-    private final AbstractFile symFileTarget = f3;
+    private final IFile root = AbstractFile.instance("testdir.root");
+    private final IFile f1 = AbstractFile.instance(root, "f1.txt");
+    private final IFile f2 = AbstractFile.instance(root, "f2.txt");
+    private final IFile sub = AbstractFile.instance(root, "sub");
+    private final IFile f3 = AbstractFile.instance(sub, "f3.txt");
+    private final IFile subsub = AbstractFile.instance(sub, "subsub");
+    private final IFile f4 = AbstractFile.instance(subsub, "f4.txt");
+    private final IFile symFolder = AbstractFile.instance(root, "symfolder");
+    private final IFile symFolderTarget = subsub;
+    private final IFile symFile = AbstractFile.instance(root, "symfile.txt");
+    private final IFile symFileTarget = f3;
 
     @Before
     public void before() throws Exception {
@@ -58,7 +58,7 @@ public class BashToolsTest {
         BashTools.Companion.init();
     }
 
-    private Path toPath(AbstractFile f) {
+    private Path toPath(IFile f) {
         return Paths.get(new File(f.getAbsolutePath()).toURI());
     }
 
@@ -68,7 +68,7 @@ public class BashToolsTest {
             F.rmRf(new File(root.getAbsolutePath()));
     }
 
-    private void write(AbstractFile f, String str) throws Exception {
+    private void write(IFile f, String str) throws Exception {
         try (AbstractFileWriter writer = f.writer()) {
             writer.append(str.getBytes(), 0, str.length());
         }

@@ -1,5 +1,6 @@
 package de.mel.filesync.service;
 
+import de.mel.auth.file.IFile;
 import de.mel.filesync.index.InitialIndexConflictHelper;
 import de.mel.filesync.index.watchdog.FileWatcherFactory;
 import org.jdeferred.Deferred;
@@ -309,9 +310,9 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
 
     public DeferredObject<DeferredRunnable, Exception, Void> startIndexer() throws SqlQueriesException {
         this.fileSyncSettings = fileSyncDatabaseManager.getFileSyncSettings();
-        AbstractFile transferDir = fileSyncSettings.getTransferDirectory();
+        IFile transferDir = fileSyncSettings.getTransferDirectory();
         transferDir.mkdirs();
-        AbstractFile wasteDir = AbstractFile.instance(fileSyncSettings.getTransferDirectory(), FileSyncStrings.WASTEBIN);
+        IFile wasteDir = AbstractFile.instance(fileSyncSettings.getTransferDirectory(), FileSyncStrings.WASTEBIN);
         wasteDir.mkdirs();
         this.stageIndexer = new StageIndexer(fileSyncDatabaseManager);
         this.indexer = new Indexer(fileSyncDatabaseManager, FileWatcherFactory.Companion.getFactory().runInstance(this), createIndexListener());

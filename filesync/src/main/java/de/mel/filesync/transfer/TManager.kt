@@ -71,7 +71,7 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
 
         // remove every file that has no transfer entry
         melFileSyncService.fileSyncSettings.transferDirectory.listFiles().forEach { file ->
-            if (!transferDao.hasHash(file.name))
+            if (!transferDao.hasHash(file.getName()))
                 file.delete()
         }
     }
