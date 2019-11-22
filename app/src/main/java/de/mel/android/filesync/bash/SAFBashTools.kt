@@ -6,23 +6,23 @@ import android.os.Build
 import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import androidx.annotation.RequiresApi
+import de.mel.Lok
 import de.mel.android.file.AndroidFile
 import de.mel.android.file.AndroidFileConfiguration
 import de.mel.auth.file.AbstractFile
 import de.mel.filesync.bash.AutoKlausIterator
 import de.mel.filesync.bash.BashTools
+import de.mel.filesync.bash.BashToolsException
 import de.mel.filesync.bash.FsBashDetails
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class SAFBashTools:BashTools<AndroidFile>() {
+class SAFBashTools : BashTools<AndroidFile>() {
     override fun getFsBashDetails(file: AndroidFile): FsBashDetails? {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
 
-
     override fun lnS(file: AndroidFile, target: String) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        throw BashToolsException("Android does not support symbolic links. This method must not be called!")
     }
 
     override fun getContentFsBashDetails(dir: AndroidFile): MutableMap<String, FsBashDetails> {
@@ -51,21 +51,19 @@ class SAFBashTools:BashTools<AndroidFile>() {
         } catch (e: java.lang.Exception) {
             e.printStackTrace()
         }
-        return mutableMapOf()    }
+        return mutableMapOf()
+    }
 
     override fun rmRf(directory: AndroidFile) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun stuffModifiedAfter(referenceFile: AndroidFile, directory: AndroidFile, pruneDir: AndroidFile): List<AndroidFile> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        throw BashToolsException("Method does not work on Android 10+ anymore.")
     }
 
     override fun find(directory: AndroidFile, pruneDir: AndroidFile): AutoKlausIterator<AndroidFile> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun stuffModifiedAfter(directory: AndroidFile, pruneDir: AndroidFile, timeStamp: Long): AutoKlausIterator<AndroidFile> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }
