@@ -12,6 +12,7 @@ import de.mel.auth.data.db.Certificate;
 import de.mel.auth.data.db.ServiceJoinServiceType;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
+import de.mel.auth.file.IFile;
 import de.mel.auth.gui.RegisterHandlerFX;
 import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.socket.process.reg.IRegisterHandler;
@@ -215,7 +216,7 @@ public class FxTest {
     }
 
     private void connectAcceptingClient() throws Exception {
-        AbstractFile testdir = AbstractFile.instance(new File("testdir2"));
+        IFile testdir = AbstractFile.instance(new File("testdir2"));
         CertificateManager.deleteDirectory(testdir);
         CertificateManager.deleteDirectory(MelBoot.Companion.getDefaultWorkingDir2());
         TestDirCreator.createTestDir(testdir);
@@ -287,7 +288,7 @@ public class FxTest {
 
     @Test
     public void connectAccepting() throws Exception {
-        AbstractFile testdir = AbstractFile.instance(new File("testdir1"));
+        IFile testdir = AbstractFile.instance(new File("testdir1"));
         CertificateManager.deleteDirectory(testdir);
         CertificateManager.deleteDirectory(MelBoot.Companion.getDefaultWorkingDir1());
         TestDirCreator.createTestDir(testdir);
@@ -362,7 +363,7 @@ public class FxTest {
 
     @Test
     public void startAcceptingServer() throws Exception {
-        AbstractFile testdir = AbstractFile.instance(new File("testdir1"));
+        IFile testdir = AbstractFile.instance(new File("testdir1"));
         CertificateManager.deleteDirectory(testdir);
         CertificateManager.deleteDirectory(MelBoot.Companion.getDefaultWorkingDir1());
         TestDirCreator.createTestDir(testdir);
@@ -570,11 +571,11 @@ public class FxTest {
         };
 
         lock.lockWrite();
-        AbstractFile rootServer = AbstractFile.instance("t1");
-        AbstractFile rootClient = AbstractFile.instance("t2");
+        IFile rootServer = AbstractFile.instance("t1");
+        IFile rootClient = AbstractFile.instance("t2");
         BashTools.Companion.rmRf(rootClient);
         BashTools.Companion.rmRf(rootClient);
-        AbstractFile alteredFile = AbstractFile.instance("t2" + File.separator + "samedir" + File.separator + "same1.txt");
+        IFile alteredFile = AbstractFile.instance("t2" + File.separator + "samedir" + File.separator + "same1.txt");
         TestDirCreator.createTestDir(rootServer);
         rootClient.mkdirs();
         rootServer.mkdirs();
@@ -855,8 +856,8 @@ public class FxTest {
 
     public void setup(FileSyncSyncListener clientSyncListener) throws Exception, SqlQueriesException {
         //setup working directories & directories with test data
-        AbstractFile testdir1 = AbstractFile.instance(new File("testdir1"));
-        AbstractFile testdir2 = AbstractFile.instance(new File("testdir2"));
+        IFile testdir1 = AbstractFile.instance(new File("testdir1"));
+        IFile testdir2 = AbstractFile.instance(new File("testdir2"));
         CertificateManager.deleteDirectory(MelBoot.Companion.getDefaultWorkingDir1());
         CertificateManager.deleteDirectory(MelBoot.Companion.getDefaultWorkingDir2());
         CertificateManager.deleteDirectory(testdir1);

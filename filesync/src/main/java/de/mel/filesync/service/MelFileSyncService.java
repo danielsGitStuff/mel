@@ -218,7 +218,7 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
 
             FileTransferDetailSet detailSet = payload.getFileTransferDetailSet();
             for (FileTransferDetail detail : detailSet.getDetails()) {
-                AbstractFile wasteFile = wastebin.getByHash(detail.getHash());
+                IFile wasteFile = wastebin.getByHash(detail.getHash());
                 Promise<MelIsolatedFileProcess, Exception, Void> promise = getIsolatedProcess(MelIsolatedFileProcess.class, partnerCertId, detailSet.getServiceUuid());
                 promise.done(fileProcess -> runner.runTry(() -> {
                     List<FsFile> fsFiles = fileSyncDatabaseManager.getFsDao().getFilesByHash(detail.getHash());
@@ -228,7 +228,7 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
                         fileProcess.sendFile(mDetail);
                     } else if (fsFiles.size() > 0) {
                         FsFile fsFile = fsFiles.get(0);
-                        AbstractFile file = fsDao.getFileByFsFile(fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory(), fsFile);
+                        IFile file = fsDao.getFileByFsFile(fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory(), fsFile);
                         if (!file.exists()) {
                             file = wastebin.getByHash(detail.getHash());
                         }

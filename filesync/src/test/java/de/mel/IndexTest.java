@@ -33,7 +33,7 @@ import java.io.IOException;
 public class IndexTest {
     protected MelAuthService mas;
     private Bootloader dbl;
-    private AbstractFile testRoot;
+    private IFile testRoot;
     private MelFileSyncServerService service;
     private File wd;
     private MelFileSyncService mds;
@@ -61,7 +61,7 @@ public class IndexTest {
             promise.done(result -> N.r(() -> {
                 mas = result;
                 RootDirectory rootDirectory = FileSyncSettings.buildRootDirectory(testRoot);
-                AbstractFile transferDir = AbstractFile.instance(rootDirectory.getOriginalFile(), FileSyncStrings.TRANSFER_DIR);
+                IFile transferDir = AbstractFile.instance(rootDirectory.getOriginalFile(), FileSyncStrings.TRANSFER_DIR);
                 FileSyncBootloader bl = (FileSyncBootloader) mas.getMelBoot().getBootLoader(new FileSyncBootloader().getName());
                 FileSyncSettings fileSyncSettings = new FileSyncSettings()
                         .setRole(FileSyncStrings.ROLE_SERVER)

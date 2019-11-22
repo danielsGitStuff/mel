@@ -7,10 +7,11 @@ import android.widget.TextView;
 
 import de.mel.R;
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 
 public class FileViewHolder extends RecyclerView.ViewHolder {
     private TextView lblDir;
-    private AbstractFile directory;
+    private IFile directory;
     private ImageView icon;
 
     public FileViewHolder(View itemView) {
@@ -20,8 +21,8 @@ public class FileViewHolder extends RecyclerView.ViewHolder {
 
     }
 
-    public void setDir(AbstractFile directory) {
+    public void setDir(IFile directory) {
         this.directory = directory;
-        this.lblDir.setText(directory.name);
+        this.lblDir.setText(directory.getName());
     }
 }

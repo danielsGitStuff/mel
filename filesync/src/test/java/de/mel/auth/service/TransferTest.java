@@ -78,7 +78,7 @@ public class TransferTest {
         //setupServer dirs
         CertificateManager.deleteDirectory(melAuthSettings.getWorkingDirectory());
         melAuthSettings.getWorkingDirectory().mkdirs();
-        AbstractFile testDir = AbstractFile.instance(AbstractFile.instance(melAuthSettings.getWorkingDirectory()), ROOT_DIR_NAME);
+        IFile testDir = AbstractFile.instance(AbstractFile.instance(melAuthSettings.getWorkingDirectory()), ROOT_DIR_NAME);
         testDir.mkdirs();
         Lok.debug(testDir.getAbsolutePath() + " /// " + testDir.exists());
         melAuthSettings.save();
@@ -158,7 +158,7 @@ public class TransferTest {
         AtomicReference<MelFileSyncServerService> serverService = new AtomicReference<>();
         CountdownLock bootLock = new CountdownLock(1);
         init(workingDir, melAuthService -> {
-            AbstractFile root = AbstractFile.instance(AbstractFile.instance(workingDir), ROOT_DIR_NAME);
+            IFile root = AbstractFile.instance(AbstractFile.instance(workingDir), ROOT_DIR_NAME);
             Path path = Paths.get(root.getAbsolutePath() + File.separator + "text.txt");
             StringBuilder builder = new StringBuilder("start...");
             N.forLoop(1, 2000, (stoppable, index) -> builder.append(index).append("/"));
@@ -181,7 +181,7 @@ public class TransferTest {
         init(workingDir, melAuthService -> {
             Promise<MelValidationProcess, Exception, Void> paired = melAuthService.connect("localhost", 6666, 6667, true);
             paired.done(result -> new Thread(() -> N.r(() -> {
-                AbstractFile root = AbstractFile.instance(AbstractFile.instance(workingDir), ROOT_DIR_NAME);
+                IFile root = AbstractFile.instance(AbstractFile.instance(workingDir), ROOT_DIR_NAME);
                 FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> N.r(() -> {
                     clientService.set((MelFileSyncClientService) driveService);
                     bootLock.unlock();

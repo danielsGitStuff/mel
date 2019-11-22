@@ -258,7 +258,7 @@ public abstract class SyncHandler {
                 N.readSqlResourceIgnorantly(stageDao.getDeletedDirectoryStagesByStageSet(stageSetId), (sqlResource, dirStage) -> {
                     if (dirStage.getFsIdPair().notNull())
                         fsWriteDao.deleteById(dirStage.getFsId());
-                    AbstractFile f = stageDao.getFileByStage(dirStage);
+                    IFile f = stageDao.getFileByStage(dirStage);
                     wastebin.deleteUnknown(f);
                 });
 
@@ -319,7 +319,7 @@ public abstract class SyncHandler {
                                 }
                                 fsWriteDao.insert(fsFile.toFsWriteEntry());
                                 if (fsFile.isSymlink()) {
-                                    AbstractFile f = fsWriteDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsFile);
+                                    IFile f = fsWriteDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsFile);
                                     BashTools.Companion.lnS(f, fsFile.getSymLink().v());
                                 } else if (!stageSet.fromFs() && !stage.getIsDirectory() && !stage.isSymLink()) {
                                     // this file porobably has to be transferred
@@ -367,7 +367,7 @@ public abstract class SyncHandler {
                                         wastebin.deleteFsFile(oldeFsFile);
                                     } else {
                                         // delete file. consider that it might be in the same state as the stage
-                                        AbstractFile stageFile = stageDao.getFileByStage(stage);
+                                        IFile stageFile = stageDao.getFileByStage(stage);
                                         if (stageFile.exists()) {
                                             FsBashDetails fsBashDetails = BashTools.Companion.getFsBashDetails(stageFile);
                                             if (stage.getiNode() == null || stage.getModified() == null ||

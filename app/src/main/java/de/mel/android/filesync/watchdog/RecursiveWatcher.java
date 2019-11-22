@@ -28,9 +28,9 @@ import org.jdeferred.Promise;
  * Created by xor on 31.07.2017.
  */
 public class RecursiveWatcher extends FileWatcher {
-    private final AbstractFile target;
+    private final IFile target;
     private final Map<String, Watcher> watchers = new HashMap<>();
-    private final AbstractFile transferDirectory;
+    private final IFile transferDirectory;
     private final UnixReferenceFileHandler unixReferenceFileHandler;
 
     public RecursiveWatcher(MelFileSyncService melFileSyncService) {
@@ -64,7 +64,7 @@ public class RecursiveWatcher extends FileWatcher {
     }
 
     @Override
-    public void watchDirectory(AbstractFile dir) {
+    public void watchDirectory(IFile dir) {
         watch(dir);
     }
 
@@ -72,9 +72,9 @@ public class RecursiveWatcher extends FileWatcher {
     private class Watcher extends FileObserver {
 
         private final RecursiveWatcher recursiveWatcher;
-        private final AbstractFile target;
+        private final IFile target;
 
-        public Watcher(RecursiveWatcher recursiveWatcher, AbstractFile target) {
+        public Watcher(RecursiveWatcher recursiveWatcher, IFile target) {
             super(target.absolutePath);
             this.target = target;
             this.recursiveWatcher = recursiveWatcher;
@@ -85,12 +85,12 @@ public class RecursiveWatcher extends FileWatcher {
             recursiveWatcher.onWatcherEvent(this, event, path);
         }
 
-        public AbstractFile getTarget() {
+        public IFile getTarget() {
             return target;
         }
     }
 
-    private void watch(AbstractFile target) {
+    private void watch(IFile target) {
         if (!watchers.containsKey(target.absolutePath)) {
             Watcher watcher = new Watcher(this, target);
             watchers.put(target.absolutePath, watcher);
@@ -101,7 +101,7 @@ public class RecursiveWatcher extends FileWatcher {
     private Set<String> writePaths = new HashSet<>();
 
     private void onWatcherEvent(Watcher watcher, int event, String path) {
-        AbstractFile f = path != null ? AbstractFile.instance(watcher.getTarget().absolutePath + File.separator + path) : watcher.getTarget();
+        IFile f = path != null ? AbstractFile.instance(watcher.getTarget().absolutePath + File.separator + path) : watcher.getTarget();
         if (transferDirectory.hasSubContent(watcher.getTarget()))
             return;
         if ((FileObserver.CREATE & event) != 0 && f.exists() && f.isDirectory()) {
@@ -202,7 +202,7 @@ public class RecursiveWatcher extends FileWatcher {
             Lok.debug("stopped");
             List<AbstractFile<?>> paths = unixReferenceFileHandler.stuffModifiedAfter();
             pathCollection.addAll(paths);
-            for (AbstractFile f : paths) {
+            for (IFile f : paths) {
                 if (f.exists() && f.isDirectory()) {
                     watchDirectory(f);
                 }

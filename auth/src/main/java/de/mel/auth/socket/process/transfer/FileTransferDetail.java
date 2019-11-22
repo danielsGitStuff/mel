@@ -98,7 +98,7 @@ public class FileTransferDetail implements SerializableEntity {
         return hash;
     }
 
-    public FileTransferDetail setFile(AbstractFile file) {
+    public FileTransferDetail setFile(IFile file) {
         this.file = file;
         assertCheck();
         return this;

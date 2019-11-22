@@ -131,7 +131,7 @@ class BashToolsWindows : BashTools<StandardFile>() {
         if (f.isDirectory) {
             // check if junction
             var countDown = 5;
-            execReader("dir", "/al", f.parentFile!!.absolutePath)?.useLines {
+            execReader("dir", "/al", f.getParentFile()!!.absolutePath)?.useLines {
                 it.iterator().forEach {
                     if (countDown == 0) {
                         var stripped = it.substringAfter("<JUNCTION>").substring(5)
@@ -169,7 +169,7 @@ class BashToolsWindows : BashTools<StandardFile>() {
         if (f.isDirectory) {
             // check if junction
             var countDown = 5;
-            execReader("dir", "/al", f.parentFile!!.absolutePath)?.useLines {
+            execReader("dir", "/al", f.getParentFile()!!.absolutePath)?.useLines {
                 it.iterator().forEach {
                     if (countDown == 0) {
                         var stripped = it.substringAfter("<JUNCTION>").substring(5)

@@ -101,7 +101,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 // build a File
                 timer1.start();
                 String path = buildPathFromStage(stage);
-                AbstractFile f = AbstractFile.instance(path);
+                IFile f = AbstractFile.instance(path);
 
                 if (!f.exists()) {
                     continue;

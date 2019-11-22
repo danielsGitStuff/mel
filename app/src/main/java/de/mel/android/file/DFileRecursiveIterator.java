@@ -18,14 +18,14 @@ import de.mel.auth.file.AbstractFile;
 @Deprecated
 public class DFileRecursiveIterator implements Iterator<AbstractFile> {
 
-    private final AbstractFile pruneDir;
+    private final IFile pruneDir;
     private Cursor cursor;
     private final Context context;
-    private final AbstractFile currentDir;
+    private final IFile currentDir;
     private Queue<AbstractFile> currentSubDirs = new LinkedList<>();
     private DFileRecursiveIterator subIterator;
 
-    public DFileRecursiveIterator(Context context, AbstractFile rootDirectory, AbstractFile pruneDir)  {
+    public DFileRecursiveIterator(Context context, IFile rootDirectory, IFile pruneDir)  {
         this.context = context;
         this.pruneDir = pruneDir;
         this.currentDir = rootDirectory;
@@ -53,14 +53,14 @@ public class DFileRecursiveIterator implements Iterator<AbstractFile> {
     }
 
     @Override
-    public AbstractFile next() {
+    public IFile next() {
         if (hasNext()) {
             if (cursor.isAfterLast()) {
                 cursor.close();
                 if (subIterator != null)
                     return subIterator.next();
                 while (!currentSubDirs.isEmpty()) {
-                    AbstractFile subDir = currentSubDirs.poll();
+                    IFile subDir = currentSubDirs.poll();
                     subIterator = new DFileRecursiveIterator(context, currentDir, null);
                     if (subIterator.hasNext())
                         return subIterator.next();
@@ -71,7 +71,7 @@ public class DFileRecursiveIterator implements Iterator<AbstractFile> {
                 String name = cursor.getString(0);
                 String mime = cursor.getString(1);
                 String id = cursor.getString(2);
-                AbstractFile dFile = AbstractFile.instance(currentDir, name);
+                IFile dFile = AbstractFile.instance(currentDir, name);
                 if (dFile.isDirectory()) {
                     currentSubDirs.add(dFile);
                 }

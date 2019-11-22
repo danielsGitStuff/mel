@@ -56,7 +56,7 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
     private Long wastebinSize;
     // this is required for android 5+ only.
     private Uri rootTreeUri;
-    private AbstractFile rootFile;
+    private IFile rootFile;
     private RelativeLayout container;
 
     private void showIncompatibleState() {
@@ -93,7 +93,7 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
         showNormalState();
     }
 
-    public AbstractFile getRootFile() {
+    public IFile getRootFile() {
         return rootFile;
     }
 

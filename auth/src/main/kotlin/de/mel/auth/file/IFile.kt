@@ -3,6 +3,7 @@ package de.mel.auth.file
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
+import kotlin.properties.ReadOnlyProperty
 
 interface IFile {
     val separator: String?
@@ -15,6 +16,8 @@ interface IFile {
     val usableSpace: Long?
     val path: String
 
+
+    fun getParentFile(): IFile?
 
     /**
      * @param subFile

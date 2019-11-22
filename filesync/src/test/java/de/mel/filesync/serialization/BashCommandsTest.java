@@ -22,9 +22,9 @@ import java.util.List;
  * Created by thefa on 7/29/2017.
  */
 public class BashCommandsTest {
-    AbstractFile testDir;
+    IFile testDir;
     List<String> paths;
-    AbstractFile timeDir;
+    IFile timeDir;
 
     @Before
     public void before() throws Exception {

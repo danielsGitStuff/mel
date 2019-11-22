@@ -34,8 +34,8 @@ public class SqliteThreadingTest {
 //    @Test
     public void thread() throws Exception {
         AbstractFile.configure(new DefaultFileConfiguration());
-        AbstractFile testDir = AbstractFile.instance("test");
-        AbstractFile rootFile = AbstractFile.instance(testDir, "root");
+        IFile testDir = AbstractFile.instance("test");
+        IFile rootFile = AbstractFile.instance(testDir, "root");
         CertificateManager.deleteDirectory(testDir);
         rootFile.mkdirs();
         RootDirectory root = new RootDirectory();

@@ -45,7 +45,7 @@ public class SAFAccessor {
         throw new SAFException();
     }
 
-    public static boolean isExternalFile(AbstractFile file) {
+    public static boolean isExternalFile(IFile file) {
         return SAFAccessor.hasExternalSdCard() && file.absolutePath.startsWith(SAFAccessor.getExternalSDPath());
     }
 

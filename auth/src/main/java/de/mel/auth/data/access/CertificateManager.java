@@ -110,7 +110,7 @@ public class CertificateManager extends FileRelatedManager {
         deleteDirectory(new StandardFile(dir));
     }
 
-    public static void deleteDirectory(AbstractFile dir) {
+    public static void deleteDirectory(IFile dir) {
         Lok.debug("CertificateManager.deleteDirectory: " + dir.getAbsolutePath());
         IFile[] subs = dir.listContent();
         if (subs != null)

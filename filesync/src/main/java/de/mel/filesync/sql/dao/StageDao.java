@@ -42,13 +42,13 @@ StageDao extends Dao.LockingDao {
      * @param f
      * @return relating Stage or null if f is not staged
      */
-    public Stage getStageByPath(Long stageSetId, AbstractFile f) throws SqlQueriesException {
+    public Stage getStageByPath(Long stageSetId, IFile f) throws SqlQueriesException {
         RootDirectory rootDirectory = fileSyncSettings.getRootDirectory();
         String rootPath = rootDirectory.getPath();
         //todo throw Exception if f is not in rootDirectory
         if (f.getAbsolutePath().length() < rootPath.length())
             return null;
-        AbstractFile ff = AbstractFile.instance(f.getAbsolutePath());
+        IFile ff = AbstractFile.instance(f.getAbsolutePath());
         Stack<IFile> fileStack = FileTools.getFileStack(rootDirectory, ff);
         FsEntry bottomFsEntry = fsDao.getBottomFsEntry(fileStack);
         Stage bottomStage = this.getStageByFsId(bottomFsEntry.getId().v(), stageSetId);
@@ -129,7 +129,7 @@ StageDao extends Dao.LockingDao {
 
 
     @Deprecated
-    public AbstractFile getFileByStage(Stage stage) throws SqlQueriesException {
+    public IFile getFileByStage(Stage stage) throws SqlQueriesException {
         RootDirectory rootDirectory = fileSyncSettings.getRootDirectory();
         final Long stageSetId = stage.getStageSet();
         Stack<Stage> stageStack = new Stack<>();
@@ -158,7 +158,7 @@ StageDao extends Dao.LockingDao {
         } catch (Exception e) {
             System.err.println("debug93h349");
         }
-        AbstractFile file = fsDao.getFileByFsFile(rootDirectory, bottomFsEntry);
+        IFile file = fsDao.getFileByFsFile(rootDirectory, bottomFsEntry);
         StringBuilder path = new StringBuilder(file.getAbsolutePath());
         while (!stageStack.empty()) {
             path.append(File.separator).append(stageStack.pop().getName());

@@ -8,11 +8,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import de.mel.R;
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 
 public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> {
     private final AppCompatActivity activity;
     private final View.OnClickListener clickListener;
-    private AbstractFile[] directories;
+    private IFile[] directories;
     private final RecyclerView recyclerView;
     private Clicked clicked;
 
@@ -21,7 +22,7 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> {
     }
 
     public static interface Clicked {
-        void clicked(AbstractFile clickedDir);
+        void clicked(IFile clickedDir);
     }
 
     FileAdapter(AppCompatActivity activity, RecyclerView recyclerView) {
@@ -38,7 +39,7 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> {
         };
     }
 
-    public void setDirectories(AbstractFile[] directories) {
+    public void setDirectories(IFile[] directories) {
         this.directories = directories;
     }
 

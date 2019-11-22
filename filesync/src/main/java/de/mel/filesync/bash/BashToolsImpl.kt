@@ -54,7 +54,7 @@ abstract class BashToolsImpl {
 //
 //                override fun hasNext(): Boolean = iterator.hasNext()
 //
-//                override fun next(): AbstractFile = AbstractFile.instance(iterator.next())
+//                override fun next(): IFile = AbstractFile.instance(iterator.next())
 //
 //                override fun remove() {}
 //

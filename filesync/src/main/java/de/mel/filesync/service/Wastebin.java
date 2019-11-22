@@ -28,7 +28,7 @@ import java.util.List;
  * Created by xor on 1/27/17.
  */
 public class Wastebin {
-    private final AbstractFile wasteDir;
+    private final IFile wasteDir;
     private final MelFileSyncService melFileSyncService;
     private final FileSyncSettings fileSyncSettings;
     private final FsDao fsDao;
@@ -36,7 +36,7 @@ public class Wastebin {
     private final FileSyncDatabaseManager fileSyncDatabaseManager;
     private final WasteDao wasteDao;
     private final StageDao stageDao;
-    private final AbstractFile deferredDir;
+    private final IFile deferredDir;
     private SyncHandler syncHandler;
 
     public Wastebin(MelFileSyncService melFileSyncService) {
@@ -111,7 +111,7 @@ public class Wastebin {
      * @param waste
      */
     public void rm(Waste waste) throws SqlQueriesException {
-        AbstractFile target = getWasteFile(waste);
+        IFile target = getWasteFile(waste);
         target.delete();
         if (target.exists())
             N.r(() -> BashTools.Companion.rmRf(target));
@@ -119,7 +119,7 @@ public class Wastebin {
     }
 
     private void deleteDirectory(FsDirectory fsDirectory) throws SqlQueriesException, IOException, InterruptedException {
-        AbstractFile f = fsDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsDirectory);
+        IFile f = fsDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsDirectory);
         if (f.exists()) {
             indexer.ignorePath(f.getAbsolutePath(), 1);
             if (f.isDirectory()) {
@@ -140,9 +140,9 @@ public class Wastebin {
      * @param waste
      * @param file
      */
-    public AbstractFile moveToBin(Waste waste, IFile file) throws SqlQueriesException {
+    public IFile moveToBin(Waste waste, IFile file) throws SqlQueriesException {
         try {
-            AbstractFile target = AbstractFile.instance(wasteDir, waste.getHash().v() + "." + waste.getId().v());
+            IFile target = AbstractFile.instance(wasteDir, waste.getHash().v() + "." + waste.getId().v());
             syncHandler.getFileDistributor().moveBlocking(file, target, null);
             waste.getInplace().v(true);
             wasteDao.update(waste);
@@ -155,7 +155,7 @@ public class Wastebin {
 
     public void deleteFsFile(FsFile fsFile) {
         try {
-            AbstractFile f = fsDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsFile);
+            IFile f = fsDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsFile);
             if (f.exists()) {
                 indexer.ignorePath(f.getAbsolutePath(), 1);
                 if (f.isFile()) {
@@ -269,7 +269,7 @@ public class Wastebin {
                 for (FsFile fsFile : fsFiles) {
                     Waste waste = wasteDao.getWasteByHash(fsFile.getContentHash().v());
                     if (waste != null) {
-                        AbstractFile wasteFile = AbstractFile.instance(wasteDir.getAbsolutePath() + File.separator + waste.getHash().v() + "." + waste.getId().v());
+                        IFile wasteFile = AbstractFile.instance(wasteDir.getAbsolutePath() + File.separator + waste.getHash().v() + "." + waste.getId().v());
                         wasteDao.delete(waste.getId().v());
                         fsDao.setSynced(fsFile.getId().v(), true);
                         syncHandler.getFileDistributor().moveBlocking(wasteFile, fsDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsFile), fsFile.getId().v());
@@ -285,14 +285,14 @@ public class Wastebin {
     }
 
 
-    public AbstractFile getByHash(String hash) throws SqlQueriesException {
+    public IFile getByHash(String hash) throws SqlQueriesException {
         Waste waste = wasteDao.getWasteByHash(hash);
         if (waste != null)
             return getWasteFile(waste);
         return null;
     }
 
-    private AbstractFile getWasteFile(Waste waste) {
+    private IFile getWasteFile(Waste waste) {
         return AbstractFile.instance(wasteDir.getAbsolutePath() + File.separator + waste.getHash().v() + "." + waste.getId().v());
     }
 
@@ -306,7 +306,7 @@ public class Wastebin {
      */
     public void deleteUnknown(IFile file) throws SqlQueriesException, IOException, InterruptedException {
         FsBashDetails fsBashDetails = BashTools.Companion.getFsBashDetails(file);
-        AbstractFile target = AbstractFile.instance(deferredDir, fsBashDetails.getiNode().toString());
+        IFile target = AbstractFile.instance(deferredDir, fsBashDetails.getiNode().toString());
         syncHandler.getFileDistributor().moveBlocking(file, target, null);
         //if dir?!?!
         if (target.isDirectory()) {
@@ -328,7 +328,7 @@ public class Wastebin {
         waste.getName().v(file.getName());
         waste.getFlagDelete().v(false);
         wasteDao.insert(waste);
-        AbstractFile movedTo = this.moveToBin(waste, target);
+        IFile movedTo = this.moveToBin(waste, target);
         //todo tell a worker to investigate the deferred directory
         //todo worker has to tell the drive service or transfermanager that a file has been found
         //melDriveService.syncHandler.onFileTransferred(movedTo, hash);

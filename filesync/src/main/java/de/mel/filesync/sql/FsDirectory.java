@@ -91,7 +91,7 @@ public class FsDirectory extends FsEntry {
         return original;
     }
 
-    public FsDirectory setOriginalFile(AbstractFile original) {
+    public FsDirectory setOriginalFile(IFile original) {
         this.original = original;
         return this;
     }

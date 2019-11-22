@@ -5,6 +5,7 @@ import de.mel.auth.data.MelRequest
 import de.mel.auth.data.db.Certificate
 import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.DefaultFileConfiguration
+import de.mel.auth.file.IFile
 import de.mel.auth.service.MelBoot
 import de.mel.auth.service.power.PowerManager
 import de.mel.auth.socket.process.reg.IRegisterHandler
@@ -27,7 +28,7 @@ class MainTest {
             FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance())
             FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance())
             FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance())
-            AbstractFile.configure(DefaultFileConfiguration())
+            AbstractFile.configure(DefaultFileConfiguration() as AbstractFile.Configuration<IFile>)
             BashTools.Companion.init()
 
             val settings = MelAuthSettings.createDefaultSettings()

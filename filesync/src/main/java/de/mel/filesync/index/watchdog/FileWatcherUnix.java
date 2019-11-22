@@ -47,7 +47,7 @@ class FileWatcherUnix extends FileWatcherPC {
                         Path eventPath = (Path) event.context();
                         String absolutePath = keyPath.toString() + File.separator + eventPath.toString();
                         if (!absolutePath.startsWith(transferDirectoryPath)) {
-                            AbstractFile file = AbstractFile.instance(absolutePath);
+                            IFile file = AbstractFile.instance(absolutePath);
                             Lok.debug("IndexWatchdogListener[" + melFileSyncService.getFileSyncSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
                             if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {
                                 // start the timer but do not analyze. Sometimes we get the wrong WatchKey so we cannot trust it.

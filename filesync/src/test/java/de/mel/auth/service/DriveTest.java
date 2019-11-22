@@ -57,8 +57,8 @@ public class DriveTest {
     private static N runner = new N(Throwable::printStackTrace);
     private static MelAuthSettings json2;
     private static MelAuthSettings json1;
-    private AbstractFile testdir1;
-    private AbstractFile testdir2;
+    private IFile testdir1;
+    private IFile testdir2;
 
     private static void run(N.INoTryRunnable noTryRunnable) {
         runner.runTry(noTryRunnable);
@@ -101,8 +101,8 @@ public class DriveTest {
     public void complexClientConflictImpl(MelBoot clientMelBoot, MelBoot restartMelBoot) throws Exception {
         // start both instances, shutdown server, change something in client directory
         final FileSyncSyncListener syncListener = new FileSyncSyncListener() {
-            AbstractFile file2;
-            AbstractFile file1;
+            IFile file2;
+            IFile file1;
             String rootPath;
             MelFileSyncClientService melDriveClientService;
             private FileSyncSyncListener ins = this;
@@ -150,7 +150,7 @@ public class DriveTest {
                         TestFileCreator.saveFile("same2.client".getBytes(), file2);
                         File subDir = new File(rootPath + File.separator + "samedir" + File.separator + "samesub");
                         subDir.mkdirs();
-                        AbstractFile subFile = AbstractFile.instance(subDir.getAbsolutePath() + File.separator + "samesub1.txt");
+                        IFile subFile = AbstractFile.instance(subDir.getAbsolutePath() + File.separator + "samesub1.txt");
                         TestFileCreator.saveFile("samesub1.client".getBytes(), subFile);
 
                         String hash = Hash.md5(file1.inputStream());
@@ -218,8 +218,8 @@ public class DriveTest {
     public void clientConflictImpl(MelBoot clientMelBoot, MelBoot restartMelBoot) throws Exception {
         // start both instances, shutdown server, change something in client directory
         final FileSyncSyncListener syncListener = new FileSyncSyncListener() {
-            AbstractFile file2;
-            AbstractFile file1;
+            IFile file2;
+            IFile file1;
             String rootPath;
             MelFileSyncClientService melDriveClientService;
             private FileSyncSyncListener ins = this;
@@ -234,9 +234,9 @@ public class DriveTest {
                         //if (!file2.exists())
                         Lok.debug("DriveTest.onSyncFailed.creating new file...");
                         rootPath = ins.testStructure.serverDriveService.getFileSyncSettings().getRootDirectory().getPath();
-                        AbstractFile newFile = AbstractFile.instance(rootPath + File.separator + "samedir" + File.separator + "same3.txt");
-                        AbstractFile delFile = AbstractFile.instance(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
-                        AbstractFile f1 = AbstractFile.instance(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
+                        IFile newFile = AbstractFile.instance(rootPath + File.separator + "samedir" + File.separator + "same3.txt");
+                        IFile delFile = AbstractFile.instance(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
+                        IFile f1 = AbstractFile.instance(rootPath + File.separator + "samedir" + File.separator + "same1.txt");
                         delFile.delete();
                         TestFileCreator.saveFile("same3.server".getBytes(), newFile);
                         TestFileCreator.saveFile("same1.server".getBytes(), f1);
@@ -429,8 +429,8 @@ public class DriveTest {
     public void clientMergeStages() throws Exception {
         // start both instances, shutdown server, change something in client directory
         setup(new FileSyncSyncListener() {
-            AbstractFile file2;
-            AbstractFile file1;
+            IFile file2;
+            IFile file1;
             String rootPath;
             MelFileSyncClientService melFileSyncClientService;
             private FileSyncSyncListener ins = this;
@@ -503,8 +503,8 @@ public class DriveTest {
         waitLock.lock();
         MelFileSyncServerService driveServerService = (MelFileSyncServerService) mas[0].getMelServices().iterator().next();
         String rootPath = driveServerService.getFileSyncSettings().getRootDirectory().getPath();
-        AbstractFile newFile = AbstractFile.instance(rootPath + File.separator + "samedir" + File.separator + "same3.txt");
-        AbstractFile delFile = AbstractFile.instance(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
+        IFile newFile = AbstractFile.instance(rootPath + File.separator + "samedir" + File.separator + "same3.txt");
+        IFile delFile = AbstractFile.instance(rootPath + File.separator + "samedir" + File.separator + "same2.txt");
         delFile.delete();
         TestFileCreator.saveFile("newfile.2".getBytes(), newFile);
         boot = new MelBoot(json1, new PowerManager(json1));
@@ -812,7 +812,7 @@ public class DriveTest {
         //setup working directories & directories with test data
         if (swapTestDirs) {
             testdir1.mkdirs();
-            AbstractFile tmp = testdir1;
+            IFile tmp = testdir1;
             testdir1 = testdir2;
             testdir2 = tmp;
         }
@@ -825,7 +825,7 @@ public class DriveTest {
         }
         // swap back
         if (swapTestDirs) {
-            AbstractFile tmp = testdir1;
+            IFile tmp = testdir1;
             testdir1 = testdir2;
             testdir2 = tmp;
         }

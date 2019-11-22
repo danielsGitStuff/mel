@@ -66,7 +66,7 @@ public class TestDirCreator {
         return paths;
     }
 
-    public static List<String> createFilesTestDir(AbstractFile testDir, int noOfFiles) throws Exception {
+    public static List<String> createFilesTestDir(IFile testDir, int noOfFiles) throws Exception {
 
         List<String> paths = new ArrayList<>();
         //CertificateManager.deleteDirectory(testDir);
@@ -113,7 +113,7 @@ public class TestDirCreator {
     }
 
 
-    public static List<String> createTestDir(AbstractFile testDir, int noOfSubdirs) throws Exception {
+    public static List<String> createTestDir(IFile testDir, int noOfSubdirs) throws Exception {
 
         List<String> paths = new ArrayList<>();
         //CertificateManager.deleteDirectory(testDir);
@@ -158,7 +158,7 @@ public class TestDirCreator {
         return paths;
     }
 
-    public static void createTestDirSimple(AbstractFile rootDir) throws IOException {
+    public static void createTestDirSimple(IFile rootDir) throws IOException {
         rootDir.mkdirs();
         IFile sub = AbstractFile.instance(rootDir, "sub");
         sub.mkdirs();

@@ -33,7 +33,7 @@ public abstract class FileWatcherPC extends FileWatcher {
         this.useSymLinks = melFileSyncService.getFileSyncSettings().getUseSymLinks();
     }
 
-    protected void analyze(WatchEvent<?> event, AbstractFile file) {
+    protected void analyze(WatchEvent<?> event, IFile file) {
         try {
             if (melFileSyncService.getMelAuthService().getPowerManager().heavyWorkAllowed()) {
                 watchDogTimer.start();

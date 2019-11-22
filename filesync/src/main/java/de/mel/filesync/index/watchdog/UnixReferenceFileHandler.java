@@ -16,14 +16,14 @@ import java.util.List;
  * Created by xor on 5/7/17.
  */
 public class UnixReferenceFileHandler {
-    private final AbstractFile directoryToQuery;
-    private final AbstractFile pruneDir;
+    private final IFile directoryToQuery;
+    private final IFile pruneDir;
     private final File workingDirectory;
     private boolean refOnFile1 = true;
     private final File timeReferenceFile1;
     private final File timeReferenceFile2;
 
-    public UnixReferenceFileHandler(File workingDirectory, AbstractFile directoryToQuery, AbstractFile pruneDir) {
+    public UnixReferenceFileHandler(File workingDirectory, IFile directoryToQuery, IFile pruneDir) {
         this.directoryToQuery = directoryToQuery;
         this.pruneDir = pruneDir;
         this.workingDirectory = workingDirectory;

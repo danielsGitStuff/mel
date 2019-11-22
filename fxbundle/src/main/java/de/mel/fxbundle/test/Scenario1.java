@@ -8,6 +8,7 @@ import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
+import de.mel.auth.file.IFile;
 import de.mel.auth.gui.RegisterHandlerFX;
 import de.mel.auth.service.MelAuthFxLoader;
 import de.mel.auth.service.MelBoot;
@@ -49,7 +50,7 @@ public class Scenario1 {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
         CurrentJar.initCurrentJarClass(Scenario1.class);
-        AbstractFile.configure(new DefaultFileConfiguration());
+        AbstractFile.configure( new DefaultFileConfiguration());
         BashTools.Companion.init();
     }
 
@@ -129,7 +130,7 @@ public class Scenario1 {
                 Lok.debug("Main.main.booted");
                 FileSyncCreateServiceHelper helper = new FileSyncCreateServiceHelper(melAuthService);
                 N.r(() -> {
-                    AbstractFile root = AbstractFile.instance(args[0]);
+                    IFile root = AbstractFile.instance(args[0]);
                     helper.createServerService("test service", root, 0.5f, 20, false);
                 });
                 lock.unlockWrite();

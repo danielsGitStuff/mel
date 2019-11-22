@@ -30,7 +30,7 @@ public class BashToolsStuffModifiedTest {
     static {
         AbstractFile.configure(new DefaultFileConfiguration());
     }
-    AbstractFile testDir = AbstractFile.instance("testdir1");
+    IFile testDir = AbstractFile.instance("testdir1");
     Set<String> paths;
 
     @Before

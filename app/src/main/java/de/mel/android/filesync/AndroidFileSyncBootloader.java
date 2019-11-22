@@ -65,7 +65,7 @@ public class AndroidFileSyncBootloader extends FileSyncBootloader implements And
         if (driveCreateGuiController.isValid())
             Threadder.runNoTryThread(() -> {
                 String name = driveCreateGuiController.getName();
-                AbstractFile rootFile = driveCreateGuiController.getRootFile();
+                IFile rootFile = driveCreateGuiController.getRootFile();
                 if (driveCreateGuiController.isServer()) {
                     fileSyncCreateServiceHelper.createServerService(name, rootFile, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays(), false);
                 } else {

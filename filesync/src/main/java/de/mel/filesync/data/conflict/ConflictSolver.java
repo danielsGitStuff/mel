@@ -194,13 +194,13 @@ public class ConflictSolver extends SyncStageMerger {
         List<Stage> leftDirs = stageDao.getDeletedDirectories(lStageSetId);
         List<Stage> rightDirs = stageDao.getDeletedDirectories(rStageSetId);
         for (Stage stage : leftDirs) {
-            AbstractFile f = stageDao.getFileByStage(stage);
+            IFile f = stageDao.getFileByStage(stage);
             Stage rStage = stageDao.getStageByPath(rStageSetId, f);
             Conflict conflict = new Conflict(stageDao, stage, rStage);
             deletedParents.put(f.getAbsolutePath(), conflict);
         }
         for (Stage stage : rightDirs) {
-            AbstractFile f = stageDao.getFileByStage(stage);
+            IFile f = stageDao.getFileByStage(stage);
             Stage lStage = stageDao.getStageByPath(lStageSetId, f);
             Conflict conflict = new Conflict(stageDao, lStage, stage);
             deletedParents.put(f.getAbsolutePath(), conflict);

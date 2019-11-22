@@ -389,13 +389,13 @@ public class ClientSyncHandler extends SyncHandler {
 
     private void deleteObsolete(ConflictSolver conflictSolver) throws SqlQueriesException, IOException {
         N.readSqlResource(stageDao.getObsoleteFileStagesResource(conflictSolver.getObsoleteStageSet().getId().v()), (sqlResource, stage) -> {
-            AbstractFile file = stageDao.getFileByStage(stage);
+            IFile file = stageDao.getFileByStage(stage);
             if (file != null && file.exists()) {
                 wastebin.deleteUnknown(file);
             }
         });
         N.readSqlResource(stageDao.getObsoleteDirStagesResource(conflictSolver.getObsoleteStageSet().getId().v()), (sqlResource, stage) -> {
-            AbstractFile file = stageDao.getFileByStage(stage);
+            IFile file = stageDao.getFileByStage(stage);
             if (file != null && file.exists()) {
                 wastebin.deleteUnknown(file);
             }
@@ -507,7 +507,7 @@ public class ClientSyncHandler extends SyncHandler {
                                 stageDao.insert(stage);
                             } else {
                                 Stage rParent = stageDao.getStageById(right.getParentId());
-                                AbstractFile rParentFile = stageDao.getFileByStage(rParent);
+                                IFile rParentFile = stageDao.getFileByStage(rParent);
                                 Stage lParent = stageDao.getStageByPath(mStageSetId, rParentFile);
                                 if (lParent != null) {
                                     stage.setParentId(lParent.getId());
@@ -550,7 +550,7 @@ public class ClientSyncHandler extends SyncHandler {
             Stage lStage = lStages.getNext();
             while (lStage != null) {
                 timer1.start();
-                AbstractFile lFile = stageDao.getFileByStage(lStage);
+                IFile lFile = stageDao.getFileByStage(lStage);
                 timer1.stop();
                 timer2.start();
                 Stage rStage = stageDao.getStageByPath(rStageSet.getId().v(), lFile);
@@ -577,7 +577,7 @@ public class ClientSyncHandler extends SyncHandler {
                 if (conflictSolver != null)
                     conflictSolver.solve(null, rStage);
                 else {
-                    AbstractFile rFile = stageDao.getFileByStage(rStage);
+                    IFile rFile = stageDao.getFileByStage(rStage);
                     merger.stuffFound(null, rStage, null, rFile);
                 }
                 rStage = rStages.getNext();

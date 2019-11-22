@@ -348,7 +348,7 @@ public class FsDao extends Dao {
         return result;
     }
 
-    public AbstractFile getFileByFsFile(RootDirectory rootDirectory, FsEntry fsEntry) throws SqlQueriesException {
+    public IFile getFileByFsFile(RootDirectory rootDirectory, FsEntry fsEntry) throws SqlQueriesException {
         if (fsEntry.getParentId().v() == null)
             return AbstractFile.instance(rootDirectory.getPath());
         Stack<FsDirectory> stack = new Stack<>();

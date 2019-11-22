@@ -35,7 +35,7 @@ import static org.junit.Assert.*;
  * the according file is removed. the contenthash of the parent directory is expected to stay the same.
  */
 public class IndexerTest {
-    private static AbstractFile rootFile;
+    private static IFile rootFile;
     private static MelAuthService mas;
     private static MelFileSyncServerService mds;
     private static RootDirectory rootDirectory;
@@ -80,7 +80,7 @@ public class IndexerTest {
             FsDirectory fsRoot = fsDao.getSubDirectoriesByParentId(null).iterator().next();
             FsDirectory fsSub = fsDao.getSubDirectoryByName(fsRoot.getId().v(), "sub");
             FsFile fsUnSynced = fsDao.getFsFileByName(fsSub.getId().v(), "unsynced3.txt");
-            AbstractFile file2delete = fsDao.getFileByFsFile(rootDirectory, fsUnSynced);
+            IFile file2delete = fsDao.getFileByFsFile(rootDirectory, fsUnSynced);
             Lok.debug("mofifying file entry: " + fsUnSynced.getName().v());
             fsUnSynced.getSynced().v(false);
             fsDao.update(fsUnSynced);

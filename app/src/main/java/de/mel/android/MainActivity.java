@@ -31,6 +31,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.android.material.navigation.NavigationView;
 
 import de.mel.android.file.SAFFileConfiguration;
+import de.mel.auth.file.IFile;
 import org.jdeferred.FailCallback;
 import org.jdeferred.Promise;
 
@@ -79,7 +80,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
     private GuiController guiController;
     private AndroidServiceBind serviceBind;
     private NavigationView navigationView;
-    private AbstractFile driveDir;
+    private IFile driveDir;
     private ImageButton btnHelp;
     private int stoppedColor;
     private int runningColor;
@@ -184,7 +185,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
         SAFAccessor.setupExternalPath();
 //        SAFAccessor.setupInternalPath();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            AbstractFile.configure(new SAFFileConfiguration());
+            AbstractFile.configure(new SAFFileConfiguration(this.getApplicationContext()));
         else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             AbstractFile.configure(new AndroidFileConfiguration(this.getApplicationContext()));
         } else {

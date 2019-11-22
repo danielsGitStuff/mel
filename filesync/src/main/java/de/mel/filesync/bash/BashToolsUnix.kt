@@ -120,10 +120,10 @@ open class BashToolsUnix : BashTools<StandardFile>() {
     private fun parseSymLink(file: StandardFile, line: String): String {
         var symLinkTarget: String? = null
         val originalSym = line.drop(1).dropLast(1)
-        val parentCanonical = file.parentFile!!.canonicalPath
+        val parentCanonical = file.getParentFile()!!.canonicalPath
         val completePath = parentCanonical + File.separator + originalSym
         val ComplecteCanonical = File(completePath).canonicalPath
-        symLinkTarget = ComplecteCanonical.drop(parentCanonical.length)
+        symLinkTarget = ComplecteCanonical.drop(parentCanonical!!.length)
 
         if (symLinkTarget == "")
             symLinkTarget = "."

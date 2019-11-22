@@ -7,6 +7,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import de.mel.auth.file.IFile;
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -41,9 +42,9 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
     private ImageButton btnUp;
     private RecyclerView list;
     private TextView txtPath;
-    private AbstractFile[] rootDirs;
-    private AbstractFile currentDir;
-    private Stack<AbstractFile> parentDirs = new Stack<>();
+    private IFile[] rootDirs;
+    private IFile currentDir;
+    private Stack<IFile> parentDirs = new Stack<>();
     private int depth = 0;
 
     @Override
@@ -60,7 +61,7 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
 
     private void init() {
 
-        rootDirs = (AbstractFile[]) payloads.get(0).getPayload();
+        rootDirs = (IFile[]) payloads.get(0).getPayload();
         FilesActivityPayload payload = (FilesActivityPayload) payloads.get(0);
         FileAdapter adapter = new FileAdapter(this, list);
         adapter.setDirectories(payload.getPayload());
@@ -69,10 +70,10 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
             currentDir = clickedDir;
             depth++;
             if (currentDir!= null){
-                txtPath.setText(currentDir.absolutePath);
+                txtPath.setText(currentDir.getAbsolutePath());
             }
             Lok.debug("DirectoryChooserDialog.init.depth " + depth);
-            AbstractFile[] subDirs = clickedDir.listDirectories();
+            IFile[] subDirs = clickedDir.listDirectories();
             adapter.setDirectories(subDirs);
             DirectoryChooserDialog.this.runOnUiThread(adapter::notifyDataSetChanged);
             Lok.debug("DirectoryChooserDialog.init");
@@ -84,10 +85,10 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
                 depth--;
                 Lok.debug("DirectoryChooserDialog.init.depth " + depth);
                 currentDir = parentDirs.pop();
-                AbstractFile[] subDirs;
+                IFile[] subDirs;
                 if (currentDir != null) {
                     subDirs = currentDir.listDirectories();
-                    txtPath.setText(currentDir.absolutePath);
+                    txtPath.setText(currentDir.getAbsolutePath());
                 } else {
                     subDirs = rootDirs;
                     txtPath.setText(R.string.invalidDirectory);
@@ -99,7 +100,7 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
         btnOk.setOnClickListener(v -> {
             if (currentDir != null) {
                 Intent result = new Intent();
-                result.putExtra(AndroidFileSyncStrings.DIR_CHOOSER_KEY, currentDir.absolutePath);
+                result.putExtra(AndroidFileSyncStrings.DIR_CHOOSER_KEY, currentDir.getAbsolutePath());
                 setResult(RESULT_OK, result);
                 finish();
             } else {
@@ -116,19 +117,19 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
         List<String> strings = new ArrayList<>();
         if (!isRoot.v())
             strings.add("..");
-        N.forEachAdv(files, (stoppable, index, aFile) -> strings.add(aFile.name));
+        N.forEachAdv(files, (stoppable, index, aFile) -> strings.add(aFile.getName()));
         return strings;
     }
 
-    public static class FilesActivityPayload extends MelActivityPayload<AbstractFile[]> {
-        public FilesActivityPayload(String key, AbstractFile[] payload) {
+    public static class FilesActivityPayload extends MelActivityPayload<IFile[]> {
+        public FilesActivityPayload(String key, IFile[] payload) {
             super(key, payload);
         }
     }
 
-    public static Promise<AbstractFile, Void, Void> showDialog(MelActivity activity, AbstractFile[] rootDirectories) {
+    public static Promise<IFile, Void, Void> showDialog(MelActivity activity, IFile[] rootDirectories) {
         final NWrap.BWrap isRoot = new NWrap.BWrap(true);
-        Deferred<AbstractFile, Void, Void> deferred = new DeferredObject<>();
+        Deferred<IFile, Void, Void> deferred = new DeferredObject<>();
         Intent intent = new Intent(activity, DirectoryChooserDialog.class);
         FilesActivityPayload payload = new FilesActivityPayload(AndroidFileSyncStrings.DIR_CHOOSER_KEY, rootDirectories);
         activity.launchActivityForResult(intent, (resultCode, result) -> {

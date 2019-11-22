@@ -13,17 +13,13 @@ import java.io.InputStream
  * [DefaultFileConfiguration] uses [StandardFile] which wraps [File].
  */
 abstract class AbstractFile<T : IFile> : IFile {
-    /**
-     * @param subFile
-     * @return true if subFile is located in a subfolder of this instance.
-     */
-    override fun hasSubContent(subFile: AbstractFile<*>): Boolean = subFile.absolutePath.startsWith(absolutePath)
+//    /**
+//     * @param subFile
+//     * @return true if subFile is located in a subfolder of this instance.
+//     */
+//    override fun hasSubContent(subFile: AbstractFile<*>): Boolean = subFile.absolutePath.startsWith(absolutePath)
 
 //    open lateinit var nameString: String
-
-
-    open var parentFile: T? = null
-        protected set
 
     /**
      * creates common instances of [AbstractFile]s
@@ -80,6 +76,12 @@ abstract class AbstractFile<T : IFile> : IFile {
         @JvmStatic
         fun separator(): String {
             return configuration!!.separator()
+        }
+
+        @Deprecated(message = "Rests here for Java compability resons", replaceWith = ReplaceWith("call from kotlin"))
+        @JvmStatic
+        fun configure(defaultFileConfiguration: Any) {
+            configuration = defaultFileConfiguration as Configuration<IFile>
         }
     }
 }
