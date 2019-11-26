@@ -7,8 +7,10 @@ import de.mel.auth.file.IFile
 import java.io.File
 
 class SAFFileConfiguration(context: Context) : AbstractFile.Configuration<SAFFile>() {
-    private var internalCache: DocFileCache? = null
-    private var externalCache: DocFileCache? = null
+     var internalCache: DocFileCache? = null
+    get
+     var externalCache: DocFileCache? = null
+    get
 
     val androidFileConfiguration = AndroidFileConfiguration(context)
 

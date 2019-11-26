@@ -170,8 +170,7 @@ class SAFFile : AbstractFile<SAFFile> {
         return emptyArray()
     }
 
-    override fun exists(): Boolean {
-    }
+    override fun exists(): Boolean = getDocFile() != null
 
     override fun length(): Long {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -194,6 +193,10 @@ class SAFFile : AbstractFile<SAFFile> {
     }
 
     override fun inputStream(): InputStream? {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun getName(): String {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
@@ -227,6 +230,14 @@ class SAFFile : AbstractFile<SAFFile> {
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
     override val path: String
         get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+
+    override fun getParentFile(): IFile? {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun hasSubContent(subFile: AbstractFile<*>): Boolean {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 
     override fun canRead(): Boolean {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.

@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.DocumentsContract;
 
+import de.mel.auth.file.IFile;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -46,7 +47,7 @@ public class SAFAccessor {
     }
 
     public static boolean isExternalFile(IFile file) {
-        return SAFAccessor.hasExternalSdCard() && file.absolutePath.startsWith(SAFAccessor.getExternalSDPath());
+        return SAFAccessor.hasExternalSdCard() && file.getAbsolutePath().startsWith(SAFAccessor.getExternalSDPath());
     }
 
     public static boolean internalIsSetup() {
