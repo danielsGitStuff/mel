@@ -56,7 +56,6 @@ class AndroidFile : AbstractFile<AndroidFile> {
 
     constructor(path: String) {
         file = File(path)
-        name = file.name
         init()
     }
 
@@ -66,7 +65,6 @@ class AndroidFile : AbstractFile<AndroidFile> {
     }
 
     constructor(parent: AndroidFile, name: String) {
-        parentFile = parent
         file = File(parent.absolutePath + File.separator + name)
         init()
     }
@@ -170,6 +168,7 @@ class AndroidFile : AbstractFile<AndroidFile> {
 
     override fun mkdirs(): Boolean {
         if (requiresSAF()) {
+            val parentFile = getParentFile()
             if (parentFile != null) if (!parentFile!!.exists()) {
                 val made = parentFile!!.mkdirs()
                 if (!made) return false
@@ -186,6 +185,10 @@ class AndroidFile : AbstractFile<AndroidFile> {
             return FileInputStream(file)
         val contentResolver: ContentResolver = (configuration as AndroidFileConfiguration).context.contentResolver
         return contentResolver.openInputStream(getDocFile()!!.uri)
+    }
+
+    override fun getName(): String {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     @Throws(IOException::class)
@@ -304,9 +307,9 @@ class AndroidFile : AbstractFile<AndroidFile> {
                 e.printStackTrace()
             }
         } else if (VERSION.SDK_INT > VERSION_CODES.P && !absolutePath.startsWith(AndroidFileConfiguration.getDataDir().absolutePath)) {
-            val parentDoc = (parentFile as AndroidFile).getDocFile()
+            val parentDoc = (getParentFile() as AndroidFile).getDocFile()
             val contentResolver: ContentResolver = (configuration as AndroidFileConfiguration).context.contentResolver
-            val uri = DocumentsContract.createDocument(contentResolver, parentDoc!!.uri, SAFAccessor.MIME_GENERIC, name)
+            val uri = DocumentsContract.createDocument(contentResolver, parentDoc!!.uri, SAFAccessor.MIME_GENERIC, file.name)
             return uri != null
         } else {
             return file!!.createNewFile()
@@ -420,11 +423,11 @@ class AndroidFile : AbstractFile<AndroidFile> {
     override val path: String
         get() = file!!.path
 
+    override fun getParentFile(): IFile? = if (file != null && file!!.parentFile != null) AbstractFile.instance(file!!.parentFile!!) as AndroidFile else null
+
     override fun canRead(): Boolean = file!!.canRead()
 
     override val canonicalPath: String?
         get() = file!!.canonicalPath
-    override var parentFile: AndroidFile?
-        get() = if (file != null && file!!.parentFile != null) AbstractFile.instance(file!!.parentFile!!) as AndroidFile else null
-        set(value) {}
+
 }

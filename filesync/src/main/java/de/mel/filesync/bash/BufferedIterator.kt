@@ -9,8 +9,8 @@ import java.util.*
 /**
  * Created by xor on 7/24/17.
  */
-abstract class BufferedIterator<out T>(ins: Reader) : BufferedReader(ins), AutoKlausIterator<T> {
-    abstract fun convert(line: String?): T
+abstract class BufferedIterator<T>(ins: Reader) : BufferedReader(ins), AutoKlausIterator<T> {
+    abstract fun convert(line: String): T
     internal var nextLine: String? = null
     override fun hasNext(): Boolean {
         return if (nextLine != null) {
@@ -28,7 +28,7 @@ abstract class BufferedIterator<out T>(ins: Reader) : BufferedReader(ins), AutoK
 
     override fun next(): T {
         if (nextLine != null || hasNext()) {
-            val line = nextLine
+            val line = nextLine!!
             nextLine = null
             return convert(line)
         } else {
@@ -36,15 +36,15 @@ abstract class BufferedIterator<out T>(ins: Reader) : BufferedReader(ins), AutoK
         }
     }
 
-    class BufferedFileIterator<out T : IFile>(ins: Reader) : BufferedIterator<T>(ins) {
+    class BufferedFileIterator<T : IFile>(ins: Reader) : BufferedIterator<T>(ins) {
 
-        override fun convert(line: String?): T {
+        override fun convert(line: String): T {
             return AbstractFile.instance(line!!) as T
         }
     }
 
-    class BufferedStringIterator(ins: Reader) : BufferedIterator<String?>(ins) {
-        override fun convert(line: String?): String? {
+    class BufferedStringIterator(ins: Reader) : BufferedIterator<String>(ins) {
+        override fun convert(line: String): String {
             return line
         }
     }

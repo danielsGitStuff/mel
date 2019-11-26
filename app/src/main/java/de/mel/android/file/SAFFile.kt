@@ -8,10 +8,11 @@ import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import androidx.annotation.RequiresApi
 import androidx.documentfile.provider.DocumentFile
+import de.mel.Lok
 import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.AbstractFileWriter
 import de.mel.auth.file.IFile
-import de.mel.auth.tools.N
+import de.mel.filesync.bash.BashToolsException
 import java.io.File
 import java.io.InputStream
 import java.util.*
@@ -70,15 +71,13 @@ class SAFFile : AbstractFile<SAFFile> {
     /**
      * @return the path of the storage the file is stored on
      */
-    private val storagePath: String
-        private get() {
-            val storagePath: String?
-            storagePath = if (isExternal) {
+    val storagePath: String
+        get() {
+            return if (isExternal) {
                 SAFAccessor.getExternalSDPath()
             } else {
                 Environment.getExternalStorageDirectory().absolutePath
             }
-            return storagePath
         }
 
 
@@ -108,6 +107,7 @@ class SAFFile : AbstractFile<SAFFile> {
     private fun list(filterOutDirs: Boolean?): Array<SAFFile>? {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) listImplQ(filterOutDirs) else listImplPie(filterOutDirs)
     }
+
 
     /**
      * @param filterOutDirs if null: unfiltered, if true: no dirs, if false: no files
@@ -184,21 +184,17 @@ class SAFFile : AbstractFile<SAFFile> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun delete(): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun delete(): Boolean = getDocFile()!!.delete()
+
 
     override fun mkdirs(): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        Lok.error("NOT:IMPLEMENTED")
+        throw BashToolsException.NotImplemented()
     }
 
-    override fun inputStream(): InputStream? {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun inputStream(): InputStream? = fileConfig.context.contentResolver.openInputStream(getDocFile()!!.uri)
 
-    override fun getName(): String {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun getName(): String = file.name
 
     override fun writer(): AbstractFileWriter? {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.

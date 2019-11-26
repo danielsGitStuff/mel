@@ -1,46 +1,41 @@
-package de.mel.filesync.bash;
+package de.mel.filesync.bash
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import de.mel.filesync.bash.BufferedIterator.BufferedStringIterator
+import java.io.IOException
+import java.io.InputStreamReader
+import java.util.*
 
 /**
  * Created by xor on 5/24/17.
  */
-public class BashToolsException extends IOException {
-    private List<String> lines = new ArrayList<>();
+class BashToolsException : IOException {
+    private val lines: MutableList<String> = ArrayList()
 
-    public BashToolsException(Iterator<String> lines) {
-        readLines(lines);
+    constructor(lines: Iterator<String>) {
+        readLines(lines)
     }
 
-    public BashToolsException(String line) {
-        lines.add(line);
+    constructor(line: String) {
+        lines.add(line)
     }
 
-    private void readLines(Iterator<String> iterator) {
-        while (iterator.hasNext())
-            this.lines.add(iterator.next());
+    private fun readLines(iterator: Iterator<String>) {
+        while (iterator.hasNext()) lines.add(iterator.next())
     }
 
-    public BashToolsException(Process proc) {
-        Iterator<String> lines = new BufferedIterator.BufferedStringIterator(new InputStreamReader(proc.getErrorStream()));
-        readLines(lines);
+    constructor(proc: Process) {
+        val lines: Iterator<String> = BufferedStringIterator(InputStreamReader(proc.errorStream))
+        readLines(lines)
     }
 
-    @Override
-    public void printStackTrace() {
-        System.err.println(toString());
-        super.printStackTrace();
+    override fun printStackTrace() {
+        System.err.println(toString())
+        super.printStackTrace()
     }
 
-    @Override
-    public String toString() {
-        StringBuilder stringBuilder = new StringBuilder(getClass().getSimpleName() + "\n");
-        for (String line : lines)
-            stringBuilder.append(line).append("\n");
-        return stringBuilder.toString();
+    override fun toString(): String {
+        val stringBuilder = StringBuilder(javaClass.simpleName + "\n")
+        for (line in lines) stringBuilder.append(line).append("\n")
+        return stringBuilder.toString()
     }
 }

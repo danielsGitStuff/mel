@@ -7,6 +7,7 @@ import android.os.Build
 import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import androidx.annotation.RequiresApi
+import de.mel.android.file.AndroidFile
 import de.mel.android.file.AndroidFileConfiguration
 import de.mel.android.file.SAFFile
 import de.mel.android.file.SAFFileConfiguration
@@ -15,6 +16,7 @@ import de.mel.filesync.bash.AutoKlausIterator
 import de.mel.filesync.bash.BashTools
 import de.mel.filesync.bash.BashToolsException
 import de.mel.filesync.bash.FsBashDetails
+import java.io.File
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
@@ -80,6 +82,8 @@ class SAFBashTools : BashTools<SAFFile>() {
     }
 
     override fun find(directory: SAFFile, pruneDir: SAFFile): AutoKlausIterator<SAFFile> {
+        // todo saf the code currently ignores pruneDir until I found a way to recognize it via path without fucking with the documentfile cache
+        // DocFileCache works best using DFS. Another thing SAF fucks up.
         val config = AbstractFile.configuration as SAFFileConfiguration
         val cache = config.externalCache
         val docFile = directory.getDocFile()
@@ -92,43 +96,47 @@ class SAFBashTools : BashTools<SAFFile>() {
                     val mimeIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_MIME_TYPE)
                     val klaus = object : AutoKlausIterator<SAFFile> {
                         /**
-                         * Will keep a list of sorted folder content for each step down.
+                         * Will keep an Iterator of sorted folder content for each step down.
                          */
                         lateinit var cursor: Cursor
                         val sortedContent = mutableListOf<String>()
                         val stack = Stack<SAFFile>()
-                        val sortedFilesStack = Stack<Iterator<SAFFileHelper>>()
+                        val sortedFilesStack = Stack<Iterator<SAFFile>>()
                         override fun hasNext(): Boolean = !sortedFilesStack.isEmpty()
 
                         override fun next(): SAFFile? {
                             if (!sortedFilesStack.peek().hasNext())
                                 sortedFilesStack.pop()
-                            val helper = sortedFilesStack.peek().next()
-                            cache.findDoc()
+                            return sortedFilesStack.peek().next()
                         }
 
                         fun readCursor(cursor: Cursor): Unit {
                             this.cursor = cursor
+                            val parentFile = stack.peek()
                             cursor.use {
                                 it.moveToFirst()
-                                val list = mutableListOf<SAFFileHelper>()
+
+                                val pathParts = AndroidFile.createRelativeFilePathParts(parentFile.storagePath, File(parentFile.absolutePath))
+                                val list = mutableListOf<SAFFile>()
                                 while (!it.isAfterLast) {
                                     val mime = cursor.getString(mimeIndex)
                                     val name = cursor.getString(nameIndex)
+
                                     val helpFile = SAFFileHelper(name, mime)
-                                    list.add(helpFile)
+                                    val file = AbstractFile.instance(parentFile, name) as SAFFile
+                                    list.add(file)
                                 }
-                                // todo check if the contentresolver can sort the results
+                                // todo saf check if the contentresolver can sort the results
                                 list.sortWith(Comparator { a, b ->
                                     when {
-                                        a.isDir() == b.isDir() -> a.name.compareTo(b.name)
-                                        a.isDir() -> -1
+                                        a.isDirectory == b.isDirectory -> a.getName().compareTo(b.getName())
+                                        a.isDirectory -> -1
                                         else -> 1
                                     }
                                 })
+                                config.externalCache!!.findDoc(pathParts)
                                 sortedFilesStack.push(list.iterator())
                             }
-
                         }
 
                         override fun close() {

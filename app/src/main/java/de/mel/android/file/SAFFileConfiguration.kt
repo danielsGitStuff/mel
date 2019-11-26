@@ -1,12 +1,13 @@
 package de.mel.android.file
 
 import android.content.Context
+import android.os.Environment
 import androidx.documentfile.provider.DocumentFile
 import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.IFile
 import java.io.File
 
-class SAFFileConfiguration(context: Context) : AbstractFile.Configuration<SAFFile>() {
+class SAFFileConfiguration(val context: Context) : AbstractFile.Configuration<SAFFile>() {
      var internalCache: DocFileCache? = null
     get
      var externalCache: DocFileCache? = null
@@ -35,5 +36,7 @@ class SAFFileConfiguration(context: Context) : AbstractFile.Configuration<SAFFil
     override fun separator(): String = androidFileConfiguration.separator()
 
     override fun instance(originalFile: SAFFile): SAFFile = SAFFile(originalFile)
+
+
 
 }
