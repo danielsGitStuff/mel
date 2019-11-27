@@ -231,7 +231,7 @@ class SAFFile : AbstractFile<SAFFile> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun hasSubContent(subFile: AbstractFile<*>): Boolean {
+    override fun hasSubContent(subFile: IFile): Boolean {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 

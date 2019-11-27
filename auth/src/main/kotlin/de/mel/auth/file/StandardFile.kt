@@ -22,7 +22,7 @@ class StandardFile : AbstractFile<StandardFile> {
         }
 
     override fun getParentFile(): IFile? = StandardFile(file.parentFile)
-    override fun hasSubContent(subFile: AbstractFile<*>): Boolean =  subFile.absolutePath.startsWith(absolutePath)
+    override fun hasSubContent(subFile: IFile): Boolean =  subFile.absolutePath.startsWith(absolutePath)
 
     override fun canRead(): Boolean = file.canRead()
 

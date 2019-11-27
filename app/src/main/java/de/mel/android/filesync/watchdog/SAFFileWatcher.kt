@@ -17,6 +17,7 @@ import de.mel.android.file.AndroidFileConfiguration
 import de.mel.android.file.SAFAccessor
 import de.mel.android.service.AndroidService
 import de.mel.auth.file.AbstractFile
+import de.mel.auth.file.IFile
 import de.mel.filesync.index.watchdog.FileWatcher
 import de.mel.filesync.service.MelFileSyncService
 import java.io.File
@@ -47,7 +48,7 @@ class SAFFileWatcher(melFileSyncService: MelFileSyncService<*>) : FileWatcher(me
 
     override fun getRunnableName(): String = "file watcher for ${melFileSyncService.runnableName}"
 
-    override fun watchDirectory(dir: AbstractFile<out AbstractFile>?) {
+    override fun watchDirectory(dir: IFile?) {
         Lok.debug("trying to register observer for ${dir?.absolutePath}")
 
         AndroidService.getInstance()?.contentResolver?.let {

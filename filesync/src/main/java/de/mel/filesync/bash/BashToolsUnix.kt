@@ -53,7 +53,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
      * @param file
      * @return
      */
-    protected fun escapeQuotedAbsoluteFilePath(file: StandardFile): String {
+    fun escapeQuotedAbsoluteFilePath(file: StandardFile): String {
         return ("\"${escapeAbsoluteFilePath(file)}\"")
     }
 
@@ -63,7 +63,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
      * @param file
      * @return
      */
-    protected fun escapeAbsoluteFilePath(file: StandardFile): String {
+    fun escapeAbsoluteFilePath(file: StandardFile): String {
         return escapePath(file.absolutePath)
 
     }

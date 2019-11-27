@@ -10,6 +10,7 @@ import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.DefaultFileConfiguration
 import de.mel.filesync.bash.AutoKlausIterator
 import de.mel.filesync.bash.BashTools
+import de.mel.filesync.bash.BashToolsException
 import de.mel.filesync.bash.FsBashDetails
 
 /**
@@ -40,7 +41,7 @@ class BashToolsAndroidJavaImpl : BashTools<AndroidFile>() {
         val fileStack = Stack<Iterator<AndroidFile>>()
         val prunePath = pruneDir.absolutePath
         Lok.debug("BashToolsAndroidJavaImpl.find.prune: $prunePath")
-        fileStack.push(Arrays.asList<AndroidFile>(directory.listContent()).iterator())
+        fileStack.push((directory.listContent()?.iterator() ?: emptyList<AndroidFile>().iterator()))
         return object : AutoKlausIterator<AndroidFile> {
             override fun close() {
 
@@ -83,7 +84,7 @@ class BashToolsAndroidJavaImpl : BashTools<AndroidFile>() {
                         if (iterator.hasNext()) {
                             val nextFile = iterator.next()
                             if (nextFile.isDirectory)
-                                fileStack.push(Arrays.asList<AndroidFile>(*nextFile.listContent()).iterator())
+                                fileStack.push(nextFile.listContent()?.iterator() ?: emptyList<AndroidFile>().iterator())
                             nextLine = nextFile.absolutePath
                             return if (nextLine!!.startsWith(prunePath)) {
                                 hasNext()
@@ -118,7 +119,7 @@ class BashToolsAndroidJavaImpl : BashTools<AndroidFile>() {
                 if (nextLine != null || hasNext()) {
                     val line = nextLine
                     nextLine = null
-                    return AbstractFile.instance(line) as AndroidFile
+                    return AbstractFile.instance(line!!) as AndroidFile
                 } else {
                     throw NoSuchElementException()
                 }
@@ -127,30 +128,11 @@ class BashToolsAndroidJavaImpl : BashTools<AndroidFile>() {
     }
 
 
-    @Throws(IOException::class)
-    override fun mkdir(dir: AndroidFile) {
-        val i = 0
-        while (!dir.exists()) {
-            dir.mkdirs()
-            Lok.debug("BashToolsAndroidJavaImpl.mkdir.$i")
-        }
-    }
-
 
     override fun isSymLink(f: AndroidFile): Boolean {
         return false
     }
 
-    override fun getContentFsBashDetails(file: AndroidFile): Map<String, FsBashDetails> {
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        Lok.error("NOT:COMPLETELY:IMPLEMENTED")
-        return mapOf()
-    }
 
     override fun lnS(file: AndroidFile, target: String) {
         Lok.error("NOT:COMPLETELY:IMPLEMENTED")
@@ -172,8 +154,8 @@ class BashToolsAndroidJavaImpl : BashTools<AndroidFile>() {
         @JvmStatic
         fun main(args: Array<String>) {
             AbstractFile.configure(DefaultFileConfiguration())
-            val dir = AbstractFile.instance("bash.test")
-            val prune = AbstractFile.instance(dir.absolutePath + File.separator + "prune")
+            val dir = AbstractFile.instance("bash.test") as AndroidFile
+            val prune = AbstractFile.instance(dir.absolutePath + File.separator + "prune") as AndroidFile
             val file = File(dir.absolutePath + File.separator + "file")
             dir.mkdirs()
             prune.mkdirs()
@@ -187,5 +169,17 @@ class BashToolsAndroidJavaImpl : BashTools<AndroidFile>() {
                 Lok.debug("BashToolsAndroidJavaImpl.main: " + iterator.next())
             //Lok.debug("BashToolsAndroidJavaImpl.main.max: " + max);
         }
+    }
+
+    override fun stuffModifiedAfter(referenceFile: AndroidFile, directory: AndroidFile, pruneDir: AndroidFile): List<AndroidFile> {
+        throw BashToolsException.NotImplemented()
+    }
+
+    override fun stuffModifiedAfter(directory: AndroidFile, pruneDir: AndroidFile, timeStamp: Long): AutoKlausIterator<AndroidFile> {
+        throw BashToolsException.NotImplemented()
+    }
+
+    override fun getContentFsBashDetails(directory: AndroidFile): MutableMap<String, FsBashDetails> {
+        throw NotImplementedError()
     }
 }

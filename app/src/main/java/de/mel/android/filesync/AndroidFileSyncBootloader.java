@@ -20,6 +20,7 @@ import de.mel.android.filesync.controller.RemoteFileSyncServiceChooserGuiControl
 import de.mel.android.filesync.controller.AndroidFileSyncEditGuiController;
 import de.mel.auth.MelNotification;
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 import de.mel.auth.service.IMelService;
 import de.mel.auth.service.MelAuthService;
 import de.mel.android.boot.AndroidBootLoader;

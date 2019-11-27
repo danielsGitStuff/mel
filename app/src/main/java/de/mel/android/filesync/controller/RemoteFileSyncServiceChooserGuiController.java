@@ -15,6 +15,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 
+import de.mel.auth.file.IFile;
 import de.mel.auth.service.Bootloader;
 import org.jdeferred.Promise;
 
@@ -112,10 +113,10 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
          * then start the directory chooser with the preselected storage (chooser cannot change the storage device itself)
          */
 
-        AbstractFile[] rootDirs = StoragesManager.getStorageFiles(Tools.getApplicationContext());// N.arr.fromCollection(paths, N.converter(AFile.class, element -> AFile.instance(AFile.instance(element))));
-        Promise<AbstractFile, Void, Void> result = DirectoryChooserDialog.showDialog(activity, rootDirs);
+        IFile[] rootDirs = StoragesManager.getStorageFiles(Tools.getApplicationContext());// N.arr.fromCollection(paths, N.converter(AFile.class, element -> AFile.instance(AFile.instance(element))));
+        Promise<IFile, Void, Void> result = DirectoryChooserDialog.showDialog(activity, rootDirs);
         result.done(chosenDir -> {
-            setPath(chosenDir.absolutePath);
+            setPath(chosenDir.getAbsolutePath());
         });
     }
 
@@ -262,7 +263,7 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
     public boolean onOkClicked() {
         if (rootFile == null || !rootFile.exists())
             return false;
-        if (SAFAccessor.hasExternalSdCard() && (rootFile.absolutePath.startsWith(SAFAccessor.getExternalSDPath()))
+        if (SAFAccessor.hasExternalSdCard() && (rootFile.getAbsolutePath().startsWith(SAFAccessor.getExternalSDPath()))
                 && !SAFAccessor.canWriteExternal())
             return false;
         return true;

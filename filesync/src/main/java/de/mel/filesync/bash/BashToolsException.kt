@@ -8,7 +8,12 @@ import java.util.*
 /**
  * Created by xor on 5/24/17.
  */
-class BashToolsException : IOException {
+open class BashToolsException : IOException {
+    /**
+     * As I learned today there is an equivalent class built into kotlin.
+     */
+    class NotImplemented : BashToolsException("NOT:IMPLEMENTED")
+
     private val lines: MutableList<String> = ArrayList()
 
     constructor(lines: Iterator<String>) {

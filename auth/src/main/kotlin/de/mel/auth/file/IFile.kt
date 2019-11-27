@@ -23,7 +23,7 @@ interface IFile {
      * @param subFile
      * @return true if subFile is located in a subfolder of this instance.
      */
-    fun hasSubContent(subFile: AbstractFile<*>): Boolean
+    fun hasSubContent(subFile: IFile): Boolean
 
     fun canRead(): Boolean
     fun exists(): Boolean

@@ -14,8 +14,9 @@ import de.mel.android.file.AndroidFile
 import de.mel.android.file.AndroidFileConfiguration
 import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.IFile
+import de.mel.auth.file.StandardFile
 import de.mel.filesync.bash.*
-import de.mel.filesync.bash.BashToolsAndroidJavaImpl
+import java.io.File
 import java.io.InputStreamReader
 
 /**
@@ -26,19 +27,19 @@ class BashToolsAndroid(private val context: Context) : BashTools<AndroidFile>() 
     private var findNewerFallback: BashToolsAndroidJavaImpl? = null
     private val javaBashTools: BashToolsAndroidJavaImpl
     private var findFallBack: BashToolsAndroidJavaImpl? = null
-
+    val bashTolsUnix = BashToolsUnix()
+    private var BIN_PATH: String = "/system/bin/sh"
 
     init {
-        readCreated = false
-        BIN_PATH = "/system/bin/sh"
         javaBashTools = BashToolsAndroidJavaImpl()
         testCommands()
     }
 
-    override fun stuffModifiedAfter(referenceFile: AbstractFile, directory: AbstractFile, pruneDir: AbstractFile): List<AbstractFile> {
+    override fun stuffModifiedAfter(referenceFile: AndroidFile, directory: AndroidFile, pruneDir: AndroidFile): List<AndroidFile> {
         if (findNewerFallback != null)
             return findNewerFallback!!.stuffModifiedAfter(referenceFile, directory, pruneDir)
-        return super.stuffModifiedAfter(referenceFile, directory, pruneDir)
+        StandardFile(referenceFile.absolutePath)
+        return bashTolsUnix.stuffModifiedAfter(StandardFile(referenceFile.absolutePath), StandardFile(directory.absolutePath), StandardFile(pruneDir.absolutePath)).map { AndroidFile(it.absolutePath) }
     }
 
     /**
@@ -59,9 +60,9 @@ class BashToolsAndroid(private val context: Context) : BashTools<AndroidFile>() 
             dir.mkdirs()
             prune.mkdirs()
             latestFile.createNewFile()
-            cmd = "find \"" + dir.absolutePath + "\" -path " + escapeQuotedAbsoluteFilePath(prune) + " -prune -o -print"
+            cmd = "find \"" + dir.absolutePath + "\" -path " + bashTolsUnix.escapeQuotedAbsoluteFilePath(StandardFile(prune.absolutePath)) + " -prune -o -print"
             var streams = testCommand(cmd)
-            var iterator: Iterator<AbstractFile>? = streams.stdout
+            var iterator: Iterator<IFile>? = streams.stdout
             while (iterator!!.hasNext()) {
                 Lok.error("no SAF")
                 val line = iterator.next()
@@ -78,7 +79,7 @@ class BashToolsAndroid(private val context: Context) : BashTools<AndroidFile>() 
             e.printStackTrace()
         }
         try {
-            cmd = "find \"" + cacheDir.absolutePath + "\" -newercc " + escapeAbsoluteFilePath(dir) + " -o -print"
+            cmd = "find \"" + cacheDir.absolutePath + "\" -newercc " + bashTolsUnix.escapeAbsoluteFilePath(StandardFile(dir.absolutePath)) + " -o -print"
             val streams = testCommand(cmd)
             val iterator = streams.stdout
             while (iterator!!.hasNext()) {
@@ -95,7 +96,7 @@ class BashToolsAndroid(private val context: Context) : BashTools<AndroidFile>() 
     }
 
     internal inner class Streams {
-        var stdout: AutoKlausIterator<AbstractFile<*>>? = null
+        var stdout: AutoKlausIterator<IFile>? = null
         var stderr: AutoKlausIterator<String>? = null
     }
 
@@ -139,13 +140,8 @@ class BashToolsAndroid(private val context: Context) : BashTools<AndroidFile>() 
 //
 //    }
 
-    override fun getContentFsBashDetails(directory: AbstractFile): MutableMap<String, FsBashDetails> {
+    override fun getContentFsBashDetails(directory: AndroidFile): MutableMap<String, FsBashDetails> {
         val dir = directory as AndroidFile
-        // this does not work from Android 10 onwards
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q)
-            return super.getContentFsBashDetails(directory)
-//        val d = FsBashDetails(created,modified,inode,issymlink,symlinktarget,name)
-
         try {
             val thisDoc = dir.getDocFile()!!
             val uri: Uri = DocumentsContract.buildChildDocumentsUriUsingTree(thisDoc.uri, DocumentsContract.getDocumentId(thisDoc.uri))
@@ -175,11 +171,38 @@ class BashToolsAndroid(private val context: Context) : BashTools<AndroidFile>() 
     }
 
     @Throws(IOException::class)
-    override fun find(directory: AbstractFile, pruneDir: AbstractFile): AutoKlausIterator<AbstractFile> {
-        return if (findFallBack != null) findFallBack!!.find(directory, pruneDir) else super.find(directory, pruneDir)
+    override fun find(directory: AndroidFile, pruneDir: AndroidFile): AutoKlausIterator<AndroidFile> {
+        return if (findFallBack != null) findFallBack!!.find(directory, pruneDir) else findImpl(directory,pruneDir)
     }
 
-    override fun setCreationDate(target: AbstractFile, created: Long) {
+    fun findImpl(directory: AndroidFile, pruneDir: AndroidFile): AutoKlausIterator<AndroidFile> {
+        return exec("find ${bashTolsUnix.escapeQuotedAbsoluteFilePath(StandardFile(directory.absolutePath))} -path ${bashTolsUnix.escapeQuotedAbsoluteFilePath(StandardFile(pruneDir.absolutePath))} -prune -o -print")
+    }
+
+    @Throws(IOException::class)
+    private fun exec(cmd: String): AutoKlausIterator<AndroidFile> {
+        val args = arrayOf(BIN_PATH, "-c", cmd)
+        Lok.debug("BashToolsAndroid.exec: $cmd")
+        val proc = ProcessBuilder(*args).start()
+        return BufferedIterator.BufferedFileIterator(InputStreamReader(proc.inputStream))
+    }
+
+    override fun setCreationDate(target: AndroidFile, created: Long) {
         // android does not store creation dates
+    }
+
+    override fun getFsBashDetails(file: AndroidFile): FsBashDetails? {
+        return bashTolsUnix.getFsBashDetails(StandardFile(file.absolutePath))
+    }
+
+    override fun lnS(file: AndroidFile, target: String) {
+    }
+
+    override fun rmRf(directory: AndroidFile) {
+        throw BashToolsException.NotImplemented()
+    }
+
+    override fun stuffModifiedAfter(directory: AndroidFile, pruneDir: AndroidFile, timeStamp: Long): AutoKlausIterator<AndroidFile> {
+        throw NotImplementedError()
     }
 }

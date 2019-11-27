@@ -28,7 +28,7 @@ import java.util.*
 /**
  * File replacement for Android KitKat to Pie
  */
-class AndroidFile : AbstractFile<AndroidFile> {
+class AndroidFile : IFile {
     private var file: File
     private var isExternal = false
     private var internalCache: DocFileCache? = null
@@ -82,7 +82,7 @@ class AndroidFile : AbstractFile<AndroidFile> {
         get() = File.separator
 
 
-    override fun hasSubContent(subFile: AbstractFile<*>): Boolean {
+    override fun hasSubContent(subFile: IFile): Boolean {
         return subFile.absolutePath.startsWith(file!!.absolutePath) ?: false
     }
 
@@ -183,7 +183,7 @@ class AndroidFile : AbstractFile<AndroidFile> {
     override fun inputStream(): InputStream? {
         if (VERSION.SDK_INT < Build.VERSION_CODES.Q)
             return FileInputStream(file)
-        val contentResolver: ContentResolver = (configuration as AndroidFileConfiguration).context.contentResolver
+        val contentResolver: ContentResolver = (AbstractFile.configuration as AndroidFileConfiguration).context.contentResolver
         return contentResolver.openInputStream(getDocFile()!!.uri)
     }
 
@@ -308,7 +308,7 @@ class AndroidFile : AbstractFile<AndroidFile> {
             }
         } else if (VERSION.SDK_INT > VERSION_CODES.P && !absolutePath.startsWith(AndroidFileConfiguration.getDataDir().absolutePath)) {
             val parentDoc = (getParentFile() as AndroidFile).getDocFile()
-            val contentResolver: ContentResolver = (configuration as AndroidFileConfiguration).context.contentResolver
+            val contentResolver: ContentResolver = (AbstractFile.configuration as AndroidFileConfiguration).context.contentResolver
             val uri = DocumentsContract.createDocument(contentResolver, parentDoc!!.uri, SAFAccessor.MIME_GENERIC, file.name)
             return uri != null
         } else {
@@ -361,7 +361,7 @@ class AndroidFile : AbstractFile<AndroidFile> {
         try {
             val thisDoc = getDocFile()!!
             val uri: Uri = DocumentsContract.buildChildDocumentsUriUsingTree(thisDoc.uri, DocumentsContract.getDocumentId(thisDoc.uri))
-            val contentResolver: ContentResolver = (configuration as AndroidFileConfiguration).context.contentResolver
+            val contentResolver: ContentResolver = (AbstractFile.configuration as AndroidFileConfiguration).context.contentResolver
 // this code maybe useful when someone eventually found out how that stupid query() thing works, see comment below
 //            var dirFilterSelection: String? = null
 //            var dirFilterArgs: Array<String>? = null
@@ -423,7 +423,7 @@ class AndroidFile : AbstractFile<AndroidFile> {
     override val path: String
         get() = file!!.path
 
-    override fun getParentFile(): IFile? = if (file != null && file!!.parentFile != null) AbstractFile.instance(file!!.parentFile!!) as AndroidFile else null
+    override fun getParentFile(): AndroidFile? = if (file != null && file!!.parentFile != null) AbstractFile.instance(file!!.parentFile!!) as AndroidFile else null
 
     override fun canRead(): Boolean = file!!.canRead()
 

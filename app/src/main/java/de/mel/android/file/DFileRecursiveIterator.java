@@ -10,19 +10,20 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 
 /**
  * maybe faster than the other find method. needs some benchmarking. if the other way is fast enough this can be removed.
  * does not work yet. probably never will.
  */
 @Deprecated
-public class DFileRecursiveIterator implements Iterator<AbstractFile> {
+public class DFileRecursiveIterator implements Iterator<IFile> {
 
     private final IFile pruneDir;
     private Cursor cursor;
     private final Context context;
     private final IFile currentDir;
-    private Queue<AbstractFile> currentSubDirs = new LinkedList<>();
+    private Queue<IFile> currentSubDirs = new LinkedList<>();
     private DFileRecursiveIterator subIterator;
 
     public DFileRecursiveIterator(Context context, IFile rootDirectory, IFile pruneDir)  {
@@ -31,7 +32,7 @@ public class DFileRecursiveIterator implements Iterator<AbstractFile> {
         this.currentDir = rootDirectory;
         DocumentFile rootDoc = null;
         try {
-            rootDoc = new AndroidFile(rootDirectory.absolutePath).getDocFile();
+            rootDoc = new AndroidFile(rootDirectory.getAbsolutePath()).getDocFile();
         } catch (SAFAccessor.SAFException e) {
             e.printStackTrace();
         }

@@ -5,8 +5,6 @@ import java.io.File
 
 class DefaultFileConfiguration : AbstractFile.Configuration<StandardFile>() {
     override fun instance(path: String): StandardFile {
-        val s = StandardFile(path)
-        val stuff = s.listContent()
         return StandardFile(path)
     }
 

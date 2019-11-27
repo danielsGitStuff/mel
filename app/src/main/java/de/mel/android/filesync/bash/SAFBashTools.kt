@@ -7,6 +7,7 @@ import android.os.Build
 import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import androidx.annotation.RequiresApi
+import de.mel.Lok
 import de.mel.android.file.AndroidFile
 import de.mel.android.file.AndroidFileConfiguration
 import de.mel.android.file.SAFFile
@@ -84,6 +85,7 @@ class SAFBashTools : BashTools<SAFFile>() {
     override fun find(directory: SAFFile, pruneDir: SAFFile): AutoKlausIterator<SAFFile> {
         // todo saf the code currently ignores pruneDir until I found a way to recognize it via path without fucking with the documentfile cache
         // DocFileCache works best using DFS. Another thing SAF fucks up.
+        val prunePath = pruneDir.absolutePath
         val config = AbstractFile.configuration as SAFFileConfiguration
         val cache = config.externalCache
         val docFile = directory.getDocFile()
@@ -99,13 +101,12 @@ class SAFBashTools : BashTools<SAFFile>() {
                          * Will keep an Iterator of sorted folder content for each step down.
                          */
                         lateinit var cursor: Cursor
-                        val sortedContent = mutableListOf<String>()
                         val stack = Stack<SAFFile>()
                         val sortedFilesStack = Stack<Iterator<SAFFile>>()
                         override fun hasNext(): Boolean = !sortedFilesStack.isEmpty()
 
-                        override fun next(): SAFFile? {
-                            if (!sortedFilesStack.peek().hasNext())
+                        override fun next(): SAFFile {
+                            while (!sortedFilesStack.peek().hasNext())
                                 sortedFilesStack.pop()
                             return sortedFilesStack.peek().next()
                         }
@@ -122,9 +123,10 @@ class SAFBashTools : BashTools<SAFFile>() {
                                     val mime = cursor.getString(mimeIndex)
                                     val name = cursor.getString(nameIndex)
 
-                                    val helpFile = SAFFileHelper(name, mime)
                                     val file = AbstractFile.instance(parentFile, name) as SAFFile
-                                    list.add(file)
+                                    // filter prune directory
+                                    if (!file.absolutePath.startsWith(prunePath))
+                                        list.add(file)
                                 }
                                 // todo saf check if the contentresolver can sort the results
                                 list.sortWith(Comparator { a, b ->
@@ -140,16 +142,16 @@ class SAFBashTools : BashTools<SAFFile>() {
                         }
 
                         override fun close() {
-
+                            Lok.debug("closed")
                         }
                     }
                     klaus.readCursor(cursor)
                     return klaus
                 }
         return AutoKlausIterator.EmptyAutoKlausIterator()
-
     }
 
     override fun stuffModifiedAfter(directory: SAFFile, pruneDir: SAFFile, timeStamp: Long): AutoKlausIterator<SAFFile> {
+        return AutoKlausIterator.EmptyAutoKlausIterator()
     }
 }

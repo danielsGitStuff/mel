@@ -13,6 +13,7 @@ import java.util.Set;
 
 import de.mel.Lok;
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 import de.mel.auth.tools.WatchDogTimer;
 import de.mel.filesync.data.PathCollection;
 import de.mel.filesync.index.watchdog.FileWatcher;
@@ -40,7 +41,7 @@ public class RecursiveWatcher extends FileWatcher {
         this.melFileSyncService = melFileSyncService;
         this.setStageIndexer(melFileSyncService.getStageIndexer());
         this.transferDirectory = melFileSyncService.getFileSyncSettings().getTransferDirectoryFile();
-        this.transferDirectoryPath = transferDirectory.absolutePath;
+        this.transferDirectoryPath = transferDirectory.getAbsolutePath();
         this.watchDogTimer = new WatchDogTimer("recursive watcher",this::onTimerStopped, 15, 100, 1000);
         unixReferenceFileHandler = new UnixReferenceFileHandler(melFileSyncService.getServiceInstanceWorkingDirectory(), target, melFileSyncService.getFileSyncSettings().getTransferDirectory());
         unixReferenceFileHandler.onStart();
@@ -75,7 +76,7 @@ public class RecursiveWatcher extends FileWatcher {
         private final IFile target;
 
         public Watcher(RecursiveWatcher recursiveWatcher, IFile target) {
-            super(target.absolutePath);
+            super(target.getAbsolutePath());
             this.target = target;
             this.recursiveWatcher = recursiveWatcher;
         }
@@ -91,9 +92,9 @@ public class RecursiveWatcher extends FileWatcher {
     }
 
     private void watch(IFile target) {
-        if (!watchers.containsKey(target.absolutePath)) {
+        if (!watchers.containsKey(target.getAbsolutePath())) {
             Watcher watcher = new Watcher(this, target);
-            watchers.put(target.absolutePath, watcher);
+            watchers.put(target.getAbsolutePath(), watcher);
             watcher.startWatching();
         }
     }
@@ -101,17 +102,17 @@ public class RecursiveWatcher extends FileWatcher {
     private Set<String> writePaths = new HashSet<>();
 
     private void onWatcherEvent(Watcher watcher, int event, String path) {
-        IFile f = path != null ? AbstractFile.instance(watcher.getTarget().absolutePath + File.separator + path) : watcher.getTarget();
+        IFile f = path != null ? AbstractFile.instance(watcher.getTarget().getAbsolutePath() + File.separator + path) : watcher.getTarget();
         if (transferDirectory.hasSubContent(watcher.getTarget()))
             return;
         if ((FileObserver.CREATE & event) != 0 && f.exists() && f.isDirectory()) {
             watch(f);
         }
         try {
-            String fPath = f.absolutePath;
+            String fPath = f.getAbsolutePath();
             if (checkEvent(event, FileObserver.DELETE_SELF)) {
 //                Lok.warn("delete self" + positiveList);
-                this.watchers.remove(f.absolutePath);
+                this.watchers.remove(f.getAbsolutePath());
                 // folder was deleted. so check if we are still waiting for a writing event and remove it.
                 Set<String> newWritePaths = new HashSet<>();
                 for (String writePath : writePaths) {
@@ -122,7 +123,7 @@ public class RecursiveWatcher extends FileWatcher {
                 startTimer();
             } else if (checkEvent(event, FileObserver.CLOSE_WRITE)) {
 //                Lok.warn("close.write: " + positiveList);
-                writePaths.remove(f.absolutePath);
+                writePaths.remove(f.getAbsolutePath());
                 startTimer();
             } else if (checkEvent(event,
                     FileObserver.DELETE,
@@ -135,7 +136,7 @@ public class RecursiveWatcher extends FileWatcher {
                 startTimer();
             } else if (checkEvent(event, FileObserver.MODIFY)) {
 //                Lok.warn("modify: " + positiveList);
-                writePaths.add(f.absolutePath);
+                writePaths.add(f.getAbsolutePath());
                 startTimer();
             } else {
 //                Lok.warn("something else: " + positiveList);
@@ -200,7 +201,7 @@ public class RecursiveWatcher extends FileWatcher {
              * and watching the directories as well
              */
             Lok.debug("stopped");
-            List<AbstractFile<?>> paths = unixReferenceFileHandler.stuffModifiedAfter();
+            List<IFile> paths = unixReferenceFileHandler.stuffModifiedAfter();
             pathCollection.addAll(paths);
             for (IFile f : paths) {
                 if (f.exists() && f.isDirectory()) {

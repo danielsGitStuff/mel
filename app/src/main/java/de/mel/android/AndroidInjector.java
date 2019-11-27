@@ -125,9 +125,9 @@ public class AndroidInjector {
             return new AndroidSQLQueries(new AndroidDBConnection(helper.getWritableDatabase()));
         });
         // use a proper bash tools variant
-        BashToolsImpl bashTools;
+        BashTools bashTools;
         bashTools = new BashToolsAndroid(context);
-        BashTools.Companion.setInstance(bashTools);
+        BashTools.Companion.setImplementation(bashTools);
         // use a proper file watcher
         FileSyncInjector.setFileWatcherFactory(new AndroidFileWatcherFactory());
         FileSyncInjector.setBinPath("/system/bin/sh");

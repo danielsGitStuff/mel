@@ -12,12 +12,12 @@ class FileDistributorAndroid(fileSyncService: MelFileSyncService<*>) : FileDistr
 
     override fun moveFile(sourceFile: AndroidFile, target: AndroidFile, targetPath: String, fsId: Long?) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            val srcParentDoc = sourceFile.parentFile.getDocFile()!!
+            val srcParentDoc = sourceFile.getParentFile()!!.getDocFile()!!
             val srcDoc = sourceFile.getDocFile()!!
-            val targetParentDoc = target.parentFile.getDocFile()!!
+            val targetParentDoc = target.getParentFile()!!.getDocFile()!!
             if (target.exists())
                 return
-            if (target.name.contains("?")) {
+            if (target.getName().contains("?")) {
                 // if the target files name contains a "?" "DocumentsContract.renameDocument()" will change that to "_".
                 // as a workaround, the file is copied and then deleted. SAF likely stands for "Stpecial Acces Framewörk"
                 // rather than "Storage Access Framework". Because it is really bad at the latter.
@@ -30,8 +30,8 @@ class FileDistributorAndroid(fileSyncService: MelFileSyncService<*>) : FileDistr
             Lok.debug("moving uri '${srcDoc.uri}' with parent '${srcParentDoc.uri}' to '${targetParentDoc.uri}'")
             var movedUri = DocumentsContract.moveDocument(AndroidService.getInstance()!!.contentResolver, srcDoc.uri, srcParentDoc.uri, targetParentDoc.uri)
             val oldeUri = movedUri
-            if (!sourceFile.name.equals(target.name)) {
-                movedUri = DocumentsContract.renameDocument(AndroidService.getInstance()!!.contentResolver, movedUri, target.name)
+            if (!sourceFile.getName().equals(target.getName())) {
+                movedUri = DocumentsContract.renameDocument(AndroidService.getInstance()!!.contentResolver, movedUri, target.getName())
             }
             if (!target.exists())
                 Lok.debug()
