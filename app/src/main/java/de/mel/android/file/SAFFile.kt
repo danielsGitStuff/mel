@@ -23,12 +23,12 @@ import java.util.*
 class SAFFile : AbstractFile<SAFFile> {
 
     private var isExternal = false
-    private var file: File
+    private lateinit var file: File
     val fileConfig: SAFFileConfiguration
 
     constructor(fileConfig: SAFFileConfiguration, path: String) {
-        this.fileConfig = fileConfig
         file = File(path)
+        this.fileConfig = fileConfig
         init()
     }
 
@@ -40,7 +40,7 @@ class SAFFile : AbstractFile<SAFFile> {
 
     constructor(parent: SAFFile, name: String) {
         this.fileConfig = parent.fileConfig
-        file = File(parent.absolutePath + File.separator + name)
+        file = File(parent.absolutePath, name)
         init()
     }
 
@@ -214,18 +214,12 @@ class SAFFile : AbstractFile<SAFFile> {
 
     override val separator: String?
         get() = "%2F"
-    override val absolutePath: String
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
-    override val isFile: Boolean
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
-    override val isDirectory: Boolean
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
-    override val freeSpace: Long?
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
-    override val usableSpace: Long?
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
-    override val path: String
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+    override val absolutePath: String by lazy { file.absolutePath }
+    override val isFile: Boolean by lazy { file.isFile }
+    override val isDirectory: Boolean by lazy { file.isDirectory }
+    override val freeSpace: Long? by lazy { file.freeSpace }
+    override val usableSpace: Long? by lazy { file.usableSpace }
+    override val path: String by lazy { file.path }
 
     override fun getParentFile(): IFile? {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -239,6 +233,5 @@ class SAFFile : AbstractFile<SAFFile> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override val canonicalPath: String?
-        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+    override val canonicalPath: String? by lazy { file.canonicalPath }
 }

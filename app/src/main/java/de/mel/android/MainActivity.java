@@ -184,7 +184,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
         AndroidLok.setupDbLok(this);
         SAFAccessor.setupExternalPath();
 //        SAFAccessor.setupInternalPath();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
             AbstractFile.configure(new SAFFileConfiguration(this.getApplicationContext()));
         else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             AbstractFile.configure(new AndroidFileConfiguration(this.getApplicationContext()));
