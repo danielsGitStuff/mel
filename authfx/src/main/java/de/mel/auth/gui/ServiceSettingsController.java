@@ -15,8 +15,9 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class ServiceSettingsController extends AuthSettingsFX {
+
     @FXML
-    private Label lblName, lblState;
+    private Label lblName, lblState, lblType;
 
     @FXML
     private VBox content;
@@ -65,6 +66,7 @@ public class ServiceSettingsController extends AuthSettingsFX {
     public void feed(ServiceJoinServiceType serviceJoinServiceType) {
         contentController.feed(serviceJoinServiceType);
         lblName.setText(serviceJoinServiceType.getName().v());
+        lblType.setText(serviceJoinServiceType.getType().v());
         // set status
 
         {

@@ -7,6 +7,8 @@
       fx:controller="de.mel.auth.gui.ServiceSettingsController">
 
     <children>
+        <Label styleClass="lbl-center-section" text="%service.type"  />
+        <Label styleClass="lbl" style="-fx-max-width: Infinity" fx:id="lblType" text="type goes here"/>
         <Label styleClass="lbl-center-section" text="%service.name"  />
         <Label styleClass="lbl" style="-fx-max-width: Infinity" fx:id="lblName" text="name goes here"/>
         <Label styleClass="lbl-center-section" text="%service.state"  />
