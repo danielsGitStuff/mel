@@ -1,7 +1,7 @@
 # Mel.auth
 Note: words that do not start with a capital letter in English but are written with one refer to classes or interfaces
 ## What is it?
-MelAuth is a framework which allows secure communication between multiple nodes on a network.
+MelAuth is a framework, which allows secure communication between multiple nodes on a network.
 But there is quite a lot of stuff out there that does the same, eh?
 You are right about that. So what's the bloody difference?
 
@@ -12,7 +12,14 @@ Plus: it is service oriented. So you have got an instance running that knows eve
 There are also services "living" in your MelAuth instance. They can communicate with the other MelAuth instances if you wish so. 
 But initially ("trust no one") this is not permitted. 
 
-For daily use you want two or more instances that trust each other and have services running that are allowed to talk to other MelAuth instances.
+For daily use you want two or more instances that trust each other and have services running, which are allowed to talk to other MelAuth instances.
+
+### What functionality is in here?
+- Communications
+- Encryption, Hashing
+- Basic file handling (an abstraction is needed because of Android)
+- Bash/Shell commands
+- Updater
 
 ### Why on earth did you write all of that stuff?
 Because I could not find a solution that worked on an old PC and Android as well. There is owncloud which comes with a ton of dependencies and is not exactly easy to configure when it comes to https. 
@@ -38,7 +45,7 @@ Features of a service:
 When MelAuth boots up it looks for all configured MelServices that it must start.
 A service is of a certain ServiceType. This refers to a BootLoader. 
 MelAuth then asks the BootLoader to boot this certain instance up.
-Therefore the BootLoader is fed with all important information by the MelAuth framework. 
+Therefore, the BootLoader is fed with all important information by the MelAuth framework. 
 This includes the UUID and a working directory where all configs and databases of the service are stored.
 The BootLoader then has to load the config files or databases and return the required MelService instance.
 That's the basic overview. Booting happens in two stages. Read below. 

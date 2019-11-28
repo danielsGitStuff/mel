@@ -97,7 +97,7 @@ You can find all licenses and according modules and usage under `auth/src/main/r
 ## Dev stuff
 ### Modules
 - `app`: Android implementation of `auth`, `filesync`, `contacts` and `filedump`
-- `auth`: handles pairing, key management, connections, sending/receiving data, service management
+- `auth`: handles pairing, key management, connections, sending/receiving data, service management, Bash/Shell commands
 - `authfx`: wraps `auth` into a GUI on PCs so you can click on things
 - `blog`: runs a web server with your blog. 
 - `contacts`: stores contacts
@@ -138,6 +138,11 @@ For example:
   - one cannot emphasize enough how slow it is!
   - renaming a DocumentFile cannot handle `?` in the new name: it will escape to `_`
   - there is no creation time for files
+  - with Android 10 you have absolutely no access outside of the app's private directory using `java.io.File`. But there is more to it.
+  It also restricts the usage of shell commands to your private directory. Plus, executing programs like `find` leads to wrong(==empty) results instead of throwing errors.
+  That makes shell commands pretty much useless.
+  - `ContentResolver.query()` ignores Uri queries and selections (like you do in SQL). But only in most cases. And there is no documentation on that.
+    - Of course, it ignores sort order as well, mostly
 - databasing is different
   - your API is similar to that of jdbc but different, so your must manufacture an abstraction layer if you want your stuff to run with both
   - you only got 4 data types: Long, Double, String, byte[]
