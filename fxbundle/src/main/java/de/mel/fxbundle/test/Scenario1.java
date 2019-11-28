@@ -9,7 +9,6 @@ import de.mel.auth.data.db.Certificate;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.file.IFile;
-import de.mel.auth.gui.RegisterHandlerFX;
 import de.mel.auth.service.MelAuthFxLoader;
 import de.mel.auth.service.MelBoot;
 import de.mel.auth.service.power.PowerManager;
@@ -29,7 +28,6 @@ import de.mel.filesync.FileSyncBootloader;
 import de.mel.filesync.FileSyncCreateServiceHelper;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.boot.FileSyncFXBootloader;
-import de.mel.filesync.data.fs.RootDirectory;
 import de.mel.fxbundle.AuthKonsoleReader;
 import de.mel.sql.RWLock;
 import de.mel.sql.deserialize.PairDeserializerFactory;
@@ -131,7 +129,12 @@ public class Scenario1 {
                 Lok.debug("Main.main.booted");
                 FileSyncCreateServiceHelper helper = new FileSyncCreateServiceHelper(melAuthService);
                 N.r(() -> {
-                    IFile root = AbstractFile.instance(args[0]);
+                    String path = N.r(() -> {
+                        if (args.length == 0)
+                            return "filesynctest";
+                        return args[0];
+                    });
+                    IFile root = AbstractFile.instance(path);
                     helper.createServerService("test service", root, 0.5f, 20, false);
                 });
                 lock.unlockWrite();

@@ -2,7 +2,6 @@ package de.mel.filesync.bash
 
 import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.IFile
-import de.mel.auth.file.StandardFile
 import de.mel.filesync.bash.BufferedIterator.BufferedFileIterator
 import java.io.File
 import java.io.IOException
@@ -26,8 +25,9 @@ abstract class BashTools<A : IFile> {
         }
             get
 
-        var unixImplementation = implementation as BashToolsUnix
-            private set
+        fun getUnixImplementation(): BashToolsUnix? {
+            return if (implementation is BashToolsUnix) implementation as BashToolsUnix else null
+        }
 
         fun <F : IFile> getFsBashDetails(file: F): FsBashDetails? = implementation.getFsBashDetails(file)
 

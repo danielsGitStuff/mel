@@ -289,15 +289,15 @@ public class CertificateManager extends FileRelatedManager {
 
     public static UUID randomUUID() {
         // you can use the next few lines to create debuggable UUIDs
-//        Lok.error("DEBUG UUIDs ENABLED!");
-//        Lok.error("DEBUG UUIDs ENABLED!");
-//        Lok.error("DEBUG UUIDs ENABLED!");
-//        Lok.error("DEBUG UUIDs ENABLED!");
-//        Lok.error("DEBUG UUIDs ENABLED!");
-//        int value = UUID_DEBUG.getAndIncrement();
-//        String str = "00000000-a00a-a00a-a00a-" + String.format("%08d", value);
-//        return UUID.fromString(str);
-        return UUID.randomUUID();
+        Lok.error("DEBUG UUIDs ENABLED!");
+        Lok.error("DEBUG UUIDs ENABLED!");
+        Lok.error("DEBUG UUIDs ENABLED!");
+        Lok.error("DEBUG UUIDs ENABLED!");
+        Lok.error("DEBUG UUIDs ENABLED!");
+        int value = UUID_DEBUG.getAndIncrement();
+        String str = "00000000-a00a-a00a-a00a-" + String.format("%08d", value);
+        return UUID.fromString(str);
+//        return UUID.randomUUID();
     }
 
     public SSLContext getSSLContext() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {

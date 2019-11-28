@@ -31,7 +31,9 @@ class BashToolsWindows : BashTools<StandardFile>() {
             contents?.forEach {
                 launch {
                     val fsUtil = execLine("fsutil", "file", "queryfileid", file.absolutePath)
-                    val id = fsUtil!!.substringAfter(": ")
+                    val end = fsUtil!!.length
+                    val start = end - 34;
+                    val id = fsUtil.substring(start, end)
                     val iNode = java.lang.Long.decode(id)
                     iNodeMap[it.getName()] = iNode
                 }
@@ -97,7 +99,9 @@ class BashToolsWindows : BashTools<StandardFile>() {
             launch {
                 //reads something like "File ID: 0x0000000000000000000200000000063a"
                 val fsUtil = execLine("fsutil", "file", "queryfileid", file.absolutePath)
-                val id = fsUtil!!.substringAfter(": ")
+                val end = fsUtil!!.length
+                val start = end - 34;
+                val id = fsUtil.substring(start, end)
                 iNode = java.lang.Long.decode(id)
             }
 
@@ -260,7 +264,7 @@ class BashToolsWindows : BashTools<StandardFile>() {
             val windowsBashReader = execReader("dir", "/b/s", directory.absolutePath, "|", "findstr", "/vc:\"" + pruneDir.absolutePath + "\"")!!
                     .addFirstLine(directory.absolutePath)
             val iterator = windowsBashReader!!.lines()
-                    .map { it: String -> AbstractFile.instance(it) as StandardFile}.iterator()
+                    .map { it: String -> AbstractFile.instance(it) as StandardFile }.iterator()
 
             override fun hasNext(): Boolean = iterator.hasNext()
 
