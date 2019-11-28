@@ -33,7 +33,7 @@ All services come with a client/server role. By design all server services do no
   - comes with conflict solution (if files have been altered differently across devices)
   - supports symlinks on Linux (sort of for Windows too)
 - File Dump
-  - think of it as a one way file synchronisation service
+  - think of it as a one way file synchronization service
   - client sends all files of a folder to the server
   - files deleted on the client are not deleted on the server
   - folder structure remains
@@ -140,7 +140,7 @@ For example:
   - there is no creation time for files
   - with Android 10 you have absolutely no access outside of the app's private directory using `java.io.File`. But there is more to it.
   It also restricts the usage of shell commands to your private directory. Plus, executing programs like `find` leads to wrong(==empty) results instead of throwing errors.
-  That makes shell commands pretty much useless.
+  That renders shell commands pretty much useless or even dangerous.
   - `ContentResolver.query()` ignores Uri queries and selections (like you do in SQL). But only in most cases. And there is no documentation on that.
     - Of course, it ignores sort order as well, mostly
 - databasing is different
