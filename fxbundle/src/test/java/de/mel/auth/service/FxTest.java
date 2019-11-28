@@ -11,6 +11,7 @@ import de.mel.auth.data.access.DatabaseManager;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.data.db.ServiceJoinServiceType;
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.AbstractFileWriter;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.file.IFile;
 import de.mel.auth.gui.RegisterHandlerFX;
@@ -600,15 +601,15 @@ public class FxTest {
                     Thread.sleep(1000);
                     // change fs table
                     FsDao fsDao = clientService.get().getFileSyncDatabaseManager().getFsDao();
-                    FsFile alterFs = fsDao.getFsFileByFile(new File(alteredFile.absolutePath));
+                    FsFile alterFs = fsDao.getFsFileByFile(new File(alteredFile.getAbsolutePath()));
                     alterFs.getSynced().v(false);
                     alterFs.getiNode().nul();
                     alterFs.getModified().nul();
                     fsDao.update(alterFs);
                     client.get().shutDown();
                     Thread.sleep(2000);
-                    FileOutputStream out = alteredFile.writer();
-                    out.write("hurrdurr".getBytes());
+                    AbstractFileWriter out = alteredFile.writer();
+                    out.append("hurrdurr".getBytes(), 0);
                     out.close();
                     System.exit(0);
 //                    MelBoot boot3 = new MelBoot(json2, new PowerManager(json2), DriveFXBootloader.class);
@@ -1031,7 +1032,7 @@ public class FxTest {
                         for (FsFile f : rootFiles) {
                             Lok.debug(f.getName().v());
                         }
-                        File newFile = new File(testStructure.testdir1.absolutePath + "/sub1/sub2.txt");
+                        File newFile = new File(testStructure.testdir1.getAbsolutePath() + "/sub1/sub2.txt");
                         newFile.createNewFile();
                     } else if (count == 1) {
                         Lok.debug("FxTest.onSyncDoneImpl :)");
