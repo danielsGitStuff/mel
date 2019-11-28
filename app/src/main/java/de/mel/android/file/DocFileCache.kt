@@ -2,13 +2,14 @@ package de.mel.android.file
 
 import androidx.documentfile.provider.DocumentFile
 import de.mel.Lok
+import java.io.FileNotFoundException
 import java.util.*
 
 class DocFileCache(storageRootDoc: DocumentFile, private val maxItems: Int) {
     private val storageRoot = DocTreeRoot(this, storageRootDoc)
 
     class DocTreeRoot(cache: DocFileCache, rootDocFile: DocumentFile) : DocTreeNode(cache, rootDocFile, 1, "[storageRoot]", null) {
-        fun findDoc(queue: Queue<String>): DocumentFile? {
+        fun findDoc(queue: Queue<String>): DocumentFile {
             val currentPath = mutableSetOf<DocTreeNode>()
             currentPath.add(this)
             return super.findDoc(queue, currentPath)
@@ -33,7 +34,7 @@ class DocFileCache(storageRootDoc: DocumentFile, private val maxItems: Int) {
         /**
          * find a DocumentFile or create if necessary
          */
-        fun findDoc(queue: Queue<String>, currentPath: MutableSet<DocTreeNode>): DocumentFile? {
+        fun findDoc(queue: Queue<String>, currentPath: MutableSet<DocTreeNode>): DocumentFile {
             importance++
             if (queue.size == 0)
                 return docFile
@@ -60,10 +61,10 @@ class DocFileCache(storageRootDoc: DocumentFile, private val maxItems: Int) {
 
     private val allNodes = mutableSetOf<DocTreeNode>()
 
-    private fun createNode(parentNode: DocTreeNode, name: String, docFile: DocumentFile, currentPath: MutableSet<DocTreeNode>): DocTreeNode? {
+    private fun createNode(parentNode: DocTreeNode, name: String, docFile: DocumentFile, currentPath: MutableSet<DocTreeNode>): DocTreeNode {
         var nodeDoc: DocumentFile? = docFile.findFile(name)
         if (nodeDoc == null) {
-            return null
+            throw FileNotFoundException(currentPath.toString())
 //            nodeDoc = docFile.createFile(SAFAccessor.MIME_GENERIC, name)
         }
         if (!name.equals(nodeDoc!!.name))
@@ -95,7 +96,7 @@ class DocFileCache(storageRootDoc: DocumentFile, private val maxItems: Int) {
 
 
     @Synchronized
-    fun findDoc(parts: Array<String>): DocumentFile? {
+    fun findDoc(parts: Array<String>): DocumentFile {
         if (parts.isEmpty())
             return storageRoot.docFile
         val docFile: DocumentFile?

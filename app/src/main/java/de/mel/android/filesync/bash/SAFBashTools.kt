@@ -20,7 +20,7 @@ import de.mel.filesync.bash.FsBashDetails
 import java.io.File
 import java.util.*
 
-@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+@RequiresApi(Build.VERSION_CODES.Q)
 class SAFBashTools : BashTools<SAFFile>() {
     override fun getFsBashDetails(file: SAFFile): FsBashDetails? {
         val docFile = file.getDocFile()
@@ -28,6 +28,7 @@ class SAFBashTools : BashTools<SAFFile>() {
         val contentResolver: ContentResolver = (AbstractFile.configuration as SAFFileConfiguration).context.contentResolver
         contentResolver.query(uri, arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_LAST_MODIFIED, DocumentsContract.Document.COLUMN_DISPLAY_NAME), null, null, null)
                 ?.use {
+                    it.moveToFirst()
                     val modified = it.getLong(it.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED))
                     val inode = it.getLong(it.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID))
                     val name = it.getString(it.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME))
@@ -46,7 +47,7 @@ class SAFBashTools : BashTools<SAFFile>() {
         try {
             val thisDoc = dir.getDocFile()!!
             val uri: Uri = DocumentsContract.buildChildDocumentsUriUsingTree(thisDoc.uri, DocumentsContract.getDocumentId(thisDoc.uri))
-            val contentResolver: ContentResolver = (AbstractFile.configuration as AndroidFileConfiguration).context.contentResolver
+            val contentResolver: ContentResolver = (AbstractFile.configuration as SAFFileConfiguration).context.contentResolver
             val content = mutableMapOf<String, FsBashDetails>()
             contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME
                     , DocumentsContract.Document.COLUMN_LAST_MODIFIED
@@ -90,10 +91,12 @@ class SAFBashTools : BashTools<SAFFile>() {
         val cache = config.externalCache
         val docFile = directory.getDocFile()
         val uri = docFile!!.uri
-        val contentResolver: ContentResolver = (AbstractFile.configuration as AndroidFileConfiguration).context.contentResolver
+        val contentResolver: ContentResolver = (AbstractFile.configuration as SAFFileConfiguration).context.contentResolver
         // Find does DFS, ContentResolver does not. What a nice day.
-        contentResolver.query(directory.getDocFile()!!.uri, arrayOf(DocumentsContract.Document.COLUMN_DISPLAY_NAME, DocumentsContract.Document.COLUMN_MIME_TYPE), null, null, null)
+
+        contentResolver.query(directory.getChildrenUri(), arrayOf(DocumentsContract.Document.COLUMN_DISPLAY_NAME, DocumentsContract.Document.COLUMN_MIME_TYPE), null, null, null)
                 ?.use { cursor ->
+                    cursor.moveToFirst()
                     val nameIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
                     val mimeIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_MIME_TYPE)
                     val klaus = object : AutoKlausIterator<SAFFile> {
@@ -101,9 +104,13 @@ class SAFBashTools : BashTools<SAFFile>() {
                          * Will keep an Iterator of sorted folder content for each step down.
                          */
                         lateinit var cursor: Cursor
-                        val stack = Stack<SAFFile>()
+                        val fileStack = Stack<SAFFile>()
                         val sortedFilesStack = Stack<Iterator<SAFFile>>()
-                        override fun hasNext(): Boolean = !sortedFilesStack.isEmpty()
+                        override fun hasNext(): Boolean = sortedFilesStack.size > 0 && sortedFilesStack.peek().hasNext()
+
+                        init {
+                            fileStack.push(directory)
+                        }
 
                         override fun next(): SAFFile {
                             while (!sortedFilesStack.peek().hasNext())
@@ -113,12 +120,12 @@ class SAFBashTools : BashTools<SAFFile>() {
 
                         fun readCursor(cursor: Cursor): Unit {
                             this.cursor = cursor
-                            val parentFile = stack.peek()
+                            val parentFile = fileStack.peek()
+                            val pathParts = AndroidFile.createRelativeFilePathParts(parentFile.storagePath, File(parentFile.absolutePath))
+                            val list = mutableListOf<SAFFile>()
                             cursor.use {
                                 it.moveToFirst()
 
-                                val pathParts = AndroidFile.createRelativeFilePathParts(parentFile.storagePath, File(parentFile.absolutePath))
-                                val list = mutableListOf<SAFFile>()
                                 while (!it.isAfterLast) {
                                     val mime = cursor.getString(mimeIndex)
                                     val name = cursor.getString(nameIndex)
@@ -127,18 +134,19 @@ class SAFBashTools : BashTools<SAFFile>() {
                                     // filter prune directory
                                     if (!file.absolutePath.startsWith(prunePath))
                                         list.add(file)
+                                    it.moveToNext()
                                 }
-                                // todo saf check if the contentresolver can sort the results
-                                list.sortWith(Comparator { a, b ->
-                                    when {
-                                        a.isDirectory == b.isDirectory -> a.getName().compareTo(b.getName())
-                                        a.isDirectory -> -1
-                                        else -> 1
-                                    }
-                                })
-                                config.externalCache!!.findDoc(pathParts)
-                                sortedFilesStack.push(list.iterator())
                             }
+                            // todo saf check if the contentresolver can sort the results
+                            list.sortWith(Comparator { a, b ->
+                                when {
+                                    a.isDirectory == b.isDirectory -> a.getName().compareTo(b.getName())
+                                    a.isDirectory -> -1
+                                    else -> 1
+                                }
+                            })
+//                            config.internalCache!!.findDoc(pathParts)
+                            sortedFilesStack.push(list.iterator())
                         }
 
                         override fun close() {

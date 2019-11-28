@@ -16,13 +16,13 @@ class SAFFileConfiguration(val context: Context) : AbstractFile.Configuration<SA
     val androidFileConfiguration = AndroidFileConfiguration(context)
 
     @Throws(SAFAccessor.SAFException::class)
-    fun getInternalDoc(parts: Array<String>): DocumentFile? {
+    fun getInternalDoc(parts: Array<String>): DocumentFile {
         if (internalCache == null) internalCache = DocFileCache(SAFAccessor.getInternalRootDocFile(), 50)
         return internalCache!!.findDoc(parts)
     }
 
     @Throws(SAFAccessor.SAFException::class)
-    fun getExternalDoc(parts: Array<String>): DocumentFile? {
+    fun getExternalDoc(parts: Array<String>): DocumentFile {
         if (externalCache == null) externalCache = DocFileCache(SAFAccessor.getExternalRootDocFile(), 50)
         return externalCache!!.findDoc(parts)
     }

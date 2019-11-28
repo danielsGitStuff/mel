@@ -12,9 +12,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import de.mel.Lok
 import de.mel.android.Tools
-import de.mel.android.file.AndroidFile
-import de.mel.android.file.AndroidFileConfiguration
-import de.mel.android.file.SAFAccessor
+import de.mel.android.file.*
 import de.mel.android.service.AndroidService
 import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.IFile
@@ -52,11 +50,11 @@ class SAFFileWatcher(melFileSyncService: MelFileSyncService<*>) : FileWatcher(me
         Lok.debug("trying to register observer for ${dir?.absolutePath}")
 
         AndroidService.getInstance()?.contentResolver?.let {
-            val androidFile = dir as AndroidFile
+            val androidFile = dir as SAFFile
             Lok.debug("registering observer for ${androidFile.absolutePath}")
             val docUri = androidFile.getDocFile()!!.uri
-            val config = AbstractFile.configuration as AndroidFileConfiguration
-            val root = melFileSyncService.fileSyncSettings.rootDirectory.originalFile as AndroidFile
+            val config = AbstractFile.configuration as SAFFileConfiguration
+            val root = melFileSyncService.fileSyncSettings.rootDirectory.originalFile as SAFFile
 
             obs = object : FileObserver(File(dir.absolutePath)) {
                 override fun onEvent(event: Int, path: String?) {
@@ -76,7 +74,6 @@ class SAFFileWatcher(melFileSyncService: MelFileSyncService<*>) : FileWatcher(me
             it.registerContentObserver(uuu, true, contentObserver)
 
 
-            it.persistedUriPermissions.forEach {  }
 //FileObserver
 
 //            it.registerContentObserver(root.getDocFile()!!.uri, true, contentObserver)
