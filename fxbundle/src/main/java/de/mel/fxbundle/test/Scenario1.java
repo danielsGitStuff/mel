@@ -40,7 +40,8 @@ import javafx.embed.swing.JFXPanel;
 import java.io.File;
 
 /**
- * Created by xor on 1/15/17.
+ * Boots up one Mel instance and creates a FileSync service.
+ * It automatically accepts incoming certificate requests and allows talkting to the service.
  */
 @SuppressWarnings("Duplicates")
 public class Scenario1 {
@@ -50,7 +51,7 @@ public class Scenario1 {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
         CurrentJar.initCurrentJarClass(Scenario1.class);
-        AbstractFile.configure( new DefaultFileConfiguration());
+        AbstractFile.configure(new DefaultFileConfiguration());
         BashTools.Companion.init();
     }
 
