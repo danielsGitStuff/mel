@@ -3,6 +3,7 @@ package de.mel;
 import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
+import de.mel.auth.file.IFile;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.service.MelBoot;
 import de.mel.auth.service.power.PowerManager;

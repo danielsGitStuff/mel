@@ -4,6 +4,7 @@ import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
+import de.mel.auth.file.IFile;
 import de.mel.auth.service.Bootloader;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.service.MelBoot;

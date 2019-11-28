@@ -1,6 +1,6 @@
 package de.mel.auth.file
 
-import de.mel.auth.tools.N
+import de.mel.Lok
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
@@ -22,7 +22,7 @@ class StandardFile : AbstractFile<StandardFile> {
         }
 
     override fun getParentFile(): IFile? = StandardFile(file.parentFile)
-    override fun hasSubContent(subFile: IFile): Boolean =  subFile.absolutePath.startsWith(absolutePath)
+    override fun hasSubContent(subFile: IFile): Boolean = subFile.absolutePath.startsWith(absolutePath)
 
     override fun canRead(): Boolean = file.canRead()
 
@@ -70,11 +70,12 @@ class StandardFile : AbstractFile<StandardFile> {
         return file.length()
     }
 
-    override fun listFiles(): Array<StandardFile> = file.listFiles { dir, _ -> dir.isFile }?.map { StandardFile(it) }?.toTypedArray()
+    override fun listFiles(): Array<StandardFile> = file.listFiles { f -> f.isFile }?.map { StandardFile(it) }?.toTypedArray()
             ?: emptyArray()
 
-    override fun listDirectories(): Array<StandardFile> = file.listFiles { dir, _ -> dir.isDirectory }?.map { StandardFile(it) }?.toTypedArray()
+    override fun listDirectories(): Array<StandardFile> = file.listFiles { f -> f.isDirectory }?.map { StandardFile(it) }?.toTypedArray()
             ?: emptyArray()
+
 
     override fun delete(): Boolean {
         return file.delete()
