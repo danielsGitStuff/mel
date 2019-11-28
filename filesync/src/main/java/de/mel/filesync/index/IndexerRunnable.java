@@ -74,7 +74,7 @@ public class IndexerRunnable extends AbstractIndexer {
             // if root directory does not exist: create one
             FsDirectory fsRoot;
             if (rootDirectory.getId() == null) {
-                fsRoot = (FsDirectory) new FsDirectory().setName("[root]").setVersion(0L);
+                fsRoot = (FsDirectory) new FsDirectory().setName("[root]").setVersion(0L).setPath("[root]").setDepth(0);
                 fsRoot.setOriginalFile(AbstractFile.instance(rootDirectory.getOriginalFile()));
                 // assume that the root dir is empty -> the first indexed stageset will have no delta to the fs table if the root dir is empty.
                 // this will avoid having a conflict if the clients root is empty but the servers is not.

@@ -29,6 +29,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     private static final String ORDER = "ord";
     private static final String SYMLINK = "sym";
     private static final String REL_PATH = "path";
+    private static final String DEPTH = "depth";
     private Pair<Long> id = new Pair<>(Long.class, ID);
     private Pair<Long> parentId = new Pair<>(Long.class, PARENTID);
     private Pair<Long> fsId = new Pair<>(Long.class, FSID);
@@ -57,6 +58,9 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     private Pair<Long> order = new Pair<>(Long.class, ORDER);
 
     private Pair<String> symLink = new Pair<>(String.class, SYMLINK);
+    @JsonIgnore
+    protected Pair<Integer> depth = new Pair<>(Integer.class, DEPTH);
+
 //    @JsonIgnore
 //    private Pair<String> relativePath = new Pair<>(String.class, REL_PATH);
 
@@ -83,7 +87,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     @Override
     protected void init() {
-        populateInsert(parentId, fsId, fsParentId, name, version, contentHash, isDirectory, symLink, iNode, modified, created, deleted, stageSet, size, synced, merged, order);
+        populateInsert(parentId, fsId, fsParentId, name, version, contentHash, isDirectory, symLink, iNode, modified, created, deleted, stageSet, size, synced, merged, order,depth);
         populateAll(id);
     }
 
@@ -340,5 +344,18 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     public Stage setSymLink(String symLink) {
         this.symLink.v(symLink);
         return this;
+    }
+
+    public Stage setDepth(Integer depth) {
+        this.depth.v(depth);
+        return this;
+    }
+
+    public Pair<Integer> getDepthPair() {
+        return depth;
+    }
+
+    public Integer getDepth() {
+        return depth.v();
     }
 }

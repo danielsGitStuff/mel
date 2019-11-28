@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 public class FsDao extends Dao {
     protected FsFile dummy = new FsFile();
     protected FsDirectory dir = new FsDirectory();
+    protected String tableName = dummy.getTableName();
 
     public FsEntry getBottomFsEntry(Stack<IFile> fileStack) throws SqlQueriesException {
         if (fileStack.size() == 0) { //&& fileStack[0].length() == 0) {
@@ -226,7 +227,7 @@ public class FsDao extends Dao {
 
     public ISQLResource<GenericFSEntry> getDeltaResource(long version) throws SqlQueriesException {
         GenericFSEntry fsEntry = new GenericFSEntry();
-        String where = fsEntry.getVersion().k() + ">?";
+        String where = fsEntry.getVersion().k() + ">?"; //">? order by " + fsEntry.getDepth().k() + "," + fsEntry.getIsDirectory().k();
         List<Object> args = new ArrayList<>();
         args.add(version);
         ISQLResource<GenericFSEntry> result = sqlQueries.loadResource(fsEntry.getAllAttributes(), GenericFSEntry.class, where, args);

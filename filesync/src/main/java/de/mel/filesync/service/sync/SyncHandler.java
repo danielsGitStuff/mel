@@ -42,6 +42,7 @@ public abstract class SyncHandler {
     protected final MelAuthService melAuthService;
     private final FileDistributor fileDistributor;
     private final FileDistTaskDao fileDistTaskDao;
+    private final FsWriteDao fsWriteDao;
     protected FsDao fsDao;
     protected StageDao stageDao;
     protected N runner = new N(Throwable::printStackTrace);
@@ -66,6 +67,7 @@ public abstract class SyncHandler {
         this.fileSyncSettings = melFileSyncService.getFileSyncSettings();
         this.melFileSyncService = melFileSyncService;
         this.fileSyncDatabaseManager = melFileSyncService.getFileSyncDatabaseManager();
+        this.fsWriteDao = fileSyncDatabaseManager.getFsWriteDao();
         this.indexer = melFileSyncService.getIndexer();
         this.wastebin = melFileSyncService.getWastebin();
         this.transferManager = new TManager(melAuthService, melFileSyncService.getFileSyncDatabaseManager().getTransferDao(), melFileSyncService, this, wastebin, fsDao);
@@ -229,8 +231,7 @@ public abstract class SyncHandler {
         /**
          * remember: files that come from fs are always synced. otherwise they might be synced (when merged) or are not synced (from remote)
          */
-        FsWriteDao fsWriteDao = fileSyncDatabaseManager.getFsWriteDao();
-        StageDao stageDao = fileSyncDatabaseManager.getStageDao();
+
         warden.run(() -> {
             try {
                 // sop files being moved around
@@ -276,12 +277,14 @@ public abstract class SyncHandler {
                                 dir.getCreated().v(stage.getCreated());
                                 dir.getiNode().v(stage.getiNode());
                                 dir.getSymLink().v(stage.getSymLink());
+                                dir.getDepth().v(stage.getDepth());
                                 Long fsParentId = null;
                                 if (stage.getParentId() != null) {
                                     fsParentId = stageDao.getStageById(stage.getParentId()).getFsId();
                                 } else if (stage.getFsParentId() != null)
                                     fsParentId = stage.getFsParentId();
                                 dir.getParentId().v(fsParentId);
+                                appendPath(dir, stage);
                                 fsWriteDao.insert(dir.toFsWriteEntry());
                                 if (stageIdFsIdMap != null) {
                                     stageIdFsIdMap.put(stage.getId(), dir.getId().v());
@@ -312,11 +315,13 @@ public abstract class SyncHandler {
                                 fsFile.getiNode().v(stage.getiNode());
                                 fsFile.getSize().v(stage.getSize());
                                 fsFile.getSymLink().v(stage.getSymLink());
+                                fsFile.getDepth().v(stage.getDepth());
                                 if (stageSet.fromFs()) {
                                     fsFile.getSynced().v(true);
                                 } else {
                                     fsFile.getSynced().v(false);
                                 }
+                                appendPath(fsFile, stage);
                                 fsWriteDao.insert(fsFile.toFsWriteEntry());
                                 if (fsFile.isSymlink()) {
                                     IFile f = fsWriteDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsFile);
@@ -425,6 +430,25 @@ public abstract class SyncHandler {
         if (!stage.getIsDirectory() && stage.getStageSetPair().notNull()) {
             details.getAvailable().v(stage.getSynced());
         }
+    }
+
+    /**
+     * USES FSWRITE
+     *
+     * @param fsEntry
+     * @param stage
+     */
+    private void appendPath(FsEntry fsEntry, Stage stage) throws SqlQueriesException {
+        String path = "";
+        if (fsEntry.getParentId().notNull()) {
+            FsEntry parent = fsWriteDao.getGenericById(fsEntry.getParentId().v());
+            path = parent.getPath().v() + "/" + fsEntry.getName().v();
+        } else if (stage != null) {
+            Lok.debug("Error1");
+        } else {
+            Lok.debug("Error2");
+        }
+        fsEntry.setPath(path);
     }
 
 

@@ -65,4 +65,12 @@ class FsWriteEntry(private val fsEntry: FsEntry?) : FsFile() {
     override fun getCreated(): Pair<Long> {
         return fsEntry!!.getCreated()
     }
+
+    override fun getDepth(): Pair<Int>? {
+        return fsEntry!!.getDepth()
+    }
+
+    override fun getPath(): Pair<String> {
+        return fsEntry!!.getPath()
+    }
 }

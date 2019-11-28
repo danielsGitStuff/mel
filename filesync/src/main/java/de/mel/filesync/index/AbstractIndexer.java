@@ -144,6 +144,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         OTimer timer = new OTimer("initStage().connect2fs");
         OTimer timerInternal1 = new OTimer("initStage.internal.1");
         OTimer timerInternal2 = new OTimer("initStage.internal.2");
+        OTimer timerInternal3 = new OTimer("initStage.internal.3");
 
 
         stageSet = stageDao.createStageSet(stageSetType, null, null, null, basedOnVersion);
@@ -196,12 +197,15 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             // stage actual File
             stage = new Stage().setName(f.getName());//.setIsDirectory(f.isDirectory());
             if (fsEntry != null) {
-                stage.setFsId(fsEntry.getId().v()).setFsParentId(fsEntry.getParentId().v());
+                stage.setFsId(fsEntry.getId().v())
+                        .setFsParentId(fsEntry.getParentId().v())
+                        .setDepth(fsEntry.getDepth().v());
                 //check for fastboot
                 indexHelper.fastBoot(f, fsEntry, stage);
             }
             if (fsParent != null) {
                 stage.setFsParentId(fsParent.getId().v());
+                stage.setDepth(fsParent.getDepth().v() + 1);
             }
             // we found everything which already exists in das datenbank
 
@@ -209,6 +213,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             Stage stageParent = indexHelper.connectToFs(parent);
             if (stageParent != null) {
                 stage.setParentId(stageParent.getId());
+                stage.setDepth(stageParent.getDepth() + 1);
             }
             timer.stop();
             timerInternal2.start();
@@ -229,6 +234,17 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             }
 
             stage.setOrder(order.ord());
+            if (stage.getDepthPair().isNull()) {
+                timerInternal3.start();
+                int depth = 0;
+                IFile file = f;
+                while (rootPathLength > file.getAbsolutePath().length()) {
+                    file = file.getParentFile();
+                    depth++;
+                }
+                stage.setDepth(depth);
+                timerInternal3.stop();
+            }
             stageDao.insert(stage);
             timerInternal2.stop();
 
@@ -238,6 +254,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         timer.print();
         timerInternal1.print();
         timerInternal2.print();
+        timerInternal3.print();
     }
 
     @Override

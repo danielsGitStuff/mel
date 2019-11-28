@@ -5,8 +5,6 @@ import de.mel.core.serialize.SerializableEntity;
 import de.mel.sql.Pair;
 import de.mel.sql.SQLTableObject;
 
-import java.util.List;
-
 /**
  * Created by xor on 29.08.2016.
  */
@@ -23,6 +21,8 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
     private static final String CREATED = "created";
     private static final String SIZE = "size";
     private static final String SYMLINK = "sym";
+    private static final String DEPTH = "depth";
+    private static final String PATH = "path";
 
     protected Pair<Long> id = new Pair<>(Long.class, ID);
     protected Pair<String> name = new Pair<>(String.class, NAME);
@@ -40,6 +40,10 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
     protected Pair<Boolean> synced = new Pair<>(Boolean.class, SYNCED);
     protected Pair<Long> size = new Pair<>(Long.class, SIZE);
     protected Pair<String> symLink = new Pair<>(String.class, SYMLINK);
+    @JsonIgnore
+    protected Pair<Integer> depth = new Pair<>(Integer.class, DEPTH);
+    @JsonIgnore
+    protected Pair<String> path = new Pair<>(String.class, PATH);
 
     public FsEntry() {
         init();
@@ -64,7 +68,7 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
 
     @Override
     protected void init() {
-        populateInsert(name, parentId, version, contentHash, isDirectory, synced, iNode, modified, created, size, symLink);
+        populateInsert(name, parentId, version, depth, contentHash, isDirectory, path, synced, iNode, modified, created, size, symLink);
         populateAll(id);
     }
 
@@ -147,4 +151,23 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
         this.iNode.v(inode);
         return this;
     }
+
+    public FsEntry setDepth(Integer depth) {
+        this.depth.v(depth);
+        return this;
+    }
+
+    public Pair<Integer> getDepth() {
+        return depth;
+    }
+
+    public FsEntry setPath(String path) {
+        this.path.v(path);
+        return this;
+    }
+
+    public Pair<String> getPath() {
+        return path;
+    }
+
 }
