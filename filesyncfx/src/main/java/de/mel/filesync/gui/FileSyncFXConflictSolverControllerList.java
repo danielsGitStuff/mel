@@ -44,16 +44,13 @@ public class FileSyncFXConflictSolverControllerList extends PopupContentFX imple
     public void initImpl(Stage stage, MelAuthService melAuthService, MelNotification notification) {
         this.melFileSyncClientService = (MelFileSyncClientService) melAuthService.getMelService(notification.getServiceUuid());
         conflictSolver = (ConflictSolver) notification.getContent();
-        for (ConflictSolver conflictSolver : melFileSyncClientService.getConflictSolverMap().values()) {
-            this.conflictSolver = conflictSolver;
-            Lok.debug("FileSyncFXConflictSolverController.init");
-            AbstractMergeListCell.setup(listLeft, listMerge, listRight);
-            List<Conflict> conflicts = Conflict.prepareConflicts(conflictSolver.getConflicts());
-            listLeft.getItems().addAll(conflicts);
-            conflictSolver.addListener(this);
-            break;
-        }
-
+        ConflictSolver conflictSolver = melFileSyncClientService.getConflictSolverMap().values().iterator().next();
+        this.conflictSolver = conflictSolver;
+        Lok.debug("FileSyncFXConflictSolverController.init");
+        AbstractMergeListCell.setup(listLeft, listMerge, listRight);
+        List<Conflict> conflicts = Conflict.prepareConflicts(conflictSolver.getConflicts());
+        listLeft.getItems().addAll(conflicts);
+        conflictSolver.addListener(this);
     }
 
 

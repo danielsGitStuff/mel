@@ -128,6 +128,18 @@ public abstract class ISQLQueries {
 
     public abstract <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> arguments, String whatElse) throws SqlQueriesException;
 
+    /**
+     * returns the first row only.
+     * ADDS " LIMIT 1" TO THE QUERY!
+     * @param columns
+     * @param sqlTableObject
+     * @param where
+     * @param whereArgs
+     * @param castClass
+     * @param <T>
+     * @return
+     * @throws SqlQueriesException
+     */
     public abstract <T extends SQLTableObject> T loadFirstRow(List<Pair<?>> columns, T sqlTableObject, String where, List<Object> whereArgs, Class<T> castClass) throws SqlQueriesException;
 
 //    public abstract <T extends SQLTableObject> List<T> load(List<Pair<?>> columns, SQLTableObject sqlTableObject, String where, List<Object> whereArgs, String whatElse, Class<T> castClass) throws SqlQueriesException;

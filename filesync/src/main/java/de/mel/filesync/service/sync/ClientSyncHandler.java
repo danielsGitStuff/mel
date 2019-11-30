@@ -654,7 +654,10 @@ public class ClientSyncHandler extends SyncHandler {
     }
 
     /**
-     * delta goes in here
+     * FS-delta goes in here.
+     * Note: the delta comes ordered by depth, essentially Breadth First Search.
+     * All algorithms working with Stages do Depth First Search which is more handy when it comes to hierarchy things like conflict dependencies on folders and files.
+     * Therefore a BFS-to-DFS conversion takes place here.
      *
      * @param syncAnswer contains delta
      * @return stageSetId in Promise
@@ -776,6 +779,10 @@ public class ClientSyncHandler extends SyncHandler {
             communicationDone.resolve(null);
         }
         communicationDone.done(nul -> {
+            /**
+             * BFS -> DFS
+             */
+            new BfsToDfsConverter(stageDao).convert(stageSet);
             stageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED);
             N.r(() -> stageDao.updateStageSet(stageSet));
             reorderStageSet(stageSet);
@@ -784,6 +791,10 @@ public class ClientSyncHandler extends SyncHandler {
             finished.reject(null);
         });
         return finished;
+    }
+
+    private void bfsToDfs(StageSet stageSet) {
+
     }
 
     private void reorderStageSet(StageSet stageSet) {

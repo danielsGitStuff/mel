@@ -28,6 +28,10 @@ public class Conflict {
         this.rStage = rStage;
         this.stageDao = stageDao;
         key = createKey(lStage, rStage);
+        // todo debug
+        Eva.condition(key.equals("17/6"),2,() -> {
+            Lok.debug();
+        });
         if (lStageId != null && rStageId != null && lStageId == 18 && rStageId == 40)
             Lok.debug("Conflict.Conflict");
         Eva.eva((eva, count) -> {
@@ -134,8 +138,9 @@ public class Conflict {
 
     public Conflict dependOn(Conflict dependsOn) {
         this.dependsOn = dependsOn;
-        if (dependsOn != null)
+        if (dependsOn != null) {
             dependsOn.dependents.add(this);
+        }
         return this;
     }
 
@@ -164,12 +169,12 @@ public class Conflict {
     public static List<Conflict> prepareConflicts(Collection<Conflict> conflicts) {
         List<Conflict> result = new ArrayList<>();
         List<Conflict> rootConflicts = new ArrayList<>();
-        Set<Conflict> independentConflicts = new HashSet<>();
+        Set<Conflict> withoutDepentents = new HashSet<>();
         for (Conflict conflict : conflicts) {
             if (conflict.getDependsOn() == null)
                 rootConflicts.add(conflict);
             else if (conflict.getDependents().size() == 0)
-                independentConflicts.add(conflict);
+                withoutDepentents.add(conflict);
         }
         for (Conflict root : rootConflicts) {
             result.add(root);

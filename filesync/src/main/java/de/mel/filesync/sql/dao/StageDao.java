@@ -14,6 +14,7 @@ import de.mel.sql.Dao;
 import de.mel.sql.ISQLQueries;
 import de.mel.sql.ISQLResource;
 import de.mel.sql.SqlQueriesException;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,10 +26,10 @@ import java.util.Stack;
  * Created by xor on 11/20/16.
  */
 @SuppressWarnings("Duplicates")
-public class
-StageDao extends Dao.LockingDao {
+public class StageDao extends Dao.LockingDao {
     private final FsDao fsDao;
     private final FileSyncSettings fileSyncSettings;
+    private Stage dummy = new Stage();
 
     public StageDao(FileSyncSettings fileSyncSettings, ISQLQueries isqlQueries, FsDao fsDao) {
         super(isqlQueries);
@@ -579,5 +580,31 @@ StageDao extends Dao.LockingDao {
         Stage dummy = new Stage();
         String query = "select " + dummy.getDepthPair().k() + " from " + dummy.getTableName() + " where " + dummy.getIdPair().k() + "=?";
         return sqlQueries.queryValue(query, Integer.class, ISQLQueries.args(id));
+    }
+
+    public List<Integer> getMaxDepth(long id) throws SqlQueriesException {
+        String query = "select distinct " + dummy.getDepthPair().k() + " from " + dummy.getTableName() + " where " + dummy.getStageSetPair().k() + "=? order by " + dummy.getDepthPair().k();
+        return sqlQueries.loadColumn(dummy.getDepthPair(), Integer.class, query, ISQLQueries.args(id));
+    }
+
+    /**
+     * Negates the order column of a stageset and substracts 1.
+     *
+     * @param stageSet
+     */
+    public void negateOrder(long stageSet) throws SqlQueriesException {
+        String stmt = "update " + dummy.getTableName() + " set " + dummy.getOrderPair().k() + "=-" + dummy.getOrderPair().k() + "-1 where " + dummy.getStageSetPair().k() + "=?";
+        sqlQueries.execute(stmt, ISQLQueries.args(stageSet));
+    }
+
+    public Stage getStageForDiving(long stageSet, int depth) throws SqlQueriesException {
+        String where = dummy.getStageSetPair().k() + "=? and " + dummy.getDepthPair().k() + "=? and " + dummy.getOrderPair().k() + "<0 order by " + dummy.getIsDirectoryPair().k() + " desc";
+        return sqlQueries.loadFirstRow(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(stageSet, depth), Stage.class);
+    }
+
+    @Nullable
+    public Stage getChildForDiving(long id) throws SqlQueriesException {
+        String where = dummy.getParentIdPair().k() + "=? and " + dummy.getOrderPair().k() + "<0 order by " + dummy.getIsDirectoryPair().k() + " desc";
+        return sqlQueries.loadFirstRow(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(id), Stage.class);
     }
 }

@@ -11,7 +11,7 @@ public abstract class PopupContentFX {
     protected Stage stage;
 
     /**
-     * Return null if everything is fine. if you got an complaint for the user return it as a String.
+     * Return null if everything is fine. If you got a complaint for the user return it as a String.
      *
      * @return
      */
