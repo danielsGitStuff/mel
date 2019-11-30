@@ -41,6 +41,7 @@ public class Conflict {
 
     }
 
+
     public static String createKey(Stage lStage, Stage rStage) {
         return (lStage != null ? lStage.getId() : "n") + "/" + (rStage != null ? rStage.getId() : "n");
     }
@@ -117,7 +118,9 @@ public class Conflict {
 
     @Override
     public String toString() {
-        return "{class:\"" + getClass().getSimpleName() + "\",key:\"" + key + "\",isRight:\"" + isRight + "\"}";
+        String left = lStage == null ? "null" : lStage.getName();
+        String right = rStage == null ? "null" : rStage.getName();
+        return "{class:\"" + getClass().getSimpleName() + "\",key:\"" + key + "\",isRight:\"" + isRight + "\", l:\"" + left + "\",r:\"" + right + "\" }";
     }
 
 

@@ -26,16 +26,6 @@ public class GenericFSEntry extends FsEntry {
 
     }
 
-//    @Override
-//    protected void calcContentHash(List<FsDirectory> subDirectories, List<FsFile> files) {
-//
-//    }
-//
-//    @Override
-//    public void calcContentHash() {
-//
-//    }
-
     public FsEntry ins() {
         FsEntry ins;
         if (isDirectory.v()) {
@@ -47,6 +37,13 @@ public class GenericFSEntry extends FsEntry {
             ins.getAllAttributes().get(i).v((Pair) allAttributes.get(i));
         }
         return ins;
+    }
+
+    public static class GenericFsWriteEntry extends GenericFSEntry {
+        @Override
+        public String getTableName() {
+            return new FsWriteEntry().getTableName();
+        }
     }
 
 }

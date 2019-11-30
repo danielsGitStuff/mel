@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 public class FsDao extends Dao {
     protected FsFile dummy = new FsFile();
+    protected GenericFSEntry genericDummy = new GenericFSEntry();
     protected FsDirectory dir = new FsDirectory();
     protected String tableName = dummy.getTableName();
 
@@ -217,28 +218,25 @@ public class FsDao extends Dao {
     }
 
     public List<GenericFSEntry> getDelta(long version) throws SqlQueriesException {
-        GenericFSEntry dummy = new GenericFSEntry();
-        String where = dummy.getVersion().k() + ">?";
+        String where = genericDummy.getVersion().k() + ">? order by " + genericDummy.getDepth().k();
         List<Object> args = new ArrayList<>();
         args.add(version);
-        List<GenericFSEntry> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, args, null);
+        List<GenericFSEntry> result = sqlQueries.load(genericDummy.getAllAttributes(), genericDummy, where, args, null);
         return result;
     }
 
     public ISQLResource<GenericFSEntry> getDeltaResource(long version) throws SqlQueriesException {
-        GenericFSEntry fsEntry = new GenericFSEntry();
-        String where = fsEntry.getVersion().k() + ">?"; //">? order by " + fsEntry.getDepth().k() + "," + fsEntry.getIsDirectory().k();
+        String where = genericDummy.getVersion().k() + ">?"; //">? order by " + fsEntry.getDepth().k() + "," + fsEntry.getIsDirectory().k();
         List<Object> args = new ArrayList<>();
         args.add(version);
-        ISQLResource<GenericFSEntry> result = sqlQueries.loadResource(fsEntry.getAllAttributes(), GenericFSEntry.class, where, args);
+        ISQLResource<GenericFSEntry> result = sqlQueries.loadResource(genericDummy.getAllAttributes(), GenericFSEntry.class, where, args);
         return result;
     }
 
     public GenericFSEntry getGenericByINode(Long inode) throws SqlQueriesException {
-        GenericFSEntry fsEntry = new GenericFSEntry();
         List<Object> args = new ArrayList<>();
         args.add(inode);
-        List<GenericFSEntry> res = sqlQueries.load(fsEntry.getAllAttributes(), fsEntry, fsEntry.getiNode().k() + "=?", args);
+        List<GenericFSEntry> res = sqlQueries.load(genericDummy.getAllAttributes(), genericDummy, genericDummy.getiNode().k() + "=?", args);
         if (res.size() == 1)
             return res.get(0);
         else if (res.size() > 1)
@@ -284,10 +282,9 @@ public class FsDao extends Dao {
     }
 
     public GenericFSEntry getGenericChildByName(long parentId, String name) throws SqlQueriesException {
-        GenericFSEntry dummy = new GenericFSEntry();
-        dummy.getParentId().v(parentId);
-        dummy.getName().v(name);
-        return getGenericFileByName(dummy);
+        genericDummy.getParentId().v(parentId);
+        genericDummy.getName().v(name);
+        return getGenericFileByName(genericDummy);
     }
 
     public GenericFSEntry getGenericFileByName(GenericFSEntry genericFSEntry) throws SqlQueriesException {
@@ -298,7 +295,7 @@ public class FsDao extends Dao {
         String where = genericFSEntry.getParentId().k() + " is null and " + genericFSEntry.getName().k() + "=?";
         if (genericFSEntry.getParentId().v() != null)
             where = genericFSEntry.getParentId().k() + "=? and " + genericFSEntry.getName().k() + "=?";
-        List<GenericFSEntry> res = sqlQueries.load(genericFSEntry.getAllAttributes(), genericFSEntry, where, args);
+        List<GenericFSEntry> res = sqlQueries.load(genericDummy.getAllAttributes(), genericDummy, where, args);
         if (res.size() == 1)
             return res.get(0);
         return null;
@@ -333,19 +330,18 @@ public class FsDao extends Dao {
     }
 
     public List<GenericFSEntry> getContentByFsDirectory(Long fsId) throws SqlQueriesException {
-        GenericFSEntry genericFSEntry = new GenericFSEntry();
         String where = "";
         List<Object> whereArgs = new ArrayList<>();
         if (fsId == null) {
-            where = genericFSEntry.getParentId().k() + " is null";
+            where = genericDummy.getParentId().k() + " is null";
         } else {
-            where = genericFSEntry.getParentId().k() + "=?";
+            where = genericDummy.getParentId().k() + "=?";
             whereArgs.add(fsId);
         }
         //where += " and " + genericFSEntry.getIsDirectory().k() + "=?";
         //whereArgs.add(1);
 
-        List<GenericFSEntry> result = sqlQueries.load(genericFSEntry.getAllAttributes(), genericFSEntry, where, whereArgs);
+        List<GenericFSEntry> result = sqlQueries.load(genericDummy.getAllAttributes(), genericDummy, where, whereArgs);
         return result;
     }
 
@@ -377,9 +373,8 @@ public class FsDao extends Dao {
     }
 
     public GenericFSEntry getGenericById(Long fsId) throws SqlQueriesException {
-        GenericFSEntry dummy = new GenericFSEntry();
-        String where = dummy.getId().k() + "=?";
-        List<GenericFSEntry> directories = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(fsId));
+        String where = genericDummy.getId().k() + "=?";
+        List<GenericFSEntry> directories = sqlQueries.load(genericDummy.getAllAttributes(), genericDummy, where, ISQLQueries.args(fsId));
         if (directories.size() == 1)
             return directories.get(0);
         return null;
@@ -418,9 +413,8 @@ public class FsDao extends Dao {
     }
 
     public GenericFSEntry getGenericSubByName(Long parentId, String name) throws SqlQueriesException {
-        GenericFSEntry genericFSEntry = new GenericFSEntry();
-        String where = genericFSEntry.getParentId().k() + " =? and " + genericFSEntry.getName().k() + "=?";
-        List<GenericFSEntry> gens = sqlQueries.load(genericFSEntry.getAllAttributes(), genericFSEntry, where, ISQLQueries.args(parentId, name));
+        String where = genericDummy.getParentId().k() + " =? and " + genericDummy.getName().k() + "=?";
+        List<GenericFSEntry> gens = sqlQueries.load(genericDummy.getAllAttributes(), genericDummy, where, ISQLQueries.args(parentId, name));
         if (gens.size() == 1)
             return gens.get(0);
         return null;
@@ -463,11 +457,16 @@ public class FsDao extends Dao {
     }
 
     public ISQLResource<GenericFSEntry> all() throws SqlQueriesException {
-        return sqlQueries.loadResource(dummy.getAllAttributes(), GenericFSEntry.class, null, null);
+        return sqlQueries.loadResource(dummy.getAllAttributes(), (Class<GenericFSEntry>) genericDummy.getClass(), null, null);
     }
 
     public void updateName(long id, @NotNull String name) throws SqlQueriesException {
         String stmt = "update " + dummy.getTableName() + " set " + dummy.getName().k() + "=? where " + dummy.getId().k() + "=?";
         sqlQueries.execute(stmt, ISQLQueries.args(name, id));
+    }
+
+    public Integer getDepth(Long id) throws SqlQueriesException {
+        String query = "select " + dummy.getDepth().k() + " from " + dummy.getTableName() + " where " + dummy.getId().k() + "=?";
+        return sqlQueries.queryValue(query, Integer.class, ISQLQueries.args(id));
     }
 }

@@ -247,7 +247,7 @@ StageDao extends Dao.LockingDao {
 
     public Stage insert(Stage stage) throws SqlQueriesException {
         // todo debug
-        if (stage.getStageSetPair().equalsValue(3L) && stage.getNamePair().equalsValue("sub1")){
+        if (stage.getStageSetPair().equalsValue(3L) && stage.getNamePair().equalsValue("sub1")) {
             Lok.debug("debug");
         }
         Long id = sqlQueries.insert(stage);
@@ -573,5 +573,11 @@ StageDao extends Dao.LockingDao {
         Stage dummy = new Stage();
         String where = dummy.getFsParentIdPair().k() + "=? and " + dummy.getStageSetPair().k() + "=?";
         return sqlQueries.loadFirstRow(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(parentFsID, stageSetId), Stage.class);
+    }
+
+    public Integer getDepth(Long id) throws SqlQueriesException {
+        Stage dummy = new Stage();
+        String query = "select " + dummy.getDepthPair().k() + " from " + dummy.getTableName() + " where " + dummy.getIdPair().k() + "=?";
+        return sqlQueries.queryValue(query, Integer.class, ISQLQueries.args(id));
     }
 }

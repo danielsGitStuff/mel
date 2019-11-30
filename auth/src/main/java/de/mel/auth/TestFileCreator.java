@@ -28,7 +28,7 @@ public class TestFileCreator {
     public static void saveFile(byte[] data, IFile file) throws Exception {
         Lok.debug("TestFileCreator.saveFile: " + file.getAbsolutePath());
         AbstractFileWriter fos = file.writer();
-//        fos.write(data);
+        fos.append(data,0l);
         fos.close();
     }
 }

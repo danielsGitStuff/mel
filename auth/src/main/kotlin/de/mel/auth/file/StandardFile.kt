@@ -82,6 +82,9 @@ class StandardFile : AbstractFile<StandardFile> {
     }
 
     override fun mkdirs(): Boolean {
+        // todo debug
+        if (file.name == "i0")
+            Lok.debug()
         return file.mkdirs()
     }
 

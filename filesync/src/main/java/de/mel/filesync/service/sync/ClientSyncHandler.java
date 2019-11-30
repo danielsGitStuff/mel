@@ -646,6 +646,9 @@ public class ClientSyncHandler extends SyncHandler {
         if (entryIdStageIdMap.containsKey(genericFSEntry.getParentId().v())) {
             stage.setParentId(entryIdStageIdMap.get(genericFSEntry.getParentId().v()));
         }
+        // todo debug
+        if (stage.getDepthPair().isNull())
+            Lok.debug();
         stageDao.insert(stage);
         entryIdStageIdMap.put(genericFSEntry.getId().v(), stage.getId());
     }
@@ -676,6 +679,13 @@ public class ClientSyncHandler extends SyncHandler {
             GenericFSEntry genericFSEntry = iterator.next();
             Stage stage = GenericFSEntry.generic2Stage(genericFSEntry, stageSet.getId().v());
             stage.setOrder(order.ord());
+            // find depth value
+            if (stage.getFsIdPair().notNull())
+                stage.setDepth(fsDao.getDepth(stage.getFsId()));
+            else if (stage.getFsParentIdPair().notNull())
+                stage.setDepth(fsDao.getDepth(stage.getFsParentId()) + 1);
+            else if (stage.getParentIdPair().notNull())
+                stage.setDepth(stageDao.getDepth(stage.getParentId()) + 1);
             insertWithParentId(entryIdStageIdMap, genericFSEntry, stage);
         }
         syncAnswer.cleanUp();

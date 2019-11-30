@@ -442,7 +442,7 @@ public abstract class SyncHandler {
         String path = "";
         if (fsEntry.getParentId().notNull()) {
             FsEntry parent = fsWriteDao.getGenericById(fsEntry.getParentId().v());
-            path = parent.getPath().v() + "/" + fsEntry.getName().v();
+            path = parent.getPath().v() + parent.getName().v() + File.separator;
         } else if (stage != null) {
             Lok.debug("Error1");
         } else {
@@ -453,15 +453,20 @@ public abstract class SyncHandler {
 
 
     protected void createDirs(RootDirectory rootDirectory, FsEntry fsEntry) throws SqlQueriesException, IOException, InterruptedException {
+        // todo debug
+        if (fsEntry.getName().equalsValue("i0"))
+            Lok.debug();
+        // if synced, it came from fs and can be ignored
+        if (fsEntry.getSynced().v())
+            return;
         // assume that root directory already exists
         if (fsEntry.getParentId().v() == null)
             return;
-        FsDao fsDao = fileSyncDatabaseManager.getFsDao();
         Stack<FsDirectory> stack = new Stack<>();
-        FsDirectory dbParent = fsDao.getDirectoryById(fsEntry.getParentId().v());
+        FsDirectory dbParent = fsWriteDao.getDirectoryById(fsEntry.getParentId().v());
         while (dbParent != null && dbParent.getParentId().v() != null) {
             stack.add(dbParent);
-            dbParent = fsDao.getDirectoryById(dbParent.getParentId().v());
+            dbParent = fsWriteDao.getDirectoryById(dbParent.getParentId().v());
         }
         String path = rootDirectory.getPath() + File.separator;
         if (!stack.empty()) {

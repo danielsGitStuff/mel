@@ -35,6 +35,7 @@ class FsWriteDao(val fileSyncDatabaseManager: FileSyncDatabaseManager, val isqlQ
 
     init {
         dummy = FsWriteEntry()
+        genericDummy = GenericFSEntry.GenericFsWriteEntry()
         tableName = dummy.tableName
     }
 
