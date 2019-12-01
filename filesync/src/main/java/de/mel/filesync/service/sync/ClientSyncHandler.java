@@ -351,7 +351,7 @@ public class ClientSyncHandler extends SyncHandler {
                 System.err.println(getClass().getSimpleName() + ".handleConflict(): conflict " + identifier + " was not resolved");
             }
         } else {
-            conflictSolver = new ConflictSolver(fileSyncDatabaseManager, serverStageSet, stagedFromFs);
+            conflictSolver = new ConflictSolver(fileSyncDatabaseManager, stagedFromFs, serverStageSet);
             conflictSolver.beforeStart(serverStageSet);
             iterateStageSets(serverStageSet, stagedFromFs, conflictSolver, null);
         }
