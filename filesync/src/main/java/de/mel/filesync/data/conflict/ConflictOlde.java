@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * Created by xor on 5/30/17.
  */
-public class Conflict {
+public class ConflictOlde {
 
     private Stage lStage;
     private Stage rStage;
@@ -18,10 +18,10 @@ public class Conflict {
     private StageDao stageDao;
     private Boolean isRight;
     private String key;
-    private Set<Conflict> dependents = new HashSet<>();
-    private Conflict dependsOn;
+    private Set<ConflictOlde> dependents = new HashSet<>();
+    private ConflictOlde dependsOn;
 
-    public Conflict(StageDao stageDao, Stage lStage, Stage rStage) {
+    public ConflictOlde(StageDao stageDao, Stage lStage, Stage rStage) {
         this.lStageId = lStage != null ? lStage.getId() : null;
         this.rStageId = rStage != null ? rStage.getId() : null;
         this.lStage = lStage;
@@ -33,7 +33,7 @@ public class Conflict {
             Lok.debug();
         });
         if (lStageId != null && rStageId != null && lStageId == 18 && rStageId == 40)
-            Lok.debug("Conflict.Conflict");
+            Lok.debug("ConflictOlde.ConflictOlde");
         Eva.eva((eva, count) -> {
             if (lStageId != null && rStageId != null && lStageId == 18 && rStageId == 40)
                 eva.error();
@@ -41,7 +41,7 @@ public class Conflict {
     }
 
 
-    public Conflict() {
+    public ConflictOlde() {
 
     }
 
@@ -50,17 +50,17 @@ public class Conflict {
         return (lStage != null ? lStage.getId() : "n") + "/" + (rStage != null ? rStage.getId() : "n");
     }
 
-    public Conflict chooseRight() {
+    public ConflictOlde chooseRight() {
         isRight = true;
-        for (Conflict sub : dependents) {
+        for (ConflictOlde sub : dependents) {
             sub.chooseRight();
         }
         return this;
     }
 
-    public Conflict chooseLeft() {
+    public ConflictOlde chooseLeft() {
         isRight = false;
-        for (Conflict sub : dependents) {
+        for (ConflictOlde sub : dependents) {
             sub.chooseLeft();
         }
         return this;
@@ -136,7 +136,7 @@ public class Conflict {
         return isRight != null && !isRight;
     }
 
-    public Conflict dependOn(Conflict dependsOn) {
+    public ConflictOlde dependOn(ConflictOlde dependsOn) {
         this.dependsOn = dependsOn;
         if (dependsOn != null) {
             dependsOn.dependents.add(this);
@@ -144,11 +144,11 @@ public class Conflict {
         return this;
     }
 
-    public Conflict getDependsOn() {
+    public ConflictOlde getDependsOn() {
         return dependsOn;
     }
 
-    public Set<Conflict> getDependents() {
+    public Set<ConflictOlde> getDependents() {
         return dependents;
     }
 
@@ -166,17 +166,17 @@ public class Conflict {
      * @param conflicts
      * @return
      */
-    public static List<Conflict> prepareConflicts(Collection<Conflict> conflicts) {
-        List<Conflict> result = new ArrayList<>();
-        List<Conflict> rootConflicts = new ArrayList<>();
-        Set<Conflict> withoutDepentents = new HashSet<>();
-        for (Conflict conflict : conflicts) {
+    public static List<ConflictOlde> prepareConflicts(Collection<ConflictOlde> conflicts) {
+        List<ConflictOlde> result = new ArrayList<>();
+        List<ConflictOlde> rootConflicts = new ArrayList<>();
+        Set<ConflictOlde> withoutDepentents = new HashSet<>();
+        for (ConflictOlde conflict : conflicts) {
             if (conflict.getDependsOn() == null)
                 rootConflicts.add(conflict);
             else if (conflict.getDependents().size() == 0)
                 withoutDepentents.add(conflict);
         }
-        for (Conflict root : rootConflicts) {
+        for (ConflictOlde root : rootConflicts) {
             result.add(root);
             traversalAdding2(result, root.getDependents());
             if (root.getDependents().size() > 0)
@@ -185,8 +185,8 @@ public class Conflict {
         return result;
     }
 
-    private static void traversalAdding2(List<Conflict> result, Set<Conflict> stuffToTraverse) {
-        for (Conflict conflict : stuffToTraverse) {
+    private static void traversalAdding2(List<ConflictOlde> result, Set<ConflictOlde> stuffToTraverse) {
+        for (ConflictOlde conflict : stuffToTraverse) {
             result.add(conflict);
             if (conflict.getDependents().size() > 0) {
                 traversalAdding2(result, conflict.getDependents());
@@ -200,10 +200,10 @@ public class Conflict {
 //     * @param conflicts
 //     * @return
 //     */
-//    public static List<Conflict> prepareConflicts(Collection<Conflict> conflicts) {
-//        List<Conflict> result = new ArrayList<>();
-//        List<Conflict> rootConflicts = getRootConflicts(conflicts);
-//        for (Conflict root : rootConflicts) {
+//    public static List<ConflictOlde> prepareConflicts(Collection<ConflictOlde> conflicts) {
+//        List<ConflictOlde> result = new ArrayList<>();
+//        List<ConflictOlde> rootConflicts = getRootConflicts(conflicts);
+//        for (ConflictOlde root : rootConflicts) {
 //            result.add(root);
 //            traversalAdding(result, root.getDependents());
 //            if (root.getDependents().size() > 0)
@@ -212,8 +212,8 @@ public class Conflict {
 //        return result;
 //    }
 //
-//    private static void traversalAdding(List<Conflict> result, Set<Conflict> stuffToTraverse) {
-//        for (Conflict conflict : stuffToTraverse) {
+//    private static void traversalAdding(List<ConflictOlde> result, Set<ConflictOlde> stuffToTraverse) {
+//        for (ConflictOlde conflict : stuffToTraverse) {
 //            result.add(conflict);
 //            if (conflict.getDependents().size() > 0) {
 //                traversalAdding(result, conflict.getDependents());
@@ -221,8 +221,8 @@ public class Conflict {
 //        }
 //    }
 
-    public Conflict getDependentByName(String name) {
-        for (Conflict dep : dependents) {
+    public ConflictOlde getDependentByName(String name) {
+        for (ConflictOlde dep : dependents) {
             if (dep.getLeft() != null && dep.getLeft().getName().equals(name))
                 return dep;
             if (dep.getRight() != null && dep.getRight().getName().equals(name))
@@ -231,9 +231,9 @@ public class Conflict {
         return null;
     }
 
-    public static List<Conflict> getRootConflicts(Collection<Conflict> conflicts) {
-        List<Conflict> rootConflicts = new ArrayList<>();
-        for (Conflict conflict : conflicts) {
+    public static List<ConflictOlde> getRootConflicts(Collection<ConflictOlde> conflicts) {
+        List<ConflictOlde> rootConflicts = new ArrayList<>();
+        for (ConflictOlde conflict : conflicts) {
             if (conflict.getDependsOn() == null)
                 rootConflicts.add(conflict);
         }

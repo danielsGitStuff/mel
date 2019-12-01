@@ -10,6 +10,7 @@ import de.mel.filesync.data.fs.RootDirectory;
 import de.mel.filesync.index.InitialIndexConflictHelper;
 import de.mel.filesync.service.sync.SyncStageMerger;
 import de.mel.filesync.sql.*;
+import de.mel.filesync.sql.dao.ConflictDao;
 import de.mel.filesync.sql.dao.FsDao;
 import de.mel.filesync.sql.dao.StageDao;
 import de.mel.sql.SqlQueriesException;
@@ -21,13 +22,14 @@ import java.util.concurrent.Semaphore;
 /**
  * Created by xor on 5/30/17.
  */
-public class ConflictSolver extends SyncStageMerger {
+public class ConflictSolverOlde extends SyncStageMerger {
     private final String identifier;
     private final StageSet serverStageSet, localStageSet;
     private final RootDirectory rootDirectory;
     private final Long basedOnVersion;
-    protected Map<String, Conflict> deletedParents = new HashMap<>();
-    private Map<String, Conflict> conflicts = new HashMap<>();
+    private final ConflictDao conflictDao;
+    protected Map<String, ConflictOlde> deletedParents = new HashMap<>();
+    private Map<String, ConflictOlde> conflicts = new HashMap<>();
     private Order order;
     private Map<Long, Long> oldeNewIdMap, oldeObsoleteMap;
     private StageDao stageDao;
@@ -45,12 +47,13 @@ public class ConflictSolver extends SyncStageMerger {
     private boolean solving = false;
     private String conflictHelperUuid;
 
-    public ConflictSolver(FileSyncDatabaseManager fileSyncDatabaseManager, StageSet serverStageSet, StageSet localStageSet) throws SqlQueriesException {
+    public ConflictSolverOlde(FileSyncDatabaseManager fileSyncDatabaseManager, StageSet serverStageSet, StageSet localStageSet) throws SqlQueriesException {
         super(serverStageSet.getId().v(), localStageSet.getId().v());
         this.rootDirectory = fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory();
         this.serverStageSet = serverStageSet;
         this.localStageSet = localStageSet;
         stageDao = fileSyncDatabaseManager.getStageDao();
+        conflictDao = fileSyncDatabaseManager.getConflictDao();
         fsDao = fileSyncDatabaseManager.getFsDao();
         identifier = createIdentifier(serverStageSet.getId().v(), localStageSet.getId().v());
         basedOnVersion = localStageSet.getBasedOnVersion().v() >= serverStageSet.getBasedOnVersion().v() ? localStageSet.getBasedOnVersion().v() : serverStageSet.getBasedOnVersion().v();
@@ -74,8 +77,8 @@ public class ConflictSolver extends SyncStageMerger {
         return lStageSetId + ":" + rStageSetId;
     }
 
-    private Map<Long, Conflict> leftIdConflictsMap = new HashMap<>();
-    private Map<Long, Conflict> rightIdConflictsMap = new HashMap<>();
+    private Map<Long, ConflictOlde> leftIdConflictsMap = new HashMap<>();
+    private Map<Long, ConflictOlde> rightIdConflictsMap = new HashMap<>();
 
     /**
      * will try to merge first. if it fails the merged {@link StageSet} is removed,
@@ -95,23 +98,23 @@ public class ConflictSolver extends SyncStageMerger {
         }
 
         if (left != null && right != null && (!left.getContentHash().equals(right.getContentHash()))) {
-            String key = Conflict.createKey(left, right);
+            String key = ConflictOlde.createKey(left, right);
             if (!conflicts.containsKey(key)) {
                 //todo oof for deletion
-                Conflict conflict = createConflict(left, right);
+                ConflictOlde conflict = createConflict(left, right);
                 if ((left.getDeleted() ^ right.getDeleted()) || (left.getIsDirectory() ^ right.getIsDirectory())) {
-                    // there might already exist a Conflict. in this case we have more detailed information now (on stage should be null)
+                    // there might already exist a ConflictOlde. in this case we have more detailed information now (on stage should be null)
                     // and therefore must replace it but retain the dependencies
                     if (deletedParents.get(lFile.getParentFile().getAbsolutePath()) != null) {
-                        Conflict oldeConflict = deletedParents.get(lFile.getParentFile().getAbsolutePath());
+                        ConflictOlde oldeConflict = deletedParents.get(lFile.getParentFile().getAbsolutePath());
                         conflict.dependOn(oldeConflict);
                     }
                     deletedParents.put(lFile.getAbsolutePath(), conflict);
                 } else if (leftIdConflictsMap.containsKey(left.getParentId())) {
-                    Conflict parent = leftIdConflictsMap.get(left.getParentId());
+                    ConflictOlde parent = leftIdConflictsMap.get(left.getParentId());
                     conflict.dependOn(parent);
                 } else if (rightIdConflictsMap.containsKey(right.getParentId())) {
-                    Conflict parent = leftIdConflictsMap.get(right.getParentId());
+                    ConflictOlde parent = leftIdConflictsMap.get(right.getParentId());
                     conflict.dependOn(parent);
                 }
             }
@@ -123,14 +126,14 @@ public class ConflictSolver extends SyncStageMerger {
             if (left != null && leftIdConflictsMap.containsKey(left.getParentId())) {
                 //conflictSearch(left, lFile, false);
                 // this was set to createConflict(left, right); at some time. mybe bug related
-                Conflict conflict = createConflict(left, right);
-                Conflict parent = leftIdConflictsMap.get(left.getParentId());
+                ConflictOlde conflict = createConflict(left, right);
+                ConflictOlde parent = leftIdConflictsMap.get(left.getParentId());
                 conflict.dependOn(parent);
             }
             if (right != null && rightIdConflictsMap.containsKey(right.getParentId())) {
                 //conflictSearch(right, rFile, true);
-                Conflict conflict = createConflict(left, right);
-                Conflict parent = rightIdConflictsMap.get(right.getParentId());
+                ConflictOlde conflict = createConflict(left, right);
+                ConflictOlde parent = rightIdConflictsMap.get(right.getParentId());
                 conflict.dependOn(parent);
             }
         }
@@ -147,14 +150,14 @@ public class ConflictSolver extends SyncStageMerger {
         boolean resolved = false;
         while (!resolved && !directory.getAbsolutePath().equals(rootDirectory.getPath())) {
             if (deletedParents.containsKey(directory.getAbsolutePath())) {
-                Conflict conflict = deletedParents.get(directory.getAbsolutePath());
+                ConflictOlde conflict = deletedParents.get(directory.getAbsolutePath());
                 // it is proven that this file is not in conflict
                 if (conflict == null) {
                     deletedParents.put(directory.getAbsolutePath(), null);
                     for (String path : conflictFreePaths)
                         deletedParents.put(path, null);
                 } else {
-                    Conflict dependentConflict = (stageIsFromRight ? createConflict(null, stage) : createConflict(stage, null));
+                    ConflictOlde dependentConflict = (stageIsFromRight ? createConflict(null, stage) : createConflict(stage, null));
                     dependentConflict.dependOn(conflict);
                     // we want to build a hierarchy of dependent conflicts
                     if (stage.getIsDirectory()) {
@@ -169,9 +172,9 @@ public class ConflictSolver extends SyncStageMerger {
         }
     }
 
-    private Conflict createConflict(Stage left, Stage right) {
-        String key = Conflict.createKey(left, right);
-        Conflict conflict = new Conflict(stageDao, left, right);
+    private ConflictOlde createConflict(Stage left, Stage right) {
+        String key = ConflictOlde.createKey(left, right);
+        ConflictOlde conflict = new ConflictOlde(stageDao, left, right);
         conflicts.put(key, conflict);
         if (left != null)
             leftIdConflictsMap.put(left.getId(), conflict);
@@ -196,13 +199,13 @@ public class ConflictSolver extends SyncStageMerger {
         for (Stage stage : leftDirs) {
             IFile f = stageDao.getFileByStage(stage);
             Stage rStage = stageDao.getStageByPath(rStageSetId, f);
-            Conflict conflict = new Conflict(stageDao, stage, rStage);
+            ConflictOlde conflict = new ConflictOlde(stageDao, stage, rStage);
             deletedParents.put(f.getAbsolutePath(), conflict);
         }
         for (Stage stage : rightDirs) {
             IFile f = stageDao.getFileByStage(stage);
             Stage lStage = stageDao.getStageByPath(lStageSetId, f);
-            Conflict conflict = new Conflict(stageDao, lStage, stage);
+            ConflictOlde conflict = new ConflictOlde(stageDao, lStage, stage);
             deletedParents.put(f.getAbsolutePath(), conflict);
         }
     }
@@ -314,8 +317,8 @@ public class ConflictSolver extends SyncStageMerger {
      */
     public void solve(Stage serverStage, Stage fsStage) throws SqlQueriesException {
         Stage solvedStage = null;
-        final String key = Conflict.createKey(serverStage, fsStage);
-        final Conflict conflict = conflicts.remove(key);
+        final String key = ConflictOlde.createKey(serverStage, fsStage);
+        final ConflictOlde conflict = conflicts.remove(key);
         final Long oldeRightId = fsStage == null ? null : fsStage.getId();
         final Long oldeLeftId = serverStage == null ? null : serverStage.getId();
 
@@ -409,9 +412,9 @@ public class ConflictSolver extends SyncStageMerger {
      * @return
      */
     public boolean isSolved() {
-        Set<Conflict> isOk = new HashSet<>();
+        Set<ConflictOlde> isOk = new HashSet<>();
         try {
-            for (Conflict conflict : conflicts.values()) {
+            for (ConflictOlde conflict : conflicts.values()) {
                 recurseUp(isOk, conflict);
             }
         } catch (ConflictException.UnsolvedConflictsException | ConflictException.ContradictingConflictsException e) {
@@ -423,15 +426,15 @@ public class ConflictSolver extends SyncStageMerger {
         return true;
     }
 
-    private void recurseUp(Set<Conflict> isOk, Conflict conflict) throws ConflictException {
+    private void recurseUp(Set<ConflictOlde> isOk, ConflictOlde conflict) throws ConflictException {
         if (!conflict.hasDecision())
             throw new ConflictException.UnsolvedConflictsException();
         if (isOk.contains(conflict))
             return;
         final boolean deleted = conflict.getChoice().getDeleted();
-        Stack<Conflict> stack = new Stack<>();
+        Stack<ConflictOlde> stack = new Stack<>();
         stack.push(conflict);
-        Conflict parent = conflict.getDependsOn();
+        ConflictOlde parent = conflict.getDependsOn();
         while (parent != null) {
             if (isOk.contains(parent))
                 break;
@@ -454,7 +457,7 @@ public class ConflictSolver extends SyncStageMerger {
         return conflicts.size() > 0;
     }
 
-    public Collection<Conflict> getConflicts() {
+    public Collection<ConflictOlde> getConflicts() {
         return conflicts.values();
     }
 

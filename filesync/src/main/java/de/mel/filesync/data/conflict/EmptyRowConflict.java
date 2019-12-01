@@ -4,5 +4,5 @@ package de.mel.filesync.data.conflict;
  * used to display a gap between root conflicts
  * Created by xor on 13.07.2017.
  */
-public class EmptyRowConflict extends Conflict {
+public class EmptyRowConflict extends ConflictOlde {
 }

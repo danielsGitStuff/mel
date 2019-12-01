@@ -24,6 +24,7 @@ import java.sql.SQLException
  * Created by xor on 09.07.2016.
  */
 class FileSyncDatabaseManager(val melFileSyncService: MelFileSyncService<*>, workingDirectory: File?, val fileSyncSettings: FileSyncSettings) : FileRelatedManager(workingDirectory) {
+    val conflictDao: ConflictDao
     private val sqlQueries: ISQLQueries
     val fileDistTaskDao: FileDistTaskDao
     val fsDao: FsDao
@@ -63,6 +64,7 @@ class FileSyncDatabaseManager(val melFileSyncService: MelFileSyncService<*>, wor
         stageDao = StageDao(fileSyncSettings, sqlQueries, fsDao)
         transferDao = TransferDao(sqlQueries)
         wasteDao = WasteDao(sqlQueries)
+        conflictDao = ConflictDao(stageDao)
         fileDistTaskDao = FileDistTaskDao(sqlQueries)
         fsDao.setFileSyncSettings(fileSyncSettings)
         transferDao.resetStarted()
