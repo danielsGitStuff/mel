@@ -383,6 +383,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
         List<Pair<?>> list = new ArrayList<>();
         list.add(depth);
         list.add(path);
+        list.add(name);
         return list;
     }
 }
