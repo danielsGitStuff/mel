@@ -696,12 +696,12 @@ public class ClientSyncHandler extends SyncHandler {
         if (stage.getDepthPair().isNull() && stage.getFsParentIdPair().notNull()) {
             Long parentStageId = entryIdStageIdMap.get(stage.getFsParentId());
             if (parentStageId != null) {
-                Stage parent = stageDao.getStageById(parentStageId);
+                Stage parent = stageDao.getDepthAndPathAndName(parentStageId);
                 stage.setDepth(parent.getDepth() + 1);
                 stage.setPath(parent.getPath() + parent.getName() + File.separator);
             } else {
                 // if that did not work, try connecting to fs. first via parent
-                FsEntry parent = fsDao.getDirectoryById(stage.getFsParentId());
+                FsEntry parent = fsDao.getDepthAndPathAndName(stage.getFsParentId());
                 stage.setDepth(parent.getDepth().v() + 1);
                 stage.setPath(parent.getPath().v() + parent.getName().v() + File.separator);
             }
@@ -710,7 +710,7 @@ public class ClientSyncHandler extends SyncHandler {
 
         // then directly
         if (stage.getDepthPair().isNull() && stage.getFsIdPair().notNull()) {
-            FsEntry fsEntry = fsDao.getGenericById(stage.getFsId());
+            FsEntry fsEntry = fsDao.getDepthAndPathAndName(stage.getFsId());
             stage.setDepth(fsEntry.getDepth().v());
             stage.setPath(fsEntry.getPath().v());
         }
