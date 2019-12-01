@@ -607,4 +607,9 @@ public class StageDao extends Dao.LockingDao {
         String where = dummy.getParentIdPair().k() + "=? and " + dummy.getOrderPair().k() + "<0 order by " + dummy.getIsDirectoryPair().k() + " desc";
         return sqlQueries.loadFirstRow(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(id), Stage.class);
     }
+
+    public Stage getDepthAndPathAndName(long id) throws SqlQueriesException {
+        String where = dummy.getIdPair().k() + "=?";
+        return sqlQueries.loadFirstRow(dummy.getDepthAndPath(), dummy, where, ISQLQueries.args(id), Stage.class);
+    }
 }

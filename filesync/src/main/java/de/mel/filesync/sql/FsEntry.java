@@ -5,6 +5,9 @@ import de.mel.core.serialize.SerializableEntity;
 import de.mel.sql.Pair;
 import de.mel.sql.SQLTableObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by xor on 29.08.2016.
  */
@@ -68,7 +71,7 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
 
     @Override
     protected void init() {
-        populateInsert(name, parentId, version, depth, contentHash, isDirectory, path, synced, iNode, modified, created, size, symLink);
+        populateInsert(name, parentId, version, depth, contentHash, isDirectory, path, synced, iNode, modified, created, size, symLink,path);
         populateAll(id);
     }
 
@@ -168,6 +171,14 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
 
     public Pair<String> getPath() {
         return path;
+    }
+
+    public List<Pair<?>> getDepthAndPathAndName() {
+        List<Pair<?>> list = new ArrayList<>();
+        list.add(depth);
+        list.add(path);
+        list.add(name);
+        return list;
     }
 
 }

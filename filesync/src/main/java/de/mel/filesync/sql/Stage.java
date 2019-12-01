@@ -3,8 +3,13 @@ package de.mel.filesync.sql;
 import de.mel.Lok;
 import de.mel.core.serialize.JsonIgnore;
 import de.mel.core.serialize.SerializableEntity;
+import de.mel.sql.ISQLQueries;
 import de.mel.sql.Pair;
 import de.mel.sql.SQLTableObject;
+import de.mel.sql.SqlQueriesException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by xor on 11/20/16.
@@ -60,6 +65,8 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     private Pair<String> symLink = new Pair<>(String.class, SYMLINK);
     @JsonIgnore
     protected Pair<Integer> depth = new Pair<>(Integer.class, DEPTH);
+    @JsonIgnore
+    protected Pair<String> path = new Pair<>(String.class, REL_PATH);
 
 //    @JsonIgnore
 //    private Pair<String> relativePath = new Pair<>(String.class, REL_PATH);
@@ -87,7 +94,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     @Override
     protected void init() {
-        populateInsert(parentId, fsId, fsParentId, name, version, contentHash, isDirectory, symLink, iNode, modified, created, deleted, stageSet, size, synced, merged, order,depth);
+        populateInsert(parentId, fsId, fsParentId, name, version, contentHash, isDirectory, symLink, iNode, modified, created, deleted, stageSet, size, synced, merged, order, depth, path);
         populateAll(id);
     }
 
@@ -357,5 +364,25 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     public Integer getDepth() {
         return depth.v();
+    }
+
+    public Pair<String> getPathPair() {
+        return path;
+    }
+
+    public String getPath() {
+        return path.v();
+    }
+
+    public Stage setPath(String path) {
+        this.path.v(path);
+        return this;
+    }
+
+    public List<Pair<?>> getDepthAndPath() {
+        List<Pair<?>> list = new ArrayList<>();
+        list.add(depth);
+        list.add(path);
+        return list;
     }
 }

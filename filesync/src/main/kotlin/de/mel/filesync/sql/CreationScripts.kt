@@ -84,6 +84,7 @@ create TABLE stage
     fsid        INTEGER,
     name        TEXT,
     fsparentid  INTEGER,
+    path        TEXT NOT NULL,
     version     INTEGER,
     contenthash TEXT,
     dir         INTEGER,

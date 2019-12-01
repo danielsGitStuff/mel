@@ -19,7 +19,8 @@ public class GenericFSEntry extends FsEntry {
                 .setSize(genericFSEntry.getSize().v())
                 .setVersion(genericFSEntry.getVersion().v())
                 .setCreated(genericFSEntry.getCreated().v())
-                .setDeleted(false);
+                .setDeleted(false)
+                .setPath(genericFSEntry.getPath().v());
         if (!stage.getIsDirectory())
             stage.setSynced(genericFSEntry.getSynced().v());
         return stage;

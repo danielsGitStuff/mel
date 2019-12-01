@@ -5,7 +5,6 @@ import de.mel.Lok;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.IFile;
 import de.mel.auth.tools.N;
-import de.mel.auth.tools.RWSemaphore;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.fs.RootDirectory;
 import de.mel.filesync.sql.*;
@@ -17,8 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Collectors;
 
 public class FsDao extends Dao {
     protected FsFile dummy = new FsFile();
@@ -465,8 +462,13 @@ public class FsDao extends Dao {
         sqlQueries.execute(stmt, ISQLQueries.args(name, id));
     }
 
-    public Integer getDepth(Long id) throws SqlQueriesException {
-        String query = "select " + dummy.getDepth().k() + " from " + dummy.getTableName() + " where " + dummy.getId().k() + "=?";
-        return sqlQueries.queryValue(query, Integer.class, ISQLQueries.args(id));
+    public FsEntry getDepthAndPathAndName(long id) throws SqlQueriesException {
+        String where = dummy.getId().k() + "=?";
+        return sqlQueries.loadFirstRow(dummy.getDepthAndPathAndName(), dummy, where, ISQLQueries.args(id), FsEntry.class);
+    }
+
+    public String getPath(long id) throws SqlQueriesException {
+        String query = "select " + dummy.getPath().k() + " from " + dummy.getTableName() + " where " + dummy.getId().k() + "=?";
+        return sqlQueries.queryValue(query, String.class, ISQLQueries.args(id));
     }
 }

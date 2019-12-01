@@ -34,6 +34,7 @@ import de.mel.sql.SqlQueriesException;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -646,11 +647,97 @@ public class ClientSyncHandler extends SyncHandler {
         if (entryIdStageIdMap.containsKey(genericFSEntry.getParentId().v())) {
             stage.setParentId(entryIdStageIdMap.get(genericFSEntry.getParentId().v()));
         }
+
+//        // todo debug
+//        if (stage.getNamePair().equalsValue("sub1.txt"))
+//            Lok.debug();
+////            appendPathAndDepth(genericFSEntry,stage);
+//        if (stage.getFsIdPair().notNull()) {
+//            FsEntry dp = fsDao.getDepthAndPathAndName(stage.getFsId());
+//            if (dp != null) {
+//                stage.setDepth(dp.getDepth().v());
+//                stage.setPath(dp.getPath().v());
+//                // todo debug
+//                if (stage.getDepthPair().isNull())
+//                    Lok.debug();
+//            }
+//        }
+//        if (stage.getDepthPair().isNull() && stage.getFsParentIdPair().notNull()) {
+//            FsEntry dp = fsDao.getDepthAndPathAndName(stage.getFsParentId());
+//            if (dp != null) {
+//                stage.setDepth(dp.getDepth().v() + 1);
+//                stage.setPath(dp.getPath().v() + dp.getName().v() + File.separator);
+//                // todo debug
+//                if (stage.getDepthPair().isNull())
+//                    Lok.debug();
+//            }
+//        }
+//        if (stage.getDepthPair().isNull() && stage.getParentIdPair().notNull()) {
+//            Stage dp = stageDao.getDepthAndPathAndName(stage.getParentId());
+//            stage.setDepth(dp.getDepth() + 1);
+//            stage.setPath(dp.getPath() + dp.getName() + File.separator);
+//            // todo debug
+//            if (stage.getDepthPair().isNull())
+//                Lok.debug();
+//        }
+//        if (stage.getDepthPair().isNull() && stage.getParentIdPair().notNull()) {
+//            Stage dp = stageDao.getDepthAndPathAndName(stage.getParentId());
+//            stage.setDepth(dp.getDepth() + 1);
+//            stage.setPath(dp.getPath() + dp.getName() + File.separator);
+//            // todo debug
+//            if (stage.getDepthPair().isNull())
+//                Lok.debug();
+//        }
+//        if (stage.getDepthPair().isNull()){
+//            long parentStageId = entryIdStageIdMap.get(stage.)
+//        }
+
+        // first try recently added entries
+        if (stage.getDepthPair().isNull() && stage.getFsParentIdPair().notNull()) {
+            Long parentStageId = entryIdStageIdMap.get(stage.getFsParentId());
+            if (parentStageId != null) {
+                Stage parent = stageDao.getStageById(parentStageId);
+                stage.setDepth(parent.getDepth() + 1);
+                stage.setPath(parent.getPath() + parent.getName() + File.separator);
+            } else {
+                // if that did not work, try connecting to fs. first via parent
+                FsEntry parent = fsDao.getDirectoryById(stage.getFsParentId());
+                stage.setDepth(parent.getDepth().v() + 1);
+                stage.setPath(parent.getPath().v() + parent.getName().v() + File.separator);
+            }
+        }
+
+
+        // then directly
+        if (stage.getDepthPair().isNull() && stage.getFsIdPair().notNull()) {
+            FsEntry fsEntry = fsDao.getGenericById(stage.getFsId());
+            stage.setDepth(fsEntry.getDepth().v());
+            stage.setPath(fsEntry.getPath().v());
+        }
         // todo debug
         if (stage.getDepthPair().isNull())
             Lok.debug();
         stageDao.insert(stage);
         entryIdStageIdMap.put(genericFSEntry.getId().v(), stage.getId());
+    }
+
+    /**
+     * USES FSWRITE
+     *
+     * @param fsEntry
+     * @param stage
+     */
+    private void appendPathAndDepth(FsEntry fsEntry, Stage stage) throws SqlQueriesException {
+        String path = "";
+        if (fsEntry.getParentId().notNull()) {
+            FsEntry parent = fsDao.getGenericById(fsEntry.getParentId().v());
+            path = parent.getPath().v() + parent.getName().v() + File.separator;
+        } else if (stage != null) {
+            Lok.debug("Error1");
+        } else {
+            Lok.debug("Error2");
+        }
+        fsEntry.setPath(path);
     }
 
     /**
@@ -683,12 +770,6 @@ public class ClientSyncHandler extends SyncHandler {
             Stage stage = GenericFSEntry.generic2Stage(genericFSEntry, stageSet.getId().v());
             stage.setOrder(order.ord());
             // find depth value
-            if (stage.getFsIdPair().notNull())
-                stage.setDepth(fsDao.getDepth(stage.getFsId()));
-            else if (stage.getFsParentIdPair().notNull())
-                stage.setDepth(fsDao.getDepth(stage.getFsParentId()) + 1);
-            else if (stage.getParentIdPair().notNull())
-                stage.setDepth(stageDao.getDepth(stage.getParentId()) + 1);
             insertWithParentId(entryIdStageIdMap, genericFSEntry, stage);
         }
         syncAnswer.cleanUp();

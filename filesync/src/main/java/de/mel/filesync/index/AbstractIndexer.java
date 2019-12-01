@@ -196,6 +196,11 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 continue;
             // stage actual File
             stage = new Stage().setName(f.getName());//.setIsDirectory(f.isDirectory());
+            String path = f.getAbsolutePath().substring(rootPathLength);
+            if (path.length() > f.getName().length()) {
+                path = path.substring(0, path.length() - f.getName().length());
+            }
+            stage.setPath(path);
             if (fsEntry != null) {
                 stage.setFsId(fsEntry.getId().v())
                         .setFsParentId(fsEntry.getParentId().v())
