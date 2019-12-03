@@ -352,6 +352,7 @@ public class ClientSyncHandler extends SyncHandler {
             }
         } else {
             conflictSolver = new ConflictSolver(fileSyncDatabaseManager, stagedFromFs, serverStageSet);
+            conflictSolver.findConflicts();
             conflictSolver.beforeStart(serverStageSet);
             iterateStageSets(serverStageSet, stagedFromFs, conflictSolver, null);
         }

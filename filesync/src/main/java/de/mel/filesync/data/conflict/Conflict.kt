@@ -2,8 +2,6 @@ package de.mel.filesync.data.conflict
 
 import de.mel.filesync.sql.Stage
 import de.mel.filesync.sql.dao.ConflictDao
-import de.mel.sql.ISQLResource
-import de.mel.sql.SQLTableObject
 
 class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val remoteStage: Stage?) {
     private var localId: Long?
@@ -34,5 +32,6 @@ class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val remoteS
                 "${lStage?.id?.toString() ?: "n"}/${rStage?.id?.toString() ?: "n"}"
 
         val stage = Stage()
+
     }
 }
