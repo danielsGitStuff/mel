@@ -33,12 +33,13 @@ class ConflictDao(val stageDao: StageDao) : Dao(stageDao.sqlQueries) {
 //                join (select name,id,stageset,contenthash,path,deleted from stage where stageset=3) r
 //                on (l.path like r.path||r.name||"/%" or (l.name=r.name and l.path=r.path)) where r.deleted = 1 and l.deleted=0
         val query = """
-            select l.${s.namePair.k()} as ${dbc.localStageId.k()}, r.${s.idPair.k()} as ${dbc.remoteStageId.k()}
+            select l.${s.namePair.k()} as ${dbc.localStageId.k()}, r.${s.idPair.k()} as ${dbc.remoteStageId.k()},
+            r.${s.orderPair.k()} as lengthr
             from (select ${s.namePair.k()}, ${s.pathPair.k()}, ${s.deletedPair.k()} from ${s.tableName} where ${s.stageSetPair.k()}=?) l
             join (select ${s.namePair.k()}, ${s.pathPair.k()}, ${s.deletedPair.k()} from ${s.tableName} where ${s.stageSetPair.k()}=?) r
             on (l.${s.pathPair.k()} like r.${s.pathPair.k()}||r.${s.namePair.k()}||"${File.separator}%" 
-            or (l.${s.namePair.k()}0r.${s.namePair.k()} and l.${s.pathPair.k()}=r.${s.pathPair.k()}))
-            where r.${s.deletedPair.k()}=? and l.${s.deletedPair.k()}=?
+            or (l.${s.namePair.k()}=r.${s.namePair.k()} and l.${s.pathPair.k()}=r.${s.pathPair.k()}))
+            where r.${s.deletedPair.k()}=? and l.${s.deletedPair.k()}=? order by lengthr
         """.trimIndent()
         return sqlQueries.loadQueryResource(query, dbc.allAttributes, DbConflict::class.java, ISQLQueries.args(localStageSetId, remoteStageSetId, true, false)).toList()
     }

@@ -22,7 +22,7 @@ import java.util.concurrent.Semaphore;
 /**
  * Created by xor on 5/30/17.
  */
-public class ConflictSolverOlde extends SyncStageMerger {
+public class ConflictSolverOlde  {
     private final String identifier;
     private final StageSet serverStageSet, localStageSet;
     private final RootDirectory rootDirectory;
@@ -48,7 +48,6 @@ public class ConflictSolverOlde extends SyncStageMerger {
     private String conflictHelperUuid;
 
     public ConflictSolverOlde(FileSyncDatabaseManager fileSyncDatabaseManager, StageSet serverStageSet, StageSet localStageSet) throws SqlQueriesException {
-        super(serverStageSet.getId().v(), localStageSet.getId().v());
         this.rootDirectory = fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory();
         this.serverStageSet = serverStageSet;
         this.localStageSet = localStageSet;

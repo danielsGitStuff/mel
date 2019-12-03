@@ -7,10 +7,10 @@ class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val remoteS
     private var localId: Long?
     private var remoteId: Long?
     private var decision: Stage? = null
-    private var key: String
+    var key: String
         get
-    var parent: Conflict? = null
-    var children = mutableListOf<Conflict>()
+    private var parent: Conflict? = null
+    private var children = mutableListOf<Conflict>()
     val chosenLocal: Boolean = localStage != null && decision == localStage
     val chosenRemote: Boolean = remoteStage != null && decision == remoteStage
 
@@ -23,6 +23,11 @@ class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val remoteS
     fun dependOn(parent: Conflict?) {
         this.parent = parent
         parent?.children?.add(this)
+    }
+
+    fun assignChild(child: Conflict) {
+        children.add(child)
+        child.parent = this
     }
 
     override fun toString(): String = "Class: {${javaClass.simpleName}, key: \"$key\"}"
