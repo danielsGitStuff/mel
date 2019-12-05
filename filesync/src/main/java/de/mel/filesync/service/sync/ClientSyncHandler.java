@@ -17,6 +17,7 @@ import de.mel.core.serialize.serialize.tools.OTimer;
 import de.mel.filesync.FileSyncSyncListener;
 import de.mel.filesync.data.*;
 import de.mel.filesync.data.conflict.ConflictSolver;
+import de.mel.filesync.data.conflict.SyncStageMerger;
 import de.mel.filesync.jobs.CommitJob;
 import de.mel.filesync.jobs.SyncClientJob;
 import de.mel.filesync.quota.OutOfSpaceException;
@@ -353,7 +354,6 @@ public class ClientSyncHandler extends SyncHandler {
         } else {
             conflictSolver = new ConflictSolver(fileSyncDatabaseManager.getConflictDao(), stagedFromFs, serverStageSet);
             conflictSolver.findConflicts();
-            conflictSolver.beforeStart(serverStageSet);
             iterateStageSets(serverStageSet, stagedFromFs, conflictSolver, null);
         }
         // only remember the conflict solver if it actually has conflicts
@@ -459,6 +459,9 @@ public class ClientSyncHandler extends SyncHandler {
                 , basedOnVersion
                 , lStageSet.getVersion().v());
         final Long mStageSetId = mStageSet.getId().v();
+        /**
+         * This overwrites changes in the old StageSet with the newer ones.
+         */
         SyncStageMerger merger = new SyncStageMerger(lStageSet.getId().v(), rStageSet.getId().v()) {
             private Order order = new Order();
             private Map<Long, Long> idMapRight = new HashMap<>();
