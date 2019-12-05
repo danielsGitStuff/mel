@@ -20,7 +20,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
+ * When this is useful: when indexing the root directory while booting there still might be outstanding file transfers.
+ * So there are files in the FS table but not yet on the file system (marked as not synced in the fs table). At least they shouldn't.
+ * In case something put had placed conflicting files, this class creates a "fake" server {@link StageSet} conflicting with the {@link StageSet} from indexing on boot.
  */
 public class InitialIndexConflictHelper {
     private final String uuid;
@@ -48,6 +50,11 @@ public class InitialIndexConflictHelper {
         }
     }
 
+    /**
+     * Creates a fake {@link StageSet}.
+     * @param fsStageSet
+     * @throws SqlQueriesException
+     */
     public void onStart(StageSet fsStageSet) throws SqlQueriesException {
         //setup a fake stageset from server. we put files here that have not yet been synced but there were found unknown files in their places.
         this.fsStageSet = fsStageSet;
@@ -59,6 +66,12 @@ public class InitialIndexConflictHelper {
         ord = new Order();
     }
 
+    /**
+     * Looks for {@link Stage}s conflicting with not synced fs entries and puts them into the fake {@link StageSet}.
+     * @param fsEntry
+     * @param stage
+     * @throws SqlQueriesException
+     */
     public void check(FsEntry fsEntry, Stage stage) throws SqlQueriesException {
         if (fsEntry != null && !fsEntry.getSynced().v() && !stage.getDeleted() && !fsEntry.getContentHash().equalsValue(stage.getContentHash())) {
             Stage stageParent = stage.getFsParentIdPair().notNull() ? stageDao.getStageParentByFsId(stage.getStageSet(), stage.getFsParentId()) : null;
