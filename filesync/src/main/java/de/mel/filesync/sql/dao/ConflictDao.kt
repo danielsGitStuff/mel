@@ -10,7 +10,7 @@ import java.io.File
  * Contains methods finding Conflicts.
  * //todo link to white board image
  */
-class ConflictDao(val stageDao: StageDao) : Dao(stageDao.sqlQueries) {
+class ConflictDao(val stageDao: StageDao, val fsDao: FsDao) : Dao(stageDao.sqlQueries) {
     val s = Stage()
     val dbc = DbConflict()
     /**

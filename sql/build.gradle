@@ -1,8 +1,11 @@
 plugins{
     id 'java-library'
+    id 'org.jetbrains.kotlin.jvm'
+
 }
 
 dependencies {
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
     api project(path: ':serialize')
     testImplementation project(path: ':serialize')
     testImplementation 'junit:junit:4.12'

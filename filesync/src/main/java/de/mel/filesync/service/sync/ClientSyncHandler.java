@@ -291,9 +291,6 @@ public class ClientSyncHandler extends SyncHandler {
                     researchTransfers();
                     transferManager.research();
                 }
-            } else if (commitJob.getSyncAnyway() && stagedFromFs.size() == 0 && updateSets.size() == 0) {
-                syncFromServer();
-                return;
             }
 
 
@@ -354,7 +351,6 @@ public class ClientSyncHandler extends SyncHandler {
         } else {
             conflictSolver = new ConflictSolver(fileSyncDatabaseManager.getConflictDao(), stagedFromFs, serverStageSet);
             conflictSolver.findConflicts();
-            iterateStageSets(serverStageSet, stagedFromFs, conflictSolver, null);
         }
         // only remember the conflict solver if it actually has conflicts
         if (!conflictSolver.isSolving()) {
