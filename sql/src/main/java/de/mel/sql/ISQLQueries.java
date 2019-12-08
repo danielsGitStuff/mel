@@ -199,6 +199,8 @@ public abstract class ISQLQueries {
 
     public abstract void onShutDown();
 
+    public abstract void close() throws SqlQueriesException;
+
     /**
      * lets you load a custom query. no separation of where clause and stuff
      *

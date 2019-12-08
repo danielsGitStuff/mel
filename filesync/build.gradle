@@ -12,11 +12,6 @@ sourceSets {
 //            srcDir "${project(':auth').projectDir}/src/main/resources"
         }
     }
-    test{
-        resources {
-//            srcDir "${project(':drive')}.projectDir/src/main/resources}"
-        }
-    }
 }
 dependencies {
     filesyncTestOutput sourceSets.test.output

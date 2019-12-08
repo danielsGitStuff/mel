@@ -9,7 +9,6 @@ import de.mel.sql.transform.SqlResultTransformer;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * builds and executes mysql queries for several purposes.
@@ -174,7 +173,7 @@ public class SQLQueries extends ISQLQueries {
         }
         try {
             PreparedStatement pstmt = connection.prepareStatement(selectString);
-            if ( arguments != null) {
+            if (arguments != null) {
                 insertArguments(pstmt, arguments);
             }
             pstmt.execute();
@@ -581,6 +580,15 @@ public class SQLQueries extends ISQLQueries {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void close() throws SqlQueriesException {
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            throw new SqlQueriesException(e);
         }
     }
 

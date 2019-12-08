@@ -64,7 +64,7 @@ class FileSyncDatabaseManager(val melFileSyncService: MelFileSyncService<*>, wor
         stageDao = StageDao(fileSyncSettings, sqlQueries, fsDao)
         transferDao = TransferDao(sqlQueries)
         wasteDao = WasteDao(sqlQueries)
-        conflictDao = ConflictDao(stageDao)
+        conflictDao = ConflictDao(stageDao, fsDao)
         fileDistTaskDao = FileDistTaskDao(sqlQueries)
         fsDao.setFileSyncSettings(fileSyncSettings)
         transferDao.resetStarted()
