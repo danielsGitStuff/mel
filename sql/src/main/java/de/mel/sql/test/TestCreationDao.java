@@ -6,6 +6,7 @@ import de.mel.sql.transform.SqlResultTransformer;
 
 import java.io.File;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -14,6 +15,10 @@ import java.util.function.Function;
 public abstract class TestCreationDao<T extends SQLTableObject> extends Dao {
     private File dbFile;
     private Map<String, T> nameMap = new HashMap<>();
+
+    public Collection<T> getEntries(){
+        return nameMap.values();
+    }
 
     public TestCreationDao(File dbFile) throws SQLException, ClassNotFoundException {
         super(createSqlQueries(dbFile));
@@ -28,10 +33,13 @@ public abstract class TestCreationDao<T extends SQLTableObject> extends Dao {
 
 
     public InsertFollower<T, TestCreationDao<T>> insert(T obj) throws SqlQueriesException {
-        sqlQueries.insert(obj);
+        Long id = sqlQueries.insert(obj);
+        afterInsert(obj,id);
         nameMap.put(createName(obj), obj);
         return new InsertFollower<>(null, this, obj);
     }
+
+    protected abstract void afterInsert(T obj, Long id);
 
     public void cleanUp() throws SqlQueriesException {
         sqlQueries.close();

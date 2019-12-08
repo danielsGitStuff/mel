@@ -21,9 +21,12 @@ class ConflictSolver(private val conflictDao: ConflictDao, val localStageSet: St
     val stageDao = conflictDao.stageDao
     val fsDao = conflictDao.fsDao
     val basedOnVersion: Long
-    private val conflictMap = mutableMapOf<String, Conflict>()
-    private val localStageConflictMap = mutableMapOf<Long, Conflict>()
-    private val remoteStageConflictMap = mutableMapOf<Long, Conflict>()
+    val conflictMap = mutableMapOf<String, Conflict>()
+
+    val localStageConflictMap = mutableMapOf<Long, Conflict>()
+
+    val remoteStageConflictMap = mutableMapOf<Long, Conflict>()
+
     private val rootConflicts = mutableListOf<Conflict>()
     private var mergeStageSet: StageSet
     private var obsoleteStageSet: StageSet
@@ -138,7 +141,7 @@ class ConflictSolver(private val conflictDao: ConflictDao, val localStageSet: St
     }
 
 
-    fun findConflicts() {
+    fun findConflicts(): ConflictSolver {
         /**
          * c1 conflicts have no parents since they only consist of stages that differ in contentHash and are not deleted.
          * c2 covers conflicts that have a parent-child-relation:
@@ -152,6 +155,7 @@ class ConflictSolver(private val conflictDao: ConflictDao, val localStageSet: St
         createConflicts(c1)
         createConflicts(c2)
         createConflicts(c3)
+        return this
     }
 
     private fun createConflicts(dbConflicts: List<DbConflict>) {

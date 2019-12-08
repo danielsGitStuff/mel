@@ -1,7 +1,12 @@
 package de.mel.util;
 
+import de.mel.Lok;
+import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.DefaultFileConfiguration;
+import de.mel.auth.tools.N;
 import de.mel.auth.tools.Order;
 import de.mel.execute.SqliteExecutor;
+import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.data.FileSyncStrings;
 import de.mel.filesync.data.conflict.ConflictSolver;
 import de.mel.filesync.sql.CreationScripts;
@@ -20,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class ConflictTest {
@@ -28,9 +34,10 @@ public class ConflictTest {
     StageDao stageDao;
     ConflictDao conflictDao;
     FsDao fsDao;
-    File dbFile = new File("conflict.test.db");
+    File dbFile;
     StageSet localStageSet;
     StageSet remoteStageSet;
+    static Integer counter = 0;
 
     public void fillStageSet(StageTestCreationDao creationDao, long stageSetId) throws SqlQueriesException {
         Order ord = new Order();
@@ -116,12 +123,27 @@ public class ConflictTest {
                         .setParentId(stage.getId())
                         .setModified(12L)
                         .setCreated(12L)
+                        .setIsDirectory(false)
                         .setDeleted(false)
                         .setContentHash("bbb.txt"));
+        // replace separators
+        String replacement = N.result(() -> {
+            if (File.separator.equals("\\"))
+                return "\\\\";
+            return File.separator;
+        });
+        N.forEach(creationDao.getEntries(), stage -> {
+            stage.setPath(stage.getPath().replaceAll("\\/", replacement));
+            stageDao.update(stage);
+        });
     }
 
     @Before
     public void before() throws SqlQueriesException, IOException, SQLException {
+        dbFile = new File("conflict.test." + (counter++) + ".db");
+        Lok.debug("testing with db: " + dbFile.getAbsolutePath());
+        AbstractFile.configure(new DefaultFileConfiguration());
+        BashTools.Companion.init();
         if (dbFile.exists())
             dbFile.delete();
         creationLocalDao = new StageTestCreationDao(dbFile);
@@ -145,6 +167,47 @@ public class ConflictTest {
 
         fillStageSet(creationLocalDao, localStageSet.getId().v());
         fillStageSet(creationRemoteDao, remoteStageSet.getId().v());
+        Lok.debug("BEFORE");
+    }
+
+    /**
+     * delete /a/aa.txt remotely
+     *
+     * @throws SqlQueriesException
+     */
+    @Test
+    public void deletedFileConflict() throws SqlQueriesException {
+        Stage aatxt = creationRemoteDao.get("aa.txt");
+        aatxt.setDeleted(true);
+        stageDao.update(aatxt);
+
+        ConflictSolver conflictSolver = createConflictSolver().findConflicts();
+        assertTrue(conflictSolver.hasConflicts());
+        assertEquals(1, conflictSolver.getConflictMap().size());
+        assertEquals(1, conflictSolver.getLocalStageConflictMap().size());
+        assertEquals(1, conflictSolver.getRemoteStageConflictMap().size());
+    }
+
+    /**
+     * cofnlict in /a/aa.txt
+     *
+     * @throws SqlQueriesException
+     */
+    @Test
+    public void contentFileConflict() throws SqlQueriesException {
+        Stage aatxt = creationRemoteDao.get("aa.txt");
+        aatxt.setContentHash("changed");
+        stageDao.update(aatxt);
+
+        ConflictSolver conflictSolver = createConflictSolver().findConflicts();
+        assertTrue(conflictSolver.hasConflicts());
+        assertEquals(1, conflictSolver.getConflictMap().size());
+        assertEquals(1, conflictSolver.getLocalStageConflictMap().size());
+        assertEquals(1, conflictSolver.getRemoteStageConflictMap().size());
+    }
+
+    private ConflictSolver createConflictSolver() {
+        return new ConflictSolver(conflictDao, localStageSet, remoteStageSet);
     }
 
     /**
@@ -169,5 +232,10 @@ public class ConflictTest {
     @After
     public void after() throws SqlQueriesException {
         creationLocalDao.cleanUp();
+        BashTools.Companion.rmRf(dbFile);
+        if (dbFile.exists() && !dbFile.delete()) {
+            Lok.error("DB NOT DELETED");
+            dbFile.deleteOnExit();
+        }
     }
 }

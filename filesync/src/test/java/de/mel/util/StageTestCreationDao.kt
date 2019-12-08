@@ -10,5 +10,8 @@ class StageTestCreationDao : TestCreationDao<Stage> {
     constructor(dbFile: File) : super(dbFile)
 
     override fun createName(obj: Stage): String = obj.name
+    override fun afterInsert(obj: Stage, id: Long) {
+        obj.id = id
+    }
 
 }
