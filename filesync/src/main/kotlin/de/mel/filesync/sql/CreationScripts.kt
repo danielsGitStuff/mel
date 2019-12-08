@@ -1,10 +1,14 @@
 package de.mel.filesync.sql
 
 import de.mel.auth.data.access.CertificateManager
-import java.time.LocalDateTime
 import java.util.*
 
 class CreationScripts {
+    companion object {
+        @JvmStatic
+        fun stringToInputStream(str: String) = str.byteInputStream()
+    }
+
     val createFsEntry = """
 DROP TABLE IF EXISTS fsentry;
 create TABLE fsentry

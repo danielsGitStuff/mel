@@ -337,103 +337,72 @@ public class ClientSyncHandler extends SyncHandler {
      * @param stagedFromFs
      */
     public void handleConflict(StageSet serverStageSet, StageSet stagedFromFs, Warden warden, String conflictHelperUuid) throws SqlQueriesException {
-        String identifier = ConflictSolver.createIdentifier(serverStageSet.getId().v(), stagedFromFs.getId().v());
-        ConflictSolver conflictSolver;
-        // check if there is a solved ConflictSolver available. if so, use it. if not, make a new one.
-        if (conflictSolverMap.containsKey(identifier)) {
-            conflictSolver = conflictSolverMap.get(identifier);
-            if (conflictSolver.isSolved()) {
-                iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
-                conflictSolver.setSolving(false);
-            } else {
-                System.err.println(getClass().getSimpleName() + ".handleConflict(): conflict " + identifier + " was not resolved");
-            }
-        } else {
-            conflictSolver = new ConflictSolver(fileSyncDatabaseManager.getConflictDao(), stagedFromFs, serverStageSet);
-            conflictSolver.findConflicts();
-        }
-        // only remember the conflict solver if it actually has conflicts
-        if (!conflictSolver.isSolving()) {
-            if (conflictSolver.hasConflicts()) {
-                System.err.println("conflicts!!!!1!");
-                if (conflictHelperUuid != null)
-                    conflictSolver.setConflictHelperUuid(conflictHelperUuid);
-                putConflictSolver(conflictSolver);
-                conflictSolver.setSolving(true);
-                melDriveService.onConflicts();
-            } else {
-                // todo FsDir hash conflicts
-                conflictSolver.directoryStuff();
-                try {
-                    this.commitStage(serverStageSet.getId().v(), warden);
-                    this.deleteObsolete(conflictSolver);
-                } catch (OutOfSpaceException e) {
-                    e.printStackTrace();
-                    melDriveService.onInsufficientSpaceAvailable(serverStageSet.getId().v());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                conflictSolver.cleanup();
-                Long mergedId = conflictSolver.getMergeStageSet().getId().v();
-                this.minimizeStage(mergedId);
-                if (stageDao.stageSetHasContent(mergedId))
-                    melDriveService.addJob(new CommitJob());
-                else {
-                    stageDao.deleteStageSet(mergedId);
-                }
-            }
-        }
+//        String identifier = ConflictSolver.createIdentifier(serverStageSet.getId().v(), stagedFromFs.getId().v());
+//        ConflictSolver conflictSolver;
+//        // check if there is a solved ConflictSolver available. if so, use it. if not, make a new one.
+//        if (conflictSolverMap.containsKey(identifier)) {
+//            conflictSolver = conflictSolverMap.get(identifier);
+//            if (conflictSolver.isSolved()) {
+//                iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
+//                conflictSolver.setSolving(false);
+//            } else {
+//                System.err.println(getClass().getSimpleName() + ".handleConflict(): conflict " + identifier + " was not resolved");
+//            }
+//        } else {
+//            conflictSolver = new ConflictSolver(fileSyncDatabaseManager.getConflictDao(), stagedFromFs, serverStageSet);
+//            conflictSolver.findConflicts();
+//        }
+//        // only remember the conflict solver if it actually has conflicts
+//        if (!conflictSolver.isSolving()) {
+//            if (conflictSolver.hasConflicts()) {
+//                System.err.println("conflicts!!!!1!");
+//                if (conflictHelperUuid != null)
+//                    conflictSolver.setConflictHelperUuid(conflictHelperUuid);
+//                putConflictSolver(conflictSolver);
+//                conflictSolver.setSolving(true);
+//                melDriveService.onConflicts();
+//            } else {
+//                // todo FsDir hash conflicts
+//                conflictSolver.directoryStuff();
+//                try {
+//                    this.commitStage(serverStageSet.getId().v(), warden);
+//                    this.deleteObsolete(conflictSolver);
+//                } catch (OutOfSpaceException e) {
+//                    e.printStackTrace();
+//                    melDriveService.onInsufficientSpaceAvailable(serverStageSet.getId().v());
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//                conflictSolver.cleanup();
+//                Long mergedId = conflictSolver.getMergeStageSet().getId().v();
+//                this.minimizeStage(mergedId);
+//                if (stageDao.stageSetHasContent(mergedId))
+//                    melDriveService.addJob(new CommitJob());
+//                else {
+//                    stageDao.deleteStageSet(mergedId);
+//                }
+//            }
+//        }
     }
 
     private void deleteObsolete(ConflictSolver conflictSolver) throws SqlQueriesException, IOException {
-        N.readSqlResource(stageDao.getObsoleteFileStagesResource(conflictSolver.getObsoleteStageSet().getId().v()), (sqlResource, stage) -> {
-            IFile file = stageDao.getFileByStage(stage);
-            if (file != null && file.exists()) {
-                wastebin.deleteUnknown(file);
-            }
-        });
-        N.readSqlResource(stageDao.getObsoleteDirStagesResource(conflictSolver.getObsoleteStageSet().getId().v()), (sqlResource, stage) -> {
-            IFile file = stageDao.getFileByStage(stage);
-            if (file != null && file.exists()) {
-                wastebin.deleteUnknown(file);
-            }
-        });
-        stageDao.deleteStageSet(conflictSolver.getObsoleteStageSet().getId().v());
+
     }
 
     private void putConflictSolver(ConflictSolver conflictSolver) {
-        // search for related ConflictSolvers before. they deprecate as we insert the new one.
-        deleteRelated(conflictSolver.getServerStageSet().getId().v());
-        deleteRelated(conflictSolver.getLocalStageSet().getId().v());
-        addRelated(conflictSolver, conflictSolver.getLocalStageSet().getId().v());
-        addRelated(conflictSolver, conflictSolver.getServerStageSet().getId().v());
-        conflictSolverMap.put(conflictSolver.getIdentifier(), conflictSolver);
+
     }
 
     private void addRelated(ConflictSolver solver, Long stageSetId) {
-        if (relatedSolvers.containsKey(stageSetId)) {
-            relatedSolvers.get(stageSetId).add(solver);
-        } else {
-            Set<ConflictSolver> set = new HashSet<>();
-            set.add(solver);
-            relatedSolvers.put(stageSetId, set);
-        }
+
     }
 
     private void deleteRelated(Long stageSetId) {
-        if (relatedSolvers.containsKey(stageSetId)) {
-            Set<ConflictSolver> solvers = relatedSolvers.remove(stageSetId);
-            for (ConflictSolver solver : solvers) {
-                ConflictSolver relatedSolver = conflictSolverMap.remove(solver.getIdentifier());
-                N.r(relatedSolver::cleanup);
-            }
-        }
+
     }
 
     private void minimizeStage(Long stageSetId) throws SqlQueriesException {
-        if (stageSetId == 9)
-            Lok.warn("debug");
-        stageDao.deleteIdenticalToFs(stageSetId);
+
     }
 
     /**
@@ -557,7 +526,8 @@ public class ClientSyncHandler extends SyncHandler {
                 Stage rStage = stageDao.getStageByPath(rStageSet.getId().v(), lFile);
                 timer2.stop();
                 if (conflictSolver != null)
-                    conflictSolver.solve(lStage, rStage);
+                    Lok.error("NOT:IMPLEMENTED:YET");
+//                conflictSolver.solve(lStage, rStage);
                 else {
                     timer3.start();
                     IFile rFile = (rStage != null) ? AbstractFile.instance(lFile.getAbsolutePath()) : null;
@@ -576,7 +546,8 @@ public class ClientSyncHandler extends SyncHandler {
             Stage rStage = rStages.getNext();
             while (rStage != null) {
                 if (conflictSolver != null)
-                    conflictSolver.solve(null, rStage);
+                    Lok.error("NOT:IMPLEMENTED:YET");
+//                    conflictSolver.solve(null, rStage);
                 else {
                     IFile rFile = stageDao.getFileByStage(rStage);
                     merger.stuffFound(null, rStage, null, rFile);
@@ -918,7 +889,7 @@ public class ClientSyncHandler extends SyncHandler {
 
     public void onStageSetsMerged(Long lStageSetId, Long rStageSetId, StageSet mergedStageSet) {
         for (ConflictSolver solver : conflictSolverMap.values()) {
-            solver.checkObsolete(lStageSetId, rStageSetId);
+//            solver.checkObsolete(lStageSetId, rStageSetId);
         }
     }
 

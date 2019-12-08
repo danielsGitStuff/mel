@@ -1,8 +1,10 @@
 package de.mel.util;
 
 import de.mel.auth.tools.Order;
+import de.mel.execute.SqliteExecutor;
 import de.mel.filesync.data.FileSyncStrings;
 import de.mel.filesync.data.conflict.ConflictSolver;
+import de.mel.filesync.sql.CreationScripts;
 import de.mel.filesync.sql.FsDirectory;
 import de.mel.filesync.sql.Stage;
 import de.mel.filesync.sql.StageSet;
@@ -15,6 +17,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
+import java.sql.SQLException;
 
 import static org.junit.Assert.assertTrue;
 
@@ -117,11 +121,17 @@ public class ConflictTest {
     }
 
     @Before
-    public void before() throws SqlQueriesException {
+    public void before() throws SqlQueriesException, IOException, SQLException {
+        if (dbFile.exists())
+            dbFile.delete();
         creationLocalDao = new StageTestCreationDao(dbFile);
+        creationRemoteDao = new StageTestCreationDao(creationLocalDao);
         fsDao = new FsDao(null, creationLocalDao.getSqlQueries());
         stageDao = new StageDao(null, creationLocalDao.getSqlQueries(), fsDao);
         conflictDao = new ConflictDao(stageDao, fsDao);
+
+        new SqliteExecutor(creationLocalDao.getSqlQueries().getSQLConnection()).executeStream(CreationScripts.stringToInputStream(new CreationScripts().getCreateFsEntry()));
+        new SqliteExecutor(creationLocalDao.getSqlQueries().getSQLConnection()).executeStream(CreationScripts.stringToInputStream(new CreationScripts().getCreateRest()));
 
         localStageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_FS, FileSyncStrings.STAGESET_STATUS_STAGED, null, null, 1L, 0L);
         remoteStageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_SERVER, FileSyncStrings.STAGESET_STATUS_STAGED, 1L, "test uuid", 1L, 0L);
@@ -130,6 +140,7 @@ public class ConflictTest {
                 .setName("root")
                 .setVersion(0L)
                 .setModified(12L)
+                .setDepth(0)
                 .setPath(""));
 
         fillStageSet(creationLocalDao, localStageSet.getId().v());
