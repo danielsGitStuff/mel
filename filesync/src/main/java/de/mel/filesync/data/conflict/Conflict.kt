@@ -27,7 +27,7 @@ class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val remoteS
         parent?.children?.add(this)
     }
 
-    fun assignChild(child: Conflict) {
+    fun addChild(child: Conflict) {
         children.add(child)
         child.parent = this
     }

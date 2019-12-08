@@ -22,6 +22,7 @@ class ConflictSolver(private val conflictDao: ConflictDao, val localStageSet: St
     val fsDao = conflictDao.fsDao
     val basedOnVersion: Long
     val conflictMap = mutableMapOf<String, Conflict>()
+    val rootConflictMap = mutableMapOf<String, Conflict>()
 
     val localStageConflictMap = mutableMapOf<Long, Conflict>()
 
@@ -155,6 +156,9 @@ class ConflictSolver(private val conflictDao: ConflictDao, val localStageSet: St
         createConflicts(c1)
         createConflicts(c2)
         createConflicts(c3)
+        /**
+         * find root conflicts here. they have no parent conflicts
+         */
         return this
     }
 
@@ -166,12 +170,14 @@ class ConflictSolver(private val conflictDao: ConflictDao, val localStageSet: St
             if (conflictMap.containsKey(conflict.key))
                 return@loop
             conflictMap[conflict.key] = conflict
+            rootConflictMap[conflict.key] = conflict
             localStage?.let { l ->
                 localStageConflictMap[l.id] = conflict
                 // Find parent conflicts
                 if (l.parentIdPair.notNull() && localStageConflictMap.containsKey(l.parentId)) {
                     val parent = localStageConflictMap[l.parentId]!!
-                    parent.assignChild(conflict)
+                    parent.addChild(conflict)
+                    rootConflictMap.remove(conflict.key)
                 }
             }
             remoteStage?.let { r ->
@@ -179,7 +185,8 @@ class ConflictSolver(private val conflictDao: ConflictDao, val localStageSet: St
                 // Find parent conflicts
                 if (r.parentIdPair.notNull() && remoteStageConflictMap.containsKey(r.parentId)) {
                     val parent = remoteStageConflictMap[r.parentId]!!
-                    parent.assignChild(conflict)
+                    parent.addChild(conflict)
+                    rootConflictMap.remove(conflict.key)
                 }
             }
         }

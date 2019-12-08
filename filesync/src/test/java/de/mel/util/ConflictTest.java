@@ -223,9 +223,10 @@ public class ConflictTest {
         bb.setDeleted(true);
         stageDao.update(bb);
 
-        ConflictSolver conflictSolver = new ConflictSolver(conflictDao, localStageSet, remoteStageSet);
-        conflictSolver.findConflicts();
+        ConflictSolver conflictSolver = createConflictSolver().findConflicts();
         assertTrue(conflictSolver.hasConflicts());
+        assertEquals(1, conflictSolver.getRootConflictMap().size());
+        assertEquals(2, conflictSolver.getConflictMap().size());
     }
 
 
