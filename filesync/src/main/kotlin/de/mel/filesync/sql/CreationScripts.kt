@@ -86,7 +86,7 @@ create TABLE stage
     parentid    INTEGER,
     depth       INTEGER NOT NULL,
     fsid        INTEGER,
-    name        TEXT,
+    name        TEXT not null,
     fsparentid  INTEGER,
     path        TEXT NOT NULL,
     version     INTEGER,

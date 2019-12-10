@@ -8,6 +8,7 @@ import de.mel.auth.tools.Order;
 import de.mel.execute.SqliteExecutor;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.data.FileSyncStrings;
+import de.mel.filesync.data.conflict.Conflict;
 import de.mel.filesync.data.conflict.ConflictSolver;
 import de.mel.filesync.sql.CreationScripts;
 import de.mel.filesync.sql.FsDirectory;
@@ -25,8 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ConflictTest {
     StageTestCreationDao creationLocalDao;
@@ -37,6 +37,7 @@ public class ConflictTest {
     File dbFile;
     StageSet localStageSet;
     StageSet remoteStageSet;
+    ConflictSolver conflictSolver;
     static Integer counter = 0;
 
     public void fillStageSet(StageTestCreationDao creationDao, long stageSetId) throws SqlQueriesException {
@@ -181,7 +182,7 @@ public class ConflictTest {
         aatxt.setDeleted(true);
         stageDao.update(aatxt);
 
-        ConflictSolver conflictSolver = createConflictSolver().findConflicts();
+        conflictSolver = createConflictSolver().findConflicts();
         assertTrue(conflictSolver.hasConflicts());
         assertEquals(1, conflictSolver.getConflictMap().size());
         assertEquals(1, conflictSolver.getLocalStageConflictMap().size());
@@ -199,7 +200,7 @@ public class ConflictTest {
         aatxt.setContentHash("changed");
         stageDao.update(aatxt);
 
-        ConflictSolver conflictSolver = createConflictSolver().findConflicts();
+        conflictSolver = createConflictSolver().findConflicts();
         assertTrue(conflictSolver.hasConflicts());
         assertEquals(1, conflictSolver.getConflictMap().size());
         assertEquals(1, conflictSolver.getLocalStageConflictMap().size());
@@ -223,10 +224,25 @@ public class ConflictTest {
         bb.setDeleted(true);
         stageDao.update(bb);
 
-        ConflictSolver conflictSolver = createConflictSolver().findConflicts();
+        conflictSolver = createConflictSolver().findConflicts();
         assertTrue(conflictSolver.hasConflicts());
         assertEquals(1, conflictSolver.getRootConflictMap().size());
         assertEquals(2, conflictSolver.getConflictMap().size());
+    }
+
+    @Test
+    public void decideContentFileConflictRemote() throws SqlQueriesException {
+        contentFileConflict();
+        conflictSolver.getRemoteStageConflictMap().values().forEach(Conflict::decideRemote);
+        assertFalse(conflictSolver.hasConflicts());
+        conflictSolver.merge();
+    }
+
+    @Test
+    public void noConflict() throws SqlQueriesException {
+        conflictSolver = createConflictSolver().findConflicts();
+        conflictSolver.getRemoteStageConflictMap().values().forEach(Conflict::decideRemote);
+        assertFalse(conflictSolver.hasConflicts());
     }
 
 

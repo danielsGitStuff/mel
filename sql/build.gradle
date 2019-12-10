@@ -5,6 +5,7 @@ plugins{
 }
 
 dependencies {
+    api "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
     testImplementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
     api project(path: ':serialize')
     testImplementation project(path: ':serialize')

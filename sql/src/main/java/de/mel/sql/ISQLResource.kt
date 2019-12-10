@@ -1,27 +1,31 @@
-package de.mel.sql;
+package de.mel.sql
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import de.mel.sql.SqlQueriesException
+import java.util.*
 
 /**
  * Created by xor on 2/6/17.
  */
-public interface ISQLResource<T extends SQLTableObject> extends AutoCloseable {
-    T getNext() throws SqlQueriesException;
+interface ISQLResource<T : SQLTableObject?> : AutoCloseable {
+    @get:Throws(SqlQueriesException::class)
+    val next: T?
 
-    @Override
-    void close() throws SqlQueriesException;
+    fun next() = next
 
-    boolean isClosed() throws SqlQueriesException;
+    @Throws(SqlQueriesException::class)
+    override fun close()
 
-    default public List<T> toList() throws SqlQueriesException {
-        List<T> list = new ArrayList<>();
-        T item = getNext();
+    @get:Throws(SqlQueriesException::class)
+    val isClosed: Boolean
+
+    @Throws(SqlQueriesException::class)
+    fun toList(): List<T>? {
+        val list: MutableList<T> = ArrayList()
+        var item: T? = next
         while (item != null) {
-            list.add(item);
-            item = getNext();
+            list.add(item)
+            item = next
         }
-        return list;
+        return list
     }
 }

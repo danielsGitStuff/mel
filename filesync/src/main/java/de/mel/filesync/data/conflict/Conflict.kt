@@ -32,6 +32,16 @@ class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val remoteS
         child.parent = this
     }
 
+    fun decideRemote() {
+        decision = remoteStage
+        children.forEach { it.decideRemote() }
+    }
+
+    fun decideLocal() {
+        decision = localStage
+        children.forEach { it.decideLocal() }
+    }
+
     override fun toString(): String = "Class: {${javaClass.simpleName}, key: \"$key\"}"
 
     companion object {

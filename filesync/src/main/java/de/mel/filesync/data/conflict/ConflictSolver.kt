@@ -192,7 +192,40 @@ class ConflictSolver(private val conflictDao: ConflictDao, val localStageSet: St
         }
     }
 
-    fun hasConflicts(): Boolean = conflictMap.isNotEmpty()
+    fun hasConflicts(): Boolean = !conflictMap.all { it.value.hasChoice }
+    fun merge() {
+        val idMapLocal = mutableMapOf<Long, Long>()
+        val idMapRemote = mutableMapOf<Long, Long>()
+        val localStages = stageDao.getStagesByStageSet(localStageSet.id.v())
+        var localStage = localStages.next
+        fun insertToMap(map: MutableMap<Long, Long>, stage: Stage?) {
+            stage?.let {
+                stage.stageSet = mergeStageSet.id.v()
+                //todo kotlin accessor
+                if (stage.parentIdPair.notNull()) {
+                    map[stage.parentId]?.let { mergedParentId ->
+                        stage.setParentId(mergedParentId)
+                    }
+                }
+            }
+        }
+        while (localStage != null) {
+            localStageConflictMap[localStage.id]?.let { conflict ->
+                if (conflict.chosenLocal)
+                    insertToMap(idMapLocal, localStage!!)
+                else {
+                    insertToMap(idMapRemote, conflict.remoteStage)
+                }
+            }
+            localStage = localStages.next
+        }
+        val remoteStages = stageDao.getStagesByStageSet(remoteStageSet.id.v())
+        var remoteStage = remoteStages.next
+        while (remoteStage != null) {
+
+            remoteStage = remoteStages.next
+        }
+    }
 
     companion object {
         @JvmStatic
