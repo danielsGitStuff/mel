@@ -28,6 +28,9 @@ import java.sql.SQLException;
 
 import static org.junit.Assert.*;
 
+/**
+ * find.. methods create conflicts in the stage sets and must find them or must not find them.
+ */
 public class ConflictTest {
     StageTestCreationDao creationLocalDao;
     StageTestCreationDao creationRemoteDao;
@@ -185,7 +188,7 @@ public class ConflictTest {
      * @throws SqlQueriesException
      */
     @Test
-    public void deletedFileConflict() throws SqlQueriesException {
+    public void findDeletedFileConflict() throws SqlQueriesException {
         Stage aatxt = creationRemoteDao.get("aa.txt");
         aatxt.setDeleted(true);
         stageDao.update(aatxt);
@@ -203,7 +206,7 @@ public class ConflictTest {
      * @throws SqlQueriesException
      */
     @Test
-    public void contentFileConflict() throws SqlQueriesException {
+    public void findContentFileConflict() throws SqlQueriesException {
         Stage aatxt = creationRemoteDao.get("aa.txt");
         aatxt.setContentHash("changed");
         stageDao.update(aatxt);
@@ -225,7 +228,7 @@ public class ConflictTest {
      * @throws SqlQueriesException
      */
     @Test
-    public void remoteDeleted() throws SqlQueriesException {
+    public void findRemoteDeleted() throws SqlQueriesException {
         Stage bbbtext = creationRemoteDao.get("bbb.txt");
         stageDao.deleteStageById(bbbtext.getId());
         Stage bb = creationRemoteDao.get("bb");
@@ -240,7 +243,7 @@ public class ConflictTest {
 
     @Test
     public void decideContentFileConflictRemote() throws SqlQueriesException {
-        contentFileConflict();
+        findContentFileConflict();
         conflictSolver.getRemoteStageConflictMap().values().forEach(Conflict::decideRemote);
         assertFalse(conflictSolver.hasConflicts());
         conflictSolver.merge();
