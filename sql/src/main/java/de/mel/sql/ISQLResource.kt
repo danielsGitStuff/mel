@@ -19,7 +19,7 @@ interface ISQLResource<T : SQLTableObject?> : AutoCloseable {
     val isClosed: Boolean
 
     @Throws(SqlQueriesException::class)
-    fun toList(): List<T>? {
+    fun toList(): List<T> {
         val list: MutableList<T> = ArrayList()
         var item: T? = next
         while (item != null) {

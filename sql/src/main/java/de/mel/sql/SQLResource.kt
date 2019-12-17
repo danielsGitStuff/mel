@@ -1,68 +1,57 @@
-package de.mel.sql;
+package de.mel.sql
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.List;
-
+import de.mel.sql.SqlQueriesException
+import java.sql.PreparedStatement
+import java.sql.ResultSet
+import java.sql.SQLException
 
 /**
  * Created by xor on 12/16/16.
  */
-public class SQLResource<T extends SQLTableObject> implements ISQLResource<T> {
-    private final Class<T> clazz;
-    private final PreparedStatement preparedStatement;
-    private final List<Pair<?>> columns;
-    private ResultSet resultSet;
+class SQLResource<T : SQLTableObject?>(private val preparedStatement: PreparedStatement, private val clazz: Class<T>, columns: List<Pair<*>>) : ISQLResource<T> {
+    private val columns: List<Pair<*>> = columns
+    private val resultSet: ResultSet = preparedStatement.resultSet
 
-
-    public SQLResource(PreparedStatement preparedStatement, Class<T> clazz, List<Pair<?>> columns) throws SQLException {
-        this.clazz = clazz;
-        this.preparedStatement = preparedStatement;
-        this.resultSet = preparedStatement.getResultSet();
-        this.columns = columns;
-    }
-
-
-    @Override
-    public T getNext() throws SqlQueriesException {
-        T sqlTable = null;
-        try {
-            if (resultSet.next()) {
-                sqlTable = clazz.newInstance();
-                for (Pair<?> pair : columns) {
-                    try {
-                        Object res = resultSet.getObject(pair.k());
-                        sqlTable.getPair(pair.k()).setValueUnsecure(res);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+    @get:Throws(SqlQueriesException::class)
+    override val next: T?
+        get() {
+            var sqlTable: T? = null
+            try {
+                if (resultSet.next()) {
+                    sqlTable = clazz.newInstance()
+                    for (pair in columns) {
+                        try {
+                            val res = resultSet.getObject(pair.k())
+                            sqlTable!!.getPair(pair.k()).setValueUnsecure(res)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
                     }
                 }
+            } catch (e: Exception) {
+                throw SqlQueriesException(e)
             }
-        } catch (Exception e) {
-            throw new SqlQueriesException(e);
+            return sqlTable
         }
-        return sqlTable;
-    }
 
-    @Override
-    public void close() throws SqlQueriesException {
+    @Throws(SqlQueriesException::class)
+    override fun close() {
         try {
-            resultSet.close();
-            preparedStatement.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new SqlQueriesException(e);
+            resultSet.close()
+            preparedStatement.close()
+        } catch (e: SQLException) {
+            e.printStackTrace()
+            throw SqlQueriesException(e)
         }
     }
 
-    @Override
-    public boolean isClosed() throws SqlQueriesException {
-        try {
-            return resultSet.isClosed();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new SqlQueriesException(e);
+    @get:Throws(SqlQueriesException::class)
+    override val isClosed: Boolean
+        get() = try {
+            resultSet.isClosed
+        } catch (e: SQLException) {
+            e.printStackTrace()
+            throw SqlQueriesException(e)
         }
-    }
+
 }

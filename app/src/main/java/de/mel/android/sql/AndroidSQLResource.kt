@@ -1,70 +1,54 @@
-package de.mel.android.sql;
+package de.mel.android.sql
 
-import android.database.Cursor;
-import android.database.sqlite.SQLiteCursor;
-import android.os.Build;
-
-import java.sql.SQLException;
-import java.util.List;
-
-import de.mel.Lok;
-import de.mel.sql.ISQLResource;
-import de.mel.sql.Pair;
-import de.mel.sql.SQLTableObject;
-import de.mel.sql.SqlQueriesException;
+import android.database.sqlite.SQLiteCursor
+import de.mel.sql.ISQLResource
+import de.mel.sql.SQLTableObject
+import de.mel.sql.SqlQueriesException
 
 /**
  * Created by xor on 3/22/17.
  */
-
-public class AndroidSQLResource<T extends SQLTableObject> implements ISQLResource {
-    private final Class<T> clazz;
-    private final SQLiteCursor cursor;
-    private int countdown = 500;
-    private int count = 0;
-
-    public AndroidSQLResource(SQLiteCursor cursor, Class<T> clazz) {
-        this.clazz = clazz;
-        this.cursor = cursor;
-    }
-
-    @Override
-    public SQLTableObject getNext() throws SqlQueriesException {
-        T sqlTable = null;
-        try {
-            count++;
-            if (cursor.getWindow() != null) {
-                countdown--;
-                cursor.getWindow().freeLastRow();
-                if (countdown == 0) {
-                    cursor.getWindow().clear();
-                    countdown = 500;
-                }
-            }
-            if (cursor.moveToNext()) {
-                sqlTable = clazz.newInstance();
-                List<Pair<?>> attributes = sqlTable.getAllAttributes();
-                for (Pair<?> pair : attributes) {
-                    try {
-                        AndroidSQLQueries.readCursorToPair(cursor, pair);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+class AndroidSQLResource<T : SQLTableObject?>(private val cursor: SQLiteCursor, private val clazz: Class<T>) : ISQLResource<T> {
+    private var countdown = 500
+    private var count = 0
+    @get:Throws(SqlQueriesException::class)
+    override val next: T?
+        get() {
+            var sqlTable: T? = null
+            try {
+                count++
+                if (cursor.window != null) {
+                    countdown--
+                    cursor.window.freeLastRow()
+                    if (countdown == 0) {
+                        cursor.window.clear()
+                        countdown = 500
                     }
                 }
+                if (cursor.moveToNext()) {
+                    sqlTable = clazz.newInstance()
+                    val attributes = sqlTable!!.allAttributes
+                    for (pair in attributes) {
+                        try {
+                            AndroidSQLQueries.readCursorToPair(cursor, pair)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                throw SqlQueriesException(e)
             }
-        } catch (Exception e) {
-            throw new SqlQueriesException(e);
+            return sqlTable
         }
-        return sqlTable;
+
+    @Throws(SqlQueriesException::class)
+    override fun close() {
+        cursor.close()
     }
 
-    @Override
-    public void close() throws SqlQueriesException {
-        cursor.close();
-    }
+    @get:Throws(SqlQueriesException::class)
+    override val isClosed: Boolean
+        get() = cursor.isClosed
 
-    @Override
-    public boolean isClosed() throws SqlQueriesException {
-        return cursor.isClosed();
-    }
 }

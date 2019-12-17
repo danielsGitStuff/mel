@@ -139,6 +139,14 @@ public class ConflictTest {
         });
     }
 
+
+
+    /**
+     * this creates two equal stage sets.
+     * @throws SqlQueriesException
+     * @throws IOException
+     * @throws SQLException
+     */
     @Before
     public void before() throws SqlQueriesException, IOException, SQLException {
         dbFile = new File("conflict.test." + (counter++) + ".db");
