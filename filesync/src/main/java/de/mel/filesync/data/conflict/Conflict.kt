@@ -11,8 +11,11 @@ class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val remoteS
         get
     private var parent: Conflict? = null
     private var children = mutableListOf<Conflict>()
-    val chosenLocal: Boolean = localStage != null && decision == localStage
-    val chosenRemote: Boolean = remoteStage != null && decision == remoteStage
+
+    var chosenLocal: Boolean = false
+        get() = localStage != null && decision === localStage
+    var chosenRemote: Boolean = false
+        get() = remoteStage != null && decision === remoteStage
     val hasChoice: Boolean
         get() = decision != null
 

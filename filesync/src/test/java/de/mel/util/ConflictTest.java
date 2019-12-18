@@ -30,8 +30,10 @@ import static org.junit.Assert.*;
 
 /**
  * find.. methods create conflicts in the stage sets and must find them or must not find them.
+ * solve.. methods check whether the applied solutions are valid.
  */
 public class ConflictTest {
+    static Integer counter = 0;
     StageTestCreationDao creationLocalDao;
     StageTestCreationDao creationRemoteDao;
     StageDao stageDao;
@@ -41,7 +43,6 @@ public class ConflictTest {
     StageSet localStageSet;
     StageSet remoteStageSet;
     ConflictSolver conflictSolver;
-    static Integer counter = 0;
 
     public void fillStageSet(StageTestCreationDao creationDao, long stageSetId) throws SqlQueriesException {
         Order ord = new Order();
@@ -143,9 +144,9 @@ public class ConflictTest {
     }
 
 
-
     /**
      * this creates two equal stage sets.
+     *
      * @throws SqlQueriesException
      * @throws IOException
      * @throws SQLException
@@ -239,6 +240,22 @@ public class ConflictTest {
         assertTrue(conflictSolver.hasConflicts());
         assertEquals(1, conflictSolver.getRootConflictMap().size());
         assertEquals(2, conflictSolver.getConflictMap().size());
+    }
+
+    @Test
+    public void solveFileConflict() throws SqlQueriesException {
+        findContentFileConflict();
+        Conflict localConflict = conflictSolver.getLocalStageConflictMap().values().iterator().next();
+        Conflict remoteConflict = conflictSolver.getRemoteStageConflictMap().values().iterator().next();
+        assertFalse(localConflict.getHasChoice());
+        assertFalse(localConflict.getHasChoice());
+        localConflict.decideLocal();
+        assertTrue(localConflict.getHasChoice());
+        assertTrue(remoteConflict.getHasChoice());
+        assertTrue(localConflict.getChosenLocal());
+        assertFalse(localConflict.getChosenRemote());
+        assertTrue(remoteConflict.getChosenLocal());
+        assertFalse(remoteConflict.getChosenRemote());
     }
 
     @Test
