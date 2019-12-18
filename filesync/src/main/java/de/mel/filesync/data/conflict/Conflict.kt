@@ -45,7 +45,8 @@ class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val remoteS
         children.forEach { it.decideLocal() }
     }
 
-    override fun toString(): String = "Class: {${javaClass.simpleName}, key: \"$key\"}"
+    override fun toString(): String = "key: \"$key\", l: \"${localStage?.name ?: "null"}\", r: \"${remoteStage?.name
+            ?: "null"}\""
 
     companion object {
         fun createKey(lStage: Stage?, rStage: Stage?): String =

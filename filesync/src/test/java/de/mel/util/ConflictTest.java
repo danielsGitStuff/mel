@@ -31,6 +31,10 @@ import static org.junit.Assert.*;
 /**
  * find.. methods create conflicts in the stage sets and must find them or must not find them.
  * solve.. methods check whether the applied solutions are valid.
+ * naming scheme is as follows:
+ * solve whatHappensBeforeConflictSearching Side
+ * Side = Local | Remote | Mixed
+ * whatHappensBeforeConflictSearching = DeleteX | ModifyX ...
  */
 public class ConflictTest {
     static Integer counter = 0;
@@ -194,7 +198,7 @@ public class ConflictTest {
         aatxt.setDeleted(true);
         stageDao.update(aatxt);
 
-        conflictSolver = createConflictSolver().findConflicts();
+        createConflictSolver().findConflicts();
         assertTrue(conflictSolver.hasConflicts());
         assertEquals(1, conflictSolver.getConflictMap().size());
         assertEquals(1, conflictSolver.getLocalStageConflictMap().size());
@@ -212,7 +216,7 @@ public class ConflictTest {
         aatxt.setContentHash("changed");
         stageDao.update(aatxt);
 
-        conflictSolver = createConflictSolver().findConflicts();
+        createConflictSolver().findConflicts();
         assertTrue(conflictSolver.hasConflicts());
         assertEquals(1, conflictSolver.getConflictMap().size());
         assertEquals(1, conflictSolver.getLocalStageConflictMap().size());
@@ -220,7 +224,8 @@ public class ConflictTest {
     }
 
     private ConflictSolver createConflictSolver() {
-        return new ConflictSolver(conflictDao, localStageSet, remoteStageSet);
+        conflictSolver = new ConflictSolver(conflictDao, localStageSet, remoteStageSet);
+        return conflictSolver;
     }
 
     /**
@@ -229,21 +234,26 @@ public class ConflictTest {
      * @throws SqlQueriesException
      */
     @Test
-    public void findRemoteDeleted() throws SqlQueriesException {
+    public void findRemoteDeletedFolder() throws SqlQueriesException {
         Stage bbbtext = creationRemoteDao.get("bbb.txt");
         stageDao.deleteStageById(bbbtext.getId());
         Stage bb = creationRemoteDao.get("bb");
         bb.setDeleted(true);
         stageDao.update(bb);
 
-        conflictSolver = createConflictSolver().findConflicts();
+        createConflictSolver().findConflicts();
         assertTrue(conflictSolver.hasConflicts());
         assertEquals(1, conflictSolver.getRootConflictMap().size());
         assertEquals(2, conflictSolver.getConflictMap().size());
     }
 
+    /**
+     * test whether the decision is properly propagated
+     *
+     * @throws SqlQueriesException
+     */
     @Test
-    public void solveFileConflict() throws SqlQueriesException {
+    public void solveContentFileConflictLocal() throws SqlQueriesException {
         findContentFileConflict();
         Conflict localConflict = conflictSolver.getLocalStageConflictMap().values().iterator().next();
         Conflict remoteConflict = conflictSolver.getRemoteStageConflictMap().values().iterator().next();
@@ -259,7 +269,7 @@ public class ConflictTest {
     }
 
     @Test
-    public void decideContentFileConflictRemote() throws SqlQueriesException {
+    public void solveContentFileConflictRemote() throws SqlQueriesException {
         findContentFileConflict();
         conflictSolver.getRemoteStageConflictMap().values().forEach(Conflict::decideRemote);
         assertFalse(conflictSolver.hasConflicts());
@@ -267,8 +277,68 @@ public class ConflictTest {
     }
 
     @Test
+    public void solveDeleteRemoteParentLocal() throws SqlQueriesException {
+        {
+            Stage bbbtext = creationRemoteDao.get("bbb.txt");
+            stageDao.deleteStageById(bbbtext.getId());
+            Stage bb = creationRemoteDao.get("bb");
+            stageDao.deleteStageById(bb.getId());
+            Stage b = creationRemoteDao.get("b");
+            b.setDeleted(true);
+            stageDao.update(b);
+        }
+        createConflictSolver().findConflicts();
+        assertEquals(3, conflictSolver.getConflictMap().size());
+
+        Conflict bRemote = conflictSolver.getLocalStageConflictMap().values().stream().filter(conflict -> conflict.getRemoteStage().getNamePair().equalsValue("b")).findFirst().get();
+        bRemote.decideLocal();
+
+        conflictSolver.getLocalStageConflictMap().values().forEach(conflict ->
+        {
+            assertTrue(conflict.getHasChoice());
+            assertTrue(conflict.getChosenLocal());
+        });
+        conflictSolver.getRemoteStageConflictMap().values().forEach(conflict ->
+        {
+            assertTrue(conflict.getHasChoice());
+            assertTrue(conflict.getChosenLocal());
+        });
+
+    }
+
+    @Test
+    public void solveDeleteRemoteParentRemote() throws SqlQueriesException {
+        {
+            Stage bbbtext = creationRemoteDao.get("bbb.txt");
+            stageDao.deleteStageById(bbbtext.getId());
+            Stage bb = creationRemoteDao.get("bb");
+            stageDao.deleteStageById(bb.getId());
+            Stage b = creationRemoteDao.get("b");
+            b.setDeleted(true);
+            stageDao.update(b);
+        }
+        createConflictSolver().findConflicts();
+        assertEquals(3, conflictSolver.getConflictMap().size());
+
+        Conflict bRemote = conflictSolver.getLocalStageConflictMap().values().stream().filter(conflict -> conflict.getRemoteStage().getNamePair().equalsValue("b")).findFirst().get();
+        bRemote.decideRemote();
+
+        conflictSolver.getLocalStageConflictMap().values().forEach(conflict ->
+        {
+            assertTrue(conflict.getHasChoice());
+            assertTrue(conflict.getChosenRemote());
+        });
+        conflictSolver.getRemoteStageConflictMap().values().forEach(conflict ->
+        {
+            assertTrue(conflict.getHasChoice());
+            assertTrue(conflict.getChosenRemote());
+        });
+
+    }
+
+    @Test
     public void noConflict() throws SqlQueriesException {
-        conflictSolver = createConflictSolver().findConflicts();
+        createConflictSolver().findConflicts();
         conflictSolver.getRemoteStageConflictMap().values().forEach(Conflict::decideRemote);
         assertFalse(conflictSolver.hasConflicts());
     }
