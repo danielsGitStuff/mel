@@ -5,7 +5,7 @@ import de.mel.Lok;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.data.db.Service;
 import de.mel.auth.service.IMelService;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.sql.SqlQueriesException;
 import org.jdeferred.Promise;
 
@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  * Messages are announcements of new MelAuth instances who say "Hello"
  */
 public class MelAuthBrotCaster extends BrotCaster {
-    private final MelAuthService melAuthService;
+    private final MelAuthServiceImpl melAuthService;
     private MelAuthBrotCasterListener brotCasterListener;
 
     public MelAuthBrotCaster setBrotCasterListener(MelAuthBrotCasterListener brotCasterListener) {
@@ -38,7 +38,7 @@ public class MelAuthBrotCaster extends BrotCaster {
         void onHasAddress(InetAddress address, int port, int portCert);
     }
 
-    public MelAuthBrotCaster(MelAuthService melAuthService) {
+    public MelAuthBrotCaster(MelAuthServiceImpl melAuthService) {
         super(melAuthService.getSettings().getBrotcastListenerPort(), melAuthService.getSettings().getBrotcastPort());
         this.melAuthService = melAuthService;
     }

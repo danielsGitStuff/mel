@@ -12,7 +12,6 @@ import de.mel.auth.socket.process.imprt.MelAuthCertDelivery;
 import de.mel.auth.tools.N;
 
 import de.mel.auth.tools.ShutDownDeferredManager;
-import org.jdeferred.DeferredManager;
 import org.jdeferred.impl.DefaultDeferredManager;
 import org.jdeferred.impl.DeferredObject;
 
@@ -24,12 +23,12 @@ public class MelAuthWorker extends MelWorker implements PowerManager.IPowerState
     private final int port;
     private final Integer deliverPort;
     private MelAuthSocketOpener socketOpener;
-    private final MelAuthService melAuthService;
+    private final MelAuthServiceImpl melAuthService;
     protected MelAuthCertDelivery certDelivery;
     protected MelAuthBrotCaster brotCaster;
 
 
-    public MelAuthWorker(MelAuthService melAuthService, MelAuthSettings melAuthSettings) {
+    public MelAuthWorker(MelAuthServiceImpl melAuthService, MelAuthSettings melAuthSettings) {
         this.melAuthService = melAuthService;
         this.port = melAuthSettings.getPort();
         this.deliverPort = melAuthSettings.getDeliveryPort();

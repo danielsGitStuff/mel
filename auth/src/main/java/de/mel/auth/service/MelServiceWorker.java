@@ -73,7 +73,7 @@ public abstract class MelServiceWorker extends MelService {
     }
 
     /**
-     * this is method is called when all {@link MelService}s and {@link MelAuthService} booted up.
+     * this is method is called when all {@link MelService}s and {@link MelAuthServiceImpl} booted up.
      * the worker waits for a lock being released when this method is called.
      * this prevents it from trying to communicate while initialization is still in progress and hurts you.
      */

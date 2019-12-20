@@ -1,7 +1,7 @@
 package de.mel.auth.gui;
 
 import de.mel.auth.service.MelAuthAdminFX;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import javafx.fxml.Initializable;
 import javafx.stage.Stage;
 
@@ -13,7 +13,7 @@ import java.util.ResourceBundle;
  */
 public abstract class AuthSettingsFX implements Initializable {
 
-    protected MelAuthService melAuthService;
+    protected MelAuthServiceImpl melAuthService;
     protected Stage stage;
     protected ResourceBundle resources;
 
@@ -28,7 +28,7 @@ public abstract class AuthSettingsFX implements Initializable {
      */
     public abstract boolean onPrimaryClicked();
 
-    public void setMelAuthService(MelAuthService melAuthService) {
+    public void setMelAuthService(MelAuthServiceImpl melAuthService) {
         this.melAuthService = melAuthService;
         this.init();
     }

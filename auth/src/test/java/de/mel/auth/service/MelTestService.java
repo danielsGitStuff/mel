@@ -18,7 +18,7 @@ import java.util.concurrent.ThreadFactory;
  */
 public class MelTestService extends MelServiceWorker {
 
-    public MelTestService(MelAuthService melAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
+    public MelTestService(MelAuthServiceImpl melAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
         super(melAuthService, workingDirectory,serviceTypeId,uuid, Bootloader.BootLevel.SHORT);
     }
 

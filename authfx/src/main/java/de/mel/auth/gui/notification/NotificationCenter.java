@@ -4,8 +4,7 @@ import de.mel.Lok;
 import de.mel.auth.MelNotification;
 import de.mel.auth.gui.XCBFix;
 import de.mel.auth.service.MelAuthAdminFX;
-import de.mel.auth.service.MelAuthService;
-import javafx.application.Platform;
+import de.mel.auth.service.MelAuthServiceImpl;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
@@ -19,7 +18,7 @@ public class NotificationCenter {
     @FXML
     private Button btnClose;
     private MelAuthAdminFX melAuthAdminFX;
-    private MelAuthService melAuthService;
+    private MelAuthServiceImpl melAuthService;
     private Stage stage;
 
     public NotificationCenter() {

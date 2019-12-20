@@ -2,8 +2,7 @@ package de.mel.auth.gui;
 
 import de.mel.Lok;
 import de.mel.auth.MelNotification;
-import de.mel.auth.service.MelAuthService;
-import javafx.application.Platform;
+import de.mel.auth.service.MelAuthServiceImpl;
 import javafx.fxml.FXML;
 import javafx.scene.control.ProgressBar;
 import javafx.stage.Stage;
@@ -18,7 +17,7 @@ public class ProgressPopupContentFX extends PopupContentFX implements MelNotific
     }
 
     @Override
-    public void initImpl(Stage stage, MelAuthService melAuthService, MelNotification notification) {
+    public void initImpl(Stage stage, MelAuthServiceImpl melAuthService, MelNotification notification) {
         notification.addProgressListener(this);
         if (!notification.isCanceled() || !notification.isFinished())
             showProgress(notification.getMax(), notification.getCurrent(), notification.isIndeterminate());

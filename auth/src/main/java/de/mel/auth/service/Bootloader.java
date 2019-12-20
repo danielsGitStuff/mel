@@ -17,13 +17,13 @@ import java.util.concurrent.atomic.AtomicReference;
  * If you got a possibly long lasting workload do this on level 2.
  * If your Service does not require a second level you could just skip it (see bootLevel2Impl).
  * When you have gone though all necessary levels and your Service is ready to consume messages from the outside world
- * you can register it to the {@link MelAuthService} via registerMelService().
+ * you can register it to the {@link MelAuthServiceImpl} via registerMelService().
  */
 public abstract class Bootloader<T extends MelService> {
     protected T melService;
     protected Long typeId;
     protected File bootLoaderDir;
-    protected MelAuthService melAuthService;
+    protected MelAuthServiceImpl melAuthService;
     protected AtomicReference<BootLevel> bootLevel = new AtomicReference<>(BootLevel.NONE);
 
 
@@ -40,7 +40,7 @@ public abstract class Bootloader<T extends MelService> {
 
     public abstract String getDescription();
 
-    public final T bootLevelShort(MelAuthService melAuthService, Service serviceDescription) throws BootException {
+    public final T bootLevelShort(MelAuthServiceImpl melAuthService, Service serviceDescription) throws BootException {
         if (bootLevel.compareAndSet(BootLevel.NONE, BootLevel.SHORT)) {
             melService = bootLevelShortImpl(melAuthService, serviceDescription);
             melService.setReachedBootLevel(BootLevel.SHORT);
@@ -60,7 +60,7 @@ public abstract class Bootloader<T extends MelService> {
      * @return
      * @throws BootException
      */
-    public abstract T bootLevelShortImpl(MelAuthService melAuthService, Service serviceDescription) throws BootException;
+    public abstract T bootLevelShortImpl(MelAuthServiceImpl melAuthService, Service serviceDescription) throws BootException;
 
     public void setBootLoaderDir(File bootLoaderDir) {
         this.bootLoaderDir = bootLoaderDir;
@@ -71,7 +71,7 @@ public abstract class Bootloader<T extends MelService> {
         return getName();
     }
 
-    public void setMelAuthService(MelAuthService melAuthService) {
+    public void setMelAuthService(MelAuthServiceImpl melAuthService) {
         this.melAuthService = melAuthService;
 
     }

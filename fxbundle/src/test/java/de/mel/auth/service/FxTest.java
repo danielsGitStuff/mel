@@ -49,7 +49,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -587,7 +586,7 @@ public class FxTest {
         json2.setJsonFile(MelAuthSettings.DEFAULT_FILE_2);
         json2.save();
         AtomicReference<MelFileSyncClientService> clientService = new AtomicReference<>();
-        AtomicReference<MelAuthService> client = new AtomicReference<>();
+        AtomicReference<MelAuthServiceImpl> client = new AtomicReference<>();
         FileSyncSyncListener syncListener = new FileSyncSyncListener() {
             @Override
             public void onSyncFailed() {
@@ -984,7 +983,7 @@ public class FxTest {
             }
 
             @Override
-            public void start(MelAuthService melAuthService) {
+            public void start(MelAuthServiceImpl melAuthService) {
 
             }
 

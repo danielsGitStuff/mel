@@ -1,7 +1,7 @@
 package de.mel.auth.gui;
 
 import de.mel.auth.data.db.ServiceJoinServiceType;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListCell;
 
@@ -12,7 +12,7 @@ import java.util.ResourceBundle;
  * Created by xor on 9/24/16.
  */
 public class ServiceListItem extends ListCell<ServiceJoinServiceType> implements Initializable {
-    private MelAuthService melAuthService;
+    private MelAuthServiceImpl melAuthService;
     private ServiceJoinServiceType service;
 
 

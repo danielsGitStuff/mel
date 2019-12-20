@@ -5,7 +5,7 @@ import de.mel.auth.data.db.Service;
 import de.mel.auth.data.db.ServiceType;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.IFile;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.core.serialize.exceptions.JsonDeserializationException;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
 import de.mel.filesync.data.*;
@@ -26,9 +26,9 @@ import java.sql.SQLException;
  */
 @SuppressWarnings("Duplicates")
 public class FileSyncCreateServiceHelper {
-    private final MelAuthService melAuthService;
+    private final MelAuthServiceImpl melAuthService;
 
-    public FileSyncCreateServiceHelper(MelAuthService melAuthService) {
+    public FileSyncCreateServiceHelper(MelAuthServiceImpl melAuthService) {
         this.melAuthService = melAuthService;
     }
 

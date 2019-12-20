@@ -5,7 +5,7 @@ import de.mel.Lok;
 import de.mel.auth.MelStrings;
 import de.mel.auth.jobs.BlockReceivedJob;
 import de.mel.auth.jobs.ReceivedJob;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.tools.CountWaitLock;
 import de.mel.auth.tools.N;
 import org.jdeferred.impl.DeferredObject;
@@ -46,7 +46,7 @@ public class MelSocket extends DeferredRunnable {
 //    public static final int BLOCK_SIZE = 32 * 4096 + 21;
     public static final int BLOCK_SIZE = 1024 * 4096 + 21; // performance increase with bigger blocks?
 
-    protected MelAuthService melAuthService;
+    protected MelAuthServiceImpl melAuthService;
     private MelThread thread;
     protected DataOutputStream out;
     protected DataInputStream in;
@@ -56,7 +56,7 @@ public class MelSocket extends DeferredRunnable {
     private final int v;
     private static AtomicInteger vv = new AtomicInteger(0);
 
-    public MelAuthService getMelAuthService() {
+    public MelAuthServiceImpl getMelAuthService() {
         return melAuthService;
     }
 
@@ -146,13 +146,13 @@ public class MelSocket extends DeferredRunnable {
     }
 
 
-    public MelSocket(MelAuthService melAuthService, Socket socket) {
+    public MelSocket(MelAuthServiceImpl melAuthService, Socket socket) {
         this(melAuthService);
         this.socket = socket;
         streams();
     }
 
-    public MelSocket(MelAuthService melAuthService) {
+    public MelSocket(MelAuthServiceImpl melAuthService) {
         this.melAuthService = melAuthService;
         v = vv.getAndIncrement();
         if (melAuthService != null)

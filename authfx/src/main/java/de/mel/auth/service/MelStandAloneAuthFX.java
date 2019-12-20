@@ -5,7 +5,7 @@ package de.mel.auth.service;
  */
 public class MelStandAloneAuthFX {
 
-    public MelStandAloneAuthFX(MelAuthService melAuthService) throws Exception {
+    public MelStandAloneAuthFX(MelAuthServiceImpl melAuthService) throws Exception {
         melAuthService.addMelAuthAdmin(MelAuthAdminFX.load(melAuthService));
     }
 }

@@ -1,9 +1,9 @@
 package de.mel.filesync.service.sync;
 
 import de.mel.Lok;
-import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.IFile;
 import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.lock.P;

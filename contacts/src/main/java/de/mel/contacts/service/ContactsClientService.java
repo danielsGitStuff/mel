@@ -10,7 +10,7 @@ import de.mel.Lok;
 import de.mel.auth.data.ServicePayload;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.jobs.Job;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.contacts.data.ContactStrings;
 import de.mel.contacts.data.NewVersionDetails;
@@ -29,7 +29,7 @@ import de.mel.contacts.data.ContactsSettings;
 public class ContactsClientService extends ContactsService {
 
 
-    public ContactsClientService(MelAuthService melAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, ContactsSettings settingsCfg) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
+    public ContactsClientService(MelAuthServiceImpl melAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, ContactsSettings settingsCfg) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
         super(melAuthService, serviceInstanceWorkingDirectory, serviceTypeId, uuid, settingsCfg);
     }
 

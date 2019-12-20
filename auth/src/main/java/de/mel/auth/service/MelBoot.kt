@@ -28,8 +28,8 @@ import java.util.logging.Logger
 class MelBoot(private val melAuthSettings: MelAuthSettings, private val powerManager: PowerManager, vararg bootloaderClasses: Class<out Bootloader<out MelService>>) : BackgroundExecutor(), MelRunnable {
     private val bootloaderClasses = HashSet<Class<out Bootloader<out MelService>>>()
     private val bootloaderMap = HashMap<String, Class<out Bootloader<out MelService>>>()
-    private val deferredObject: DeferredObject<MelAuthService, Exception, Void>
-    private var melAuthService: MelAuthService? = null
+    private val deferredObject: DeferredObject<MelAuthServiceImpl, Exception, Void>
+    private var melAuthService: MelAuthServiceImpl? = null
     private val melAuthAdmins = ArrayList<MelAuthAdmin>()
 
 
@@ -59,7 +59,7 @@ class MelBoot(private val melAuthSettings: MelAuthSettings, private val powerMan
 
 
     @Throws(Exception::class)
-    fun boot(): Promise<MelAuthService, Exception, Void> {
+    fun boot(): Promise<MelAuthServiceImpl, Exception, Void> {
         execute(this)
         return deferredObject
     }
@@ -70,7 +70,7 @@ class MelBoot(private val melAuthSettings: MelAuthSettings, private val powerMan
             powerManager.addStateListener(PowerManager.IPowerStateListener {
                 bootStage2()
             })
-            melAuthService = MelAuthService(melAuthSettings, powerManager)
+            melAuthService = MelAuthServiceImpl(melAuthSettings, powerManager)
             melAuthService!!.melBoot = this
             val promiseAuthIsUp = melAuthService!!.prepareStart()
             promiseAuthIsUp.done { result -> deferredObject.resolve(melAuthService) }
@@ -118,7 +118,7 @@ class MelBoot(private val melAuthSettings: MelAuthSettings, private val powerMan
 
 
     @Throws(SqlQueriesException::class, IllegalAccessException::class, InstantiationException::class)
-    fun createBootLoader(melAuthService: MelAuthService?, bootClass: Class<out Bootloader<out MelService>>): Bootloader<out MelService> {
+    fun createBootLoader(melAuthService: MelAuthServiceImpl?, bootClass: Class<out Bootloader<out MelService>>): Bootloader<out MelService> {
         val bootLoader = bootClass.newInstance()
         bootloaderMap[bootLoader.name] = bootClass
         bootLoader.setMelAuthService(melAuthService)

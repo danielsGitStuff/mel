@@ -19,7 +19,7 @@ import de.mel.auth.data.JsonSettings
 import de.mel.auth.data.db.Service
 import de.mel.auth.data.db.ServiceJoinServiceType
 import de.mel.auth.service.BootException
-import de.mel.auth.service.MelAuthService
+import de.mel.auth.service.MelAuthServiceImpl
 import de.mel.auth.tools.CountdownLock
 import de.mel.core.serialize.exceptions.JsonDeserializationException
 import de.mel.core.serialize.exceptions.JsonSerializationException
@@ -61,7 +61,7 @@ open class ContactsBootloader : Bootloader<ContactsService>() {
     }
 
     @Throws(BootException::class)
-    private fun boot(melAuthService: MelAuthService, service: Service, contactsSettings: ContactsSettings<*>?): ContactsService {
+    private fun boot(melAuthService: MelAuthServiceImpl, service: Service, contactsSettings: ContactsSettings<*>?): ContactsService {
         val workingDirectory = melAuthService.melBoot.createServiceInstanceWorkingDir(service)
         var contactsService: ContactsService
         try {
@@ -112,12 +112,12 @@ open class ContactsBootloader : Bootloader<ContactsService>() {
     }
 
     @Throws(JsonDeserializationException::class, JsonSerializationException::class, IOException::class, SQLException::class, SqlQueriesException::class, IllegalAccessException::class, ClassNotFoundException::class)
-    protected open fun createClientInstance(melAuthService: MelAuthService, workingDirectory: File, serviceTypeId: Long?, serviceUuid: String, settings: ContactsSettings<*>): ContactsService {
+    protected open fun createClientInstance(melAuthService: MelAuthServiceImpl, workingDirectory: File, serviceTypeId: Long?, serviceUuid: String, settings: ContactsSettings<*>): ContactsService {
         return ContactsClientService(melAuthService, workingDirectory, serviceTypeId, serviceUuid, settings)
     }
 
     @Throws(JsonDeserializationException::class, JsonSerializationException::class, IOException::class, SQLException::class, SqlQueriesException::class, IllegalAccessException::class, ClassNotFoundException::class)
-    protected open fun createServerInstance(melAuthService: MelAuthService, workingDirectory: File, serviceId: Long?, serviceTypeId: String, contactsSettings: ContactsSettings<*>): ContactsService {
+    protected open fun createServerInstance(melAuthService: MelAuthServiceImpl, workingDirectory: File, serviceId: Long?, serviceTypeId: String, contactsSettings: ContactsSettings<*>): ContactsService {
         return ContactsServerService(melAuthService, workingDirectory, serviceId, serviceTypeId, contactsSettings)
     }
 
@@ -136,7 +136,7 @@ open class ContactsBootloader : Bootloader<ContactsService>() {
     }
 
     @Throws(BootException::class)
-    override fun bootLevelShortImpl(melAuthService: MelAuthService, serviceDescription: Service): ContactsService {
+    override fun bootLevelShortImpl(melAuthService: MelAuthServiceImpl, serviceDescription: Service): ContactsService {
         val instanceDir = melAuthService.melBoot.createServiceInstanceWorkingDir(serviceDescription)
         val jsonFile = File(instanceDir, ContactStrings.SETTINGS_FILE_NAME)
         var contactsSettings: ContactsSettings<*>? = null

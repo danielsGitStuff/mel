@@ -2,7 +2,7 @@ package de.mel.auth.socket;
 
 import de.mel.DeferredRunnable;
 import de.mel.Lok;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.tools.N;
 import org.jdeferred.Promise;
 
@@ -16,10 +16,10 @@ import java.net.Socket;
 public class MelAuthSocketOpener extends DeferredRunnable {
 
     private ServerSocket serverSocket;
-    private final MelAuthService melAuthService;
+    private final MelAuthServiceImpl melAuthService;
     private final int port;
 
-    public MelAuthSocketOpener(MelAuthService melAuthService, int port) {
+    public MelAuthSocketOpener(MelAuthServiceImpl melAuthService, int port) {
         this.melAuthService = melAuthService;
         this.port = port;
     }

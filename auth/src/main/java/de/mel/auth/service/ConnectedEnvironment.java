@@ -32,9 +32,9 @@ public class ConnectedEnvironment {
     private Map<Long, MelAuthSocket> currentlyConnectingCertIds = new HashMap<>();
     private Map<String, MelAuthSocket> currentlyConnectingAddresses = new HashMap<>();
 
-    private final MelAuthService melAuthService;
+    private final MelAuthServiceImpl melAuthService;
 
-    ConnectedEnvironment(MelAuthService melAuthService) {
+    ConnectedEnvironment(MelAuthServiceImpl melAuthService) {
         this.melAuthService = melAuthService;
     }
 

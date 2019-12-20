@@ -2,7 +2,7 @@ package de.mel.auth.gui;
 
 import de.mel.auth.MelNotification;
 import de.mel.auth.service.MelAuthAdminFX;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.tools.N;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -22,7 +22,7 @@ public class Popup {
     @FXML
     private Button btnOk;
 
-    public Popup(MelAuthService melAuthService, MelNotification notification, String containingPath, ResourceBundle melAuthResourceBundle) {
+    public Popup(MelAuthServiceImpl melAuthService, MelNotification notification, String containingPath, ResourceBundle melAuthResourceBundle) {
         N.r(() -> {
             //load the popup first
             FXMLLoader loader = new FXMLLoader(MelAuthAdminFX.class.getClassLoader().getResource("de/mel/auth/popup.fxml"));

@@ -4,6 +4,7 @@ import de.mel.Lok;
 import de.mel.auth.MelStrings;
 import de.mel.auth.jobs.BlockReceivedJob;
 import de.mel.auth.service.IMelService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.socket.MelAuthSocket;
 import de.mel.auth.socket.MelProcess;
 import de.mel.auth.tools.ByteTools;
@@ -21,7 +22,7 @@ import java.util.Set;
 
 /**
  * Process is exclusively bound a {@link IMelService}. It does not interfere with other connections. Good for transferring large amounts of data.
- * {@link de.mel.auth.service.MelAuthService} does not take care of this connection. You got to do this in your Service.
+ * {@link MelAuthServiceImpl} does not take care of this connection. You got to do this in your Service.
  */
 public abstract class MelIsolatedProcess extends MelProcess {
 

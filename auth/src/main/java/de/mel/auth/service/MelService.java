@@ -21,7 +21,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A Service comes with its own ExecutorService. You should execute all Runnables of your Service with this class.
- * It will stop all Threads/Runnables when shutDown() is called. This happens is a Service is shut down by @{@link MelAuthService}
+ * It will stop all Threads/Runnables when shutDown() is called. This happens is a Service is shut down by @{@link MelAuthServiceImpl}
  * Created by xor on 5/2/16.
  */
 public abstract class MelService extends MelWorker implements IMelService {

@@ -1,6 +1,9 @@
 package de.mel.util;
 
+import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.service.DummyMelAuthService;
+import de.mel.auth.service.MelAuthService;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
 import de.mel.filesync.data.FileSyncSettings;
@@ -27,12 +30,19 @@ public class SingleServiceTest extends MergeTest {
     MelFileSyncServerService syncServerService;
     FileSyncSettings settings;
     RootDirectory rootDir;
+    MelAuthService melAuthService;
 
     @Before
     @Override
     public void before() throws SqlQueriesException, IOException, SQLException {
         super.before();
         workingDirectory = new File("test.workingdir." + counter);
+        MelAuthSettings authSettings = new MelAuthSettings()
+                .setName("mel auth dummy")
+                .setWorkingDirectory(workingDirectory);
+        melAuthService = new DummyMelAuthService(authSettings);
+
+
         rootDir = new RootDirectory();
         rootDir.setOriginalFile(AbstractFile.instance(AbstractFile.instance(workingDirectory), "rootdir"));
         settings = new FileSyncSettings()
@@ -44,12 +54,11 @@ public class SingleServiceTest extends MergeTest {
                 .setRootDirectory(rootDir)
                 .setUseSymLinks(false)
                 .setTransferDirectory(AbstractFile.instance(AbstractFile.instance(workingDirectory), "transfer.dir"));
-
         databaseManager = new FileSyncDatabaseManager("dummy service uuid", workingDirectory, settings);
     }
 
     public MelFileSyncServerService createServerService() {
-        syncServerService = new MelFileSyncServerService(null, workingDirectory, 1L, "dummy service uuid", settings, databaseManager);
+        syncServerService = new MelFileSyncServerService(melAuthService, workingDirectory, 1L, "dummy service uuid", settings, databaseManager);
         return syncServerService;
     }
 

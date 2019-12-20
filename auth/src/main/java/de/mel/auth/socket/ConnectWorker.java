@@ -6,7 +6,7 @@ import de.mel.auth.jobs.AConnectJob;
 import de.mel.auth.jobs.ConnectJob;
 import de.mel.auth.jobs.IsolatedConnectJob;
 import de.mel.auth.jobs.Job;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.service.MelWorker;
 import de.mel.auth.socket.process.imprt.MelCertRetriever;
 import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
@@ -36,10 +36,10 @@ import java.util.Objects;
 public class ConnectWorker extends MelWorker {
 
     private final AConnectJob connectJob;
-    private final MelAuthService melAuthService;
+    private final MelAuthServiceImpl melAuthService;
     private MelAuthSocket melAuthSocket;
 
-    public ConnectWorker(MelAuthService melAuthService, AConnectJob connectJob) {
+    public ConnectWorker(MelAuthServiceImpl melAuthService, AConnectJob connectJob) {
         Objects.requireNonNull(connectJob);
         this.melAuthService = melAuthService;
         this.connectJob = connectJob;
@@ -47,7 +47,7 @@ public class ConnectWorker extends MelWorker {
         addJob(connectJob);
     }
 
-    public ConnectWorker(MelAuthService melAuthService, MelAuthSocket melAuthSocket) {
+    public ConnectWorker(MelAuthServiceImpl melAuthService, MelAuthSocket melAuthSocket) {
         this(melAuthService, melAuthSocket.getConnectJob());
         this.melAuthSocket = melAuthSocket;
     }

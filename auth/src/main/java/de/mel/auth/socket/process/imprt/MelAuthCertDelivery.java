@@ -8,7 +8,7 @@ import de.mel.auth.data.MelResponse;
 import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.jobs.BlockReceivedJob;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.socket.MelSocket;
 import de.mel.auth.tools.N;
 import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer;
@@ -23,7 +23,6 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.cert.X509Certificate;
-import java.util.Map;
 
 
 /**
@@ -35,13 +34,13 @@ public class MelAuthCertDelivery extends DeferredRunnable {
     private final CertificateManager certificateManager;
     protected DataOutputStream out;
     protected DataInputStream in;
-    private MelAuthService melAuthService;
+    private MelAuthServiceImpl melAuthService;
     private ServerSocketFactory serverSocketFactory;
     protected Integer port;
     protected MelSocket.MelSocketListener listener;
 
 
-    public MelAuthCertDelivery(MelAuthService melAuthService, int port) {
+    public MelAuthCertDelivery(MelAuthServiceImpl melAuthService, int port) {
         this.melAuthService = melAuthService;
         this.certificateManager = melAuthService.getCertificateManager();
         this.port = port;

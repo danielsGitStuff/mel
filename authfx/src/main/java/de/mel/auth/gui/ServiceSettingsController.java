@@ -3,16 +3,12 @@ package de.mel.auth.gui;
 import de.mel.Lok;
 import de.mel.auth.data.db.ServiceJoinServiceType;
 import de.mel.auth.service.MelAuthAdminFX;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.service.MelService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-
-import java.net.URL;
-import java.util.ResourceBundle;
 
 public class ServiceSettingsController extends AuthSettingsFX {
 
@@ -47,7 +43,7 @@ public class ServiceSettingsController extends AuthSettingsFX {
 
 
     @Override
-    public void setMelAuthService(MelAuthService melAuthService) {
+    public void setMelAuthService(MelAuthServiceImpl melAuthService) {
         super.setMelAuthService(melAuthService);
         contentController.setMelAuthService(melAuthService);
     }

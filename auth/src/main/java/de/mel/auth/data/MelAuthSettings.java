@@ -3,12 +3,11 @@ package de.mel.auth.data;
 import de.mel.KResult;
 import de.mel.Lok;
 import de.mel.auth.MelStrings;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.service.MelBoot;
 import de.mel.core.serialize.JsonIgnore;
 
 import java.io.File;
-import java.security.SecureRandom;
 
 /**
  * Created by xor on 6/10/16.
@@ -25,7 +24,7 @@ public class MelAuthSettings extends JsonSettings implements KResult {
     private File workingDirectory;
     private Integer brotcastListenerPort;
     private Integer brotcastPort;
-    private Class<? extends MelAuthService> melAuthServiceClass;
+    private Class<? extends MelAuthServiceImpl> melAuthServiceClass;
     private PowerManagerSettings powerManagerSettings = new PowerManagerSettings();
     private Boolean redirectSysout = false;
     private int updateMessagePort, updateBinaryPort;

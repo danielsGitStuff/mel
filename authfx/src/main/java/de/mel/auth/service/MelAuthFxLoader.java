@@ -1,6 +1,5 @@
 package de.mel.auth.service;
 
-import de.mel.Lok;
 import de.mel.auth.MelAuthAdmin;
 import de.mel.auth.MelNotification;
 
@@ -9,10 +8,10 @@ import de.mel.auth.MelNotification;
  */
 public class MelAuthFxLoader implements MelAuthAdmin {
     private MelAuthAdminFX melAuthAdminFX;
-    private MelAuthService melAuthService;
+    private MelAuthServiceImpl melAuthService;
 
     @Override
-    public void start(MelAuthService melAuthService) {
+    public void start(MelAuthServiceImpl melAuthService) {
         melAuthAdminFX = MelAuthAdminFX.load(melAuthService);
         this.melAuthService = melAuthService;
     }

@@ -6,6 +6,7 @@ import de.mel.auth.data.db.Certificate;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.IFile;
 import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.socket.MelValidationProcess;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;

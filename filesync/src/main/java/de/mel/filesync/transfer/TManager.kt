@@ -3,6 +3,7 @@ package de.mel.filesync.transfer
 import de.mel.DeferredRunnable
 import de.mel.Lok
 import de.mel.auth.service.MelAuthService
+import de.mel.auth.service.MelAuthServiceImpl
 import de.mel.auth.socket.process.transfer.MelIsolatedFileProcess
 import de.mel.auth.socket.process.transfer.MelIsolatedProcess
 import de.mel.auth.tools.CountLock

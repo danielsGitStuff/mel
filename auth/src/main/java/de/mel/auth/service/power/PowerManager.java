@@ -1,13 +1,12 @@
 package de.mel.auth.service.power;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.data.PowerManagerSettings;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.tools.N;
 
 /**
@@ -17,7 +16,7 @@ import de.mel.auth.tools.N;
 public class PowerManager {
     private final MelAuthSettings melAuthSettings;
     private final PowerManagerSettings settings;
-    protected MelAuthService melAuthService;
+    protected MelAuthServiceImpl melAuthService;
     protected boolean wifi = true;
     protected ReentrantLock stateLock = new ReentrantLock(true);
     protected boolean powered = true;
@@ -33,7 +32,7 @@ public class PowerManager {
         this.settings = melAuthSettings.getPowerManagerSettings();
     }
 
-    public PowerManager setMelAuthService(MelAuthService melAuthService) {
+    public PowerManager setMelAuthService(MelAuthServiceImpl melAuthService) {
         this.melAuthService = melAuthService;
         return this;
     }

@@ -1,7 +1,7 @@
 package de.mel.auth.gui;
 
 import de.mel.auth.MelNotification;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import javafx.stage.Stage;
 
 /**
@@ -17,12 +17,12 @@ public abstract class PopupContentFX {
      */
     public abstract String onOkCLicked();
 
-    public final void init(Stage stage, MelAuthService melAuthService, MelNotification notification) {
+    public final void init(Stage stage, MelAuthServiceImpl melAuthService, MelNotification notification) {
         this.stage = stage;
         this.stage.setTitle(notification.getTitle());
         initImpl(stage, melAuthService, notification);
     }
 
-    public abstract void initImpl(Stage stage, MelAuthService melAuthService, MelNotification notification);
+    public abstract void initImpl(Stage stage, MelAuthServiceImpl melAuthService, MelNotification notification);
 
 }

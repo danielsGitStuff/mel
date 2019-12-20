@@ -7,7 +7,7 @@ import de.mel.auth.data.MelResponse;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.jobs.AConnectJob;
 import de.mel.auth.jobs.BlockReceivedJob;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
 import de.mel.auth.socket.process.val.MelServicesPayload;
 import de.mel.auth.tools.N;
@@ -37,17 +37,17 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
     protected Certificate partnerCertificate;
     private AConnectJob connectJob;
 
-    public MelAuthSocket(MelAuthService melAuthService) {
+    public MelAuthSocket(MelAuthServiceImpl melAuthService) {
         super(melAuthService, null);
         setListener(this);
     }
 
-    public MelAuthSocket(MelAuthService melAuthService, Socket socket) {
+    public MelAuthSocket(MelAuthServiceImpl melAuthService, Socket socket) {
         super(melAuthService, socket);
         setListener(this);
     }
 
-    public MelAuthSocket(MelAuthService melAuthService, AConnectJob connectJob) {
+    public MelAuthSocket(MelAuthServiceImpl melAuthService, AConnectJob connectJob) {
         super(melAuthService, null);
         this.connectJob = connectJob;
         setListener(this);

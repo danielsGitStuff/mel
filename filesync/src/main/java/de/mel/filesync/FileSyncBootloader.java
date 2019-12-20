@@ -7,7 +7,7 @@ import de.mel.auth.data.db.Service;
 import de.mel.auth.data.db.ServiceJoinServiceType;
 import de.mel.auth.service.BootException;
 import de.mel.auth.service.Bootloader;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.socket.MelValidationProcess;
 import de.mel.auth.tools.CountdownLock;
 import de.mel.auth.tools.N;
@@ -55,7 +55,7 @@ public class FileSyncBootloader extends Bootloader<MelFileSyncService> {
     }
 
     @Override
-    public MelFileSyncService bootLevelShortImpl(MelAuthService melAuthService, Service serviceDescription) throws BootException {
+    public MelFileSyncService bootLevelShortImpl(MelAuthServiceImpl melAuthService, Service serviceDescription) throws BootException {
         try {
             File jsonFile = new File(bootLoaderDir.getAbsolutePath() + File.separator + serviceDescription.getUuid().v() + File.separator + FileSyncStrings.SETTINGS_FILE_NAME);
             fileSyncSettings = FileSyncSettings.load(jsonFile);
@@ -131,7 +131,7 @@ public class FileSyncBootloader extends Bootloader<MelFileSyncService> {
      * @throws JsonDeserializationException
      * @throws JsonSerializationException
      */
-    private MelFileSyncService spawn(MelAuthService melAuthService, Service service, FileSyncSettings fileSyncSettings) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+    private MelFileSyncService spawn(MelAuthServiceImpl melAuthService, Service service, FileSyncSettings fileSyncSettings) throws SqlQueriesException, SQLException, IOException, ClassNotFoundException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         this.fileSyncSettings = fileSyncSettings;
         File workingDirectory = new File(bootLoaderDir, service.getUuid().v());
         workingDirectory.mkdirs();

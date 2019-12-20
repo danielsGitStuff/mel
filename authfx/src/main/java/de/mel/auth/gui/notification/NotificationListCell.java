@@ -6,7 +6,7 @@ import de.mel.auth.gui.Popup;
 import de.mel.auth.gui.XCBFix;
 import de.mel.auth.service.Bootloader;
 import de.mel.auth.service.IMelService;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.tools.N;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.ResourceBundle;
 
 public class NotificationListCell extends ListCell<MelNotification> {
-    private final MelAuthService melAuthService;
+    private final MelAuthServiceImpl melAuthService;
     private final ResourceBundle melAuthResourceBundle;
     @FXML
     private Label lblText, lblTitle;
@@ -34,7 +34,7 @@ public class NotificationListCell extends ListCell<MelNotification> {
     @FXML
     private HBox box;
 
-    public NotificationListCell(MelAuthService melAuthService, ResourceBundle melAuthResourceBundle) {
+    public NotificationListCell(MelAuthServiceImpl melAuthService, ResourceBundle melAuthResourceBundle) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/de/mel/auth/notificationlistcell.fxml"));
         loader.setResources(melAuthResourceBundle);
         loader.setController(this);

@@ -1,6 +1,7 @@
 package de.mel.filesync.service;
 
 import de.mel.auth.file.IFile;
+import de.mel.auth.service.MelAuthService;
 import de.mel.filesync.index.InitialIndexConflictHelper;
 import de.mel.filesync.index.watchdog.FileWatcherFactory;
 import org.jdeferred.Deferred;
@@ -20,7 +21,7 @@ import de.mel.auth.file.AbstractFile;
 import de.mel.auth.jobs.Job;
 import de.mel.auth.jobs.ServiceRequestHandlerJob;
 import de.mel.auth.service.Bootloader;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.service.MelServiceWorker;
 import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.socket.MelValidationProcess;

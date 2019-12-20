@@ -6,6 +6,7 @@ import de.mel.auth.MelNotification
 import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.IFile
 import de.mel.auth.service.MelAuthService
+import de.mel.auth.service.MelAuthServiceImpl
 import de.mel.auth.tools.N
 import de.mel.auth.tools.lock.P
 import de.mel.filesync.bash.BashTools

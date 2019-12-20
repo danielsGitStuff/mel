@@ -5,7 +5,7 @@ import de.mel.Lok;
 import de.mel.auth.MelNotification;
 import de.mel.auth.jobs.Job;
 import de.mel.auth.jobs.ServiceRequestHandlerJob;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.lock.P;
@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MelFileSyncClientService extends MelFileSyncService<ClientSyncHandler> {
     private MelNotification latestConflictNotification;
 
-    public MelFileSyncClientService(MelAuthService melAuthService, File workingDirectory, Long serviceTypeId, String uuid, FileSyncSettings fileSyncSettings, FileSyncDatabaseManager databaseManager) {
+    public MelFileSyncClientService(MelAuthServiceImpl melAuthService, File workingDirectory, Long serviceTypeId, String uuid, FileSyncSettings fileSyncSettings, FileSyncDatabaseManager databaseManager) {
         super(melAuthService, workingDirectory, serviceTypeId, uuid, fileSyncSettings, databaseManager);
         try {
             conflictHelper = new InitialIndexConflictHelper(this);

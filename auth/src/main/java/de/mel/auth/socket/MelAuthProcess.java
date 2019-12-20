@@ -6,9 +6,7 @@ import de.mel.auth.service.MelService;
 import org.jdeferred.Promise;
 
 import java.io.IOException;
-import java.net.SocketAddress;
 import java.util.List;
-import java.util.UUID;
 
 import de.mel.Lok;
 import de.mel.auth.MelStrings;
@@ -22,7 +20,7 @@ import de.mel.auth.jobs.AConnectJob;
 import de.mel.auth.jobs.ConnectJob;
 import de.mel.auth.jobs.IsolatedConnectJob;
 import de.mel.auth.service.IMelService;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
 import de.mel.auth.socket.process.val.MelServicesPayload;
 import de.mel.auth.tools.Cryptor;
@@ -54,7 +52,7 @@ public class MelAuthProcess extends MelProcess {
      * @param response
      * @throws SqlQueriesException
      */
-    public static void addAllowedServices(MelAuthService melAuthService, Certificate partnerCertificate, MelResponse response) throws SqlQueriesException {
+    public static void addAllowedServices(MelAuthServiceImpl melAuthService, Certificate partnerCertificate, MelResponse response) throws SqlQueriesException {
         MelServicesPayload payload = melAuthService.getAllowedServicesFor(partnerCertificate.getId().v());
         response.setPayLoad(payload);
     }
@@ -257,7 +255,7 @@ public class MelAuthProcess extends MelProcess {
         }
     }
 
-    public static void addAllowedServicesJoinTypes(MelAuthService melAuthService, Certificate partnerCertificate, MelResponse response) throws SqlQueriesException {
+    public static void addAllowedServicesJoinTypes(MelAuthServiceImpl melAuthService, Certificate partnerCertificate, MelResponse response) throws SqlQueriesException {
         MelServicesPayload payload = new MelServicesPayload();
         response.setPayLoad(payload);
         List<ServiceJoinServiceType> servicesJoinTypes = melAuthService.getDatabaseManager().getAllowedServicesJoinTypes(partnerCertificate.getId().v());

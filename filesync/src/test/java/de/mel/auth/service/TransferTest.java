@@ -56,7 +56,7 @@ public class TransferTest {
     private MelFileSyncClientService clientService;
 
     static interface Scopee {
-        void run(MelAuthService melAuthService) throws Exception;
+        void run(MelAuthServiceImpl melAuthService) throws Exception;
     }
 
     public void init(File workingDirectory, Scopee initDrive) throws Exception {

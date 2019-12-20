@@ -54,7 +54,7 @@ public class MelAuthAdminFX implements Initializable, MelAuthAdmin, MelNotificat
     private static final int IMAGE_SIZE = 22;
     public static final String GLOBAL_STYLE_CSS = "/de/mel/modena_dark.css";
     //    public static final String GLOBAL_STYLE_CSS = "/de/mel/jmetro.dark.css";
-    private MelAuthService melAuthService;
+    private MelAuthServiceImpl melAuthService;
     private Stage stage;
 
     @FXML
@@ -85,7 +85,7 @@ public class MelAuthAdminFX implements Initializable, MelAuthAdmin, MelNotificat
     private Locale locale;
 
     @Override
-    public void start(MelAuthService melAuthService) {
+    public void start(MelAuthServiceImpl melAuthService) {
         this.melAuthService = melAuthService;
         showServices();
     }
@@ -335,7 +335,7 @@ public class MelAuthAdminFX implements Initializable, MelAuthAdmin, MelNotificat
         return notificationCenter;
     }
 
-    public MelAuthService getMelAuthService() {
+    public MelAuthServiceImpl getMelAuthService() {
         return melAuthService;
     }
 
@@ -449,7 +449,7 @@ public class MelAuthAdminFX implements Initializable, MelAuthAdmin, MelNotificat
     }
 
     @SuppressWarnings("Duplicates")
-    public static MelAuthAdminFX load(MelAuthService melAuthService) {
+    public static MelAuthAdminFX load(MelAuthServiceImpl melAuthService) {
         new JFXPanel();
         Platform.setImplicitExit(false);
         final MelAuthAdminFX[] melAuthAdminFXES = new MelAuthAdminFX[1];

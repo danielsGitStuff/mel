@@ -4,7 +4,7 @@ import de.mel.Lok;
 import de.mel.Versioner;
 import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.data.access.CertificateManager;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.tools.N;
 
 import java.io.File;
@@ -12,7 +12,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
 import java.security.KeyManagementException;
@@ -24,7 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Updater {
-    private final MelAuthService melAuthService;
+    private final MelAuthServiceImpl melAuthService;
     private final CertificateManager cm;
     private final MelAuthSettings settings;
     private final File target;
@@ -32,7 +31,7 @@ public class Updater {
     private BinarySocket binarySocket;
     private Set<UpdateHandler> updateHandlers = new HashSet<>();
 
-    public Updater(MelAuthService melAuthService) {
+    public Updater(MelAuthServiceImpl melAuthService) {
         this.melAuthService = melAuthService;
         this.cm = melAuthService.getCertificateManager();
         this.settings = melAuthService.getSettings();

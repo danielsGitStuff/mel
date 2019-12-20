@@ -4,7 +4,7 @@ import de.mel.Lok;
 import de.mel.auth.MelNotification;
 import de.mel.auth.gui.PopupContentFX;
 import de.mel.auth.gui.XCBFix;
-import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.filesync.data.conflict.Conflict;
 import de.mel.filesync.data.conflict.ConflictSolver;
 import de.mel.filesync.jobs.CommitJob;
@@ -41,7 +41,7 @@ public class FileSyncFXConflictSolverControllerList extends PopupContentFX imple
     }
 
     @Override
-    public void initImpl(Stage stage, MelAuthService melAuthService, MelNotification notification) {
+    public void initImpl(Stage stage, MelAuthServiceImpl melAuthService, MelNotification notification) {
         this.melFileSyncClientService = (MelFileSyncClientService) melAuthService.getMelService(notification.getServiceUuid());
         conflictSolver = (ConflictSolver) notification.getContent();
         ConflictSolver conflictSolver = melFileSyncClientService.getConflictSolverMap().values().iterator().next();

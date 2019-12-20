@@ -47,7 +47,7 @@ public class PerfTransferTest {
     private static final String SOURCE_PATH = new File("drivesource.test").getAbsolutePath();
     private static final String TARGET_PATH = new File("drivetarget.test").getAbsolutePath();
     private MelAuthSettings settings;
-    private MelAuthService mas;
+    private MelAuthServiceImpl mas;
 
     public PerfTransferTest() {
 
@@ -83,7 +83,7 @@ public class PerfTransferTest {
             }
 
             @Override
-            public void start(MelAuthService mas) {
+            public void start(MelAuthServiceImpl mas) {
                 mas.addRegisterHandler(new IRegisterHandler() {
                     @Override
                     public void acceptCertificate(IRegisterHandlerListener listener, MelRequest request, Certificate myCertificate, Certificate certificate) {
@@ -145,7 +145,7 @@ public class PerfTransferTest {
             }
         });
         N.r(() -> {
-            Promise<MelAuthService, Exception, Void> booted = boot.boot();
+            Promise<MelAuthServiceImpl, Exception, Void> booted = boot.boot();
             booted.done(result1 -> N.r(() -> {
                 result.resolve(perfTransferTest);
 
