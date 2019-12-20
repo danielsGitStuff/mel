@@ -16,7 +16,7 @@ import java.util.*
  * Finds Conflicts according to @see bla
  * todo add link do conflict image
  */
-class ConflictSolver(private val conflictDao: ConflictDao, val localStageSet: StageSet, val remoteStageSet: StageSet) {
+open class ConflictSolver(private val conflictDao: ConflictDao, val localStageSet: StageSet, val remoteStageSet: StageSet) {
     var conflictHelperUuid: String? = null
     val stageDao = conflictDao.stageDao
     val fsDao = conflictDao.fsDao
