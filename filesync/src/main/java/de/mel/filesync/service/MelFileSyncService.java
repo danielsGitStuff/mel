@@ -37,7 +37,6 @@ import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.FileSyncStrings;
 import de.mel.filesync.index.IndexListener;
 import de.mel.filesync.index.Indexer;
-import de.mel.filesync.index.watchdog.FileWatcher;
 import de.mel.filesync.index.watchdog.StageIndexer;
 import de.mel.filesync.service.sync.SyncHandler;
 import de.mel.filesync.sql.FileSyncDatabaseManager;
@@ -55,6 +54,7 @@ import de.mel.sql.SqlQueriesException;
  * Created by xor on 09.07.2016.
  */
 public abstract class MelFileSyncService<S extends SyncHandler> extends MelServiceWorker implements PowerManager.IPowerStateListener {
+    protected final FileSyncDatabaseManager databaseManager;
     protected FileSyncDatabaseManager fileSyncDatabaseManager;
     protected FileSyncSettings fileSyncSettings;
     protected N runner = new N(Throwable::printStackTrace);
@@ -67,9 +67,10 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
     private FileSyncSyncListener syncListener;
 
 
-    public MelFileSyncService(MelAuthService melAuthService, File workingDirectory, Long serviceTypeId, String uuid, FileSyncSettings fileSyncSettings) {
+    public MelFileSyncService(MelAuthService melAuthService, File workingDirectory, Long serviceTypeId, String uuid, FileSyncSettings fileSyncSettings, FileSyncDatabaseManager databaseManager) {
         super(melAuthService, workingDirectory, serviceTypeId, uuid, Bootloader.BootLevel.LONG);
         this.fileSyncSettings = fileSyncSettings;
+        this.databaseManager = databaseManager;
     }
 
     public S getSyncHandler() {
@@ -335,9 +336,6 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
         return fileSyncDatabaseManager;
     }
 
-    public void setFileSyncDatabaseManager(FileSyncDatabaseManager fileSyncDatabaseManager) {
-        this.fileSyncDatabaseManager = fileSyncDatabaseManager;
-    }
 
     public Promise<List<FsDirectory>, Exception, Void> requestDirectoriesByIds(Set<Long> fsDirIdsToRetrieve, Long certId, String serviceUuid) throws SqlQueriesException, InterruptedException {
         Deferred<List<FsDirectory>, Exception, Void> deferred = new DeferredObject<>();

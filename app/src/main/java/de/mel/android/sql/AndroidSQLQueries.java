@@ -322,6 +322,11 @@ public class AndroidSQLQueries extends ISQLQueries {
     }
 
     @Override
+    public void close() throws SqlQueriesException {
+        db.close();
+    }
+
+    @Override
     public <T extends SQLTableObject> ISQLResource<T> loadQueryResource(String query, List<Pair<?>> allAttributes, Class<T> clazz, List<Object> args) {
         SQLiteCursor cursor = (SQLiteCursor) db.rawQuery(query, this.argsToStringArgs(args));
         AndroidSQLResource<T> resource = new AndroidSQLResource<>(cursor, clazz);

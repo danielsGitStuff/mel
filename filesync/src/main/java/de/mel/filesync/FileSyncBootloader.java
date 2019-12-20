@@ -139,16 +139,21 @@ public class FileSyncBootloader extends Bootloader<MelFileSyncService> {
         fileSyncSettings.save();
         Long serviceTypeId = service.getTypeId().v();
         String uuid = service.getUuid().v();
-        MelFileSyncService melFileSyncService = createInstance(fileSyncSettings, workingDirectory, serviceTypeId, uuid);
-        //exec
-        melAuthService.execute(melFileSyncService);
+
+        // create dirs
         File workingDir = new File(bootLoaderDir, melFileSyncService.getUuid());
         workingDir.mkdirs();
         //create cache dir
         new File(workingDir.getAbsolutePath() + File.separator + "cache").mkdirs();
-        FileSyncDatabaseManager databaseManager = new FileSyncDatabaseManager(melFileSyncService, workingDir, fileSyncSettings);
+        // create databases
+        FileSyncDatabaseManager databaseManager = new FileSyncDatabaseManager(uuid, workingDir, fileSyncSettings);
         databaseManager.cleanUp();
-        melFileSyncService.setFileSyncDatabaseManager(databaseManager);
+
+        // create instance
+        MelFileSyncService melFileSyncService = createInstance(fileSyncSettings, workingDirectory, serviceTypeId, uuid, databaseManager);
+        databaseManager.setMelFileSyncService(melFileSyncService);
+        //exec
+        melAuthService.execute(melFileSyncService);
 
         if (!fileSyncSettings.isServer() && !fileSyncSettings.getClientSettings().getInitFinished())
             N.r(() -> {
@@ -184,9 +189,9 @@ public class FileSyncBootloader extends Bootloader<MelFileSyncService> {
         return melFileSyncService;
     }
 
-    protected MelFileSyncService createInstance(FileSyncSettings fileSyncSettings, File workingDirectory, Long serviceTypeId, String uuid) {
+    protected MelFileSyncService createInstance(FileSyncSettings fileSyncSettings, File workingDirectory, Long serviceTypeId, String uuid, FileSyncDatabaseManager databaseManager) {
         MelFileSyncService melFileSyncService = (fileSyncSettings.isServer()) ?
-                new MelFileSyncServerService(melAuthService, workingDirectory, serviceTypeId, uuid, fileSyncSettings) : new MelFileSyncClientService(melAuthService, workingDirectory, serviceTypeId, uuid, fileSyncSettings);
+                new MelFileSyncServerService(melAuthService, workingDirectory, serviceTypeId, uuid, fileSyncSettings, databaseManager) : new MelFileSyncClientService(melAuthService, workingDirectory, serviceTypeId, uuid, fileSyncSettings, databaseManager);
         return melFileSyncService;
     }
 

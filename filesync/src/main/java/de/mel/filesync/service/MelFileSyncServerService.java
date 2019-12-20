@@ -18,6 +18,7 @@ import de.mel.filesync.data.FileSyncStrings;
 import de.mel.filesync.data.SyncAnswer;
 import de.mel.filesync.index.IndexListener;
 import de.mel.filesync.service.sync.ServerSyncHandler;
+import de.mel.filesync.sql.FileSyncDatabaseManager;
 import de.mel.filesync.sql.GenericFSEntry;
 import de.mel.filesync.sql.TransferState;
 import de.mel.filesync.sql.dao.FsDao;
@@ -40,8 +41,8 @@ import java.util.concurrent.ThreadFactory;
  */
 public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandler> {
 
-    public MelFileSyncServerService(MelAuthService melAuthService, File workingDirectory, Long serviceTypeId, String uuid, FileSyncSettings fileSyncSettings) {
-        super(melAuthService, workingDirectory, serviceTypeId, uuid, fileSyncSettings);
+    public MelFileSyncServerService(MelAuthService melAuthService, File workingDirectory, Long serviceTypeId, String uuid, FileSyncSettings fileSyncSettings, FileSyncDatabaseManager databaseManager) {
+        super(melAuthService, workingDirectory, serviceTypeId, uuid, fileSyncSettings, databaseManager);
     }
 
     @Override
@@ -190,8 +191,7 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
         return (stageSetId, transaction) -> N.r(() -> {
             fileSyncDatabaseManager.updateVersion();
             if (stageSetId != null) {
-                if (fileSyncDatabaseManager.getMelFileSyncService() instanceof MelFileSyncServerService)
-                    syncHandler.commitStage(stageSetId, transaction);
+                syncHandler.commitStage(stageSetId, transaction);
             } else {
                 Lok.debug("MelDriveServerService.done(). StageSet was empty");
             }

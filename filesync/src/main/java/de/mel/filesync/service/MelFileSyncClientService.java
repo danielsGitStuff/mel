@@ -20,6 +20,7 @@ import de.mel.filesync.index.InitialIndexConflictHelper;
 import de.mel.filesync.jobs.CommitJob;
 import de.mel.filesync.jobs.SyncClientJob;
 import de.mel.filesync.service.sync.ClientSyncHandler;
+import de.mel.filesync.sql.FileSyncDatabaseManager;
 import de.mel.filesync.sql.StageSet;
 import de.mel.filesync.sql.TransferState;
 import de.mel.sql.SqlQueriesException;
@@ -40,8 +41,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MelFileSyncClientService extends MelFileSyncService<ClientSyncHandler> {
     private MelNotification latestConflictNotification;
 
-    public MelFileSyncClientService(MelAuthService melAuthService, File workingDirectory, Long serviceTypeId, String uuid, FileSyncSettings fileSyncSettings) {
-        super(melAuthService, workingDirectory, serviceTypeId, uuid, fileSyncSettings);
+    public MelFileSyncClientService(MelAuthService melAuthService, File workingDirectory, Long serviceTypeId, String uuid, FileSyncSettings fileSyncSettings, FileSyncDatabaseManager databaseManager) {
+        super(melAuthService, workingDirectory, serviceTypeId, uuid, fileSyncSettings, databaseManager);
         try {
             conflictHelper = new InitialIndexConflictHelper(this);
         } catch (Exception e) {

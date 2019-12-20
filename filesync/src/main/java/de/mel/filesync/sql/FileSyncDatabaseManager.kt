@@ -7,6 +7,7 @@ import de.mel.execute.SqliteExecutor
 import de.mel.filesync.data.FileSyncSettings
 import de.mel.filesync.data.FileSyncStrings
 import de.mel.filesync.service.MelFileSyncService
+import de.mel.filesync.service.sync.SyncHandler
 import de.mel.filesync.sql.dao.*
 import de.mel.sql.*
 import de.mel.sql.conn.SQLConnector
@@ -23,7 +24,8 @@ import java.sql.SQLException
  * does everything file (database) related
  * Created by xor on 09.07.2016.
  */
-class FileSyncDatabaseManager(val melFileSyncService: MelFileSyncService<*>, workingDirectory: File?, val fileSyncSettings: FileSyncSettings) : FileRelatedManager(workingDirectory) {
+class FileSyncDatabaseManager(serviceUuid: String, workingDirectory: File?, val fileSyncSettings: FileSyncSettings) : FileRelatedManager(workingDirectory) {
+    lateinit var melFileSyncService: MelFileSyncService<*>
     val conflictDao: ConflictDao
     private val sqlQueries: ISQLQueries
     val fileDistTaskDao: FileDistTaskDao
@@ -34,7 +36,7 @@ class FileSyncDatabaseManager(val melFileSyncService: MelFileSyncService<*>, wor
     val wasteDao: WasteDao
 
     init {
-        sqlQueries = sqlqueriesCreator.createConnection(this, melFileSyncService.uuid)
+        sqlQueries = sqlqueriesCreator.createConnection(this, serviceUuid)
         run {
             Lok.error("synchronous PRAGMA is turned off!")
             val st: SQLStatement = sqlQueries.sqlConnection.prepareStatement("PRAGMA synchronous=OFF")
