@@ -40,7 +40,7 @@ public abstract class SyncHandler {
     protected final MelFileSyncService melFileSyncService;
     protected final TManager transferManager;
     protected final MelAuthService melAuthService;
-    private final FileDistributor fileDistributor;
+    private FileDistributor fileDistributor;
     private final FileDistTaskDao fileDistTaskDao;
     private final FsWriteDao fsWriteDao;
     protected FsDao fsDao;
@@ -57,6 +57,25 @@ public abstract class SyncHandler {
 
     public TransferDao getTransferDao() {
         return melFileSyncService.getFileSyncDatabaseManager().getTransferDao();
+    }
+
+    public SyncHandler(MelAuthService melAuthService, MelFileSyncService melFileSyncService, boolean initFileDistr) {
+        this.melAuthService = melAuthService;
+        this.fsDao = melFileSyncService.getFileSyncDatabaseManager().getFsDao();
+        this.stageDao = melFileSyncService.getFileSyncDatabaseManager().getStageDao();
+        this.fileDistTaskDao = melFileSyncService.getFileSyncDatabaseManager().getFileDistTaskDao();
+        this.fileSyncSettings = melFileSyncService.getFileSyncSettings();
+        this.melFileSyncService = melFileSyncService;
+        this.fileSyncDatabaseManager = melFileSyncService.getFileSyncDatabaseManager();
+        this.fsWriteDao = fileSyncDatabaseManager.getFsWriteDao();
+        this.indexer = melFileSyncService.getIndexer();
+        this.wastebin = melFileSyncService.getWastebin();
+        this.transferManager = new TManager(melAuthService, melFileSyncService.getFileSyncDatabaseManager().getTransferDao(), melFileSyncService, this, wastebin, fsDao);
+//        this.transferManager = new TransferManager(melAuthService, melDriveService, melDriveService.getDriveDatabaseManager().getTransferDao()
+//                , wastebin, this);
+        this.quotaManager = new QuotaManager(melFileSyncService);
+        if (initFileDistr)
+            this.fileDistributor = FileDistributor.Companion.getFactory().createInstance(melFileSyncService);
     }
 
     public SyncHandler(MelAuthService melAuthService, MelFileSyncService melFileSyncService) {

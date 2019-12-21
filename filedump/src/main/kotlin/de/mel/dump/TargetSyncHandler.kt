@@ -2,6 +2,7 @@ package de.mel.dump
 
 import de.mel.Lok
 import de.mel.auth.data.access.CertificateManager
+import de.mel.auth.service.MelAuthService
 import de.mel.auth.service.MelAuthServiceImpl
 import de.mel.auth.socket.process.`val`.Request
 import de.mel.auth.tools.N
@@ -17,7 +18,7 @@ import de.mel.sql.ISQLResource
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
-class TargetSyncHandler(melAuthService: MelAuthServiceImpl, targetService: TargetService) : ServerSyncHandler(melAuthService, targetService) {
+class TargetSyncHandler(melAuthService: MelAuthService, targetService: TargetService) : ServerSyncHandler(melAuthService, targetService) {
     override fun handleCommit(request: Request<*>?) {
         val commit = request!!.payload as Commit
         val warden: Warden<*> = P.confine(fsDao)

@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 
 import static org.junit.Assert.*;
@@ -50,7 +51,7 @@ public class ConflictTest extends MergeTest {
      * @throws SQLException
      */
     @Before
-    public void before() throws SqlQueriesException, IOException, SQLException {
+    public void before() throws SqlQueriesException, IOException, SQLException, InterruptedException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, NoSuchFieldException {
         super.before();
     }
 

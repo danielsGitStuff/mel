@@ -56,7 +56,6 @@ import de.mel.sql.SqlQueriesException;
  */
 public abstract class MelFileSyncService<S extends SyncHandler> extends MelServiceWorker implements PowerManager.IPowerStateListener {
     protected final FileSyncDatabaseManager databaseManager;
-    protected FileSyncDatabaseManager fileSyncDatabaseManager;
     protected FileSyncSettings fileSyncSettings;
     protected N runner = new N(Throwable::printStackTrace);
     protected Indexer indexer;
@@ -153,7 +152,7 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
                 if (job.isRequest()) {
                     Request request = job.getRequest();
                     if (request.hasIntent(FileSyncStrings.INTENT_DRIVE_DETAILS)) {
-                        FileSyncDetails details = fileSyncDatabaseManager.getFileSyncSettings().getDriveDetails();
+                        FileSyncDetails details = databaseManager.getFileSyncSettings().getDriveDetails();
                         request.resolve(details);
                     } else if (request.hasIntent(FileSyncStrings.INTENT_DIRECTORY_CONTENT)) {
                         handleDirectoryContentsRequest(request);
@@ -214,7 +213,7 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
 
     protected void handleSending(Long partnerCertId, FileTransferDetailsPayload payload) {
         //todo synced nicht richtig, wenn hier haltepunkt nach der konfliktlösung
-        FsDao fsDao = fileSyncDatabaseManager.getFsDao();
+        FsDao fsDao = databaseManager.getFsDao();
         Warden warden = P.confine(P.read(fsDao));
         try {
 
@@ -223,14 +222,14 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
                 IFile wasteFile = wastebin.getByHash(detail.getHash());
                 Promise<MelIsolatedFileProcess, Exception, Void> promise = getIsolatedProcess(MelIsolatedFileProcess.class, partnerCertId, detailSet.getServiceUuid());
                 promise.done(fileProcess -> runner.runTry(() -> {
-                    List<FsFile> fsFiles = fileSyncDatabaseManager.getFsDao().getFilesByHash(detail.getHash());
+                    List<FsFile> fsFiles = databaseManager.getFsDao().getFilesByHash(detail.getHash());
                     if (wasteFile != null) {
                         FileTransferDetail mDetail = new FileTransferDetail(wasteFile, detail.getStreamId(), detail.getStart(), detail.getEnd());
                         mDetail.openRead();
                         fileProcess.sendFile(mDetail);
                     } else if (fsFiles.size() > 0) {
                         FsFile fsFile = fsFiles.get(0);
-                        IFile file = fsDao.getFileByFsFile(fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory(), fsFile);
+                        IFile file = fsDao.getFileByFsFile(databaseManager.getFileSyncSettings().getRootDirectory(), fsFile);
                         if (!file.exists()) {
                             file = wastebin.getByHash(detail.getHash());
                         }
@@ -287,8 +286,8 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
         Lok.debug("MelDriveService.handleDirectoryContentsRequest");
         DirectoriesContentTask task = (DirectoriesContentTask) request.getPayload();
         for (Long fsId : task.getIds()) {
-            FsDirectory fsDirectory = fileSyncDatabaseManager.getFsDao().getDirectoryById(fsId);
-            List<GenericFSEntry> content = fileSyncDatabaseManager.getFsDao().getContentByFsDirectory(fsId);
+            FsDirectory fsDirectory = databaseManager.getFsDao().getDirectoryById(fsId);
+            List<GenericFSEntry> content = databaseManager.getFsDao().getContentByFsDirectory(fsId);
             for (GenericFSEntry genericFSEntry : content) {
                 if (genericFSEntry.getIsDirectory().v()) {
                     fsDirectory.addSubDirectory((FsDirectory) genericFSEntry.ins());
@@ -311,13 +310,13 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
     protected abstract boolean workWorkWork(Job unknownJob);
 
     public DeferredObject<DeferredRunnable, Exception, Void> startIndexer() throws SqlQueriesException {
-        this.fileSyncSettings = fileSyncDatabaseManager.getFileSyncSettings();
+        this.fileSyncSettings = databaseManager.getFileSyncSettings();
         IFile transferDir = fileSyncSettings.getTransferDirectory();
         transferDir.mkdirs();
         IFile wasteDir = AbstractFile.instance(fileSyncSettings.getTransferDirectory(), FileSyncStrings.WASTEBIN);
         wasteDir.mkdirs();
-        this.stageIndexer = new StageIndexer(fileSyncDatabaseManager);
-        this.indexer = new Indexer(fileSyncDatabaseManager, FileWatcherFactory.Companion.getFactory().runInstance(this), createIndexListener());
+        this.stageIndexer = new StageIndexer(databaseManager);
+        this.indexer = new Indexer(databaseManager, FileWatcherFactory.Companion.getFactory().runInstance(this), createIndexListener());
         if (conflictHelper != null)
             indexer.setConflictHelper(conflictHelper);
         this.wastebin = new Wastebin(this);
@@ -334,7 +333,7 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
     protected abstract S initSyncHandler();
 
     public FileSyncDatabaseManager getFileSyncDatabaseManager() {
-        return fileSyncDatabaseManager;
+        return databaseManager;
     }
 
 
@@ -366,7 +365,7 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
         super.onShutDown();
         if (syncHandler != null)
             syncHandler.onShutDown();
-        fileSyncDatabaseManager.shutDown();
+        databaseManager.shutDown();
         if (indexer != null)
             indexer.shutDown();
         return null;

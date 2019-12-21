@@ -141,6 +141,15 @@ public class ClientSyncHandler extends SyncHandler {
         this.clientSettings = melDriveService.getFileSyncSettings().getClientSettings();
     }
 
+    private ClientSyncHandler(MelAuthService melAuthService, MelFileSyncClientService melDriveService, boolean initFileDist) {
+        super(melAuthService, melDriveService, initFileDist);
+        this.melDriveService = melDriveService;
+        this.clientSettings = melDriveService.getFileSyncSettings().getClientSettings();
+    }
+
+    public static ClientSyncHandler testIntance(MelAuthService melAuthService, MelFileSyncClientService melDriveService) {
+        return new ClientSyncHandler(melAuthService, melDriveService, false);
+    }
 
     /**
      * Sends the StageSet to the server and updates it with the FsIds provided by the server.

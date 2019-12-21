@@ -7,11 +7,10 @@ import de.mel.auth.tools.N;
 import de.mel.auth.tools.Order;
 import de.mel.execute.SqliteExecutor;
 import de.mel.filesync.bash.BashTools;
+import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.FileSyncStrings;
-import de.mel.filesync.sql.CreationScripts;
-import de.mel.filesync.sql.FsDirectory;
-import de.mel.filesync.sql.Stage;
-import de.mel.filesync.sql.StageSet;
+import de.mel.filesync.data.fs.RootDirectory;
+import de.mel.filesync.sql.*;
 import de.mel.filesync.sql.dao.ConflictDao;
 import de.mel.filesync.sql.dao.FsDao;
 import de.mel.filesync.sql.dao.StageDao;
@@ -22,6 +21,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 
 public class MergeTest {
@@ -34,6 +34,11 @@ public class MergeTest {
     File dbFile;
     StageSet localStageSet;
     StageSet remoteStageSet;
+    FileSyncDatabaseManager databaseManager;
+    File workingDirectory;
+    FileSyncSettings settings;
+    RootDirectory rootDir;
+    String SERVICE_ROLE = FileSyncStrings.ROLE_CLIENT;
 
     public void fillStageSet(StageTestCreationDao creationDao, long stageSetId) throws SqlQueriesException {
         Order ord = new Order();
@@ -147,21 +152,34 @@ public class MergeTest {
      * @throws SQLException
      */
     @Before
-    public void before() throws SqlQueriesException, IOException, SQLException {
-        dbFile = new File("conflict.test." + (counter++) + ".db");
+    public void before() throws SqlQueriesException, IOException, SQLException, InterruptedException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
+        workingDirectory = new File("test.workingdir" + counter);
+        workingDirectory.mkdirs();
+        dbFile = new File(workingDirectory, "conflict.test." + (counter++) + ".db");
         Lok.debug("testing with db: " + dbFile.getAbsolutePath());
         AbstractFile.configure(new DefaultFileConfiguration());
         BashTools.Companion.init();
         if (dbFile.exists())
             dbFile.delete();
-        creationLocalDao = new StageTestCreationDao(dbFile);
-        creationRemoteDao = new StageTestCreationDao(creationLocalDao);
-        fsDao = new FsDao(null, creationLocalDao.getSqlQueries());
-        stageDao = new StageDao(null, creationLocalDao.getSqlQueries(), fsDao);
-        conflictDao = new ConflictDao(stageDao, fsDao);
 
-        new SqliteExecutor(creationLocalDao.getSqlQueries().getSQLConnection()).executeStream(CreationScripts.stringToInputStream(new CreationScripts().getCreateFsEntry()));
-        new SqliteExecutor(creationLocalDao.getSqlQueries().getSQLConnection()).executeStream(CreationScripts.stringToInputStream(new CreationScripts().getCreateRest()));
+        rootDir = new RootDirectory();
+        rootDir.setOriginalFile(AbstractFile.instance(AbstractFile.instance(workingDirectory), "rootdir"));
+        settings = new FileSyncSettings()
+                .setFastBoot(true)
+                .setLastSyncedVersion(0L)
+                .setMaxAge(30L)
+                .setRole(SERVICE_ROLE)
+                .setMaxWastebinSize(9999999L)
+                .setRootDirectory(rootDir)
+                .setUseSymLinks(false)
+                .setTransferDirectory(AbstractFile.instance(AbstractFile.instance(workingDirectory), "transfer.dir"));
+        databaseManager = new FileSyncDatabaseManager("dummy service uuid", workingDirectory, settings);
+
+        stageDao = databaseManager.getStageDao();
+        fsDao = databaseManager.getFsDao();
+        conflictDao = databaseManager.getConflictDao();
+        creationLocalDao = new StageTestCreationDao(fsDao.getSqlQueries());
+        creationRemoteDao = new StageTestCreationDao(fsDao.getSqlQueries());
 
         localStageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_FS, FileSyncStrings.STAGESET_STATUS_STAGED, null, null, 1L, 0L);
         remoteStageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_SERVER, FileSyncStrings.STAGESET_STATUS_STAGED, 1L, "test uuid", 1L, 0L);
@@ -174,6 +192,7 @@ public class MergeTest {
                 .setPath(""));
 
         fillStageSet(creationLocalDao, localStageSet.getId().v());
+        Thread.sleep(50L);
         fillStageSet(creationRemoteDao, remoteStageSet.getId().v());
         Lok.debug("BEFORE");
     }
@@ -185,6 +204,7 @@ public class MergeTest {
         if (dbFile.exists() && !dbFile.delete()) {
             Lok.error("DB NOT DELETED");
             dbFile.deleteOnExit();
+            workingDirectory.deleteOnExit();
         }
     }
 }

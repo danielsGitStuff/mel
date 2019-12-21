@@ -16,13 +16,17 @@ public abstract class TestCreationDao<T extends SQLTableObject> extends Dao {
     private File dbFile;
     private Map<String, T> nameMap = new HashMap<>();
 
-    public Collection<T> getEntries(){
+    public Collection<T> getEntries() {
         return nameMap.values();
     }
 
     public TestCreationDao(File dbFile) throws SQLException, ClassNotFoundException {
         super(createSqlQueries(dbFile));
         this.dbFile = dbFile;
+    }
+
+    public TestCreationDao(ISQLQueries ssqlQueries) {
+        super(ssqlQueries);
     }
 
     public TestCreationDao(TestCreationDao dao) throws SQLException, ClassNotFoundException {
@@ -34,7 +38,7 @@ public abstract class TestCreationDao<T extends SQLTableObject> extends Dao {
 
     public InsertFollower<T, TestCreationDao<T>> insert(T obj) throws SqlQueriesException {
         Long id = sqlQueries.insert(obj);
-        afterInsert(obj,id);
+        afterInsert(obj, id);
         nameMap.put(createName(obj), obj);
         return new InsertFollower<>(null, this, obj);
     }

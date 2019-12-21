@@ -59,9 +59,9 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
         Lok.debug("MelDriveServerService.onSyncReceived");
         SyncRequest task = (SyncRequest) request.getPayload();
         SyncAnswer answer = new SyncAnswer(cacheDirectory, CachedInitializer.randomId(), FileSyncSettings.CACHE_LIST_SIZE);
-        Warden warden = P.confine(P.read(fileSyncDatabaseManager.getFsDao()));
+        Warden warden = P.confine(P.read(databaseManager.getFsDao()));
         try {
-            ISQLResource<GenericFSEntry> delta = fileSyncDatabaseManager.getDeltaResource(task.getOldVersion());
+            ISQLResource<GenericFSEntry> delta = databaseManager.getDeltaResource(task.getOldVersion());
             GenericFSEntry next = delta.getNext();
             while (next != null) {
                 answer.add(next);
@@ -69,7 +69,7 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
             }
             answer.toDisk();
             answer.loadFirstCached();
-            answer.setNewVersion(fileSyncDatabaseManager.getLatestVersion());
+            answer.setNewVersion(databaseManager.getLatestVersion());
             request.resolve(answer);
         } catch (Exception e) {
             e.printStackTrace();
@@ -107,11 +107,11 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
                 }
             } else if (unknownJob instanceof Job.ConnectionAuthenticatedJob) {
                 Job.ConnectionAuthenticatedJob authenticatedJob = (Job.ConnectionAuthenticatedJob) unknownJob;
-                P.confine(fileSyncDatabaseManager.getTransferDao())
+                P.confine(databaseManager.getTransferDao())
                         .run(() -> {
                             ClientData clientData = fileSyncSettings.getServerSettings().getClientData(authenticatedJob.getPartnerCertificate().getId().v());
                             if (clientData != null) {
-                                fileSyncDatabaseManager.getTransferDao().flagStateForRemainingTransfers(clientData.getCertId(), clientData.getServiceUuid(), TransferState.NOT_STARTED);
+                                databaseManager.getTransferDao().flagStateForRemainingTransfers(clientData.getCertId(), clientData.getServiceUuid(), TransferState.NOT_STARTED);
                                 syncHandler.researchTransfers();
                             }
                         })
@@ -119,10 +119,10 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
             } else if (unknownJob instanceof Job.CertificateSpottedJob) {
                 // reset the remaining transfers so we can try again
                 Job.CertificateSpottedJob spottedJob = (Job.CertificateSpottedJob) unknownJob;
-                P.confine(fileSyncDatabaseManager.getTransferDao())
+                P.confine(databaseManager.getTransferDao())
                         .run(() -> {
                             ClientData clientData = fileSyncSettings.getServerSettings().getClientData(spottedJob.getPartnerCertificate().getId().v());
-                            fileSyncDatabaseManager.getTransferDao().flagStateForRemainingTransfers(clientData.getCertId(), clientData.getServiceUuid(), TransferState.NOT_STARTED);
+                            databaseManager.getTransferDao().flagStateForRemainingTransfers(clientData.getCertId(), clientData.getServiceUuid(), TransferState.NOT_STARTED);
                             syncHandler.researchTransfers();
                         })
                         .end();
@@ -141,8 +141,8 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
 
     private void propagateNewVersion() {
         try {
-            long version = fileSyncDatabaseManager.getLatestVersion();
-            for (ClientData client : fileSyncDatabaseManager.getFileSyncSettings().getServerSettings().getClients()) {
+            long version = databaseManager.getLatestVersion();
+            for (ClientData client : databaseManager.getFileSyncSettings().getServerSettings().getClients()) {
                 melAuthService.connect(client.getCertId()).done(mvp -> N.r(() -> {
                     mvp.message(client.getServiceUuid(), new FileSyncDetails().setLastSyncVersion(version).setIntent(FileSyncStrings.INTENT_PROPAGATE_NEW_VERSION));
                 }));
@@ -158,8 +158,8 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
         stageIndexer.setStagingDoneListener(stageSetId -> {
             Lok.debug(melAuthService.getName() + " first indexing done!");
             // staging is done. stage data is up to date. time to commit to fs
-            FsDao fsDao = fileSyncDatabaseManager.getFsDao();
-            StageDao stageDao = fileSyncDatabaseManager.getStageDao();
+            FsDao fsDao = databaseManager.getFsDao();
+            StageDao stageDao = databaseManager.getStageDao();
             //fsDao.unlockRead();
             if (stageDao.stageSetHasContent(stageSetId)) {
                 Warden warden = P.confine(fsDao);
@@ -190,7 +190,7 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
     @Override
     protected IndexListener createIndexListener() {
         return (stageSetId, transaction) -> N.r(() -> {
-            fileSyncDatabaseManager.updateVersion();
+            databaseManager.updateVersion();
             if (stageSetId != null) {
                 syncHandler.commitStage(stageSetId, transaction);
             } else {
@@ -229,7 +229,7 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
     @Override
     public SerializableEntity addAdditionalServiceInfo() {
         FileSyncDetails fileSyncDetails = fileSyncSettings.getDriveDetails();
-        fileSyncDetails.setDirectoryCount(fileSyncDatabaseManager.getFsDao().countDirectories());
+        fileSyncDetails.setDirectoryCount(databaseManager.getFsDao().countDirectories());
         return fileSyncDetails;
     }
 
