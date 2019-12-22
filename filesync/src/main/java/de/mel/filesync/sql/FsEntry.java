@@ -4,6 +4,7 @@ import de.mel.core.serialize.JsonIgnore;
 import de.mel.core.serialize.SerializableEntity;
 import de.mel.sql.Pair;
 import de.mel.sql.SQLTableObject;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +72,7 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
 
     @Override
     protected void init() {
-        populateInsert(name, parentId, version, depth, contentHash, isDirectory, path, synced, iNode, modified, created, size, symLink,path);
+        populateInsert(name, parentId, version, depth, contentHash, isDirectory, path, synced, iNode, modified, created, size, symLink, path);
         populateAll(id);
     }
 
@@ -181,4 +182,13 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
         return list;
     }
 
+    @NotNull
+    public GenericFSEntry toGeneric() {
+        GenericFSEntry genericFSEntry = new GenericFSEntry();
+        for (int i = 0; i < allAttributes.size(); i++) {
+            Object v = allAttributes.get(i).v();
+            genericFSEntry.allAttributes.get(i).setValueUnsecure(v);
+        }
+        return null;
+    }
 }

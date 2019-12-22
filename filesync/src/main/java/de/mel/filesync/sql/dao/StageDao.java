@@ -3,7 +3,6 @@ package de.mel.filesync.sql.dao;
 import de.mel.Lok;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.IFile;
-import de.mel.auth.file.StandardFile;
 import de.mel.auth.tools.Eva;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.FileSyncStrings;
@@ -15,6 +14,7 @@ import de.mel.sql.Dao;
 import de.mel.sql.ISQLQueries;
 import de.mel.sql.ISQLResource;
 import de.mel.sql.SqlQueriesException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -66,8 +66,8 @@ public class StageDao extends Dao.LockingDao {
     }
 
     public Stage getStageByPathAndName(Long stageSetId, String path, String name) throws SqlQueriesException {
-        String where = dummy.getPathPair().k() + "=? and " + dummy.getNamePair().k() + "=?";
-        return sqlQueries.loadFirstRow(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(), Stage.class);
+        String where = dummy.getStageSetPair().k() + "=? and " + dummy.getPathPair().k() + "=? and " + dummy.getNamePair().k() + "=?";
+        return sqlQueries.loadFirstRow(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(stageSetId, path, name), Stage.class);
     }
 
     public StageSet getStageSetById(Long stageSetId) throws SqlQueriesException {
@@ -102,9 +102,9 @@ public class StageDao extends Dao.LockingDao {
      * @throws SqlQueriesException
      */
     public List<StageSet> getStagedStageSetsFromFS() throws SqlQueriesException {
-        StageSet stageSet = new StageSet();
-        String where = "(" + stageSet.getSource().k() + "=? or " + stageSet.getSource().k() + "=?) and " + stageSet.getStatus().k() + "=?";
-        return sqlQueries.load(stageSet.getAllAttributes(), stageSet, where, ISQLQueries.args(FileSyncStrings.STAGESET_SOURCE_FS, FileSyncStrings.STAGESET_SOURCE_MERGED, FileSyncStrings.STAGESET_STATUS_STAGED));
+        StageSet dummy = new StageSet();
+        String where = "(" + dummy.getSource().k() + "=? or " + dummy.getSource().k() + "=?) and " + dummy.getStatus().k() + "=? order by " + dummy.getCreated().k();
+        return sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(FileSyncStrings.STAGESET_SOURCE_FS, FileSyncStrings.STAGESET_SOURCE_MERGED, FileSyncStrings.STAGESET_STATUS_STAGED));
     }
 
     public List<StageSet> getUpdateStageSetsFromServer() throws SqlQueriesException {
@@ -618,5 +618,16 @@ public class StageDao extends Dao.LockingDao {
     public Stage getDepthAndPathAndName(long id) throws SqlQueriesException {
         String where = dummy.getIdPair().k() + "=?";
         return sqlQueries.loadFirstRow(dummy.getDepthAndPath(), dummy, where, ISQLQueries.args(id), Stage.class);
+    }
+
+    @NotNull
+    public List<Stage> getNotDeletedContent(@NotNull Long directoryStageId) throws SqlQueriesException {
+        String where = dummy.getParentIdPair().k() + "=? and " + dummy.getDeletedPair().k() + "=?";
+        return sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(directoryStageId, false));
+    }
+
+    public void updateContentHash(long id, @NotNull String hash) throws SqlQueriesException {
+        String statement = "update " + dummy.getTableName() + " set " + dummy.getContentHashPair().k() + "=? where " + dummy.getIdPair().k() + "=?";
+        sqlQueries.execute(statement, ISQLQueries.args(hash, id));
     }
 }

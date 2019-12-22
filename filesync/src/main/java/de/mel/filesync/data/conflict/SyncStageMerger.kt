@@ -2,13 +2,23 @@ package de.mel.filesync.data.conflict
 
 import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.IFile
+import de.mel.filesync.sql.FsDirectory
+import de.mel.filesync.sql.GenericFSEntry
 import de.mel.filesync.sql.Stage
+import de.mel.filesync.sql.StageSet
+import de.mel.filesync.sql.dao.ConflictDao
 import de.mel.sql.SqlQueriesException
 
 /**
  * Created by xor on 5/6/17.
  */
-abstract class SyncStageMerger(protected val lStageSetId: Long, protected val rStageSetId: Long) {
+abstract class SyncStageMerger(protected val conflictDao: ConflictDao, protected val lStageSetId: Long, protected val rStageSetId: Long) {
+
+    protected val stageDao = conflictDao.stageDao
+    protected val fsDao = conflictDao.fsDao
+
+    lateinit var mergedStageSet: StageSet
+
     /**
      * is called with two Stages which reference the same logical File or Directory
      *
@@ -17,6 +27,19 @@ abstract class SyncStageMerger(protected val lStageSetId: Long, protected val rS
      * @throws SqlQueriesException
      */
     @Throws(SqlQueriesException::class)
-    abstract fun stuffFound(left: Stage?, right: Stage?, lFile: IFile?, rFile: IFile?)
+    abstract fun foundLocal(local: Stage, remote: Stage?)
+
+    @Throws(SqlQueriesException::class)
+    abstract fun foundRemote(remote: Stage)
+
+    fun calcDirectoryContentHashes() {
+        stageDao.getDirectoriesByStageSet(mergedStageSet.id.v()).forEach { directory ->
+            val dirDummy = FsDirectory()
+            val content = stageDao.getNotDeletedContent(directory.id).map { stageDao.stage2FsEntry(it).toGeneric() }
+            dirDummy.addContent(content)
+            dirDummy.calcContentHash()
+            stageDao.updateContentHash(directory.id, dirDummy.contentHash.v())
+        }
+    }
 
 }

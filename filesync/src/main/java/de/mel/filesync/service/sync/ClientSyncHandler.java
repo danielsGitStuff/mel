@@ -3,10 +3,8 @@ package de.mel.filesync.service.sync;
 import de.mel.Lok;
 import de.mel.auth.data.cached.CachedInitializer;
 import de.mel.auth.data.db.Certificate;
-import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.IFile;
 import de.mel.auth.service.MelAuthService;
-import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.socket.MelValidationProcess;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
@@ -24,6 +22,7 @@ import de.mel.filesync.jobs.SyncClientJob;
 import de.mel.filesync.quota.OutOfSpaceException;
 import de.mel.filesync.service.MelFileSyncClientService;
 import de.mel.filesync.sql.*;
+import de.mel.filesync.sql.dao.ConflictDao;
 import de.mel.filesync.sql.dao.FsDao;
 import de.mel.filesync.sql.dao.StageDao;
 import de.mel.filesync.sql.dao.TransferDao;
@@ -35,6 +34,8 @@ import de.mel.sql.SqlQueriesException;
 
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,6 +48,7 @@ import java.util.*;
 public class ClientSyncHandler extends SyncHandler {
 
     private final FileSyncClientSettingsDetails clientSettings;
+    private final ConflictDao conflictDao;
     private FileSyncSyncListener syncListener;
     private MelFileSyncClientService melDriveService;
     private Map<String, ConflictSolver> conflictSolverMap = new keks<>();
@@ -139,12 +141,14 @@ public class ClientSyncHandler extends SyncHandler {
         super(melAuthService, melDriveService);
         this.melDriveService = melDriveService;
         this.clientSettings = melDriveService.getFileSyncSettings().getClientSettings();
+        this.conflictDao = melDriveService.getFileSyncDatabaseManager().getConflictDao();
     }
 
     private ClientSyncHandler(MelAuthService melAuthService, MelFileSyncClientService melDriveService, boolean initFileDist) {
         super(melAuthService, melDriveService, initFileDist);
         this.melDriveService = melDriveService;
         this.clientSettings = melDriveService.getFileSyncSettings().getClientSettings();
+        this.conflictDao = melDriveService.getFileSyncDatabaseManager().getConflictDao();
     }
 
     public static ClientSyncHandler testIntance(MelAuthService melAuthService, MelFileSyncClientService melDriveService) {
@@ -437,72 +441,127 @@ public class ClientSyncHandler extends SyncHandler {
         /**
          * This overwrites changes in the old StageSet with the newer ones.
          */
-        SyncStageMerger merger = new SyncStageMerger(lStageSet.getId().v(), rStageSet.getId().v()) {
-            private Order order = new Order();
-            private Map<Long, Long> idMapRight = new HashMap<>();
-            private Map<Long, Long> idMapLeft = new HashMap<>();
-
+        SyncStageMerger merger = new SyncStageMerger(conflictDao, lStageSet.getId().v(), rStageSet.getId().v()) {
             @Override
-            public void stuffFound(Stage left, Stage right, IFile lFile, IFile rFile) throws SqlQueriesException {
-                if (left != null) {
-                    if (right != null) {
-                        Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
-                        stage.mergeValuesFrom(right);
-                        // do not forget to relate to the parent!
-                        if (idMapRight.containsKey(right.getParentId()))
-                            stage.setParentId(idMapRight.get(right.getParentId()));
-                        stageDao.insert(stage);
-                        idMapRight.put(right.getId(), stage.getId());
-                        idMapLeft.put(left.getId(), stage.getId());
-                        stageDao.flagMerged(right.getId(), true);
-                    } else {
-                        // only merge if file exists
-//                        AFile fLeft = stageDao.getFileByStage(left);
-//                        if (fLeft.exists() || left.getSynced()) {
-                        Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
-                        stage.mergeValuesFrom(left);
-                        if (idMapLeft.containsKey(left.getParentId()))
-                            stage.setParentId(idMapLeft.get(left.getParentId()));
-                        stageDao.insert(stage);
-                        idMapLeft.put(left.getId(), stage.getId());
-//                        }
-                    }
+            public void foundRemote(@NotNull Stage remote) throws SqlQueriesException {
+                if (remote.getParentId() == null) {
+                    // stage is completely unconnected to whatever is on the left side
+                    Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
+                    stage.mergeValuesFrom(remote);
+                    stageDao.insert(stage);
+                    stageDao.flagMerged(remote.getId(), true);
                 } else {
-                    if (right != null) {
-                        if (right.getParentId() == null) {
-                            // stage is completely unconnected to whatever is on the left side
-                            Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
-                            stage.mergeValuesFrom(right);
-                            stageDao.insert(stage);
-                            stageDao.flagMerged(right.getId(), true);
+                    /**
+                     * We're iterating top down through the StageSet.
+                     * We probably will find the parent on the left side and therefore have
+                     * to "attach" our new left Stage to it.
+                     */
+                    Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
+                    stage.mergeValuesFrom(remote);
+                    if (remote.getParentId() == null) {
+                        stageDao.insert(stage);
+                    } else {
+                        Stage rParent = stageDao.getStageById(remote.getParentId());
+                        IFile rParentFile = stageDao.getFileByStage(rParent);
+                        Stage lParent = stageDao.getStageByPath(mStageSetId, rParentFile);
+                        if (lParent != null) {
+                            stage.setParentId(lParent.getId());
                         } else {
-                            /**
-                             * We're iterating top down through the StageSet.
-                             * We probably will find the parent on the left side and therefore have
-                             * to "attach" our new left Stage to it.
-                             */
-                            Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
-                            stage.mergeValuesFrom(right);
-                            if (right.getParentId() == null) {
-                                stageDao.insert(stage);
-                            } else {
-                                Stage rParent = stageDao.getStageById(right.getParentId());
-                                IFile rParentFile = stageDao.getFileByStage(rParent);
-                                Stage lParent = stageDao.getStageByPath(mStageSetId, rParentFile);
-                                if (lParent != null) {
-                                    stage.setParentId(lParent.getId());
-                                } else {
-                                    System.err.println("ClientSyncHandler.stuffFound.8c8h38h9");
-                                }
-                                stageDao.insert(stage);
-                            }
-                            idMapRight.put(right.getId(), stage.getId());
+                            System.err.println("ClientSyncHandler.stuffFound.8c8h38h9");
                         }
+                        stageDao.insert(stage);
                     }
+                    idMapRemote.put(remote.getId(), stage.getId());
                 }
             }
+
+            @Override
+            public void foundLocal(@NotNull Stage local, @Nullable Stage remote) throws SqlQueriesException {
+                if (remote != null) {
+                    Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
+                    stage.mergeValuesFrom(remote);
+                    // do not forget to relate to the parent!
+                    if (idMapRemote.containsKey(remote.getParentId()))
+                        stage.setParentId(idMapRemote.get(remote.getParentId()));
+                    stageDao.insert(stage);
+                    idMapRemote.put(remote.getId(), stage.getId());
+                    idMapLocal.put(local.getId(), stage.getId());
+                    stageDao.flagMerged(remote.getId(), true);
+                } else {
+                    // only merge if file exists
+                    Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
+                    stage.mergeValuesFrom(local);
+                    if (idMapLocal.containsKey(local.getParentId()))
+                        stage.setParentId(idMapLocal.get(local.getParentId()));
+                    stageDao.insert(stage);
+                    idMapLocal.put(local.getId(), stage.getId());
+//                        }
+                }
+            }
+
+            private Order order = new Order();
+            private Map<Long, Long> idMapRemote = new HashMap<>();
+            private Map<Long, Long> idMapLocal = new HashMap<>();
+
+//            @Override
+//            public void stuffFound(Stage left, Stage right) throws SqlQueriesException {
+//                if (left != null) {
+//                    if (right != null) {
+//                        Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
+//                        stage.mergeValuesFrom(right);
+//                        // do not forget to relate to the parent!
+//                        if (idMapRemote.containsKey(right.getParentId()))
+//                            stage.setParentId(idMapRemote.get(right.getParentId()));
+//                        stageDao.insert(stage);
+//                        idMapRemote.put(right.getId(), stage.getId());
+//                        idMapLocal.put(left.getId(), stage.getId());
+//                        stageDao.flagMerged(right.getId(), true);
+//                    } else {
+//                        // only merge if file exists
+//                        Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
+//                        stage.mergeValuesFrom(left);
+//                        if (idMapLocal.containsKey(left.getParentId()))
+//                            stage.setParentId(idMapLocal.get(left.getParentId()));
+//                        stageDao.insert(stage);
+//                        idMapLocal.put(left.getId(), stage.getId());
+////                        }
+//                    }
+//                } else {
+//                    if (right != null) {
+//                        if (right.getParentId() == null) {
+//                            // stage is completely unconnected to whatever is on the left side
+//                            Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
+//                            stage.mergeValuesFrom(right);
+//                            stageDao.insert(stage);
+//                            stageDao.flagMerged(right.getId(), true);
+//                        } else {
+//                            /**
+//                             * We're iterating top down through the StageSet.
+//                             * We probably will find the parent on the left side and therefore have
+//                             * to "attach" our new left Stage to it.
+//                             */
+//                            Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
+//                            stage.mergeValuesFrom(right);
+//                            if (right.getParentId() == null) {
+//                                stageDao.insert(stage);
+//                            } else {
+//                                Stage rParent = stageDao.getStageById(right.getParentId());
+//                                IFile rParentFile = stageDao.getFileByStage(rParent);
+//                                Stage lParent = stageDao.getStageByPath(mStageSetId, rParentFile);
+//                                if (lParent != null) {
+//                                    stage.setParentId(lParent.getId());
+//                                } else {
+//                                    System.err.println("ClientSyncHandler.stuffFound.8c8h38h9");
+//                                }
+//                                stageDao.insert(stage);
+//                            }
+//                            idMapRemote.put(right.getId(), stage.getId());
+//                        }
+//                    }
+//                }
+//            }
         };
-        iterateStageSets(lStageSet, rStageSet, merger, null);
+        iterateStageSets(lStageSet, rStageSet, merger);
         stageDao.deleteStageSet(rStageSet.getId().v());
         stageDao.deleteStageSet(lStageSet.getId().v());
         stageDao.updateStageSet(mStageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED).setSource(FileSyncStrings.STAGESET_SOURCE_FS));
@@ -522,49 +581,30 @@ public class ClientSyncHandler extends SyncHandler {
      * @throws SqlQueriesException
      */
     @SuppressWarnings("Duplicates")
-    public void iterateStageSets(StageSet lStageSet, StageSet rStageSet, SyncStageMerger merger, ConflictSolver conflictSolver) throws SqlQueriesException {
+    public void iterateStageSets(StageSet lStageSet, StageSet rStageSet, SyncStageMerger merger) throws SqlQueriesException {
         OTimer timer1 = new OTimer("iter 1");
         OTimer timer2 = new OTimer("iter 2");
         OTimer timer3 = new OTimer("iter 3");
-        N.sqlResource(stageDao.getStagesResource(lStageSet.getId().v()), lStages -> {
-            Stage lStage = lStages.getNext();
-            while (lStage != null) {
-                timer1.start();
-                String localPath = lStage.getAbsolutePath();
-                timer1.stop();
-                timer2.start();
-                Stage rStage = stageDao.getStageByPathAndName(rStageSet.getId().v(), lStage.getPath(), lStage.getName());
-                timer2.stop();
-                if (conflictSolver != null)
-                    Lok.error("NOT:IMPLEMENTED:YET");
-//                conflictSolver.solve(lStage, rStage);
-                else {
-                    timer3.start();
-                    IFile rFile = (rStage != null) ? AbstractFile.instance(lFile.getAbsolutePath()) : null;
-                    timer3.stop();
-                    merger.stuffFound(lStage, rStage, lFile, rFile);
-                }
-                if (rStage != null)
-                    stageDao.flagMerged(rStage.getId(), true);
-                lStage = lStages.getNext();
+        N.sqlResource(stageDao.getStagesResource(lStageSet.getId().v()), localStages -> {
+            Stage localStage = localStages.getNext();
+            while (localStage != null) {
+                Stage remoteStage = stageDao.getStageByPathAndName(rStageSet.getId().v(), localStage.getPath(), localStage.getName());
+                merger.foundLocal(localStage, remoteStage);
+                if (remoteStage != null)
+                    stageDao.flagMerged(remoteStage.getId(), true);
+                localStage = localStages.getNext();
+            }
+        });
+        N.sqlResource(stageDao.getNotMergedStagesResource(rStageSet.getId().v()), remoteStages -> {
+            Stage remoteStage = remoteStages.getNext();
+            while (remoteStage != null) {
+                merger.foundRemote(remoteStage);
+                remoteStage = remoteStages.getNext();
             }
         });
         timer1.print().reset();
         timer2.print().reset();
         timer3.print().reset();
-        N.sqlResource(stageDao.getNotMergedStagesResource(rStageSet.getId().v()), rStages -> {
-            Stage rStage = rStages.getNext();
-            while (rStage != null) {
-                if (conflictSolver != null)
-                    Lok.error("NOT:IMPLEMENTED:YET");
-//                    conflictSolver.solve(null, rStage);
-                else {
-                    IFile rFile = stageDao.getFileByStage(rStage);
-                    merger.stuffFound(null, rStage, null, rFile);
-                }
-                rStage = rStages.getNext();
-            }
-        });
     }
 
     /**
