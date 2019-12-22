@@ -3,6 +3,7 @@ package de.mel.filesync.sql.dao;
 import de.mel.Lok;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.IFile;
+import de.mel.auth.file.StandardFile;
 import de.mel.auth.tools.Eva;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.FileSyncStrings;
@@ -39,10 +40,12 @@ public class StageDao extends Dao.LockingDao {
 
     /**
      * finds the relating stage. starts searching from leParentDirectory and traverses Stage table till it finds it.
+     * use getByPathAndName instead. This method is too expensive
      *
      * @param f
      * @return relating Stage or null if f is not staged
      */
+    @Deprecated
     public Stage getStageByPath(Long stageSetId, IFile f) throws SqlQueriesException {
         RootDirectory rootDirectory = fileSyncSettings.getRootDirectory();
         String rootPath = rootDirectory.getPath();
@@ -62,6 +65,10 @@ public class StageDao extends Dao.LockingDao {
         return bottomStage;
     }
 
+    public Stage getStageByPathAndName(Long stageSetId, String path, String name) throws SqlQueriesException {
+        String where = dummy.getPathPair().k() + "=? and " + dummy.getNamePair().k() + "=?";
+        return sqlQueries.loadFirstRow(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(), Stage.class);
+    }
 
     public StageSet getStageSetById(Long stageSetId) throws SqlQueriesException {
         StageSet dummy = new StageSet();

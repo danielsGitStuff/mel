@@ -530,10 +530,10 @@ public class ClientSyncHandler extends SyncHandler {
             Stage lStage = lStages.getNext();
             while (lStage != null) {
                 timer1.start();
-                IFile lFile = stageDao.getFileByStage(lStage);
+                String localPath = lStage.getAbsolutePath();
                 timer1.stop();
                 timer2.start();
-                Stage rStage = stageDao.getStageByPath(rStageSet.getId().v(), lFile);
+                Stage rStage = stageDao.getStageByPathAndName(rStageSet.getId().v(), lStage.getPath(), lStage.getName());
                 timer2.stop();
                 if (conflictSolver != null)
                     Lok.error("NOT:IMPLEMENTED:YET");

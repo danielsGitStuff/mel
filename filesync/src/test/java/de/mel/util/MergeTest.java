@@ -31,7 +31,6 @@ public class MergeTest {
     StageDao stageDao;
     ConflictDao conflictDao;
     FsDao fsDao;
-    File dbFile;
     StageSet localStageSet;
     StageSet remoteStageSet;
     FileSyncDatabaseManager databaseManager;
@@ -153,14 +152,14 @@ public class MergeTest {
      */
     @Before
     public void before() throws SqlQueriesException, IOException, SQLException, InterruptedException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
+        BashTools.Companion.init();
+        AbstractFile.configure(new DefaultFileConfiguration());
         workingDirectory = new File("test.workingdir" + counter);
+        if (workingDirectory.exists())
+            BashTools.Companion.rmRf(workingDirectory);
         workingDirectory.mkdirs();
-        dbFile = new File(workingDirectory, "conflict.test." + (counter++) + ".db");
-        Lok.debug("testing with db: " + dbFile.getAbsolutePath());
         AbstractFile.configure(new DefaultFileConfiguration());
         BashTools.Companion.init();
-        if (dbFile.exists())
-            dbFile.delete();
 
         rootDir = new RootDirectory();
         rootDir.setOriginalFile(AbstractFile.instance(AbstractFile.instance(workingDirectory), "rootdir"));
@@ -195,15 +194,15 @@ public class MergeTest {
         Thread.sleep(50L);
         fillStageSet(creationRemoteDao, remoteStageSet.getId().v());
         Lok.debug("BEFORE");
+        counter++;
     }
 
     @After
     public void after() throws SqlQueriesException {
         creationLocalDao.cleanUp();
-        BashTools.Companion.rmRf(dbFile);
-        if (dbFile.exists() && !dbFile.delete()) {
-            Lok.error("DB NOT DELETED");
-            dbFile.deleteOnExit();
+        BashTools.Companion.rmRf(workingDirectory);
+        if (workingDirectory.exists() && !workingDirectory.delete()) {
+            Lok.error("DIR NOT DELETED");
             workingDirectory.deleteOnExit();
         }
     }

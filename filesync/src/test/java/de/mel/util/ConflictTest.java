@@ -215,11 +215,6 @@ public class ConflictTest extends MergeTest {
     @After
     public void after() throws SqlQueriesException {
         creationLocalDao.cleanUp();
-        BashTools.Companion.rmRf(dbFile);
-        if (dbFile.exists() && !dbFile.delete()) {
-            Lok.error("DB NOT DELETED");
-            dbFile.deleteOnExit();
-        }
         super.after();
     }
 }

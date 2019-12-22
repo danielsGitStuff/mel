@@ -386,4 +386,8 @@ public class Stage extends SQLTableObject implements SerializableEntity {
         list.add(name);
         return list;
     }
+
+    public String getAbsolutePath() {
+        return path.v() + name.v();
+    }
 }

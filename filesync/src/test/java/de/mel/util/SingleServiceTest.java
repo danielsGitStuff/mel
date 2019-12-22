@@ -1,5 +1,6 @@
 package de.mel.util;
 
+import de.mel.Lok;
 import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.service.DummyMelAuthService;
@@ -30,8 +31,6 @@ import java.sql.SQLException;
 
 public class SingleServiceTest extends MergeTest {
 
-    File workingDirectory;
-    FileSyncDatabaseManager databaseManager;
     MelFileSyncClientService syncClientService;
     FileSyncSettings settings;
     RootDirectory rootDir;
@@ -41,7 +40,6 @@ public class SingleServiceTest extends MergeTest {
     @Before
     public void before() throws SqlQueriesException, IOException, SQLException, InterruptedException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
         super.before();
-        workingDirectory = new File("test.workingdir.client" + counter);
         MelAuthSettings authSettings = new MelAuthSettings()
                 .setName("mel auth dummy")
                 .setWorkingDirectory(workingDirectory);
@@ -59,8 +57,6 @@ public class SingleServiceTest extends MergeTest {
                 .setRootDirectory(rootDir)
                 .setUseSymLinks(false)
                 .setTransferDirectory(AbstractFile.instance(AbstractFile.instance(workingDirectory), "transfer.dir"));
-
-        databaseManager = new FileSyncDatabaseManager("dummy service uuid", workingDirectory, this.settings);
 
         syncClientService = new MelFileSyncClientService(melAuthService, workingDirectory, 1L, "dummy service uuid", this.settings, databaseManager);
         setProperty(syncClientService, "wastebin", new Wastebin(syncClientService));
@@ -88,7 +84,8 @@ public class SingleServiceTest extends MergeTest {
     public Method getMethod(Class clazz, String methodName) throws NoSuchMethodException {
         System.err.println(clazz);
         Method[] methods = clazz.getDeclaredMethods();
-        Method method = N.first(methods, m -> m.getName().contains(methodName));
+        N.forEach(methods, method -> Lok.debug(method.getName() + " from "+method.getDeclaringClass().getSimpleName()));
+        Method method = N.first(methods, m -> m.getName().equals(methodName));
         method.setAccessible(true);
         return method;
     }
@@ -114,7 +111,7 @@ public class SingleServiceTest extends MergeTest {
     public void mergeFsLocal() throws SqlQueriesException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         makeStageSetsFromFs();
         Method method = getMethod(syncClientService.getClass(), "workWorkWork");
-        method.invoke(syncClientService);
+        method.invoke(syncClientService, new CommitJob());
         fail();
     }
 
