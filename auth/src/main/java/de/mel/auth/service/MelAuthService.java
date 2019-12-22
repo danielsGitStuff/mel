@@ -50,17 +50,17 @@ public abstract class MelAuthService {
 
     public abstract List<Long> getConnectedUserIds();
 
-    public abstract MelAuthServiceImpl addMelAuthAdmin(MelAuthAdmin admin);
+    public abstract MelAuthService addMelAuthAdmin(MelAuthAdmin admin);
 
     public abstract void notifyAdmins();
 
-    public abstract MelAuthServiceImpl addRegisteredHandler(IRegisteredHandler IRegisteredHandler);
+    public abstract MelAuthService addRegisteredHandler(IRegisteredHandler IRegisteredHandler);
 
     public abstract File getWorkingDirectory();
 
     public abstract List<IRegisteredHandler> getRegisteredHandlers();
 
-    public abstract MelAuthServiceImpl addRegisterHandler(IRegisterHandler registerHandler);
+    public abstract MelAuthService addRegisterHandler(IRegisterHandler registerHandler);
 
     public abstract DeferredObject<DeferredRunnable, Exception, Void> prepareStart();
 
@@ -95,17 +95,17 @@ public abstract class MelAuthService {
      * @return
      * @throws SqlQueriesException
      */
-    public abstract MelAuthServiceImpl registerMelService(MelService melService) throws SqlQueriesException;
+    public abstract MelAuthService registerMelService(MelService melService) throws SqlQueriesException;
 
-    public abstract MelAuthServiceImpl unregisterMelService(String serviceUuid);
+    public abstract MelAuthService unregisterMelService(String serviceUuid);
 
-    public abstract MelAuthServiceImpl setName(String name);
+    public abstract MelAuthService setName(String name);
 
     public abstract void updateCertAddresses(Long remoteCertId, String address, Integer port, Integer portCert) throws SqlQueriesException;
 
-    public abstract Promise<MelAuthServiceImpl, Exception, Void> boot();
+    public abstract Promise<MelAuthService, Exception, Void> boot();
 
-    public abstract MelAuthServiceImpl saveApprovals(ApprovalMatrix approvalMatrix) throws SqlQueriesException;
+    public abstract MelAuthService saveApprovals(ApprovalMatrix approvalMatrix) throws SqlQueriesException;
 
     abstract <T extends MelIsolatedProcess> DeferredObject<T, Exception, Void> connectToService(Class<T> isolatedServiceClass, Long certId, String remoteServiceUuid, String ownServiceUuid, String address, Integer port, Integer portCert) throws SqlQueriesException, InterruptedException;
 
@@ -128,7 +128,7 @@ public abstract class MelAuthService {
      */
     abstract void discoverNetworkEnvironmentImpl();
 
-    public abstract MelAuthServiceImpl discoverNetworkEnvironment();
+    public abstract MelAuthService discoverNetworkEnvironment();
 
     public abstract NetworkEnvironment getNetworkEnvironment();
 
@@ -170,7 +170,7 @@ public abstract class MelAuthService {
     public abstract PowerManager getPowerManager();
 
     /**
-     * services changed names or something {@link MelAuthServiceImpl displays}
+     * services changed names or something {@link MelAuthService displays}
      */
     public abstract void onServicesChanged();
 

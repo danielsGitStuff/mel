@@ -52,8 +52,8 @@ import static org.junit.Assert.*;
  */
 @SuppressWarnings("Duplicates")
 public class DriveTest {
-    private static MelAuthServiceImpl melAuthService1;
-    private static MelAuthServiceImpl melAuthService2;
+    private static MelAuthService melAuthService1;
+    private static MelAuthService melAuthService2;
     private static RWLock lock = new RWLock();
     private static N runner = new N(Throwable::printStackTrace);
     private static MelAuthSettings json2;
@@ -121,7 +121,7 @@ public class DriveTest {
                         File delFile = new File(rootPath + File.separator + "samedir");
                         BashTools.Companion.rmRf(new StandardFile(delFile));
                         MelBoot melBoot = (restartMelBoot != null) ? restartMelBoot : new MelBoot(json1, new PowerManager(json1), FileSyncBootloader.class);
-                        Promise<MelAuthServiceImpl, Exception, Void> rebooted = melBoot.boot();
+                        Promise<MelAuthService, Exception, Void> rebooted = melBoot.boot();
                         rebooted.done(res -> N.r(() -> {
                             Lok.debug("DriveTest.alles ok");
 //                            testStructure.setMaClient(melAuthService2)
@@ -246,7 +246,7 @@ public class DriveTest {
                         hash = Hash.md5(newFile.inputStream());
                         Lok.debug("DriveTest.onTransfersDone.hash: " + newFile + " -> " + hash);
                         MelBoot melBoot = (restartMelBoot != null) ? restartMelBoot : new MelBoot(json1, new PowerManager(json1), FileSyncBootloader.class);
-                        Promise<MelAuthServiceImpl, Exception, Void> rebooted = melBoot.boot();
+                        Promise<MelAuthService, Exception, Void> rebooted = melBoot.boot();
                         rebooted.done(res -> N.r(() -> {
                             Lok.debug("DriveTest.alles ok");
 //                            testStructure.setMaClient(melAuthService2)
@@ -487,8 +487,8 @@ public class DriveTest {
                 .setWorkingDirectory(MelBoot.Companion.getDefaultWorkingDir1()).setName("MA1");
         MelBoot boot = new MelBoot(json1, new PowerManager(json1));
         WaitLock waitLock = new WaitLock().lock();
-        Promise<MelAuthServiceImpl, Exception, Void> promise = boot.boot();
-        final MelAuthServiceImpl[] mas = new MelAuthServiceImpl[1];
+        Promise<MelAuthService, Exception, Void> promise = boot.boot();
+        final MelAuthService[] mas = new MelAuthServiceImpl[1];
         promise.done(result -> N.r(() -> {
             mas[0] = result;
             Promise<MelFileSyncServerService, Exception, Void> driveBootedPromise = new FileSyncCreateServiceHelper(result)

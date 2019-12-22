@@ -1,19 +1,18 @@
 package de.mel.filesync.data.conflict
 
-import de.mel.auth.file.AbstractFile
-import de.mel.auth.file.IFile
 import de.mel.filesync.sql.FsDirectory
-import de.mel.filesync.sql.GenericFSEntry
 import de.mel.filesync.sql.Stage
 import de.mel.filesync.sql.StageSet
 import de.mel.filesync.sql.dao.ConflictDao
 import de.mel.sql.SqlQueriesException
+import java.util.*
 
 /**
  * Created by xor on 5/6/17.
  */
 abstract class SyncStageMerger(protected val conflictDao: ConflictDao, protected val lStageSetId: Long, protected val rStageSetId: Long) {
-
+//    protected val idMapRemote: Map<Long, Long> = HashMap()
+//    protected val idMapLocal: Map<Long, Long> = HashMap()
     protected val stageDao = conflictDao.stageDao
     protected val fsDao = conflictDao.fsDao
 

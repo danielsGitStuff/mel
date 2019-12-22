@@ -165,7 +165,7 @@ public class DummyMelAuthService extends MelAuthService {
     }
 
     @Override
-    public Promise<MelAuthServiceImpl, Exception, Void> boot() {
+    public Promise<MelAuthService, Exception, Void> boot() {
         return null;
     }
 
@@ -181,7 +181,7 @@ public class DummyMelAuthService extends MelAuthService {
 
     @Override
     public Promise<MelValidationProcess, Exception, Void> connect(Long certificateId) throws SqlQueriesException, InterruptedException {
-        return null;
+        return new DeferredObject<MelValidationProcess, Exception, Void>().reject(new Exception("this is a test"));
     }
 
     @Override

@@ -442,6 +442,10 @@ public class ClientSyncHandler extends SyncHandler {
          * This overwrites changes in the old StageSet with the newer ones.
          */
         SyncStageMerger merger = new SyncStageMerger(conflictDao, lStageSet.getId().v(), rStageSet.getId().v()) {
+            private Map<Long, Long> idMapRemote = new HashMap<>();
+            private Map<Long, Long> idMapLocal = new HashMap<>();
+            private Order order = new Order();
+
             @Override
             public void foundRemote(@NotNull Stage remote) throws SqlQueriesException {
                 if (remote.getParentId() == null) {
@@ -499,9 +503,7 @@ public class ClientSyncHandler extends SyncHandler {
                 }
             }
 
-            private Order order = new Order();
-            private Map<Long, Long> idMapRemote = new HashMap<>();
-            private Map<Long, Long> idMapLocal = new HashMap<>();
+
 
 //            @Override
 //            public void stuffFound(Stage left, Stage right) throws SqlQueriesException {

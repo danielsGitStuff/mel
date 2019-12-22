@@ -6,6 +6,7 @@ import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.file.IFile;
 import de.mel.auth.service.Bootloader;
+import de.mel.auth.service.MelAuthService;
 import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.service.MelBoot;
 import de.mel.auth.service.power.PowerManager;
@@ -32,7 +33,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class IndexTest {
-    protected MelAuthServiceImpl mas;
+    protected MelAuthService mas;
     private Bootloader dbl;
     private IFile testRoot;
     private MelFileSyncServerService service;
@@ -58,7 +59,7 @@ public class IndexTest {
             MelAuthSettings settings = MelAuthSettings.createDefaultSettings().setWorkingDirectory(wd).setName("First");
             CountWaitLock lock = new CountWaitLock();
             MelBoot melBoot = new MelBoot(settings, new PowerManager(settings), FileSyncBootloader.class);
-            Promise<MelAuthServiceImpl, Exception, Void> promise = melBoot.boot();
+            Promise<MelAuthService, Exception, Void> promise = melBoot.boot();
             promise.done(result -> N.r(() -> {
                 mas = result;
                 RootDirectory rootDirectory = FileSyncSettings.buildRootDirectory(testRoot);

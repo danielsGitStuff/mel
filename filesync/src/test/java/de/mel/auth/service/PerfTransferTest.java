@@ -145,7 +145,7 @@ public class PerfTransferTest {
             }
         });
         N.r(() -> {
-            Promise<MelAuthServiceImpl, Exception, Void> booted = boot.boot();
+            Promise<MelAuthService, Exception, Void> booted = boot.boot();
             booted.done(result1 -> N.r(() -> {
                 result.resolve(perfTransferTest);
 

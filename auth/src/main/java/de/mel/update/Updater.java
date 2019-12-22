@@ -4,6 +4,7 @@ import de.mel.Lok;
 import de.mel.Versioner;
 import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.data.access.CertificateManager;
+import de.mel.auth.service.MelAuthService;
 import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.tools.N;
 
@@ -23,7 +24,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Updater {
-    private final MelAuthServiceImpl melAuthService;
+    private final MelAuthService melAuthService;
     private final CertificateManager cm;
     private final MelAuthSettings settings;
     private final File target;
@@ -31,7 +32,7 @@ public class Updater {
     private BinarySocket binarySocket;
     private Set<UpdateHandler> updateHandlers = new HashSet<>();
 
-    public Updater(MelAuthServiceImpl melAuthService) {
+    public Updater(MelAuthService melAuthService) {
         this.melAuthService = melAuthService;
         this.cm = melAuthService.getCertificateManager();
         this.settings = melAuthService.getSettings();

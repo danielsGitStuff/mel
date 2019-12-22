@@ -7,7 +7,7 @@ import de.mel.auth.data.MelResponse;
 import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.jobs.BlockReceivedJob;
-import de.mel.auth.service.MelAuthServiceImpl;
+import de.mel.auth.service.MelAuthService;
 import de.mel.auth.socket.MelSocket;
 import de.mel.auth.socket.ShamefulSelfConnectException;
 import de.mel.auth.tools.ShutDownDeferredManager;
@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by xor on 4/18/16.
  */
 public class MelCertRetriever extends DeferredRunnable {
-    private final MelAuthServiceImpl melAuthService;
+    private final MelAuthService melAuthService;
     private final CertificateManager certificateManager;
     private Map<MelSocket, Object> clientSockets = new ConcurrentHashMap<>();
     private DeferredObject<Certificate, Exception, Object> deferred;
@@ -40,7 +40,7 @@ public class MelCertRetriever extends DeferredRunnable {
     private int port;
     private MelSocket certDeliveryClient;
 
-    public MelCertRetriever(MelAuthServiceImpl melAuthService) {
+    public MelCertRetriever(MelAuthService melAuthService) {
         this.melAuthService = melAuthService;
         this.certificateManager = melAuthService.getCertificateManager();
     }

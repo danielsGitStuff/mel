@@ -47,7 +47,8 @@ public abstract class TestCreationDao<T extends SQLTableObject> extends Dao {
 
     public void cleanUp() throws SqlQueriesException {
         sqlQueries.close();
-        dbFile.delete();
+        if (dbFile != null)
+            dbFile.delete();
     }
 
     public T get(String key) {

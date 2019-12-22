@@ -332,6 +332,8 @@ public class Stage extends SQLTableObject implements SerializableEntity {
         deleted.v(source.getDeleted());
         synced.v(source.getSynced());
         fsId.v(source.getFsId());
+        depth.v(source.getDepth());
+        path.v(source.getPath());
         fsParentId.v(source.getFsParentId());
         return this;
     }

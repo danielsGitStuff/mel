@@ -4,6 +4,7 @@ import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.file.IFile;
+import de.mel.auth.service.MelAuthService;
 import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.service.MelBoot;
 import de.mel.auth.service.power.PowerManager;
@@ -37,7 +38,7 @@ import static org.junit.Assert.*;
  */
 public class IndexerTest {
     private static IFile rootFile;
-    private static MelAuthServiceImpl mas;
+    private static MelAuthService mas;
     private static MelFileSyncServerService mds;
     private static RootDirectory rootDirectory;
 
@@ -93,7 +94,7 @@ public class IndexerTest {
 
         CountLock lock = new CountLock().lock();
         MelAuthSettings melAuthSettings = MelAuthSettings.createDefaultSettings();
-        AtomicReference<MelAuthServiceImpl> melAuthServiceAtomicReference = new AtomicReference<>();
+        AtomicReference<MelAuthService> melAuthServiceAtomicReference = new AtomicReference<>();
         MelBoot melBoot = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncBootloader.class);
         final FsDirectory[] subDir = new FsDirectory[1];
         melBoot.boot().done(mas -> N.r(() -> {

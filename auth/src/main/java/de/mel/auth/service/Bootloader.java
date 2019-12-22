@@ -23,7 +23,7 @@ public abstract class Bootloader<T extends MelService> {
     protected T melService;
     protected Long typeId;
     protected File bootLoaderDir;
-    protected MelAuthServiceImpl melAuthService;
+    protected MelAuthService melAuthService;
     protected AtomicReference<BootLevel> bootLevel = new AtomicReference<>(BootLevel.NONE);
 
 
@@ -40,7 +40,7 @@ public abstract class Bootloader<T extends MelService> {
 
     public abstract String getDescription();
 
-    public final T bootLevelShort(MelAuthServiceImpl melAuthService, Service serviceDescription) throws BootException {
+    public final T bootLevelShort(MelAuthService melAuthService, Service serviceDescription) throws BootException {
         if (bootLevel.compareAndSet(BootLevel.NONE, BootLevel.SHORT)) {
             melService = bootLevelShortImpl(melAuthService, serviceDescription);
             melService.setReachedBootLevel(BootLevel.SHORT);
@@ -60,7 +60,7 @@ public abstract class Bootloader<T extends MelService> {
      * @return
      * @throws BootException
      */
-    public abstract T bootLevelShortImpl(MelAuthServiceImpl melAuthService, Service serviceDescription) throws BootException;
+    public abstract T bootLevelShortImpl(MelAuthService melAuthService, Service serviceDescription) throws BootException;
 
     public void setBootLoaderDir(File bootLoaderDir) {
         this.bootLoaderDir = bootLoaderDir;
@@ -71,7 +71,7 @@ public abstract class Bootloader<T extends MelService> {
         return getName();
     }
 
-    public void setMelAuthService(MelAuthServiceImpl melAuthService) {
+    public void setMelAuthService(MelAuthService melAuthService) {
         this.melAuthService = melAuthService;
 
     }

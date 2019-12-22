@@ -15,6 +15,8 @@ import de.mel.filesync.service.MelFileSyncServerService;
 import de.mel.filesync.service.Wastebin;
 import de.mel.filesync.service.sync.ClientSyncHandler;
 import de.mel.filesync.sql.FileSyncDatabaseManager;
+import de.mel.filesync.sql.Stage;
+import de.mel.filesync.sql.StageSet;
 import de.mel.sql.SqlQueriesException;
 import org.junit.After;
 import org.junit.Before;
@@ -28,6 +30,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SingleServiceTest extends MergeTest {
 
@@ -84,7 +89,7 @@ public class SingleServiceTest extends MergeTest {
     public Method getMethod(Class clazz, String methodName) throws NoSuchMethodException {
         System.err.println(clazz);
         Method[] methods = clazz.getDeclaredMethods();
-        N.forEach(methods, method -> Lok.debug(method.getName() + " from "+method.getDeclaringClass().getSimpleName()));
+        N.forEach(methods, method -> Lok.debug(method.getName() + " from " + method.getDeclaringClass().getSimpleName()));
         Method method = N.first(methods, m -> m.getName().equals(methodName));
         method.setAccessible(true);
         return method;
@@ -108,11 +113,19 @@ public class SingleServiceTest extends MergeTest {
     }
 
     @Test
-    public void mergeFsLocal() throws SqlQueriesException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public void mergeFsLocalEqual() throws SqlQueriesException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         makeStageSetsFromFs();
         Method method = getMethod(syncClientService.getClass(), "workWorkWork");
         method.invoke(syncClientService, new CommitJob());
-        fail();
+
+        // check if all stages of the local stageset live in the merged one
+        StageSet mergedStageSet = stageDao.getStagedStageSetsFromFS().stream().findFirst().get();
+        Map<String, Stage> localNameMap = new HashMap<>();
+        creationLocalDao.getEntries().forEach(stage -> localNameMap.put(stage.getName(), stage));
+        stageDao.getStagesByStageSet(mergedStageSet.getId().v()).toList().forEach(stage -> {
+            assertNotNull(localNameMap.remove(stage.getName()));
+        });
+        assertEquals(0, localNameMap.size());
     }
 
     @After

@@ -293,8 +293,8 @@ public class MelAuthServiceImpl extends MelAuthService {
 
 
     @Override
-    public Promise<MelAuthServiceImpl, Exception, Void> boot() {
-        DeferredObject<MelAuthServiceImpl, Exception, Void> bootedPromise = new DeferredObject<>();
+    public Promise<MelAuthService, Exception, Void> boot() {
+        DeferredObject<MelAuthService, Exception, Void> bootedPromise = new DeferredObject<>();
         DeferredObject<DeferredRunnable, Exception, Void> startedPromise = this.prepareStart();
         start();
         Lok.debug("MelAuthService.boot.trying to connect to everybody");
