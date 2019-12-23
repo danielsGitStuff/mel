@@ -3,6 +3,7 @@ package de.mel.sql.test;
 import de.mel.sql.*;
 import de.mel.sql.conn.SQLConnector;
 import de.mel.sql.transform.SqlResultTransformer;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -14,7 +15,7 @@ import java.util.function.Function;
 
 public abstract class TestCreationDao<T extends SQLTableObject> extends Dao {
     private File dbFile;
-    private Map<String, T> nameMap = new HashMap<>();
+    protected Map<String, T> nameMap = new HashMap<>();
 
     public Collection<T> getEntries() {
         return nameMap.values();

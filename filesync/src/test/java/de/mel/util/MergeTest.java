@@ -28,6 +28,7 @@ public class MergeTest {
     static Integer counter = 0;
     StageTestCreationDao creationLocalDao;
     StageTestCreationDao creationRemoteDao;
+    StageTestCreationDao creationMergedDao;
     StageDao stageDao;
     ConflictDao conflictDao;
     FsDao fsDao;
@@ -39,6 +40,15 @@ public class MergeTest {
     RootDirectory rootDir;
     String SERVICE_ROLE = FileSyncStrings.ROLE_CLIENT;
 
+    /**
+     * /a/aa.txt
+     * /b/bb/bbb.txt
+     * /c/
+     *
+     * @param creationDao
+     * @param stageSetId
+     * @throws SqlQueriesException
+     */
     public void fillStageSet(StageTestCreationDao creationDao, long stageSetId) throws SqlQueriesException {
         Order ord = new Order();
 
@@ -125,7 +135,26 @@ public class MergeTest {
                         .setCreated(12L)
                         .setIsDirectory(false)
                         .setDeleted(false)
-                        .setContentHash("bbb.txt"));
+                        .setContentHash("bbb.txt"))
+                // /b/bb/
+                .up()
+                // /b/
+                .up()
+                // /
+                .up()
+                .insert(stage -> new Stage()
+                        .setName("c")
+                        .setDepth(1)
+                        .setPath("/")
+                        .setOrder(ord.ord())
+                        .setStageSet(stageSetId)
+                        .setParentId(stage.getId())
+                        .setFsParentId(stage.getFsParentId())
+                        .setModified(12L)
+                        .setIsDirectory(true)
+                        .setDeleted(false)
+                        .setContentHash("c")
+                );
         // replace separators
         String replacement = N.result(() -> {
             if (File.separator.equals("\\"))

@@ -630,4 +630,11 @@ public class StageDao extends Dao.LockingDao {
         String statement = "update " + dummy.getTableName() + " set " + dummy.getContentHashPair().k() + "=? where " + dummy.getIdPair().k() + "=?";
         sqlQueries.execute(statement, ISQLQueries.args(hash, id));
     }
+
+    public boolean isInDeletionSet(Stage stage) throws SqlQueriesException {
+        // select stageset,name, path||name||"%" from stage where "/b/bb/" like path||"%" and deleted=1 and stageset=2;
+        String query = "select ";
+        Boolean result = sqlQueries.queryValue(query, Boolean.class, ISQLQueries.args());
+        return false;
+    }
 }

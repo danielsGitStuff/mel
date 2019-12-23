@@ -481,6 +481,9 @@ public class ClientSyncHandler extends SyncHandler {
 
             @Override
             public void foundLocal(@NotNull Stage local, @Nullable Stage remote) throws SqlQueriesException {
+                // todo debug
+                if (local.getNamePair().equalsValue("a"))
+                    Lok.debug("bug");
                 if (remote != null) {
                     Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
                     stage.mergeValuesFrom(remote);
@@ -493,6 +496,7 @@ public class ClientSyncHandler extends SyncHandler {
                     stageDao.flagMerged(remote.getId(), true);
                 } else {
                     // only merge if file exists
+                    boolean parentDeleted = stageDao.isInDeletionSet(local);
                     Stage stage = new Stage().setOrder(order.ord()).setStageSet(mStageSetId);
                     stage.mergeValuesFrom(local);
                     if (idMapLocal.containsKey(local.getParentId()))
@@ -502,7 +506,6 @@ public class ClientSyncHandler extends SyncHandler {
 //                        }
                 }
             }
-
 
 
 //            @Override

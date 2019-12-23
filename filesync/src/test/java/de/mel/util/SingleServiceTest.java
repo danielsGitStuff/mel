@@ -89,7 +89,6 @@ public class SingleServiceTest extends MergeTest {
     public Method getMethod(Class clazz, String methodName) throws NoSuchMethodException {
         System.err.println(clazz);
         Method[] methods = clazz.getDeclaredMethods();
-        N.forEach(methods, method -> Lok.debug(method.getName() + " from " + method.getDeclaringClass().getSimpleName()));
         Method method = N.first(methods, m -> m.getName().equals(methodName));
         method.setAccessible(true);
         return method;
@@ -123,6 +122,29 @@ public class SingleServiceTest extends MergeTest {
         Map<String, Stage> localNameMap = new HashMap<>();
         creationLocalDao.getEntries().forEach(stage -> localNameMap.put(stage.getName(), stage));
         stageDao.getStagesByStageSet(mergedStageSet.getId().v()).toList().forEach(stage -> {
+            assertNotNull(localNameMap.remove(stage.getName()));
+        });
+        assertEquals(0, localNameMap.size());
+    }
+
+    @Test
+    public void mergeFsLocalDeleteAatxt() throws SqlQueriesException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        makeStageSetsFromFs();
+
+        // delete folder "a"
+        creationRemoteDao.delete("bbb.txt");
+        stageDao.update(creationRemoteDao.get("bb").setDeleted(true).setContentHash("deleted bbb.txt"));
+        stageDao.update(creationRemoteDao.get("b").setContentHash("changed"));
+        Method method = getMethod(syncClientService.getClass(), "workWorkWork");
+        method.invoke(syncClientService, new CommitJob());
+
+        // check if all stages of the local stageset live in the merged one
+        StageSet mergedStageSet = stageDao.getStagedStageSetsFromFS().stream().findFirst().get();
+        Map<String, Stage> localNameMap = new HashMap<>();
+        creationMergedDao = new StageTestCreationDao(fsDao.getSqlQueries());
+        creationMergedDao.reloadStageSet(mergedStageSet.getId().v()).getEntries().forEach(stage -> localNameMap.put(stage.getName(), stage));
+        stageDao.getStagesByStageSet(mergedStageSet.getId().v()).toList().forEach(stage -> {
+            Lok.debug("el " + stage.getName());
             assertNotNull(localNameMap.remove(stage.getName()));
         });
         assertEquals(0, localNameMap.size());
