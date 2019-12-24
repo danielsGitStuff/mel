@@ -10,8 +10,8 @@ import java.util.*
 /**
  * Created by xor on 5/6/17.
  */
-abstract class SyncStageMerger(protected val conflictDao: ConflictDao, protected val lStageSetId: Long, protected val rStageSetId: Long) {
-//    protected val idMapRemote: Map<Long, Long> = HashMap()
+abstract class SyncStageMerger(protected val conflictDao: ConflictDao, val lStageSetId: Long, val rStageSetId: Long) {
+    //    protected val idMapRemote: Map<Long, Long> = HashMap()
 //    protected val idMapLocal: Map<Long, Long> = HashMap()
     protected val stageDao = conflictDao.stageDao
     protected val fsDao = conflictDao.fsDao
@@ -39,6 +39,14 @@ abstract class SyncStageMerger(protected val conflictDao: ConflictDao, protected
             dirDummy.calcContentHash()
             stageDao.updateContentHash(directory.id, dirDummy.contentHash.v())
         }
+    }
+
+    open fun before() {
+
+    }
+
+    open fun after() {
+
     }
 
 }

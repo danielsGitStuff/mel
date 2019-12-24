@@ -47,4 +47,37 @@ class ConflictDao(val stageDao: StageDao, val fsDao: FsDao) : Dao(stageDao.sqlQu
     fun getRemoteDeletedByLocal(localStageSetId: Long, remoteStageSetId: Long): List<DbConflict> {
         return getLocalDeletedByRemote(remoteStageSetId, localStageSetId)
     }
+
+    fun flagLocalModifiedInRemote(localStageSetId: Long, remoteStageSetId: Long) {
+        // update stage set merged=1 where id in
+        // (select l.id from (select path, id, name,contenthash from stage where stageset=1)
+        // l left join
+        // (select path,id,name,contenthash from stage where stageset=2)
+        // r on (l.path=r.path and l.name=r.name)
+        // where l.contenthash<>r.contenthash);
+        var statement: String = ""
+        with(s) {
+            statement = """
+                    update $tableName set ${mergedPair.k()}=? where ${idPair.k()} in
+                    (select l.${idPair.k()} from (select ${pathPair.k()},${idPair.k()},${namePair.k()},${contentHashPair.k()} from $tableName where ${stageSetPair.k()}=?)
+                    l left join
+                    (select ${pathPair.k()},${idPair.k()},${namePair.k()},${contentHashPair.k()} from $tableName where ${stageSetPair.k()}=?)
+                    r on (l.${pathPair.k()}=r.${pathPair.k()} and l.${namePair.k()}=r.${namePair.k()})
+                    where l.${contentHashPair.k()}<>r.${contentHashPair.k()}
+                """.trimIndent()
+        }
+        sqlQueries.execute(statement, ISQLQueries.args(true, localStageSetId, remoteStageSetId))
+    }
+
+    fun flagLocalChildrenDeletedInRemote(localStageSetId: Long, remoteStageSetId: Long) {
+        // update stage set merged=1 where id in
+        // (select id from (select * from stage where stageset=1) l where exists
+        // (select * from stage where l.path like path||"%" and stageset=2 and deleted=1));
+        val statement = """
+            update ${s.tableName} set ${s.mergedPair.k()}=? where ${s.idPair.k()} in 
+            (select ${s.idPair.k()} from (select * from ${s.tableName} where ${s.stageSetPair.k()}=?) l where exists
+            (select * from ${s.tableName} where l.${s.pathPair.k()} like ${s.pathPair.k()}||"%" and ${s.stageSetPair.k()}=? and ${s.deletedPair.k()}=?))
+        """
+        sqlQueries.execute(statement, ISQLQueries.args(true, localStageSetId, remoteStageSetId, true))
+    }
 }

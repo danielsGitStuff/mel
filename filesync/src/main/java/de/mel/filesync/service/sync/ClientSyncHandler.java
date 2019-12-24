@@ -447,6 +447,12 @@ public class ClientSyncHandler extends SyncHandler {
             private Order order = new Order();
 
             @Override
+            public void before() {
+                conflictDao.flagLocalChildrenDeletedInRemote(lStageSet.getId().v(), rStageSet.getId().v());
+                conflictDao.flagLocalModifiedInRemote(lStageSet.getId().v(), rStageSet.getId().v());
+            }
+
+            @Override
             public void foundRemote(@NotNull Stage remote) throws SqlQueriesException {
                 if (remote.getParentId() == null) {
                     // stage is completely unconnected to whatever is on the left side
@@ -506,8 +512,6 @@ public class ClientSyncHandler extends SyncHandler {
 //                        }
                 }
             }
-
-
 //            @Override
 //            public void stuffFound(Stage left, Stage right) throws SqlQueriesException {
 //                if (left != null) {
@@ -590,6 +594,7 @@ public class ClientSyncHandler extends SyncHandler {
         OTimer timer1 = new OTimer("iter 1");
         OTimer timer2 = new OTimer("iter 2");
         OTimer timer3 = new OTimer("iter 3");
+        merger.before();
         N.sqlResource(stageDao.getStagesResource(lStageSet.getId().v()), localStages -> {
             Stage localStage = localStages.getNext();
             while (localStage != null) {
@@ -607,6 +612,7 @@ public class ClientSyncHandler extends SyncHandler {
                 remoteStage = remoteStages.getNext();
             }
         });
+        merger.after();
         timer1.print().reset();
         timer2.print().reset();
         timer3.print().reset();
