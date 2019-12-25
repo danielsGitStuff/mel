@@ -1,12 +1,13 @@
 package de.mel.filesync.sql;
 
 import de.mel.Lok;
+import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 import de.mel.core.serialize.JsonIgnore;
 import de.mel.core.serialize.SerializableEntity;
-import de.mel.sql.ISQLQueries;
+import de.mel.filesync.data.RootDirectory;
 import de.mel.sql.Pair;
 import de.mel.sql.SQLTableObject;
-import de.mel.sql.SqlQueriesException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -391,5 +392,14 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     public String getAbsolutePath() {
         return path.v() + name.v();
+    }
+
+    public IFile toIFile(RootDirectory rootDirectory) {
+        String path = this.path.v();
+        // root dir is a bit different
+        if (path.isEmpty())
+            return AbstractFile.instance(rootDirectory.getPath());
+        path = rootDirectory.getPath() + path + name.v();
+        return AbstractFile.instance(path + name.v());
     }
 }

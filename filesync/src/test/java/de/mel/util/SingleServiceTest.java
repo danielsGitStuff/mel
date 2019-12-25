@@ -6,15 +6,15 @@ import de.mel.auth.file.AbstractFile;
 import de.mel.auth.service.DummyMelAuthService;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.tools.N;
+import de.mel.core.serialize.exceptions.JsonDeserializationException;
+import de.mel.core.serialize.exceptions.JsonSerializationException;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.FileSyncStrings;
-import de.mel.filesync.data.fs.RootDirectory;
+import de.mel.filesync.data.RootDirectory;
 import de.mel.filesync.jobs.CommitJob;
 import de.mel.filesync.service.MelFileSyncClientService;
-import de.mel.filesync.service.MelFileSyncServerService;
 import de.mel.filesync.service.Wastebin;
 import de.mel.filesync.service.sync.ClientSyncHandler;
-import de.mel.filesync.sql.FileSyncDatabaseManager;
 import de.mel.filesync.sql.Stage;
 import de.mel.filesync.sql.StageSet;
 import de.mel.sql.SqlQueriesException;
@@ -24,13 +24,11 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,14 +41,14 @@ public class SingleServiceTest extends MergeTest {
     private static int counter = 0;
 
     @Before
-    public void before() throws SqlQueriesException, IOException, SQLException, InterruptedException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
+    public void before() throws SqlQueriesException, IOException, SQLException, InterruptedException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException, JsonSerializationException, JsonDeserializationException {
         super.before();
         MelAuthSettings authSettings = new MelAuthSettings()
                 .setName("mel auth dummy")
                 .setWorkingDirectory(workingDirectory);
         melAuthService = new DummyMelAuthService(authSettings);
 
-        rootDir = new RootDirectory();
+        rootDir = RootDirectory.buildRootDirectory(AbstractFile.instance(workingDirectory));
         rootDir.setOriginalFile(AbstractFile.instance(AbstractFile.instance(workingDirectory), "rootdir"));
 
         this.settings = new FileSyncSettings()

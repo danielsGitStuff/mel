@@ -5,6 +5,8 @@ import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.Order;
+import de.mel.core.serialize.exceptions.JsonDeserializationException;
+import de.mel.core.serialize.exceptions.JsonSerializationException;
 import de.mel.execute.SqliteExecutor;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.data.FileSyncStrings;
@@ -51,7 +53,7 @@ public class ConflictTest extends MergeTest {
      * @throws SQLException
      */
     @Before
-    public void before() throws SqlQueriesException, IOException, SQLException, InterruptedException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, NoSuchFieldException {
+    public void before() throws SqlQueriesException, IOException, SQLException, InterruptedException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, NoSuchFieldException, JsonSerializationException, JsonDeserializationException {
         super.before();
     }
 

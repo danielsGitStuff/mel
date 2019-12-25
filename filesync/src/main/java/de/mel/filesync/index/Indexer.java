@@ -1,9 +1,8 @@
 package de.mel.filesync.index;
 
 import de.mel.DeferredRunnable;
-import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.IFile;
-import de.mel.filesync.data.fs.RootDirectory;
+import de.mel.filesync.data.RootDirectory;
 import de.mel.filesync.service.MelFileSyncService;
 import de.mel.filesync.service.sync.SyncHandler;
 import de.mel.filesync.sql.FileSyncDatabaseManager;

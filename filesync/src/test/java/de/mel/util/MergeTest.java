@@ -5,12 +5,16 @@ import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.Order;
-import de.mel.execute.SqliteExecutor;
+import de.mel.core.serialize.exceptions.JsonDeserializationException;
+import de.mel.core.serialize.exceptions.JsonSerializationException;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.FileSyncStrings;
-import de.mel.filesync.data.fs.RootDirectory;
-import de.mel.filesync.sql.*;
+import de.mel.filesync.data.RootDirectory;
+import de.mel.filesync.sql.FileSyncDatabaseManager;
+import de.mel.filesync.sql.FsDirectory;
+import de.mel.filesync.sql.Stage;
+import de.mel.filesync.sql.StageSet;
 import de.mel.filesync.sql.dao.ConflictDao;
 import de.mel.filesync.sql.dao.FsDao;
 import de.mel.filesync.sql.dao.StageDao;
@@ -180,7 +184,7 @@ public class MergeTest {
      * @throws SQLException
      */
     @Before
-    public void before() throws SqlQueriesException, IOException, SQLException, InterruptedException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
+    public void before() throws SqlQueriesException, IOException, SQLException, InterruptedException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException, JsonSerializationException, JsonDeserializationException {
         BashTools.Companion.init();
         AbstractFile.configure(new DefaultFileConfiguration());
         workingDirectory = new File("test.workingdir" + counter);
@@ -190,8 +194,9 @@ public class MergeTest {
         AbstractFile.configure(new DefaultFileConfiguration());
         BashTools.Companion.init();
 
-        rootDir = new RootDirectory();
+        rootDir = RootDirectory.buildRootDirectory(workingDirectory);
         rootDir.setOriginalFile(AbstractFile.instance(AbstractFile.instance(workingDirectory), "rootdir"));
+        rootDir.setPath(workingDirectory.getAbsolutePath());
         settings = new FileSyncSettings()
                 .setFastBoot(true)
                 .setLastSyncedVersion(0L)

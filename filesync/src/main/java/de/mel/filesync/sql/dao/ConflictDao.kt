@@ -63,7 +63,7 @@ class ConflictDao(val stageDao: StageDao, val fsDao: FsDao) : Dao(stageDao.sqlQu
                     l left join
                     (select ${pathPair.k()},${idPair.k()},${namePair.k()},${contentHashPair.k()} from $tableName where ${stageSetPair.k()}=?)
                     r on (l.${pathPair.k()}=r.${pathPair.k()} and l.${namePair.k()}=r.${namePair.k()})
-                    where l.${contentHashPair.k()}<>r.${contentHashPair.k()}
+                    where l.${contentHashPair.k()}<>r.${contentHashPair.k()})
                 """.trimIndent()
         }
         sqlQueries.execute(statement, ISQLQueries.args(true, localStageSetId, remoteStageSetId))

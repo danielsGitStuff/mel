@@ -2,7 +2,7 @@ package de.mel.filesync.nio;
 
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.IFile;
-import de.mel.filesync.data.fs.RootDirectory;
+import de.mel.filesync.data.RootDirectory;
 
 import java.util.Stack;
 

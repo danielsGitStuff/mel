@@ -7,7 +7,7 @@ import de.mel.auth.tools.Eva;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.FileSyncStrings;
 import de.mel.filesync.data.UnorderedStagePair;
-import de.mel.filesync.data.fs.RootDirectory;
+import de.mel.filesync.data.RootDirectory;
 import de.mel.filesync.nio.FileTools;
 import de.mel.filesync.sql.*;
 import de.mel.sql.Dao;
@@ -38,6 +38,7 @@ public class StageDao extends Dao.LockingDao {
         this.fileSyncSettings = fileSyncSettings;
     }
 
+
     /**
      * finds the relating stage. starts searching from leParentDirectory and traverses Stage table till it finds it.
      * use getByPathAndName instead. This method is too expensive
@@ -64,6 +65,33 @@ public class StageDao extends Dao.LockingDao {
         }
         return bottomStage;
     }
+
+//    /**
+//     * finds the relating stage. starts searching from leParentDirectory and traverses Stage table till it finds it.
+//     * use getByPathAndName instead. This method is too expensive
+//     *
+//     * @param f
+//     * @return relating Stage or null if f is not staged
+//     */
+//    @Deprecated
+//    public Stage getStageByPath(Long stageSetId, IFile f) throws SqlQueriesException {
+//        RootDirectory rootDirectory = fileSyncSettings.getRootDirectory();
+//        String rootPath = rootDirectory.getPath();
+//        //todo throw Exception if f is not in rootDirectory
+//        if (f.getAbsolutePath().length() < rootPath.length())
+//            return null;
+//        IFile ff = AbstractFile.instance(f.getAbsolutePath());
+//        Stack<IFile> fileStack = FileTools.getFileStack(rootDirectory, ff);
+//        FsEntry bottomFsEntry = fsDao.getBottomFsEntry(fileStack);
+//        Stage bottomStage = this.getStageByFsId(bottomFsEntry.getId().v(), stageSetId);
+//        while (!fileStack.empty()) {
+//            String name = fileStack.pop().getName();
+//            if (bottomStage == null)
+//                continue;
+//            bottomStage = this.getSubStageByNameAndParent(stageSetId, bottomStage.getId(), name);
+//        }
+//        return bottomStage;
+//    }
 
     public Stage getStageByPathAndName(Long stageSetId, String path, String name) throws SqlQueriesException {
         String where = dummy.getStageSetPair().k() + "=? and " + dummy.getPathPair().k() + "=? and " + dummy.getNamePair().k() + "=?";

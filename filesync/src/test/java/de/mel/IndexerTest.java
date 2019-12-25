@@ -5,7 +5,6 @@ import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.file.IFile;
 import de.mel.auth.service.MelAuthService;
-import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.service.MelBoot;
 import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.tools.CountLock;
@@ -16,7 +15,7 @@ import de.mel.filesync.FileSyncCreateServiceHelper;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.FileSyncStrings;
-import de.mel.filesync.data.fs.RootDirectory;
+import de.mel.filesync.data.RootDirectory;
 import de.mel.filesync.serialization.TestDirCreator;
 import de.mel.filesync.service.MelFileSyncServerService;
 import de.mel.filesync.sql.FsDirectory;
@@ -49,7 +48,7 @@ public class IndexerTest {
         Eva.enable();
         RWLock bootLock = new RWLock().lockWrite();
         rootFile = AbstractFile.instance(AbstractFile.instance("indextest").getAbsolutePath());
-        rootDirectory = new RootDirectory().setOriginalFile(rootFile).setPath(rootFile.getPath());
+        rootDirectory = RootDirectory.buildRootDirectory(rootFile);//new RootDirectory().setOriginalFile(rootFile).setPath(rootFile.getPath());
 
         BashTools.Companion.rmRf(rootFile);
         BashTools.Companion.rmRf(AbstractFile.instance(MelBoot.Companion.getDefaultWorkingDir1()));

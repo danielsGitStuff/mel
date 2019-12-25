@@ -8,7 +8,7 @@ import de.mel.auth.file.IFile;
 import de.mel.auth.tools.N;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.FileSyncStrings;
-import de.mel.filesync.data.fs.RootDirectory;
+import de.mel.filesync.data.RootDirectory;
 import de.mel.filesync.sql.FileSyncDatabaseManager;
 import de.mel.filesync.sql.FsFile;
 import de.mel.filesync.sql.Stage;
@@ -39,7 +39,7 @@ public class SqliteThreadingTest {
         IFile rootFile = AbstractFile.instance(testDir, "root");
         CertificateManager.deleteDirectory(testDir);
         rootFile.mkdirs();
-        RootDirectory root = new RootDirectory();
+        RootDirectory root = RootDirectory.buildRootDirectory(rootFile);
         root.setOriginalFile(rootFile);
         root.setId(1L);
         root.setPath(rootFile.getAbsolutePath());

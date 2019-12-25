@@ -12,7 +12,7 @@ import de.mel.filesync.bash.AutoKlausIterator;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.bash.FsBashDetails;
 import de.mel.filesync.data.FileSyncStrings;
-import de.mel.filesync.data.fs.RootDirectory;
+import de.mel.filesync.data.RootDirectory;
 import de.mel.filesync.index.watchdog.FileWatcher;
 import de.mel.filesync.service.sync.SyncHandler;
 import de.mel.filesync.sql.FileSyncDatabaseManager;
@@ -21,7 +21,6 @@ import de.mel.sql.ISQLQueries;
 import de.mel.sql.SqlQueriesException;
 import org.jdeferred.Promise;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 

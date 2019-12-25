@@ -117,7 +117,6 @@ public class N {
     public static <T extends SQLTableObject> void sqlResource(ISQLResource<T> sqlResource, SqlRunnable<T> sqlRunnable) {
         try {
             sqlRunnable.run(sqlResource);
-            sqlResource.close();
         } catch (Exception e) {
             try {
                 e.printStackTrace();
@@ -125,6 +124,12 @@ public class N {
             } catch (SqlQueriesException e1) {
                 Lok.error("N.sqlResource.close() FAILED!");
                 e1.printStackTrace();
+            }
+        }finally {
+            try {
+                sqlResource.close();
+            } catch (SqlQueriesException e) {
+                e.printStackTrace();
             }
         }
     }

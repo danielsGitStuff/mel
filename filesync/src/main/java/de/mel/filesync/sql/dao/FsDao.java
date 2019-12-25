@@ -6,7 +6,7 @@ import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.IFile;
 import de.mel.auth.tools.N;
 import de.mel.filesync.data.FileSyncSettings;
-import de.mel.filesync.data.fs.RootDirectory;
+import de.mel.filesync.data.RootDirectory;
 import de.mel.filesync.sql.*;
 import de.mel.sql.*;
 import org.jetbrains.annotations.NotNull;

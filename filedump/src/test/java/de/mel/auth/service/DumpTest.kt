@@ -13,8 +13,7 @@ import de.mel.auth.socket.process.reg.IRegisteredHandler
 import de.mel.auth.tools.N
 import de.mel.filesync.FileSyncBootloader
 import de.mel.filesync.bash.BashTools
-import de.mel.filesync.data.FileSyncSettings
-import de.mel.filesync.data.fs.RootDirectory
+import de.mel.filesync.data.RootDirectory
 import de.mel.filesync.serialization.TestDirCreator
 import de.mel.dump.DumpBootloader
 import de.mel.dump.DumpCreateServiceHelper
@@ -50,8 +49,8 @@ class DumpTest {
         TestDirCreator.createFilesTestDir(AbstractFile.instance(testSource), 0)
         val rTarget = AbstractFile.instance(testTarget)
         val rSource = AbstractFile.instance(testSource)
-        r1 = FileSyncSettings.buildRootDirectory(rTarget)
-        r2 = FileSyncSettings.buildRootDirectory(rSource)
+        r1 = RootDirectory.buildRootDirectory(rTarget)
+        r2 = RootDirectory.buildRootDirectory(rSource)
         s1 = DriveTest.createJson1()
         s2 = DriveTest.createJson2()
         mb1 = MelBoot(s1!!, PowerManager(s1), DumpBootloader::class.java)

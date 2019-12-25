@@ -472,7 +472,7 @@ public class ClientSyncHandler extends SyncHandler {
                         stageDao.insert(stage);
                     } else {
                         Stage rParent = stageDao.getStageById(remote.getParentId());
-                        IFile rParentFile = stageDao.getFileByStage(rParent);
+                        IFile rParentFile = stage.toIFile(fileSyncSettings.getRootDirectory());//stageDao.getFileByStage(rParent);
                         Stage lParent = stageDao.getStageByPath(mStageSetId, rParentFile);
                         if (lParent != null) {
                             stage.setParentId(lParent.getId());
@@ -595,7 +595,7 @@ public class ClientSyncHandler extends SyncHandler {
         OTimer timer2 = new OTimer("iter 2");
         OTimer timer3 = new OTimer("iter 3");
         merger.before();
-        N.sqlResource(stageDao.getStagesResource(lStageSet.getId().v()), localStages -> {
+        N.sqlResource(stageDao.getNotMergedStagesResource(lStageSet.getId().v()), localStages -> {
             Stage localStage = localStages.getNext();
             while (localStage != null) {
                 Stage remoteStage = stageDao.getStageByPathAndName(rStageSet.getId().v(), localStage.getPath(), localStage.getName());

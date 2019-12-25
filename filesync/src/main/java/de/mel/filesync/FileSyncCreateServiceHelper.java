@@ -6,11 +6,10 @@ import de.mel.auth.data.db.ServiceType;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.IFile;
 import de.mel.auth.service.MelAuthService;
-import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.core.serialize.exceptions.JsonDeserializationException;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
 import de.mel.filesync.data.*;
-import de.mel.filesync.data.fs.RootDirectory;
+import de.mel.filesync.data.RootDirectory;
 import de.mel.filesync.service.MelFileSyncServerService;
 import de.mel.sql.SqlQueriesException;
 
@@ -54,7 +53,7 @@ public class FileSyncCreateServiceHelper {
     }
 
     public void createServerService(String name, IFile rootFile, float wastebinRatio, long maxDays, boolean useSymLinks) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
-        RootDirectory rootDirectory = FileSyncSettings.buildRootDirectory(rootFile);
+        RootDirectory rootDirectory = RootDirectory.buildRootDirectory(rootFile);
         FileSyncSettings fileSyncSettings = new FileSyncSettings()
                 .setRole(FileSyncStrings.ROLE_SERVER)
                 .setRootDirectory(rootDirectory)
@@ -75,7 +74,7 @@ public class FileSyncCreateServiceHelper {
 
     public void createClientService(String name, IFile rootFile, Long certId, String serviceUuid, float wastebinRatio, long maxDays, boolean useSymLinks) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, ClassNotFoundException, SQLException, InstantiationException, IOException, InterruptedException {
 //        //create Service
-        RootDirectory rootDirectory = FileSyncSettings.buildRootDirectory(rootFile);
+        RootDirectory rootDirectory = RootDirectory.buildRootDirectory(rootFile);
         FileSyncSettings fileSyncSettingsCfg = new FileSyncSettings().setRole(FileSyncStrings.ROLE_CLIENT).setRootDirectory(rootDirectory);
         fileSyncSettingsCfg.setTransferDirectory(AbstractFile.instance(rootDirectory.getOriginalFile(), FileSyncStrings.TRANSFER_DIR));
         fileSyncSettingsCfg.setMaxWastebinSize((long) (fileSyncSettingsCfg.getRootDirectory().getOriginalFile().getUsableSpace() * wastebinRatio));

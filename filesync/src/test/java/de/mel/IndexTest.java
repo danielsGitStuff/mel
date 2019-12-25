@@ -7,7 +7,6 @@ import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.file.IFile;
 import de.mel.auth.service.Bootloader;
 import de.mel.auth.service.MelAuthService;
-import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.service.MelBoot;
 import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.tools.CountWaitLock;
@@ -18,7 +17,7 @@ import de.mel.filesync.FileSyncCreateServiceHelper;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.FileSyncStrings;
-import de.mel.filesync.data.fs.RootDirectory;
+import de.mel.filesync.data.RootDirectory;
 import de.mel.filesync.serialization.TestDirCreator;
 import de.mel.filesync.service.MelFileSyncServerService;
 import de.mel.filesync.service.MelFileSyncService;
@@ -62,7 +61,7 @@ public class IndexTest {
             Promise<MelAuthService, Exception, Void> promise = melBoot.boot();
             promise.done(result -> N.r(() -> {
                 mas = result;
-                RootDirectory rootDirectory = FileSyncSettings.buildRootDirectory(testRoot);
+                RootDirectory rootDirectory = RootDirectory.buildRootDirectory(testRoot);
                 IFile transferDir = AbstractFile.instance(rootDirectory.getOriginalFile(), FileSyncStrings.TRANSFER_DIR);
                 FileSyncBootloader bl = (FileSyncBootloader) mas.getMelBoot().getBootLoader(new FileSyncBootloader().getName());
                 FileSyncSettings fileSyncSettings = new FileSyncSettings()

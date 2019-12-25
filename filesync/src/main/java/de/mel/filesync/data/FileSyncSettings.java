@@ -4,7 +4,6 @@ import de.mel.auth.data.JsonSettings;
 import de.mel.auth.file.IFile;
 import de.mel.core.serialize.exceptions.JsonDeserializationException;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
-import de.mel.filesync.data.fs.RootDirectory;
 import de.mel.auth.file.AbstractFile;
 
 import java.io.File;
@@ -30,14 +29,6 @@ public class FileSyncSettings extends JsonSettings {
     protected Boolean useSymLinks = true;
 
     protected boolean fastBoot = true;
-
-    public static RootDirectory buildRootDirectory(IFile rootFile) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException, IOException {
-        String path = rootFile.getCanonicalPath();
-        RootDirectory rootDirectory = new RootDirectory().setPath(path);
-        rootDirectory.setOriginalFile(rootFile);
-        rootDirectory.backup();
-        return rootDirectory;
-    }
 
     public FileSyncSettings setUseSymLinks(Boolean useSymLinks) {
         this.useSymLinks = useSymLinks;
