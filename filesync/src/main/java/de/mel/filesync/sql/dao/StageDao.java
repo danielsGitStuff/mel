@@ -6,8 +6,8 @@ import de.mel.auth.file.IFile;
 import de.mel.auth.tools.Eva;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.FileSyncStrings;
-import de.mel.filesync.data.UnorderedStagePair;
 import de.mel.filesync.data.RootDirectory;
+import de.mel.filesync.data.UnorderedStagePair;
 import de.mel.filesync.nio.FileTools;
 import de.mel.filesync.sql.*;
 import de.mel.sql.Dao;
@@ -444,6 +444,11 @@ public class StageDao extends Dao.LockingDao {
         args.add(stageSetId);
         args.add(true);
         return sqlQueries.load(dummy.getAllAttributes(), dummy, where, args);
+    }
+
+    public List<Stage> getNotDeletedDirectoriesByStageSet(Long stageSetId) throws SqlQueriesException {
+        String where = dummy.getStageSetPair().k() + "=? and " + dummy.getIsDirectoryPair().k() + "=? and " + dummy.getDeletedPair().k() + "=?  order by " + dummy.getIdPair().k() + " asc";
+        return sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(stageSetId, true, false));
     }
 
     public List<Stage> getSubStagesByFsDirectoryId(Long fsId, Long stageSetId) throws SqlQueriesException {

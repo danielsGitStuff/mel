@@ -10,6 +10,7 @@ import de.mel.filesync.data.RootDirectory;
 import de.mel.filesync.sql.*;
 import de.mel.sql.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -326,7 +327,9 @@ public class FsDao extends Dao {
         }
     }
 
-    public List<GenericFSEntry> getContentByFsDirectory(Long fsId) throws SqlQueriesException {
+    public List<GenericFSEntry> getContentByFsDirectory(@Nullable Long fsId) throws SqlQueriesException {
+        if (fsId == null)
+            return new ArrayList<>();
         String where = "";
         List<Object> whereArgs = new ArrayList<>();
         if (fsId == null) {

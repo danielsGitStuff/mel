@@ -33,15 +33,15 @@ abstract class SyncStageMerger(protected val conflictDao: ConflictDao, val local
     @Throws(SqlQueriesException::class)
     abstract fun foundRemote(remote: Stage)
 
-    fun calcDirectoryContentHashes() {
-        stageDao.getDirectoriesByStageSet(mergedStageSet.id.v()).forEach { directory ->
-            val dirDummy = FsDirectory()
-            val content = stageDao.getNotDeletedContent(directory.id).map { stageDao.stage2FsEntry(it).toGeneric() }
-            dirDummy.addContent(content)
-            dirDummy.calcContentHash()
-            stageDao.updateContentHash(directory.id, dirDummy.contentHash.v())
-        }
-    }
+//    fun calcDirectoryContentHashes() {
+//        stageDao.getDirectoriesByStageSet(mergedStageSet.id.v()).forEach { directory ->
+//            val dirDummy = FsDirectory()
+//            val content = stageDao.getNotDeletedContent(directory.id).map { stageDao.stage2FsEntry(it).toGeneric() }
+//            dirDummy.addContent(content)
+//            dirDummy.calcContentHash()
+//            stageDao.updateContentHash(directory.id, dirDummy.contentHash.v())
+//        }
+//    }
 
     protected open fun before() {
 

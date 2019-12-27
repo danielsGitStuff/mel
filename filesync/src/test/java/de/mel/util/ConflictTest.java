@@ -200,6 +200,10 @@ public class ConflictTest extends MergeTest {
     public void mergeDeleteRemoteParentRemote() throws Exception {
         solveDeleteRemoteParentRemote();
         conflictSolver.merge();
+        creationMergedDao.reloadStageSet(conflictSolver.mergedStageSet.getId().v());
+        assertEquals(5, creationMergedDao.getEntries().size());
+        // content of /b/ must not be in this stage set
+        assertNull(creationMergedDao.get("bb"));
     }
 
     @Test

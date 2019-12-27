@@ -189,6 +189,6 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
             Object v = allAttributes.get(i).v();
             genericFSEntry.allAttributes.get(i).setValueUnsecure(v);
         }
-        return null;
+        return genericFSEntry;
     }
 }
