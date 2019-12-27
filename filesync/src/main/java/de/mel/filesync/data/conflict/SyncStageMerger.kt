@@ -1,16 +1,18 @@
 package de.mel.filesync.data.conflict
 
+import de.mel.auth.tools.N
+import de.mel.core.serialize.serialize.tools.OTimer
 import de.mel.filesync.sql.FsDirectory
 import de.mel.filesync.sql.Stage
 import de.mel.filesync.sql.StageSet
 import de.mel.filesync.sql.dao.ConflictDao
+import de.mel.sql.ISQLResource
 import de.mel.sql.SqlQueriesException
-import java.util.*
 
 /**
  * Created by xor on 5/6/17.
  */
-abstract class SyncStageMerger(protected val conflictDao: ConflictDao, val lStageSetId: Long, val rStageSetId: Long) {
+abstract class SyncStageMerger(protected val conflictDao: ConflictDao, val localStageSet: StageSet, val remoteStageSet: StageSet) {
     //    protected val idMapRemote: Map<Long, Long> = HashMap()
 //    protected val idMapLocal: Map<Long, Long> = HashMap()
     protected val stageDao = conflictDao.stageDao
@@ -41,12 +43,54 @@ abstract class SyncStageMerger(protected val conflictDao: ConflictDao, val lStag
         }
     }
 
-    open fun before() {
+    protected open fun before() {
 
     }
 
-    open fun after() {
+    protected open fun after() {
 
     }
 
+    fun merge() {
+        before()
+        iterateStageSets()
+        after()
+    }
+
+    /**
+     * iterates over the left [StageSet] first and finds
+     * relating entries in the right [StageSet] and flags everything it finds (in the right StageSet).
+     * Afterwards it iterates over all non flagged [Stage]s of the right [StageSet].
+     * Iteration is in order of the Stages insertion.
+     *
+     * @param localStageSet
+     * @param remoteStageSet
+     * @param merger
+     * @throws SqlQueriesException
+     */
+    @Throws(SqlQueriesException::class)
+    open fun iterateStageSets() {
+        val timer1 = OTimer("iter 1")
+        val timer2 = OTimer("iter 2")
+        val timer3 = OTimer("iter 3")
+        N.sqlResource(stageDao.getNotMergedStagesResource(localStageSet.id.v())) { localStages: ISQLResource<Stage?> ->
+            var localStage = localStages.next
+            while (localStage != null) {
+                val remoteStage = stageDao.getStageByPathAndName(remoteStageSet.id.v(), localStage.path, localStage.name)
+                this.foundLocal(localStage, remoteStage)
+                if (remoteStage != null) stageDao.flagMerged(remoteStage.id, true)
+                localStage = localStages.next
+            }
+        }
+        N.sqlResource(stageDao.getNotMergedStagesResource(remoteStageSet.id.v())) { remoteStages: ISQLResource<Stage?> ->
+            var remoteStage = remoteStages.next
+            while (remoteStage != null) {
+                this.foundRemote(remoteStage)
+                remoteStage = remoteStages.next
+            }
+        }
+        timer1.print().reset()
+        timer2.print().reset()
+        timer3.print().reset()
+    }
 }

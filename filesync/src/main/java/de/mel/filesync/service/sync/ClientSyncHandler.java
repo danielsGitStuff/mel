@@ -441,7 +441,7 @@ public class ClientSyncHandler extends SyncHandler {
         /**
          * This overwrites changes in the old StageSet with the newer ones.
          */
-        SyncStageMerger merger = new SyncStageMerger(conflictDao, lStageSet.getId().v(), rStageSet.getId().v()) {
+        SyncStageMerger merger = new SyncStageMerger(conflictDao, lStageSet, rStageSet) {
             private Map<Long, Long> idMapRemote = new HashMap<>();
             private Map<Long, Long> idMapLocal = new HashMap<>();
             private Order order = new Order();
@@ -570,7 +570,7 @@ public class ClientSyncHandler extends SyncHandler {
 //                }
 //            }
         };
-        iterateStageSets(lStageSet, rStageSet, merger);
+        merger.merge();
         stageDao.deleteStageSet(rStageSet.getId().v());
         stageDao.deleteStageSet(lStageSet.getId().v());
         stageDao.updateStageSet(mStageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED).setSource(FileSyncStrings.STAGESET_SOURCE_FS));
@@ -578,45 +578,6 @@ public class ClientSyncHandler extends SyncHandler {
         melDriveService.onStageSetsMerged(lStageSet.getId().v(), rStageSet.getId().v(), mStageSet);
     }
 
-    /**
-     * iterates over the left {@link StageSet} first and finds
-     * relating entries in the right {@link StageSet} and flags everything it finds (in the right StageSet).
-     * Afterwards it iterates over all non flagged {@link Stage}s of the right {@link StageSet}.
-     * Iteration is in order of the Stages insertion.
-     *
-     * @param lStageSet
-     * @param rStageSet
-     * @param merger
-     * @throws SqlQueriesException
-     */
-    @SuppressWarnings("Duplicates")
-    public void iterateStageSets(StageSet lStageSet, StageSet rStageSet, SyncStageMerger merger) throws SqlQueriesException {
-        OTimer timer1 = new OTimer("iter 1");
-        OTimer timer2 = new OTimer("iter 2");
-        OTimer timer3 = new OTimer("iter 3");
-        merger.before();
-        N.sqlResource(stageDao.getNotMergedStagesResource(lStageSet.getId().v()), localStages -> {
-            Stage localStage = localStages.getNext();
-            while (localStage != null) {
-                Stage remoteStage = stageDao.getStageByPathAndName(rStageSet.getId().v(), localStage.getPath(), localStage.getName());
-                merger.foundLocal(localStage, remoteStage);
-                if (remoteStage != null)
-                    stageDao.flagMerged(remoteStage.getId(), true);
-                localStage = localStages.getNext();
-            }
-        });
-        N.sqlResource(stageDao.getNotMergedStagesResource(rStageSet.getId().v()), remoteStages -> {
-            Stage remoteStage = remoteStages.getNext();
-            while (remoteStage != null) {
-                merger.foundRemote(remoteStage);
-                remoteStage = remoteStages.getNext();
-            }
-        });
-        merger.after();
-        timer1.print().reset();
-        timer2.print().reset();
-        timer3.print().reset();
-    }
 
     /**
      * pulls StageSet from the Server. locks.

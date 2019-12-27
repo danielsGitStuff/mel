@@ -6,7 +6,11 @@ import de.mel.filesync.sql.dao.ConflictDao
 class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val remoteStage: Stage?) {
     private var localId: Long?
     private var remoteId: Long?
-    private var decision: Stage? = null
+    var decision: Stage? = null
+        get
+
+    var rejection: Stage? = null
+        get
     var key: String
         get
     private var parent: Conflict? = null
@@ -37,11 +41,13 @@ class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val remoteS
 
     fun decideRemote() {
         decision = remoteStage
+        rejection = localStage
         children.forEach { it.decideRemote() }
     }
 
     fun decideLocal() {
         decision = localStage
+        rejection = remoteStage
         children.forEach { it.decideLocal() }
     }
 

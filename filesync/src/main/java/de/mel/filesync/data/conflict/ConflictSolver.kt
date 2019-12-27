@@ -16,10 +16,8 @@ import java.util.*
  * Finds Conflicts according to @see bla
  * todo add link do conflict image
  */
-open class ConflictSolver(private val conflictDao: ConflictDao, val localStageSet: StageSet, val remoteStageSet: StageSet) {
+open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, remoteStageSet: StageSet) : SyncStageMerger(conflictDao, localStageSet, remoteStageSet) {
     var conflictHelperUuid: String? = null
-    val stageDao = conflictDao.stageDao
-    val fsDao = conflictDao.fsDao
     val basedOnVersion: Long
     val conflictMap = mutableMapOf<String, Conflict>()
     val rootConflictMap = mutableMapOf<String, Conflict>()
@@ -29,62 +27,17 @@ open class ConflictSolver(private val conflictDao: ConflictDao, val localStageSe
     val remoteStageConflictMap = mutableMapOf<Long, Conflict>()
 
     private val rootConflicts = mutableListOf<Conflict>()
-    private var mergeStageSet: StageSet
     private var obsoleteStageSet: StageSet
     var order = Order()
 
+    val idMapLocal = mutableMapOf<Long, Long>()
+    val idMapRemote = mutableMapOf<Long, Long>()
+
     init {
         basedOnVersion = if (localStageSet.basedOnVersion.v() >= remoteStageSet.basedOnVersion.v()) localStageSet.basedOnVersion.v() else remoteStageSet.basedOnVersion.v()
-        mergeStageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_MERGED, remoteStageSet.originCertId.v(), remoteStageSet.originServiceUuid.v(), remoteStageSet.version.v(), basedOnVersion)
+        mergedStageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_MERGED, remoteStageSet.originCertId.v(), remoteStageSet.originServiceUuid.v(), remoteStageSet.version.v(), basedOnVersion)
         obsoleteStageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_SERVER, FileSyncStrings.STAGESET_STATUS_DELETE, remoteStageSet.originCertId.v(), remoteStageSet.originServiceUuid.v(), remoteStageSet.version.v(), basedOnVersion)
 
-    }
-
-    /**
-     * merges already merged [StageSet] with itself and predecessors (Fs->Left->Right) to find parent directories
-     * which were not in the right StageSet but in the left. When a directory has changed its content
-     * on the left side but not/or otherwise changed on the right
-     * it is missed there and has a wrong content hash.
-     *
-     * @throws SqlQueriesException
-     */
-    @Throws(SqlQueriesException::class)
-    fun directoryStuff() {
-        val oldeMergedSetId = mergeStageSet.id.v()
-        val oldeIdNewIdMapForDirectories: MutableMap<Long, Long> = HashMap()
-        order = Order()
-        val targetStageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_MERGED, mergeStageSet.originCertId.v(), mergeStageSet.originServiceUuid.v(), mergeStageSet.version.v(), basedOnVersion)
-        N.sqlResource(stageDao.getStagesResource(oldeMergedSetId)) { stageSet: ISQLResource<Stage> ->
-            var rightStage = stageSet.next
-            while (rightStage != null) {
-                if (rightStage.isDirectory) {
-                    var contentHashDummy: FsDirectory = fsDao.getDirectoryById(rightStage.fsId)
-                    var content: List<Stage>? = null
-                    if (contentHashDummy == null) { // it is not in fs. just add every child from the Stage
-                        contentHashDummy = FsDirectory()
-                        content = stageDao.getStageContent(rightStage.id)
-                        for (stage in content) {
-                            if (!stage.deleted) {
-                                if (stage.isDirectory) contentHashDummy.addDummySubFsDirectory(stage.name) else contentHashDummy.addDummyFsFile(stage.name)
-                            }
-                            stageDao.flagMerged(stage.id, true)
-                        }
-                    } else { // fill with info from FS
-                        val fsContent: List<GenericFSEntry> = fsDao.getContentByFsDirectory(contentHashDummy.id.v())
-                        contentHashDummy.addContent(fsContent)
-                        mergeFsDirectoryWithSubStages(contentHashDummy, rightStage)
-                    }
-                    // apply delta
-                    contentHashDummy.calcContentHash()
-                    rightStage.contentHash = contentHashDummy.contentHash.v()
-                }
-                saveRightStage(rightStage, targetStageSet.id.v(), oldeIdNewIdMapForDirectories)
-                rightStage = stageSet.next
-            }
-        }
-        stageDao.deleteStageSet(oldeMergedSetId)
-        stageDao.flagMergedStageSet(targetStageSet.id.v(), false)
-        mergeStageSet = targetStageSet
     }
 
     @Throws(SqlQueriesException::class)
@@ -125,10 +78,10 @@ open class ConflictSolver(private val conflictDao: ConflictDao, val localStageSe
     @Throws(SqlQueriesException::class)
     fun cleanup() { //cleanup
         stageDao.deleteStageSet(remoteStageSet.id.v())
-        mergeStageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED)
-        stageDao.updateStageSet(mergeStageSet)
+        mergedStageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED)
+        stageDao.updateStageSet(mergedStageSet)
         stageDao.deleteStageSet(obsoleteStageSet.getId().v())
-        if (!stageDao.stageSetHasContent(mergeStageSet.id.v())) stageDao.deleteStageSet(mergeStageSet.id.v())
+        if (!stageDao.stageSetHasContent(mergedStageSet.id.v())) stageDao.deleteStageSet(mergedStageSet.id.v())
     }
 
     fun isSolved() = conflictMap.all { it.value.hasChoice }
@@ -193,38 +146,137 @@ open class ConflictSolver(private val conflictDao: ConflictDao, val localStageSe
     }
 
     fun hasConflicts(): Boolean = !conflictMap.all { it.value.hasChoice }
-    fun merge() {
-        val idMapLocal = mutableMapOf<Long, Long>()
-        val idMapRemote = mutableMapOf<Long, Long>()
-        val localStages = stageDao.getStagesByStageSet(localStageSet.id.v())
-        var localStage = localStages.next
-        fun insertToMap(map: MutableMap<Long, Long>, stage: Stage?) {
-            stage?.let {
-                stage.stageSet = mergeStageSet.id.v()
-                //todo kotlin accessor
-                if (stage.parentIdPair.notNull()) {
-                    map[stage.parentId]?.let { mergedParentId ->
-                        stage.setParentId(mergedParentId)
-                    }
-                }
-            }
-        }
-        while (localStage != null) {
-            localStageConflictMap[localStage.id]?.let { conflict ->
-                if (conflict.chosenLocal)
-                    insertToMap(idMapLocal, localStage!!)
-                else {
-                    insertToMap(idMapRemote, conflict.remoteStage)
-                }
-            }
-            localStage = localStages.next
-        }
-        val remoteStages = stageDao.getStagesByStageSet(remoteStageSet.id.v())
-        var remoteStage = remoteStages.next
-        while (remoteStage != null) {
+//    fun merge() {
+//        val idMapLocal = mutableMapOf<Long, Long>()
+//        val idMapRemote = mutableMapOf<Long, Long>()
+//        val localStages = stageDao.getStagesByStageSet(localStageSet.id.v())
+//        var localStage = localStages.next
+//        fun insertToMap(map: MutableMap<Long, Long>, stage: Stage?) {
+//            stage?.let {
+//                stage.stageSet = mergedStageSet.id.v()
+//                //todo kotlin accessor
+//                if (stage.parentIdPair.notNull()) {
+//                    map[stage.parentId]?.let { mergedParentId ->
+//                        stage.setParentId(mergedParentId)
+//                    }
+//                }
+//            }
+//        }
+//        while (localStage != null) {
+//            localStageConflictMap[localStage.id]?.let { conflict ->
+//                if (conflict.chosenLocal)
+//                    insertToMap(idMapLocal, localStage!!)
+//                else {
+//                    insertToMap(idMapRemote, conflict.remoteStage)
+//                }
+//            }
+//            localStage = localStages.next
+//        }
+//        val remoteStages = stageDao.getStagesByStageSet(remoteStageSet.id.v())
+//        var remoteStage = remoteStages.next
+//        while (remoteStage != null) {
+//
+//            remoteStage = remoteStages.next
+//        }
+//    }
 
-            remoteStage = remoteStages.next
+    /**
+     * Adds the stage to the database and creates an entry in the according idMap{Local/Remote)}.
+     * The Map is determined by the StageSetId. So it has to refer to the local or remote StageSet
+     *
+     */
+    private fun insertToMerged(decisionStage: Stage, rejectedStage: Stage?) {
+        val decisionStageSetId = decisionStage.stageSet
+        // set parent id, but remember: parent might be from local or remote.
+        decisionStage.parentId?.let { parentId ->
+            // search in both maps
+            (idMapLocal[parentId] ?: idMapRemote[parentId])?.let { mergedParentId ->
+                decisionStage.parentId = mergedParentId
+            } ?: throw ConflictException("parent id found, but parent not merged yet!")
         }
+        // insert into merged StageSet
+        val oldId = decisionStage.id
+        decisionStage.stageSet = mergedStageSet.id.v()
+        stageDao.insert(decisionStage)
+
+        // insert stage first
+        when (decisionStageSetId) {
+            localStageSet.id.v() -> idMapLocal
+            remoteStageSet.id.v() -> idMapRemote
+            else -> throw ConflictException("stageset was neither local nor remote")
+        }[oldId] = decisionStage.id
+
+        // update the rejected id too
+        rejectedStage?.let {
+            when (rejectedStage.stageSet) {
+                localStageSet.id.v() -> idMapLocal
+                remoteStageSet.id.v() -> idMapRemote
+                else -> throw ConflictException("stageset was neither local nor remote")
+            }[rejectedStage.id] = decisionStage.id
+        }
+    }
+
+    override fun foundLocal(local: Stage, remote: Stage?) {
+        val key = Conflict.createKey(local, remote)
+        /**
+         * If conflict exists: apply its solution. Otherwise an arbitrary Stage will do, since
+         * content hashes of directories have to be calculated after merging and conflicting files are in the conflict map.
+         *
+         */
+        conflictMap[key]?.let { conflict ->
+            insertToMerged(conflict.decision!!, conflict.rejection)
+        } ?: insertToMerged(local, remote)
+    }
+
+    override fun foundRemote(remote: Stage) {
+        val key = Conflict.createKey(null, remote)
+
+    }
+
+    /**
+     * merges already merged [StageSet] with itself and predecessors (Fs->Left->Right) to find parent directories
+     * which were not in the right StageSet but in the left. When a directory has changed its content
+     * on the left side but not/or otherwise changed on the right
+     * it is missed there and has a wrong content hash.
+     *
+     * @throws SqlQueriesException
+     */
+    override fun after() {
+        val oldeMergedSetId = mergedStageSet.id.v()
+        val oldeIdNewIdMapForDirectories: MutableMap<Long, Long> = HashMap()
+        order = Order()
+        val targetStageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_MERGED, mergedStageSet.originCertId.v(), mergedStageSet.originServiceUuid.v(), mergedStageSet.version.v(), basedOnVersion)
+        N.escalatingSqlResource(stageDao.getStagesResource(oldeMergedSetId)) { stageSet: ISQLResource<Stage> ->
+            var rightStage = stageSet.next
+            while (rightStage != null) {
+                if (rightStage.isDirectory) {
+                    var contentHashDummy: FsDirectory? = fsDao.getDirectoryById(rightStage.fsId)
+                    var content: List<Stage>? = null
+                    if (contentHashDummy == null) { // it is not in fs. just add every child from the Stage
+                        contentHashDummy = FsDirectory()
+                        content = stageDao.getStageContent(rightStage.id)
+                        for (stage in content) {
+                            if (!stage.deleted) {
+                                if (stage.isDirectory) contentHashDummy.addDummySubFsDirectory(stage.name) else contentHashDummy.addDummyFsFile(stage.name)
+                            }
+                            stageDao.flagMerged(stage.id, true)
+                        }
+                    } else { // fill with info from FS
+                        val fsContent: List<GenericFSEntry> = fsDao.getContentByFsDirectory(contentHashDummy.id.v())
+                        contentHashDummy.addContent(fsContent)
+                        mergeFsDirectoryWithSubStages(contentHashDummy, rightStage)
+                    }
+                    // apply delta
+                    contentHashDummy.calcContentHash()
+                    rightStage.contentHash = contentHashDummy.contentHash.v()
+                }
+                saveRightStage(rightStage, targetStageSet.id.v(), oldeIdNewIdMapForDirectories)
+                rightStage = stageSet.next
+            }
+        }
+        stageDao.deleteStageSet(oldeMergedSetId)
+        stageDao.flagMergedStageSet(targetStageSet.id.v(), false)
+        mergedStageSet = targetStageSet
     }
 
     companion object {

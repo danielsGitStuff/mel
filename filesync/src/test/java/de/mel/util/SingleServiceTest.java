@@ -5,7 +5,6 @@ import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.service.DummyMelAuthService;
 import de.mel.auth.service.MelAuthService;
-import de.mel.auth.tools.N;
 import de.mel.core.serialize.exceptions.JsonDeserializationException;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
 import de.mel.filesync.data.FileSyncSettings;
@@ -84,19 +83,10 @@ public class SingleServiceTest extends MergeTest {
     }
 
 
-    public Method getMethod(Class clazz, String methodName) throws NoSuchMethodException {
-        System.err.println(clazz);
-        Method[] methods = clazz.getDeclaredMethods();
-        Method method = N.first(methods, m -> m.getName().equals(methodName));
-        method.setAccessible(true);
-        return method;
-    }
-
     @Test
     public void commitJob() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, SqlQueriesException {
         makeStageSetsFromFs();
-        Method workWorkWork = getMethod(syncClientService.getClass(), "workWorkWork");
-        workWorkWork.invoke(syncClientService, new CommitJob());
+        MergeTestTools.callWorkOnJob(syncClientService,new CommitJob());
 
         // check if matches the entries stored in memory
         StageSet mergedSet = stageDao.getStagedStageSetsFromFS().stream().findFirst().get();
@@ -116,11 +106,12 @@ public class SingleServiceTest extends MergeTest {
         stageDao.updateStageSet(remoteStageSet);
     }
 
+
+
     @Test
     public void mergeFsLocalEqual() throws SqlQueriesException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         makeStageSetsFromFs();
-        Method method = getMethod(syncClientService.getClass(), "workWorkWork");
-        method.invoke(syncClientService, new CommitJob());
+        MergeTestTools.callWorkOnJob(syncClientService,new CommitJob());
 
         // check if all stages of the local stageset live in the merged one
         StageSet mergedStageSet = stageDao.getStagedStageSetsFromFS().stream().findFirst().get();
@@ -142,8 +133,7 @@ public class SingleServiceTest extends MergeTest {
         creationRemoteDao.delete("bbb.txt");
         stageDao.update(creationRemoteDao.get("bb").setDeleted(true).setContentHash(contentHashBB));
         stageDao.update(creationRemoteDao.get("b").setContentHash(contentHashB));
-        Method method = getMethod(syncClientService.getClass(), "workWorkWork");
-        method.invoke(syncClientService, new CommitJob());
+        MergeTestTools.callWorkOnJob(syncClientService,new CommitJob());
 
         // check if all stages of the local stageset live in the merged one
         StageSet mergedStageSet = stageDao.getStagedStageSetsFromFS().stream().findFirst().get();

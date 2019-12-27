@@ -22,9 +22,11 @@ import static org.junit.Assert.*;
  * <p>
  * naming scheme is as follows:
  * <p>
+ * findX ... let the ConflictSolver find X
+ * mergeX ... let the ConflictSolver find X, appply solution and test the merged StageSet
  * solve whatHappensBeforeConflictSearching Side
- * Side = Local | Remote | Mixed
  * <p>
+ * Side = Local | Remote | Mixed
  * whatHappensBeforeConflictSearching = DeleteX | ModifyX ...
  */
 public class ConflictTest extends MergeTest {
@@ -192,6 +194,12 @@ public class ConflictTest extends MergeTest {
             assertTrue(conflict.getChosenRemote());
         });
 
+    }
+
+    @Test
+    public void mergeDeleteRemoteParentRemote() throws Exception {
+        solveDeleteRemoteParentRemote();
+        conflictSolver.merge();
     }
 
     @Test
