@@ -1,0 +1,3 @@
+- assign fs ids to remote stageset in tests
+- conflict solver shall not delete remote stageset
+- conflict solver: merged stageset shall have fs as source

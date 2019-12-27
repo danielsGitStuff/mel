@@ -197,6 +197,11 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
         // insert into merged StageSet
         val oldId = decisionStage.id
         decisionStage.stageSet = mergedStageSet.id.v()
+        // copy new fs ids
+        if (rejectedStage != null && rejectedStage.stageSet == remoteStageSet.id.v()) {
+            decisionStage.fsId = rejectedStage.fsId
+            decisionStage.fsParentId = rejectedStage.fsParentId
+        }
         stageDao.insert(decisionStage)
 
         // insert stage first
@@ -223,9 +228,11 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
          * This occurs when one side deletes a directory while the other changes its contents.
          */
         localStageConflictMap[local.id]?.let { conflict ->
+            // only apply the top
             if (conflict.decision!!.depth == conflict.rejection!!.depth) {
                 insertToMerged(conflict.decision!!, null)
-            }
+            } else if (conflict.decision!!.deleted && conflict.decision!!.depth <= conflict.rejection!!.depth)
+                return
             return
         }
         /**
@@ -235,7 +242,8 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
             remoteStageConflictMap[remote.id]?.let { conflict ->
                 if (conflict.decision!!.depth == conflict.rejection!!.depth) {
                     insertToMerged(conflict.decision!!, null)
-                }
+                } else if (conflict.decision!!.deleted && conflict.decision!!.depth <= conflict.rejection!!.depth)
+                    return
                 return
             }
         /**
@@ -250,8 +258,13 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
     }
 
     override fun foundRemote(remote: Stage) {
-        val key = Conflict.createKey(null, remote)
-
+        remoteStageConflictMap[remote.id]?.let { conflict ->
+            if (conflict.decision!!.depth == conflict.rejection!!.depth) {
+                insertToMerged(conflict.decision!!, null)
+            } else if (conflict.decision!!.deleted && conflict.decision!!.depth <= conflict.rejection!!.depth)
+                return
+            return
+        }
     }
 
     /**
