@@ -1,30 +1,15 @@
 package de.mel.util;
 
-import de.mel.Lok;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.DefaultFileConfiguration;
-import de.mel.auth.tools.N;
-import de.mel.auth.tools.Order;
 import de.mel.core.serialize.exceptions.JsonDeserializationException;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
-import de.mel.execute.SqliteExecutor;
-import de.mel.filesync.bash.BashTools;
-import de.mel.filesync.data.FileSyncStrings;
 import de.mel.filesync.data.conflict.Conflict;
 import de.mel.filesync.data.conflict.ConflictSolver;
-import de.mel.filesync.sql.CreationScripts;
-import de.mel.filesync.sql.FsDirectory;
 import de.mel.filesync.sql.Stage;
-import de.mel.filesync.sql.StageSet;
-import de.mel.filesync.sql.dao.ConflictDao;
-import de.mel.filesync.sql.dao.FsDao;
-import de.mel.filesync.sql.dao.StageDao;
 import de.mel.sql.SqlQueriesException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
@@ -34,9 +19,12 @@ import static org.junit.Assert.*;
 /**
  * find.. methods create conflicts in the stage sets and must find them or must not find them.
  * solve.. methods check whether the applied solutions are valid.
+ * <p>
  * naming scheme is as follows:
+ * <p>
  * solve whatHappensBeforeConflictSearching Side
  * Side = Local | Remote | Mixed
+ * <p>
  * whatHappensBeforeConflictSearching = DeleteX | ModifyX ...
  */
 public class ConflictTest extends MergeTest {
