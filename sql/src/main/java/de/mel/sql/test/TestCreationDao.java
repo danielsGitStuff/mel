@@ -3,7 +3,6 @@ package de.mel.sql.test;
 import de.mel.sql.*;
 import de.mel.sql.conn.SQLConnector;
 import de.mel.sql.transform.SqlResultTransformer;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -50,6 +49,10 @@ public abstract class TestCreationDao<T extends SQLTableObject> extends Dao {
         sqlQueries.close();
         if (dbFile != null)
             dbFile.delete();
+    }
+
+    public T remove(String key) {
+        return nameMap.remove(key);
     }
 
     public T get(String key) {

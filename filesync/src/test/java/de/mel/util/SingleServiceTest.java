@@ -22,8 +22,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -31,6 +29,8 @@ import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.junit.Assert.*;
 
 public class SingleServiceTest extends MergeTest {
 
@@ -97,7 +97,14 @@ public class SingleServiceTest extends MergeTest {
         makeStageSetsFromFs();
         Method workWorkWork = getMethod(syncClientService.getClass(), "workWorkWork");
         workWorkWork.invoke(syncClientService, new CommitJob());
-        fail("note complete yet");
+
+        // check if matches the entries stored in memory
+        StageSet mergedSet = stageDao.getStagedStageSetsFromFS().stream().findFirst().get();
+        stageDao.getStagesByStageSet(mergedSet.getId().v()).toList().forEach(merged -> {
+            Stage remote = creationRemoteDao.remove(merged.getName());
+            assertEquals(remote.getContentHash(), merged.getContentHash());
+        });
+        assertEquals(0, creationRemoteDao.getEntries().size());
     }
 
     private void makeStageSetsFromFs() throws SqlQueriesException {
@@ -120,7 +127,7 @@ public class SingleServiceTest extends MergeTest {
         Map<String, Stage> localNameMap = new HashMap<>();
         creationLocalDao.getEntries().forEach(stage -> localNameMap.put(stage.getName(), stage));
         stageDao.getStagesByStageSet(mergedStageSet.getId().v()).toList().forEach(stage -> {
-            assertNotNull(localNameMap.remove(stage.getName()));
+            assertEquals(localNameMap.remove(stage.getName()).getContentHash(), stage.getContentHash());
         });
         assertEquals(0, localNameMap.size());
     }
@@ -130,9 +137,11 @@ public class SingleServiceTest extends MergeTest {
         makeStageSetsFromFs();
 
         // delete folder "a"
+        final String contentHashBB = "deleted bbb.txt";
+        final String contentHashB = "changed";
         creationRemoteDao.delete("bbb.txt");
-        stageDao.update(creationRemoteDao.get("bb").setDeleted(true).setContentHash("deleted bbb.txt"));
-        stageDao.update(creationRemoteDao.get("b").setContentHash("changed"));
+        stageDao.update(creationRemoteDao.get("bb").setDeleted(true).setContentHash(contentHashBB));
+        stageDao.update(creationRemoteDao.get("b").setContentHash(contentHashB));
         Method method = getMethod(syncClientService.getClass(), "workWorkWork");
         method.invoke(syncClientService, new CommitJob());
 
@@ -145,6 +154,9 @@ public class SingleServiceTest extends MergeTest {
             Lok.debug("el " + stage.getName());
             assertNotNull(localNameMap.remove(stage.getName()));
         });
+        assertEquals(contentHashB, creationMergedDao.get("b").getContentHash());
+        assertEquals(contentHashBB, creationMergedDao.get("bb").getContentHash());
+        assertNull(creationMergedDao.get("bbb.txt"));
         assertEquals(0, localNameMap.size());
     }
 

@@ -19,6 +19,9 @@ class StageTestCreationDao : TestCreationDao<Stage> {
         obj.id = id
     }
 
+    /**
+     * deletes from cache and db
+     */
     fun delete(name: String): StageTestCreationDao {
         val stage = nameMap.remove(name)!!
         sqlQueries.delete(stage, "${stage.idPair.k()}=?", ISQLQueries.args(stage.id))
