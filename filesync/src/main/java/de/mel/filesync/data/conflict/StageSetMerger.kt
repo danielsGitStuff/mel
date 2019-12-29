@@ -12,9 +12,7 @@ import de.mel.sql.SqlQueriesException
 /**
  * Created by xor on 5/6/17.
  */
-abstract class SyncStageMerger(protected val conflictDao: ConflictDao, val localStageSet: StageSet, val remoteStageSet: StageSet) {
-    //    protected val idMapRemote: Map<Long, Long> = HashMap()
-//    protected val idMapLocal: Map<Long, Long> = HashMap()
+abstract class StageSetMerger(protected val conflictDao: ConflictDao, val localStageSet: StageSet, val remoteStageSet: StageSet) {
     protected val stageDao = conflictDao.stageDao
     protected val fsDao = conflictDao.fsDao
 
@@ -32,16 +30,6 @@ abstract class SyncStageMerger(protected val conflictDao: ConflictDao, val local
 
     @Throws(SqlQueriesException::class)
     abstract fun foundRemote(remote: Stage)
-
-//    fun calcDirectoryContentHashes() {
-//        stageDao.getDirectoriesByStageSet(mergedStageSet.id.v()).forEach { directory ->
-//            val dirDummy = FsDirectory()
-//            val content = stageDao.getNotDeletedContent(directory.id).map { stageDao.stage2FsEntry(it).toGeneric() }
-//            dirDummy.addContent(content)
-//            dirDummy.calcContentHash()
-//            stageDao.updateContentHash(directory.id, dirDummy.contentHash.v())
-//        }
-//    }
 
     protected open fun before() {
 

@@ -12,11 +12,10 @@ import de.mel.auth.tools.Order;
 import de.mel.auth.tools.WaitLock;
 import de.mel.auth.tools.lock.P;
 import de.mel.auth.tools.lock.Warden;
-import de.mel.core.serialize.serialize.tools.OTimer;
 import de.mel.filesync.FileSyncSyncListener;
 import de.mel.filesync.data.*;
 import de.mel.filesync.data.conflict.ConflictSolver;
-import de.mel.filesync.data.conflict.SyncStageMerger;
+import de.mel.filesync.data.conflict.StageSetMerger;
 import de.mel.filesync.jobs.CommitJob;
 import de.mel.filesync.jobs.SyncClientJob;
 import de.mel.filesync.quota.OutOfSpaceException;
@@ -441,7 +440,7 @@ public class ClientSyncHandler extends SyncHandler {
         /**
          * This overwrites changes in the old StageSet with the newer ones.
          */
-        SyncStageMerger merger = new SyncStageMerger(conflictDao, lStageSet, rStageSet) {
+        StageSetMerger merger = new StageSetMerger(conflictDao, lStageSet, rStageSet) {
             private Map<Long, Long> idMapRemote = new HashMap<>();
             private Map<Long, Long> idMapLocal = new HashMap<>();
             private Order order = new Order();

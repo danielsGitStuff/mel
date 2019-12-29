@@ -213,6 +213,7 @@ public class MergeTest {
         conflictDao = databaseManager.getConflictDao();
         creationLocalDao = new StageTestCreationDao(fsDao.getSqlQueries());
         creationRemoteDao = new StageTestCreationDao(fsDao.getSqlQueries());
+        creationMergedDao = new StageTestCreationDao(fsDao.getSqlQueries());
 
         localStageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_FS, FileSyncStrings.STAGESET_STATUS_STAGED, null, null, 1L, 0L);
         remoteStageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_SERVER, FileSyncStrings.STAGESET_STATUS_STAGED, 1L, "test uuid", 1L, 0L);

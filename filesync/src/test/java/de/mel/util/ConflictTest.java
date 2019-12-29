@@ -1,10 +1,14 @@
 package de.mel.util;
 
+import de.mel.auth.tools.N;
+import de.mel.auth.tools.Order;
 import de.mel.core.serialize.exceptions.JsonDeserializationException;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
+import de.mel.filesync.data.FileSyncStrings;
 import de.mel.filesync.data.conflict.Conflict;
 import de.mel.filesync.data.conflict.ConflictSolver;
 import de.mel.filesync.sql.Stage;
+import de.mel.filesync.sql.StageSet;
 import de.mel.sql.SqlQueriesException;
 import org.junit.After;
 import org.junit.Before;
@@ -13,6 +17,8 @@ import org.junit.Test;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -168,6 +174,7 @@ public class ConflictTest extends MergeTest {
 
     @Test
     public void solveDeleteRemoteParentRemote() throws SqlQueriesException {
+        makeRemote(creationRemoteDao, remoteStageSet.getId().v());
         {
             Stage bbbtext = creationRemoteDao.get("bbb.txt");
             stageDao.deleteStageById(bbbtext.getId());
@@ -196,9 +203,38 @@ public class ConflictTest extends MergeTest {
 
     }
 
+    private void makeRemote(StageTestCreationDao dao, Long stageSetId) throws SqlQueriesException {
+        Order order = new Order();
+        Map<Long, Long> idMap = new HashMap<>();
+        N.forEach(stageDao.getStagesByStageSet(stageSetId).toList(), stage -> {
+            Stage daoStage = dao.get(stage.getName());
+            daoStage.setFsId(order.ord());
+            idMap.put(daoStage.getId(), daoStage.getFsId());
+            if (daoStage.getParentIdPair().notNull()) {
+                daoStage.setFsParentId(idMap.get(daoStage.getParentId()));
+            }
+            stageDao.update(daoStage);
+        });
+        StageSet stageSet = stageDao.getStageSetById(stageSetId);
+        stageSet.setOriginCertId(1L);
+        stageSet.setSource(FileSyncStrings.STAGESET_SOURCE_SERVER);
+        stageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED);
+    }
+
     @Test
     public void mergeDeleteRemoteParentRemote() throws Exception {
         solveDeleteRemoteParentRemote();
+        conflictSolver.merge();
+        creationMergedDao.reloadStageSet(conflictSolver.mergedStageSet.getId().v());
+        assertEquals(5, creationMergedDao.getEntries().size());
+        // content of /b/ must not be in this stage set
+        assertNull(creationMergedDao.get("bb"));
+    }
+
+    @Test
+    public void mergeDeleteRemoteParentLocal() throws Exception {
+        solveDeleteRemoteParentRemote();
+        conflictSolver.getConflictMap().values().forEach(Conflict::decideLocal);
         conflictSolver.merge();
         creationMergedDao.reloadStageSet(conflictSolver.mergedStageSet.getId().v());
         assertEquals(5, creationMergedDao.getEntries().size());
