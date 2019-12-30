@@ -151,6 +151,7 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
                 decisionStage.fsParentId = rejectedStage.fsParentId
             }
             // get the fs parent id as well
+            // todo performance, do something that does not query the database
             if (decisionStage.fsParentId == null) {
                 stageDao.getStageById(decisionStage.parentId)?.let {
                     decisionStage.fsParentId = it.fsId
