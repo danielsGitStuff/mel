@@ -13,7 +13,8 @@ class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val remoteS
         get
     var key: String
         get
-    private var parent: Conflict? = null
+    var parent: Conflict? = null
+        get
     private var children = mutableListOf<Conflict>()
 
     var chosenLocal: Boolean = false

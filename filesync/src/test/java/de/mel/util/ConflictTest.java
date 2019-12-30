@@ -237,9 +237,9 @@ public class ConflictTest extends MergeTest {
         conflictSolver.getConflictMap().values().forEach(Conflict::decideLocal);
         conflictSolver.merge();
         creationMergedDao.reloadStageSet(conflictSolver.mergedStageSet.getId().v());
-        assertEquals(5, creationMergedDao.getEntries().size());
+        assertEquals(7, creationMergedDao.getEntries().size());
         // content of /b/ must not be in this stage set
-        assertNull(creationMergedDao.get("bb"));
+        assertNotNull(creationMergedDao.get("bb"));
     }
 
     @Test

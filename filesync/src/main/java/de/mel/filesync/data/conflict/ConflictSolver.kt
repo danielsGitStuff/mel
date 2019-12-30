@@ -7,7 +7,6 @@ import de.mel.filesync.sql.FsDirectory
 import de.mel.filesync.sql.Stage
 import de.mel.filesync.sql.StageSet
 import de.mel.filesync.sql.dao.ConflictDao
-import de.mel.sql.SqlQueriesException
 
 /**
  * Finds Conflicts according to @see bla
@@ -59,7 +58,6 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
             stageDao.deleteStageSet(mergedStageSet.id.v())
         }
     }
-
 
 
     fun isSolved() = conflictMap.all { it.value.hasChoice }
@@ -148,8 +146,16 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
         decisionStage.stageSet = mergedStageSet.id.v()
         // copy new fs ids
         if (rejectedStage != null && rejectedStage.stageSet == remoteStageSet.id.v()) {
-            decisionStage.fsId = rejectedStage.fsId
-            decisionStage.fsParentId = rejectedStage.fsParentId
+            if (rejectedStage.depth == decisionStage.depth) {
+                decisionStage.fsId = rejectedStage.fsId
+                decisionStage.fsParentId = rejectedStage.fsParentId
+            }
+            // get the fs parent id as well
+            if (decisionStage.fsParentId == null) {
+                stageDao.getStageById(decisionStage.parentId)?.let {
+                    decisionStage.fsParentId = it.fsId
+                }
+            }
         }
         stageDao.insert(decisionStage)
 
@@ -178,8 +184,8 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
          */
         localStageConflictMap[local.id]?.let { conflict ->
             // only apply the top
-            if (conflict.decision!!.depth == conflict.rejection!!.depth) {
-                insertToMerged(conflict.decision!!, null)
+            if (conflict.decision!!.depth >= conflict.rejection!!.depth) {
+                insertToMerged(conflict.decision!!, conflict.rejection)
             } else if (conflict.decision!!.deleted && conflict.decision!!.depth <= conflict.rejection!!.depth)
                 return
             return
@@ -190,7 +196,7 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
         if (remote != null)
             remoteStageConflictMap[remote.id]?.let { conflict ->
                 if (conflict.decision!!.depth == conflict.rejection!!.depth) {
-                    insertToMerged(conflict.decision!!, null)
+                    insertToMerged(conflict.decision!!, conflict.rejection)
                 } else if (conflict.decision!!.deleted && conflict.decision!!.depth <= conflict.rejection!!.depth)
                     return
                 return
