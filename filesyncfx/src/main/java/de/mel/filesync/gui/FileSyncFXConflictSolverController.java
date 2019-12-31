@@ -9,6 +9,7 @@ import de.mel.filesync.data.conflict.ConflictSolver;
 import de.mel.filesync.jobs.CommitJob;
 import de.mel.filesync.service.MelFileSyncClientService;
 import de.mel.filesync.sql.Stage;
+import de.mel.filesync.sql.dao.ConflictDao;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
@@ -37,6 +38,7 @@ public class FileSyncFXConflictSolverController extends PopupContentFX implement
     private TreeTableColumn<Conflict, Stage> colLeft;
     private MelFileSyncClientService melFileSyncClientService;
     private ConflictSolver conflictSolver;
+    private ConflictDao conflictDao;
 
 
     @Override
@@ -51,11 +53,11 @@ public class FileSyncFXConflictSolverController extends PopupContentFX implement
     public void initImpl(javafx.stage.Stage stage, MelAuthServiceImpl melAuthService, MelNotification notification) {
         Lok.debug("FileSyncFXConflictSolverController.init");
         this.melFileSyncClientService = (MelFileSyncClientService) melAuthService.getMelService(notification.getServiceUuid());
+        this.conflictDao = melFileSyncClientService.getFileSyncDatabaseManager().getConflictDao();
         this.stage.setTitle(notification.getTitle());
         for (ConflictSolver conflictSolver : melFileSyncClientService.getConflictSolverMap().values()) {
             if (conflictSolver.hasConflicts() && !conflictSolver.isSolved()) {
                 this.conflictSolver = conflictSolver;
-                List<Conflict> rootConflicts = Conflict.getRootConflicts(conflictSolver.getConflicts());
 
 
                 TreeItem<Conflict> root = new TreeItem<>(new Conflict());

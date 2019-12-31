@@ -89,15 +89,15 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
                 lastSelected = conflict;
                 boolean parentDeleted = false;
                 Stage side = getConflictSide(conflict);
-                Conflict dependsOn = conflict.getDependsOn();
+                Conflict dependsOn = conflict.getParent();
                 while (dependsOn != null) {
                     indent += 10;
                     Stage dependsOnSide = getConflictSide(dependsOn);
                     if (dependsOnSide != null && dependsOnSide.getDeleted())
                         parentDeleted = true;
-                    dependsOn = dependsOn.getDependsOn();
+                    dependsOn = dependsOn.getParent();
                 }
-                if (conflict.isLeft() && !isLeft() || conflict.isRight() && isLeft() || !conflict.hasDecision()) {
+                if (conflict.getChosenLocal() && !isLeft() || conflict.getChosenRemote() && isLeft() || !conflict.hasDecision()) {
                     if (side != null) {
                         label.setText(side.getName());
                         if (side.getDeleted()) {
@@ -188,8 +188,8 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
 
                 ListView<Conflict> mergeList = new ListView<>();
                 Conflict c1 = new Conflict(null, new Stage().setName("a1").setId(1L), new Stage().setName("b1").setId(1L));
-                Conflict c2 = new Conflict(null, new Stage().setName("a2").setId(2L), new Stage().setName("b2").setId(2L)).chooseRight();
-                Conflict c3 = new Conflict(null, new Stage().setName("a3").setId(3L), new Stage().setName("b3").setId(3L)).chooseLeft();
+                Conflict c2 = new Conflict(null, new Stage().setName("a2").setId(2L), new Stage().setName("b2").setId(2L)).decideRemote();
+                Conflict c3 = new Conflict(null, new Stage().setName("a3").setId(3L), new Stage().setName("b3").setId(3L)).decideLocal();
                 ListView<Conflict> rightList = new ListView<>(mergeList.getItems());
                 ListView<Conflict> leftList = new ListView<>(mergeList.getItems());
 

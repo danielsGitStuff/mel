@@ -3,7 +3,7 @@ package de.mel.filesync.data.conflict
 import de.mel.filesync.sql.Stage
 import de.mel.filesync.sql.dao.ConflictDao
 
-class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val remoteStage: Stage?) {
+open class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val remoteStage: Stage?) {
     private var localId: Long?
     private var remoteId: Long?
     var decision: Stage? = null
@@ -18,11 +18,11 @@ class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val remoteS
     private var children = mutableListOf<Conflict>()
 
     var chosenLocal: Boolean = false
-        get() = localStage != null && decision === localStage
+        get() = localStage != null && this.decision === localStage
     var chosenRemote: Boolean = false
-        get() = remoteStage != null && decision === remoteStage
+        get() = remoteStage != null && this.decision === remoteStage
     val hasChoice: Boolean
-        get() = decision != null
+        get() = this.decision != null
 
     init {
         key = createKey(localStage, remoteStage)
@@ -35,25 +35,38 @@ class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val remoteS
         parent?.children?.add(this)
     }
 
-    fun addChild(child: Conflict) {
+    fun addChild(child: Conflict): Conflict {
         children.add(child)
         child.parent = this
+        return this
     }
 
-    fun decideRemote() {
-        decision = remoteStage
+    fun decideRemote(): Conflict {
+        this.decision = remoteStage
         rejection = localStage
         children.forEach { it.decideRemote() }
+        return this
     }
 
-    fun decideLocal() {
-        decision = localStage
+
+
+    fun decideLocal(): Conflict {
+        this.decision = localStage
         rejection = remoteStage
         children.forEach { it.decideLocal() }
+        return this
     }
 
     override fun toString(): String = "key: \"$key\", l: \"${localStage?.name ?: "null"}\", r: \"${remoteStage?.name
             ?: "null"}\""
+
+    fun hasDecision(): Boolean = this.decision != null
+    fun decideNothing(): Conflict {
+        this.decision = null
+        rejection = null
+        children.forEach { it.decideNothing() }
+        return this
+    }
 
     companion object {
         fun createKey(lStage: Stage?, rStage: Stage?): String =

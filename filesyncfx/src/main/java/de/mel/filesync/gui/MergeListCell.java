@@ -36,7 +36,7 @@ public class MergeListCell extends AbstractMergeListCell {
     void handleAction(ActionEvent event) {
         if (lastSelected != null) {
             Lok.debug("AbstractMergeListCell.unsolve " + lastSelected);
-            lastSelected.chooseNothing();
+            lastSelected.decideNothing();
             leftList.refresh();
             rightList.refresh();
             getListView().refresh();
@@ -70,8 +70,8 @@ public class MergeListCell extends AbstractMergeListCell {
             } else {
                 lastSelected = conflict;
                 if (conflict.hasDecision()) {
-                    label.setText(conflict.getChoice().getName());
-                    lblHash.setText(conflict.getChoice().getContentHash());
+                    label.setText(conflict.getDecision().getName());
+                    lblHash.setText(conflict.getDecision().getContentHash());
                 }
                 setGraphic(hbox);
             }
