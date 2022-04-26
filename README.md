@@ -2,7 +2,7 @@
 
 **warning: had to pause a while because of exams, family stuff and more exams.**
 - **[FileObserver is broken since Android 10](https://stackoverflow.com/questions/58794468/how-to-replace-fileobserver-in-android-10). Wordaround will be implemented after I have reworked the build scripts. Dependencies are outdated now.** Just updating to new version crashed things, so I will completely overhaul it.
-- **No GUI for file sync conflicts.** The underlying logic had been reimplmented just before the pause.
+- **No GUI for file sync conflicts.** The underlying logic had been reimplemented just before the pause.
 
 If you are looking for a solution to synchronize files and contacts between various Android devices and PCs you might want to read further.
 It has no "cloud" thing built in and is intended for home network use. 
