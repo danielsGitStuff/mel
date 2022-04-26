@@ -39,7 +39,7 @@ All services come with a client/server role. By design all server services do no
   - client sends all files of a folder to the server
   - files deleted on the client are not deleted on the server
   - folder structure remains
-  - server aitomatically resolves conflicts by adding dates and IDs to duplicate file names
+  - server automatically resolves conflicts by adding dates and IDs to duplicate file names
   
 Syncing can be delayed (and it is by default) until certain conditions hold:
 - you have WiFi
@@ -95,6 +95,8 @@ You can find all licenses and according modules and usage under `auth/src/main/r
 - does not work on MacOS (won't be addressed: too expensive, no FileWatcher)
 - File transfer over Wifi may be slow
 - Notifications are ugly on PC
+- FileObserver on Android 10+
+- Build scripts and dependencies
 
 ## Dev stuff
 ### Modules
