@@ -2,10 +2,15 @@ plugins{
     id 'java-library'
 }
 
+println "klo ${rootProject.hasProperty('dep_sqlite')}"
+
+println "klu ${rootProject.dep_sqlite}"
+
 dependencies {
     api project(path: ':serialize')
     testImplementation project(path: ':serialize')
     testImplementation 'junit:junit:4.12'
+    testImplementation rootProject.dep_sqlite
     testImplementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
 }
 compileJava {

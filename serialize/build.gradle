@@ -9,9 +9,9 @@ configurations{
     serializeTestOutput
 }
 dependencies {
-    api project(path: ':json')
-    testImplementation 'junit:junit:4.12'
-    testImplementation project(path: ':json')
+    api project(':json')
+    testImplementation dep_junit4
+    testImplementation project(':json')
 }
 compileJava {
     sourceCompatibility = '1.8'

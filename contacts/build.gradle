@@ -11,10 +11,10 @@ sourceSets {
     }
 }
 dependencies {
-    api project(path: ':auth')
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
-    testImplementation project(path: ':auth')
-    testImplementation 'junit:junit:4.12'
+    api project(':auth')
+    implementation rootProject.dep_k_std
+    testImplementation rootProject.dep_junit4
+    testImplementation project(":auth")
 }
 
 

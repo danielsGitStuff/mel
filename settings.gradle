@@ -2,25 +2,27 @@
  * BLOCK I
  * Block I build everything. Use this with Intellij Idea and comment the other one out.
  */
-include ':app', ':json', ':serialize', ':sql', ':auth', ':filesync', ':authfx', ':filesyncfx', ':contacts', ':contactsfx', ':fxbundle', ':miniserver', ':icons', ':konsole', ':lok', ':serverparts', ':blog', ':filedump', ':filedumpfx'
-project(':app').projectDir = new File('app')
-project(':auth').projectDir = new File('auth')
-project(':authfx').projectDir = new File('authfx')
-project(':blog').projectDir = new File('blog')
-project(':contacts').projectDir = new File('contacts')
-project(':contactsfx').projectDir = new File('contactsfx')
-project(':filedump').projectDir = new File('filedump')
-project(':filedumpfx').projectDir = new File('filedumpfx')
-project(':filesync').projectDir = new File('filesync')
-project(':filesyncfx').projectDir = new File('filesyncfx')
-project(':fxbundle').projectDir = new File('fxbundle')
-project(':icons').projectDir = new File('icons')
-project(':json').projectDir = new File('json')
-project(':konsole').projectDir = new File('konsole')
-project(':lok').projectDir = new File('lok')
-project(':miniserver').projectDir = new File('miniserver')
-project(':serialize').projectDir = new File('serialize')
-project(':sql').projectDir = new File('sql')
+//include ':app', ':json', ':serialize', ':sql', ':auth', ':filesync', ':authfx', ':filesyncfx', ':contacts', ':contactsfx', ':fxbundle', ':miniserver', ':icons', ':konsole', ':lok', ':serverparts', ':blog', ':filedump', ':filedumpfx'
+//project(':app').projectDir = new File('app')
+//include ':json', ':serialize', ':sql', ':auth', ':filesync', ':authfx', ':filesyncfx', ':contacts', ':contactsfx', ':fxbundle', ':miniserver', ':icons', ':konsole', ':lok', ':serverparts', ':blog', ':filedump', ':filedumpfx'
+include 'json', 'serialize', 'sql', 'auth', 'filesync', ':contacts',  ':icons', ':konsole', ':lok', ':filedump' ,':authfx' ,':contactsfx', ':filedumpfx', ':filesyncfx', ':fxbundle'
+//project(':auth').projectDir = new File('auth')
+////project(':authfx').projectDir = new File('authfx')
+////project(':blog').projectDir = new File('blog')
+//project(':contacts').projectDir = new File('contacts')
+////project(':contactsfx').projectDir = new File('contactsfx')
+//project(':filedump').projectDir = new File('filedump')
+////project(':filedumpfx').projectDir = new File('filedumpfx')
+//project(':filesync').projectDir = new File('filesync')
+////project(':filesyncfx').projectDir = new File('filesyncfx')
+//project(':fxbundle').projectDir = new File('fxbundle')
+//project(':icons').projectDir = new File('icons')
+//project(':json').projectDir = new File('json')
+//project(':konsole').projectDir = new File('konsole')
+//project(':lok').projectDir = new File('lok')
+////project(':miniserver').projectDir = new File('miniserver')
+//project(':serialize').projectDir = new File('serialize')
+//project(':sql').projectDir = new File('sql')
 
 
 

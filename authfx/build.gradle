@@ -1,7 +1,7 @@
 plugins {
-    id 'application'
+//    id 'application'
     id 'java-library'
-    id 'org.openjfx.javafxplugin' version '0.0.7'
+    id 'org.openjfx.javafxplugin' version "${javaFxPluginVersion}"
 }
 
 javafx {
@@ -13,11 +13,11 @@ compileJava {
     targetCompatibility = '1.8'
 }
 dependencies {
-    api project(path: ':auth')
-    testCompile project(path: ':auth')
-    testCompile 'junit:junit:4.12'
-    api group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
-    api group: 'org.openjfx', name: 'javafx-controls', version: '12.0.1'
-    api group: 'org.openjfx', name: 'javafx-fxml', version: '12.0.1'
-    testCompile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
+    api project(":auth")
+    api rootProject.dep_sqlite
+    testImplementation project(":auth")
+    testImplementation rootProject.dep_junit4
+    testImplementation rootProject.dep_sqlite
+    api group: 'org.openjfx', name: 'javafx-controls', version: rootProject.javaFxVersion
+    api group: 'org.openjfx', name: 'javafx-fxml', version: rootProject.javaFxVersion
 }

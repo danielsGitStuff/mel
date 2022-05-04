@@ -1,9 +1,9 @@
-import java.time.LocalDateTime
+//import java.time.LocalDateTime
 
 plugins {
     id 'org.springframework.boot'
     id 'java'
-    id 'org.openjfx.javafxplugin' version '0.0.7'
+    id 'org.openjfx.javafxplugin' version "$javaFxPluginVersion"
 }
 
 javafx {
@@ -41,7 +41,7 @@ dependencies {
     implementation project(':filesyncfx')
     implementation project(':contactsfx')
     testImplementation project(configuration: 'filesyncTestOutput', path: ':filesync')
-    testImplementation 'junit:junit:4.12'
+    testImplementation rootProject.dep_junit4
 }
 compileJava {
     sourceCompatibility = '1.8'
@@ -72,9 +72,12 @@ task createProperties() {
         new File(libs, "${jarName}.properties").withWriter { w -> props.store(w, null) }
     }
 }
-bootJar {
-    mainClassName = 'de.mel.fxbundle.Main'
-    archiveFileName = jarName
+tasks.named("bootJar") {
+    mainClass = 'de.mel.fxbundle.Main'
 }
+//bootJar {
+//    mainClassName = 'de.mel.fxbundle.Main'
+//    archiveFileName = jarName
+//}
 bootJar.dependsOn(createProperties)
 // buildJarstuff ends here

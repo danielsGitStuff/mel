@@ -8,7 +8,7 @@ import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 
 public class FxApp extends Application {
-    private static FxApp instance;
+    public static FxApp instance;
 
     public static FxApp getInstance() {
         return instance;
