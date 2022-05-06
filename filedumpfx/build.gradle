@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
     id 'org.jetbrains.kotlin.jvm'
-    id 'org.openjfx.javafxplugin' version '0.0.7'
+    id 'org.openjfx.javafxplugin' version "${javaFxPluginVersion}"
 }
 javafx {
     version = project.javaFxVersion
@@ -30,11 +30,9 @@ compileTestKotlin {
     }
 }
 dependencies {
-    api project(path: ':filedump')
-    api project(path: ':filesyncfx')
-    api project(path: ':authfx')
+    api project(':filedump')
+    api project(':filesyncfx')
+    api project(':authfx')
     testImplementation project(configuration: 'filesyncTestOutput', path: ':filesync')
-
-//    testCompile project(path: ':dump',configuration :'filesyncTestOutput')
-    testImplementation 'junit:junit:4.12'
+    testImplementation rootProject.dep_junit4
 }

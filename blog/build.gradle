@@ -64,9 +64,12 @@ task createProperties() {
         new File(libs, "${jarName}.properties").withWriter { w -> props.store(w, null) }
     }
 }
-bootJar {
-    mainClassName = 'de.mel.web.blog.Blog'
-    archiveFileName = jarName
+tasks.named("bootJar"){
+    mainClass = 'de.mel.web.blog.Blog'
 }
+//bootJar {
+//    mainClassName = 'de.mel.web.blog.Blog'
+//    archiveFileName = jarName
+//}
 processResources.dependsOn(createProperties)
 // buildJarstuff ends here

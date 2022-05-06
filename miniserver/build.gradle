@@ -66,9 +66,12 @@ task createProperties(dependsOn: copyLicenseHtml) {
         new File(libs, "${jarName}.properties").withWriter { w -> props.store(w, null) }
     }
 }
-bootJar {
-    mainClassName = 'de.mel.web.miniserver.Main'
-    archiveFileName = jarName
+tasks.named("bootJar"){
+    mainClass = 'de.mel.web.miniserver.Main'
 }
+//bootJar {
+//    mainClassName = 'de.mel.web.miniserver.Main'
+//    archiveFileName = jarName
+//}
 processResources.dependsOn(createProperties)
 // buildJarstuff ends here

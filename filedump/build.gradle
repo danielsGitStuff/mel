@@ -12,14 +12,13 @@ sourceSets {
 }
 dependencies {
     // this is for the MainTest class only
-    implementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
-
-    api project(path: ':filesync')
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$KOTLIN_CR_V"
+    implementation rootProject.dep_sqlite
+    api project(':filesync')
+    implementation rootProject.dep_k_std
+    implementation rootProject.dep_k_cor
     testImplementation project(configuration: 'filesyncTestOutput', path: ':filesync')
-    testImplementation 'junit:junit:4.12'
-    testImplementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
+    testImplementation rootProject.dep_junit4
+    testImplementation rootProject.dep_sqlite
 }
 compileJava {
     sourceCompatibility = '1.8'

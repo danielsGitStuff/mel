@@ -5,21 +5,21 @@ plugins {
 
 
 dependencies {
-    api project(':lok')
     api project(':konsole')
     api project(':sql')
-    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$KOTLIN_CR_V"
-    api "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
-    api 'org.jdeferred:jdeferred-core:1.2.4'
 
-    api 'org.bouncycastle:bcprov-jdk15on:1.63'
-    api group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.63'
+    api rootProject.dep_k_std
+    api rootProject.dep_k_cor
+    api rootProject.dep_jdeferred
+    api rootProject.dep_bc_prov
+    api rootProject.dep_bc_pkix
+
+    testImplementation rootProject.dep_junit4
+    testImplementation rootProject.dep_sqlite
+    testImplementation rootProject.dep_jupiter
+
     testImplementation project(path: ':sql')
     testImplementation project(path: ':serialize', configuration: 'serializeTestOutput')
-    testImplementation 'org.jdeferred:jdeferred-core:1.2.4'
-    testImplementation 'junit:junit:4.12'
-    testImplementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.4.2'
 }
 
 compileJava {
