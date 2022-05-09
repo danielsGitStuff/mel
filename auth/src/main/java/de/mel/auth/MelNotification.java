@@ -28,6 +28,19 @@ public class MelNotification {
     private boolean finished = false;
 
     /**
+     * @param serviceUuid source of the notification
+     * @param intention   tell the consumer of the notification what to do
+     * @param title
+     * @param text
+     */
+    public MelNotification(String serviceUuid, String intention, String title, String text) {
+        this.serviceUuid = serviceUuid;
+        this.intention = intention;
+        this.text = text;
+        this.title = title;
+    }
+
+    /**
      * call if the matter of the notification is obsolete and shall not molest the user anymore
      */
     public void cancel() {
@@ -83,18 +96,7 @@ public class MelNotification {
         void onFinish(MelNotification notification);
     }
 
-    /**
-     * @param serviceUuid source of the notification
-     * @param intention   tell the consumer of the notification what to do
-     * @param title
-     * @param text
-     */
-    public MelNotification(String serviceUuid, String intention, String title, String text) {
-        this.serviceUuid = serviceUuid;
-        this.intention = intention;
-        this.text = text;
-        this.title = title;
-    }
+
 
     public MelNotification(String serviceUuid, String intention, String title, String text, Object content) {
         this(serviceUuid, intention, title, text);
@@ -137,9 +139,13 @@ public class MelNotification {
      * @param extra
      * @throws JsonSerializationException
      */
-    public void addSerializedExtra(String key, SerializableEntity extra) throws JsonSerializationException, IllegalAccessException {
+    public void addDeserializedExtra(String key, SerializableEntity extra) throws JsonSerializationException, IllegalAccessException {
         String json = SerializableEntitySerializer.serialize(extra);
         extras.put(key, json);
+    }
+
+    public void addSerializedExtra(String key, String extra){
+        extras.put(key, extra);
     }
 
     public Set<String> getSerializedExtraKeys() {

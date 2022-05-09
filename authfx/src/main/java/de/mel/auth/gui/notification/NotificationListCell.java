@@ -1,5 +1,6 @@
 package de.mel.auth.gui.notification;
 
+import de.mel.Lok;
 import de.mel.auth.MelNotification;
 import de.mel.auth.boot.BootLoaderFX;
 import de.mel.auth.gui.Popup;
@@ -72,6 +73,11 @@ public class NotificationListCell extends ListCell<MelNotification> {
                         }
                     });
                 });
+                Lok.debug("debug auto click notification");
+                if (notification.getTitle().equals("Conflict detected!")){
+                    Lok.debug();
+                    btnOpen.fire();
+                }
                 btnIgnore.setOnAction(event -> {
                     if (notification.isUserCancelable())
                         notification.cancel();

@@ -97,7 +97,7 @@ public abstract class AbstractMergeListCell extends ListCell<Conflict> {
                         parentDeleted = true;
                     dependsOn = dependsOn.getParent();
                 }
-                if (conflict.getChosenLocal() && !isLeft() || conflict.getChosenRemote() && isLeft() || !conflict.hasDecision()) {
+                if (conflict.getChosenLocal() && !isLeft() || conflict.getChosenRemote() && isLeft() || !conflict.getHasChoice()) {
                     if (side != null) {
                         label.setText(side.getName());
                         if (side.getDeleted()) {

@@ -1,5 +1,6 @@
 package de.mel.util;
 
+import de.mel.Lok;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.Order;
 import de.mel.core.serialize.exceptions.JsonDeserializationException;
@@ -34,6 +35,17 @@ import static org.junit.Assert.*;
  * <p>
  * Side = Local | Remote | Mixed
  * whatHappensBeforeConflictSearching = DeleteX | ModifyX ...
+ */
+
+/**
+ * default dir structure:
+ * [root]
+ * |_a
+ * | |_aa.txt
+ * |_b
+ * | |_bb
+ * |    |_bbb.txt
+ * |_c
  */
 public class ConflictTest extends MergeTest {
 
@@ -87,6 +99,80 @@ public class ConflictTest extends MergeTest {
         assertEquals(1, conflictSolver.getConflictMap().size());
         assertEquals(1, conflictSolver.getLocalStageConflictMap().size());
         assertEquals(1, conflictSolver.getRemoteStageConflictMap().size());
+    }
+
+
+    /**
+     * [root]
+     * |_a
+     * | |_aa.txt
+     * | |_i0         <---
+     * |    |_J.txt   <---
+     * |_b
+     * | |_bb
+     * |    |_bbb.txt
+     * |_c
+     *
+     * @throws SqlQueriesException
+     */
+    @Test
+    public void findContentNewDirConflict() throws SqlQueriesException {
+        Stage a = creationRemoteDao.get("a");
+        Stage i0 = new Stage()
+                .setName("i0")
+                .setIsDirectory(true)
+                .setContentHash("i0")
+                .setDepth(2)
+                .setPath("/a/")
+                .setOrder(19L)
+                .setStageSet(a.getStageSet())
+                .setParentId(a.getId())
+                .setModified(12L)
+                .setCreated(12L)
+                .setFsParentId(a.getFsId())
+                .setDeleted(false);
+        creationRemoteDao.insert(i0);
+        Stage J = new Stage()
+                .setName("J.txt")
+                .setIsDirectory(false)
+                .setContentHash("J.txt")
+                .setDepth(2)
+                .setPath("/a/i0/")
+                .setOrder(20L)
+                .setStageSet(i0.getStageSet())
+                .setParentId(i0.getId())
+                .setModified(12L)
+                .setCreated(12L)
+                .setFsParentId(i0.getFsId())
+                .setDeleted(false);
+        a.setContentHash("i0+i0/J added");
+        creationRemoteDao.insert(J);
+        stageDao.update(a);
+
+        createConflictSolver().findConflicts();
+        assertTrue(conflictSolver.hasConflicts());
+        assertEquals(1, conflictSolver.getConflictMap().size());
+        assertEquals(1, conflictSolver.getLocalStageConflictMap().size());
+        assertEquals(3, conflictSolver.getRemoteStageConflictMap().size());
+        Map<String, Conflict> conflictMap = conflictSolver.getConflictMap();
+
+        assertTrue(conflictMap.containsKey("2/9"));
+        Conflict conflictA = conflictMap.get("2/9");
+        assertNotNull(conflictA.getLocalStage());
+        assertNotNull(conflictA.getRemoteStage());
+        assertEquals(1, conflictA.getChildren().size());
+
+        Conflict conflictI0 = conflictA.getChildren().get(0);
+        assertNull(conflictI0.getLocalStage());
+        assertNotNull(conflictI0.getRemoteStage());
+        assertEquals(1, conflictI0.getChildren().size());
+
+        Conflict conflictJ = conflictI0.getChildren().get(0);
+        assertNull(conflictJ.getLocalStage());
+        assertNotNull(conflictJ.getRemoteStage());
+        assertEquals(0, conflictJ.getChildren().size());
+        Lok.debug("success");
+//        Conflict conflictI0 = conflictA.addChild()
     }
 
     private ConflictSolver createConflictSolver() {

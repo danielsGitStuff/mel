@@ -6,7 +6,6 @@ import de.mel.auth.MelNotification;
 import de.mel.auth.jobs.Job;
 import de.mel.auth.jobs.ServiceRequestHandlerJob;
 import de.mel.auth.service.MelAuthService;
-import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.lock.P;
@@ -183,7 +182,7 @@ public class MelFileSyncClientService extends MelFileSyncService<ClientSyncHandl
     }
 
 
-    public synchronized void onConflicts() {
+    public synchronized void onConflicts(ConflictSolver solver) {
         Lok.debug("MelDriveClientService.onConflicts.oj9h034800");
         if (latestConflictNotification != null) {
             latestConflictNotification.cancel();
@@ -191,6 +190,7 @@ public class MelFileSyncClientService extends MelFileSyncService<ClientSyncHandl
         latestConflictNotification = new MelNotification(uuid, FileSyncStrings.Notifications.INTENTION_CONFLICT_DETECTED
                 , "Conflict detected!"
                 , "Click to solve!").setUserCancelable(false);
+        latestConflictNotification.addSerializedExtra("c.id", solver.getConflictIdentifier());
         melAuthService.onNotificationFromService(this, latestConflictNotification);
     }
 

@@ -7,20 +7,21 @@ import javafx.scene.control.TreeTableCell;
 /**
  * Created by xor on 6/12/17.
  */
-public class TreeConflictCell extends TreeTableCell<Conflict, Stage> {
+public class TreeViewStageCell extends TreeTableCell<Conflict, TreeViewStage> {
     private Conflict conflict;
     private Conflict lastSelected;
 
-    public TreeConflictCell() {
+    public TreeViewStageCell() {
     }
 
     @Override
-    protected void updateItem(Stage stage, boolean empty) {
+    protected void updateItem(TreeViewStage stage, boolean empty) {
         super.updateItem(stage, empty);
         if (empty || stage == null) {
             setText(null);
         } else {
-            setText(stage.getName());
+            setText(stage.name.getValue());
+//            setText("bla");
         }
     }
 }

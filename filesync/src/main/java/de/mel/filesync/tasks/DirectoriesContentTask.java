@@ -23,6 +23,7 @@ public class DirectoriesContentTask extends ServicePayload {
     }
 
     public DirectoriesContentTask setVersion(long version) {
+        // todo use and check version property. fail and react if error.
         this.version = version;
         return this;
     }

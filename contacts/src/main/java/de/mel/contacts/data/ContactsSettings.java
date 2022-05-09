@@ -19,6 +19,10 @@ public class ContactsSettings <T extends PlatformContactSettings> extends JsonSe
     private Long masterPhoneBookId;
     private T platformContactSettings;
 
+    public ContactsSettings(){
+
+    }
+
     public boolean isServer() {
         return role.equals(ContactStrings.ROLE_SERVER);
     }

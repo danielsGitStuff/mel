@@ -7,12 +7,14 @@ import de.mel.filesync.sql.FsDirectory
 import de.mel.filesync.sql.Stage
 import de.mel.filesync.sql.StageSet
 import de.mel.filesync.sql.dao.ConflictDao
+import de.mel.sql.SqlQueriesException
 
 /**
  * Finds Conflicts according to @see bla
  * todo add link do conflict image
  */
-open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, remoteStageSet: StageSet) : StageSetMerger(conflictDao, localStageSet, remoteStageSet) {
+open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, remoteStageSet: StageSet) :
+    StageSetMerger(conflictDao, localStageSet, remoteStageSet) {
     var conflictHelperUuid: String? = null
     val basedOnVersion: Long
     val conflictMap = mutableMapOf<String, Conflict>()
@@ -28,12 +30,22 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
     val idMapLocal = mutableMapOf<Long, Long>()
     val idMapRemote = mutableMapOf<Long, Long>()
 
+    val conflictIdentifier: String
+
     init {
-        basedOnVersion = if (localStageSet.basedOnVersion.v() >= remoteStageSet.basedOnVersion.v()) localStageSet.basedOnVersion.v() else remoteStageSet.basedOnVersion.v()
+        basedOnVersion =
+            if (localStageSet.basedOnVersion.v() >= remoteStageSet.basedOnVersion.v()) localStageSet.basedOnVersion.v() else remoteStageSet.basedOnVersion.v()
+        conflictIdentifier = "l${localStageSet.id.v()}//r${remoteStageSet.id.v()}"
     }
 
     override fun before() {
-        mergedStageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_MERGED, remoteStageSet.originCertId.v(), remoteStageSet.originServiceUuid.v(), remoteStageSet.version.v(), basedOnVersion)
+        mergedStageSet = stageDao.createStageSet(
+            FileSyncStrings.STAGESET_SOURCE_MERGED,
+            remoteStageSet.originCertId.v(),
+            remoteStageSet.originServiceUuid.v(),
+            remoteStageSet.version.v(),
+            basedOnVersion
+        )
     }
 
     override fun after() {
@@ -79,9 +91,16 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
          *      this Conflict has no localStage but a parent Conflict
          *      c3 is c2 "inverted" or with the StageSets swapped.
          */
-        val c1 = conflictDao.getC1Conflicts(localStageSetId = localStageSet.id.v(), remoteStageSetId = remoteStageSet.id.v())
-        val c2 = conflictDao.getLocalDeletedByRemote(localStageSetId = localStageSet.id.v(), remoteStageSetId = remoteStageSet.id.v())
-        val c3 = conflictDao.getRemoteDeletedByLocal(localStageSetId = localStageSet.id.v(), remoteStageSetId = remoteStageSet.id.v())
+        val c1 =
+            conflictDao.getC1Conflicts(localStageSetId = localStageSet.id.v(), remoteStageSetId = remoteStageSet.id.v())
+        val c2 = conflictDao.getLocalDeletedByRemote(
+            localStageSetId = localStageSet.id.v(),
+            remoteStageSetId = remoteStageSet.id.v()
+        )
+        val c3 = conflictDao.getRemoteDeletedByLocal(
+            localStageSetId = localStageSet.id.v(),
+            remoteStageSetId = remoteStageSet.id.v()
+        )
         createConflicts(c1)
         createConflicts(c2)
         createConflicts(c3)
@@ -93,8 +112,10 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
 
     private fun createConflicts(dbConflicts: List<DbConflict>) {
         dbConflicts.forEach loop@{ dbConflict ->
-            val localStage = if (dbConflict.localStageId.notNull()) stageDao.getStageById(dbConflict.localStageId.v()) else null
-            val remoteStage = if (dbConflict.remoteStageId.notNull()) stageDao.getStageById(dbConflict.remoteStageId.v()) else null
+            val localStage =
+                if (dbConflict.localStageId.notNull()) stageDao.getStageById(dbConflict.localStageId.v()) else null
+            val remoteStage =
+                if (dbConflict.remoteStageId.notNull()) stageDao.getStageById(dbConflict.remoteStageId.v()) else null
             val conflict = Conflict(conflictDao, localStage, remoteStage)
             if (conflictMap.containsKey(conflict.key))
                 return@loop
@@ -116,6 +137,60 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
                     val parent = remoteStageConflictMap[r.parentId]!!
                     parent.addChild(conflict)
                     rootConflictMap.remove(conflict.key)
+                }
+            }
+            if (remoteStage != null && localStage != null) {
+                Lok.debug("debug WIP content missing")
+                if (remoteStage.isDirectory || localStage.isDirectory) {
+                    fun rec(cc: Conflict, localStage: Stage?, remoteStage: Stage?) {
+                        val remoteContentList: List<Stage> = if (remoteStage == null) emptyList() else stageDao.getStageContent(remoteStage.id)
+                        val localContentList: List<Stage> = if (localStage == null) emptyList() else stageDao.getStageContent(localStage.id)
+                        val remoteContent: Map<String, Stage> = remoteContentList.map { it.name to it }.toMap()
+                        val localContent: Map<String, Stage> = localContentList.map { it.name to it }.toMap()
+                        fun find(con: Conflict, c1: Map<String, Stage>, c2: Map<String, Stage>, c1IsLocal: Boolean = true) {
+                            for ((name, c1Stage) in c1) {
+                                if (c2.containsKey(name)) {
+                                    val c2Stage = c2[name]!!
+                                    if (c2Stage.contentHash != c1Stage.contentHash) {
+                                        val c = if (c1IsLocal)
+                                            Conflict(conflictDao, c1Stage, c2Stage)
+                                        else
+                                            Conflict(conflictDao, c2Stage, c1Stage)
+                                        con.addChild(c)
+                                        if (c1IsLocal) {
+                                            localStageConflictMap[c1Stage.id] = c
+                                            remoteStageConflictMap[c2Stage.id] = c
+                                            rec(c, c1Stage, c2Stage)
+                                        } else {
+                                            localStageConflictMap[c2Stage.id] = c
+                                            remoteStageConflictMap[c1Stage.id] = c
+                                            rec(c, c2Stage, c1Stage)
+                                        }
+                                    }
+                                } else {
+                                    val c = if (c1IsLocal) Conflict(conflictDao, c1Stage, null) else Conflict(conflictDao, null, c1Stage)
+                                    con.addChild(c)
+                                    if (c1IsLocal) {
+                                        localStageConflictMap[c1Stage.id] = c
+                                        rec(c, c1Stage, null)
+                                    } else {
+                                        remoteStageConflictMap[c1Stage.id] = c
+                                        rec(c, null, c1Stage)
+                                    }
+                                }
+                            }
+                        }
+                        find(cc, localContent, remoteContent)
+                        find(cc, remoteContent, localContent, c1IsLocal = false)
+//                        remoteContent.forEach { name, stage ->
+//                            Lok.debug("${stage.name}  ${stage.contentHash}")
+//
+//                        }
+
+//                        Lok.debug(conflict)
+                    }
+                    rec(conflict, localStage, remoteStage)
+                    Lok.debug("debug o3kaf")
                 }
             }
         }

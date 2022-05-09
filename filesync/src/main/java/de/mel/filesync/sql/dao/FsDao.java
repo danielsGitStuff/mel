@@ -328,6 +328,12 @@ public class FsDao extends Dao {
     }
 
     public List<GenericFSEntry> getContentByFsDirectory(@Nullable Long fsId) throws SqlQueriesException {
+        // todo make this sync version dependent.
+        /*
+         * a sync request returns a version, eg. 19
+         * (this is the current version of the server).
+         * But the server might have a new max version (21) once the content request comes in.
+         */
         if (fsId == null)
             return new ArrayList<>();
         String where = "";

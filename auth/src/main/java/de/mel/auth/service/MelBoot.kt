@@ -180,7 +180,8 @@ class MelBoot(private val melAuthSettings: MelAuthSettings, private val powerMan
                 }
             }
         }
-        //bootedPromises.add(promiseAuthIsUp);
+//        bootedPromises.add(promiseAuthIsUp);
+
         MelDeferredManager().`when`(bootedPromises)
                 .done {
                     // boot stage2 of all services
@@ -209,7 +210,7 @@ class MelBoot(private val melAuthSettings: MelAuthSettings, private val powerMan
         val DEFAULT_WORKING_DIR_NAME = "mel.auth"
         val DEFAULT_SETTINGS_FILE_NAME = "auth.settings"
         private val logger = Logger.getLogger(MelBoot::class.java.name)
-        val defaultWorkingDir1 = File("mel.data")
+        val defaultWorkingDir1 = File("mel.data.1")
         val defaultWorkingDir2 = File("mel.data.2")
 
         @JvmStatic

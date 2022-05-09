@@ -24,7 +24,7 @@ public class RightMergeListCell extends AbstractMergeListCell {
     void handleAction(ActionEvent event) {
         if (lastSelected != null) {
             Lok.debug("AbstractMergeListCell.left " + lastSelected);
-            lastSelected.chooseRight();
+//            lastSelected.chooseRight();
             getListView().refresh();
             mergeList.refresh();
             leftList.refresh();
@@ -41,8 +41,8 @@ public class RightMergeListCell extends AbstractMergeListCell {
 
     @Override
     Stage getConflictSide(Conflict dependsOn) {
-        if (dependsOn.hasRight())
-            return dependsOn.getRight();
+//        if (dependsOn.hasRight())
+//            return dependsOn.getRight();
         return null;
     }
 

@@ -69,7 +69,7 @@ public class MergeListCell extends AbstractMergeListCell {
                 lastSelected = null;
             } else {
                 lastSelected = conflict;
-                if (conflict.hasDecision()) {
+                if (conflict.getHasChoice()) {
                     label.setText(conflict.getDecision().getName());
                     lblHash.setText(conflict.getDecision().getContentHash());
                 }

@@ -17,7 +17,7 @@ abstract class BashTools<A : IFile> {
 
     companion object {
         var binPath: String? = null
-        val isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows")
+        val isWindows = System.getProperty("os.name").lowercase().startsWith("windows")
         var implementation: BashTools<IFile> = if (isWindows) {
             BashToolsWindows() as BashTools<IFile>
         } else {

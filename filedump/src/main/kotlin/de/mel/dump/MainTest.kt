@@ -6,6 +6,7 @@ import de.mel.auth.data.db.Certificate
 import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.DefaultFileConfiguration
 import de.mel.auth.file.IFile
+import de.mel.auth.service.MelAuthServiceImpl
 import de.mel.auth.service.MelBoot
 import de.mel.auth.service.power.PowerManager
 import de.mel.auth.socket.process.reg.IRegisterHandler
@@ -69,7 +70,7 @@ class MainTest {
                         }
                     }
                 }
-                val helper = DumpCreateServiceHelper(mas)
+                val helper = DumpCreateServiceHelper(mas as MelAuthServiceImpl)
                 helper.createServerService("TEST Dump Server", root, .5f, 30, false)
             }
             val lock = RWLock()

@@ -4,6 +4,8 @@ import de.mel.Lok;
 import de.mel.auth.data.cached.CachedInitializer;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.file.IFile;
+import de.mel.auth.service.Bootloader;
+import de.mel.auth.service.IMelService;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.socket.MelValidationProcess;
 import de.mel.auth.socket.process.val.Request;
@@ -112,9 +114,9 @@ public class ClientSyncHandler extends SyncHandler {
                                 availableHashesTask.cleanUp();
                             });
                         }).fail(result -> {
-                    availableHashesTask.cleanUp();
-                    Lok.debug("fail");
-                });
+                            availableHashesTask.cleanUp();
+                            Lok.debug("fail");
+                        });
             } else {
                 availableHashesTask.cleanUp();
             }
@@ -350,6 +352,33 @@ public class ClientSyncHandler extends SyncHandler {
      * @param stagedFromFs
      */
     public void handleConflict(StageSet serverStageSet, StageSet stagedFromFs, Warden warden, String conflictHelperUuid) throws SqlQueriesException {
+        Lok.debug("debug handleConflict");
+        ConflictSolver solver = new ConflictSolver(this.conflictDao, stagedFromFs, serverStageSet);
+        String identifier = solver.getConflictIdentifier();
+        Lok.debug();
+        if (conflictSolverMap.containsKey(identifier)) {
+            solver = conflictSolverMap.get(identifier);
+            if (solver.isSolved()) {
+                Lok.debug("debug solved");
+            } else {
+                Lok.debug("debug not solved");
+            }
+        } else {
+            solver.findConflicts();
+        }
+
+        if (!solver.isSolving()) {
+            if (solver.hasConflicts()) {
+                Lok.error("got conflicts!!!");
+                if (conflictHelperUuid != null)
+                    solver.setConflictHelperUuid(conflictHelperUuid);
+                putConflictSolver(solver);
+                solver.setSolving(true);
+                melDriveService.onConflicts(solver);
+            } else {
+                Lok.debug("debug solved 33dddd");
+            }
+        }
 //        String identifier = ConflictSolver.createIdentifier(serverStageSet.getId().v(), stagedFromFs.getId().v());
 //        ConflictSolver conflictSolver;
 //        // check if there is a solved ConflictSolver available. if so, use it. if not, make a new one.
@@ -403,19 +432,39 @@ public class ClientSyncHandler extends SyncHandler {
     }
 
     private void putConflictSolver(ConflictSolver conflictSolver) {
-
+        // search for related ConflictSolvers before. they deprecate as we insert the new one.
+        deleteRelated(conflictSolver.getRemoteStageSet().getId().v());
+        deleteRelated(conflictSolver.getLocalStageSet().getId().v());
+        addRelated(conflictSolver, conflictSolver.getLocalStageSet().getId().v());
+        addRelated(conflictSolver, conflictSolver.getRemoteStageSet().getId().v());
+        conflictSolverMap.put(conflictSolver.getConflictIdentifier(), conflictSolver);
     }
 
     private void addRelated(ConflictSolver solver, Long stageSetId) {
-
+        if (relatedSolvers.containsKey(stageSetId)) {
+            relatedSolvers.get(stageSetId).add(solver);
+        } else {
+            Set<ConflictSolver> set = new HashSet<>();
+            set.add(solver);
+            relatedSolvers.put(stageSetId, set);
+        }
     }
 
     private void deleteRelated(Long stageSetId) {
-
+        if (relatedSolvers.containsKey(stageSetId)) {
+            Set<ConflictSolver> solvers = relatedSolvers.remove(stageSetId);
+            for (ConflictSolver solver : solvers) {
+                ConflictSolver relatedSolver = conflictSolverMap.remove(solver.getConflictIdentifier());
+                Lok.debug("debug conflict solver cleanup missing");
+//                N.r(relatedSolver::cleanup);
+            }
+        }
     }
 
     private void minimizeStage(Long stageSetId) throws SqlQueriesException {
-
+        if (stageSetId == 9)
+            Lok.warn("debug");
+        stageDao.deleteIdenticalToFs(stageSetId);
     }
 
     /**

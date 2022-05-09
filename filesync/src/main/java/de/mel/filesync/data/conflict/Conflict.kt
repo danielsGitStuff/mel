@@ -15,14 +15,14 @@ open class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val re
         get
     var parent: Conflict? = null
         get
-    private var children = mutableListOf<Conflict>()
+    var children = mutableListOf<Conflict>()
 
     var chosenLocal: Boolean = false
-        get() = localStage != null && this.decision === localStage
+        get() = this.hasChoice && this.decision === localStage
     var chosenRemote: Boolean = false
-        get() = remoteStage != null && this.decision === remoteStage
+        get() = this.hasChoice && this.decision === remoteStage
     val hasChoice: Boolean
-        get() = this.decision != null
+        get() = this.decision != null || this.rejection != null
 
     init {
         key = createKey(localStage, remoteStage)
@@ -49,7 +49,6 @@ open class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val re
     }
 
 
-
     fun decideLocal(): Conflict {
         this.decision = localStage
         rejection = remoteStage
@@ -57,10 +56,11 @@ open class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val re
         return this
     }
 
-    override fun toString(): String = "key: \"$key\", l: \"${localStage?.name ?: "null"}\", r: \"${remoteStage?.name
-            ?: "null"}\""
+    override fun toString(): String = "key: \"$key\", l: \"${localStage?.name ?: "null"}\", r: \"${
+        remoteStage?.name
+            ?: "null"
+    }\""
 
-    fun hasDecision(): Boolean = this.decision != null
     fun decideNothing(): Conflict {
         this.decision = null
         rejection = null
@@ -70,7 +70,7 @@ open class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val re
 
     companion object {
         fun createKey(lStage: Stage?, rStage: Stage?): String =
-                "${lStage?.id?.toString() ?: "n"}/${rStage?.id?.toString() ?: "n"}"
+            "${lStage?.id?.toString() ?: "n"}/${rStage?.id?.toString() ?: "n"}"
 
         val stage = Stage()
 

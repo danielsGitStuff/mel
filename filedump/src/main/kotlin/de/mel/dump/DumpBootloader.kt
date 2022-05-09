@@ -1,6 +1,7 @@
 package de.mel.dump
 
 import de.mel.auth.data.db.ServiceJoinServiceType
+import de.mel.auth.service.MelAuthServiceImpl
 import de.mel.filesync.FileSyncBootloader
 import de.mel.filesync.data.FileSyncSettings
 import de.mel.filesync.service.MelFileSyncService
@@ -10,7 +11,7 @@ import java.io.File
 open class DumpBootloader : FileSyncBootloader() {
 
     override fun createInstance(fileSyncSettings: FileSyncSettings, workingDirectory: File, serviceTypeId: Long, uuid: String, databaseManager: FileSyncDatabaseManager): MelFileSyncService<*> {
-        val dumpService = if (fileSyncSettings.isServer) TargetService(melAuthService, workingDirectory, serviceTypeId!!, uuid!!, fileSyncSettings, databaseManager) else SourceService(melAuthService, workingDirectory, serviceTypeId!!, uuid!!, fileSyncSettings, databaseManager)
+        val dumpService = if (fileSyncSettings.isServer) TargetService(melAuthService as MelAuthServiceImpl, workingDirectory, serviceTypeId!!, uuid!!, fileSyncSettings, databaseManager) else SourceService(melAuthService as MelAuthServiceImpl, workingDirectory, serviceTypeId!!, uuid!!, fileSyncSettings, databaseManager)
         return dumpService
     }
 

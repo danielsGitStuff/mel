@@ -142,7 +142,7 @@ public class FileSyncBootloader extends Bootloader<MelFileSyncService> {
         String uuid = service.getUuid().v();
 
         // create dirs
-        File workingDir = new File(bootLoaderDir, melFileSyncService.getUuid());
+        File workingDir = new File(bootLoaderDir, service.getUuid().v());
         workingDir.mkdirs();
         //create cache dir
         new File(workingDir.getAbsolutePath() + File.separator + "cache").mkdirs();

@@ -7,6 +7,7 @@ import de.mel.sql.SqlQueriesException;
 
 import java.lang.reflect.Array;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 /**
  * Syntactic sugar. Saves you lots of try/catches. calls e.stacktrace() per default.
@@ -125,7 +126,7 @@ public class N {
                 Lok.error("N.sqlResource.close() FAILED!");
                 e1.printStackTrace();
             }
-        }finally {
+        } finally {
             try {
                 sqlResource.close();
             } catch (SqlQueriesException e) {
@@ -458,6 +459,17 @@ public class N {
             if (predicate.test(t))
                 return t;
         return null;
+    }
+
+    public static <T> T ifNullElse(INoTryWithResult<T> callable, T defaultValue) {
+        try {
+            return callable.run();
+        } catch (NullPointerException e) {
+            return defaultValue;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return defaultValue;
+        }
     }
 
 

@@ -96,7 +96,7 @@ public class FxTest {
 
         MelBoot melBoot = new MelBoot(json2, new PowerManager(json2), FileSyncFXBootloader.class, ContactsFXBootloader.class).addMelAuthAdmin(new MelAuthFxLoader());
 
-//        MelBoot restartMelBoot = new MelBoot(json1, new PowerManager(json1), DriveFXBootloader.class, ContactsFXBootloader.class).addMelAuthAdmin(new MelAuthFxLoader());
+//        MelBoot restartMelBoot = new MelBoot(json2, new PowerManager(json1), FileSyncFXBootloader.class, ContactsFXBootloader.class).addMelAuthAdmin(new MelAuthFxLoader());
         driveTest.complexClientConflictImpl(melBoot, null);
         new WaitLock().lock().lock();
     }
@@ -638,7 +638,7 @@ public class FxTest {
                         Lok.debug("FxTest.driveGui.2.booted");
                         mas2.addRegisterHandler(allowRegisterHandler);
                         runner.r(() -> {
-                            client.set(mas2);
+                            client.set((MelAuthServiceImpl) mas2);
                             mas2.addRegisteredHandler((melAuthService, registered) -> N.r(() -> {
                                 String serverServiceUuid = mas1.getDatabaseManager().getAllServices().iterator().next().getUuid().v();
                                 new FileSyncCreateServiceHelper(mas2).createClientService("client", rootClient, 1L, serverServiceUuid, 0.5f, 300, false);

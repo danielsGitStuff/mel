@@ -20,12 +20,12 @@ public class RootDirectory implements SerializableEntity {
     private IFile originalFile;
     private Long id;
 
-     private RootDirectory(){
+    public RootDirectory() {
 
     }
 
     public static RootDirectory buildRootDirectory(File rootFile) throws IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
-         return buildRootDirectory(AbstractFile.instance(rootFile));
+        return buildRootDirectory(AbstractFile.instance(rootFile));
     }
 
     public static RootDirectory buildRootDirectory(IFile rootFile) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException, IOException {

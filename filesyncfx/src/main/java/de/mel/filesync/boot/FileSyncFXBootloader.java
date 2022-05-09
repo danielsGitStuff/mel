@@ -35,7 +35,7 @@ public class FileSyncFXBootloader extends FileSyncBootloader implements BootLoad
     @Override
     public String getPopupFXML(IMelService melService, MelNotification melNotification) {
         if (melNotification.getIntention().equals(FileSyncStrings.Notifications.INTENTION_CONFLICT_DETECTED)) {
-            return "de/mel/filesyncfx/popupconflict.olde.fxml";
+            return "de/mel/filesyncfx/popupconflict.fxml";
         }
         if (melNotification.getIntention().equals(FileSyncStrings.Notifications.INTENTION_PROGRESS)
                 || melNotification.getIntention().equals(FileSyncStrings.Notifications.INTENTION_BOOT)) {
