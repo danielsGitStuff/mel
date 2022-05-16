@@ -2,7 +2,12 @@ package de.mel.filesync.data.conflict
 
 import de.mel.filesync.sql.Stage
 import de.mel.filesync.sql.dao.ConflictDao
+import java.util.Observable
 
+/**
+ * Basic object that finds pairs of local an remote conflicts. Conflicts are based on [Stage]s of a local and a remote StageSet.
+ * So it may happen that only one side has a [Stage] because it does not exist in the other.
+ */
 open class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val remoteStage: Stage?) {
     private var localId: Long?
     private var remoteId: Long?
@@ -44,7 +49,7 @@ open class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val re
     fun decideRemote(): Conflict {
         this.decision = remoteStage
         rejection = localStage
-        children.forEach { it.decideRemote() }
+//        children.forEach { it.decideRemote() }
         return this
     }
 
@@ -52,7 +57,7 @@ open class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val re
     fun decideLocal(): Conflict {
         this.decision = localStage
         rejection = remoteStage
-        children.forEach { it.decideLocal() }
+//        children.forEach { it.decideLocal() }
         return this
     }
 
@@ -67,6 +72,10 @@ open class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val re
         children.forEach { it.decideNothing() }
         return this
     }
+
+    fun hasLocalStage(): Boolean = this.localStage != null
+
+    fun hasRemoteStage(): Boolean = this.remoteStage != null
 
     companion object {
         fun createKey(lStage: Stage?, rStage: Stage?): String =

@@ -44,7 +44,7 @@ public class TestDirCreator {
         sub22.mkdirs();
 
         IFile sub22txt = AbstractFile.instance(sub22.getPath() + File.separator + "sub22.txt");
-        TestFileCreator.saveFile("sub22.txt text".getBytes(), sub22txt);
+        TestFileCreator.saveFile(("sub22.txt text" + appendix).getBytes(), sub22txt);
         IFile sameDir = AbstractFile.instance(testDir.getPath() + File.separator + "samedir");
         sameDir.mkdirs();
         IFile same1txt = AbstractFile.instance(sameDir.getPath() + File.separator + "same1.txt");

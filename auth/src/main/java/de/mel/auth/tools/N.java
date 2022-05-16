@@ -678,7 +678,7 @@ public class N {
             return result;
         }
 
-        public static <T, R> R[] fromCollection(List<T> source, Converter<T, R> converter) {
+        public static <T, R> R[] fromCollection(Collection<T> source, Converter<T, R> converter) {
             if (source == null)
                 return null;
             R[] result = (R[]) Array.newInstance(converter.getCastClass(), source.size());
@@ -689,6 +689,11 @@ public class N {
             }
             return result;
 
+        }
+
+        public static <T> T[] fromCollection(Collection<T> source, Class<T> castClass) {
+            Converter<T, T> converter = new N.Converter<>(castClass, element -> element);
+            return N.arr.fromCollection(source, converter);
         }
     }
 

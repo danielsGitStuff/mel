@@ -6,20 +6,26 @@ import de.mel.auth.gui.PopupContentFX;
 import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.tools.N;
 import de.mel.filesync.data.conflict.Conflict;
+import de.mel.filesync.data.conflict.ConflictRow;
 import de.mel.filesync.data.conflict.ConflictSolver;
 import de.mel.filesync.jobs.CommitJob;
 import de.mel.filesync.service.MelFileSyncClientService;
+import de.mel.filesync.sql.FsDirectory;
+import de.mel.filesync.sql.FsEntry;
+import de.mel.filesync.sql.Stage;
 import de.mel.filesync.sql.dao.ConflictDao;
+import de.mel.sql.SqlQueriesException;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
 
 import java.net.URL;
-import java.util.Collection;
-import java.util.ResourceBundle;
+import java.util.*;
 
 
 /**
@@ -28,11 +34,16 @@ import java.util.ResourceBundle;
 @SuppressWarnings("Duplicates")
 public class FileSyncFXConflictSolverController extends PopupContentFX implements Initializable {
     @FXML
-    private TreeTableView<Conflict> treeTableView;
+    private TreeTableView<ConflictRow> treeTableView;
     @FXML
-    private TreeTableColumn<Conflict, String> colMerged, colMergedName, colMergedHash, colRemote, colRemoteName, colRemoteHash;
+    private TreeTableColumn<ConflictRow, String> colMerged, colMergedHash, colRemote, colRemoteName, colRemoteHash;
     @FXML
-    private TreeTableColumn<Conflict, String> colLocal, colLocalName, colLocalHash;
+    private TreeTableColumn<ConflictRow, String> colLocal, colLocalHash;
+    @FXML
+    private TreeTableColumn<ConflictRow, ConflictRow> colDecideLocal, colDecideRemote, colMergedName;
+    @FXML
+    private TreeTableColumn<ConflictRow, String> colLocalName;
+
     private MelFileSyncClientService melFileSyncClientService;
     private ConflictSolver conflictSolver;
     private ConflictDao conflictDao;
@@ -57,75 +68,147 @@ public class FileSyncFXConflictSolverController extends PopupContentFX implement
         this.melFileSyncClientService = (MelFileSyncClientService) melAuthService.getMelService(notification.getServiceUuid());
         this.conflictDao = melFileSyncClientService.getFileSyncDatabaseManager().getConflictDao();
         ConflictSolver conflictSolver = this.melFileSyncClientService.getConflictSolverMap().get(notification.getSerializedExtra("c.id"));
-//        this.conflictSolver = conflictSolver;
         this.stage.setTitle(notification.getTitle());
-//        for (ConflictSolver conflictSolver : melFileSyncClientService.getConflictSolverMap().values()) {
         if (conflictSolver.hasConflicts() && !conflictSolver.isSolved()) {
             this.conflictSolver = conflictSolver;
 
 
-//                TreeItem<Conflict> root = new TreeItem<>(new Conflict());
-            TreeItem<Conflict> root = new TreeItem<>();
-            treeTableView.setRoot(root);
+            colRemoteName.setCellValueFactory(param -> wrapString(param.getValue().getValue().getRemoteName()));
+            colLocalName.setCellValueFactory(param -> wrapString(param.getValue().getValue().getLocalName()));
+            colMergedName.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().getValue()));
+            colDecideLocal.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().getValue()));
+            colDecideRemote.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().getValue()));
 
-//            colLocal.setCellValueFactory(new Callback<TreeTableColumn.CellDataFeatures<Conflict, Stage>, ObservableValue<Stage>>() {
-//                @Override
-//                public ObservableValue<Stage> call(TreeTableColumn.CellDataFeatures<Conflict, Stage> param) {
-//                    return null;
-//                }
-//            });
-            //colLeft.setCellValueFactory(new PropertyValueFactory<Conflict,Stage>("hurr"));
-            //colLeft.setCellValueFactory(param -> param.getValue().getValue().getLeft());
-//            colRemote.setCellValueFactory(param -> new ReadOnlyStringWrapper(param.getValue().getValue().getKey()));
-//            colLocal.setCellFactory(new Callback<TreeTableColumn<Conflict, Stage>, TreeTableCell<Conflict, Stage>>() {
-//                @Override
-//                public TreeTableCell<Conflict, Stage> call(TreeTableColumn<Conflict, Stage> param) {
-//                    return new TreeConflictCell();
-//                }
-//            });
-            colLocalName.setCellValueFactory(param -> param.getValue().getValue().getLocalStage().getName());
-//            colLocalName.setCellValueFactory(param -> wrapString(N.ifNullElse(() -> param.getValue().getValue().getLocalStage().getName(), "--")));
-            colLocalHash.setCellValueFactory(param -> wrapString(N.ifNullElse(() -> param.getValue().getValue().getLocalStage().getContentHash(), "--")));
-
-            colRemoteName.setCellValueFactory(param -> wrapString(N.ifNullElse(() -> param.getValue().getValue().getRemoteStage().getName(), "--")));
-            colRemoteHash.setCellValueFactory(param -> wrapString(N.ifNullElse(() -> param.getValue().getValue().getRemoteStage().getContentHash(), "--")));
-//            colLocal.setCellValueFactory(param -> new TreeViewStage(param.getValue().getValue().getLocalStage()));
-
-//                colLeft.setCellFactory(new Callback<TreeTableColumn<Conflict, String>, TreeTableCell<Conflict, String>>() {
-//                    @Override
-//                    public TreeTableCell<Conflict, String> call(TreeTableColumn<Conflict, String> param) {
-//                        TreeConflictCell cell = new TreeConflictCell();
-//                        return cell;
-//                    }
-//                });
-
-            Lok.debug("debug 99fk,f");
-
-            this.populateConflicts(root, conflictSolver.getRootConflictMap().values());
+            colDecideLocal.setCellFactory(param -> new MelFXButtonCell(">", true));
+            colDecideRemote.setCellFactory(param -> new MelFXButtonCell("<", false));
+            colLocalName.setCellFactory(param -> new MelFXTextCellNameLocal());
+            colRemoteName.setCellFactory(param -> new MelFXTextCellRemote());
+            colMergedName.setCellFactory(param -> new MelFXTextCellNameMerged());
 
 
-//                for (Conflict conflict : conflictSolver.getConflicts()) {
-//                    root.getChildren().add(new TreeItem<>(conflict));
-//                }
+            treeTableView.setColumnResizePolicy(TreeTableView.CONSTRAINED_RESIZE_POLICY);
+
+            try {
+
+                Map<String, ConflictRow> pathMap = this.populateConflicts(conflictSolver.getRootConflictMap().values());
+                ConflictRow rootConflictRow = pathMap.get("");
+                TreeItem<ConflictRow> root = new TreeItem<>();
+                treeTableView.setRoot(root);
+                this.dfsPopulate(root, rootConflictRow);
+                root.expandedProperty().set(true);
 
 
-            //stop after the first one. we can only show one Activity anyway.
-//                break;
-//            }
-
-            conflictSolver = (ConflictSolver) notification.getContent();
-
+            } catch (SqlQueriesException e) {
+                e.printStackTrace();
+            }
             Lok.debug("FileSyncFXConflictSolverController.init.done");
         }
     }
 
-    private void populateConflicts(TreeItem<Conflict> root, Collection<Conflict> conflicts) {
-        for (Conflict conflict : conflicts) {
-            TreeItem<Conflict> treeItem = new TreeItem<>(conflict);
-            populateConflicts(treeItem, conflict.getChildren());
-            root.getChildren().add(treeItem);
-            root.expandedProperty().setValue(true);
+
+    /**
+     * Connect trees from remote and local StageSets and {@link FsEntry}.
+     * All conflicts will be linked together bottom up to the root {@link FsEntry} element.
+     * {@link ConflictRow}s are kept in repo map. Key is their full path (meaning "path() + name()" ).
+     * Root {@link FsEntry} is has the key "" then.
+     *
+     * @param repo
+     * @param conflictRow
+     * @throws SqlQueriesException
+     */
+    private void bottomUp(Map<String, ConflictRow> repo, ConflictRow conflictRow) throws SqlQueriesException {
+        if (conflictRow.hasConflict() && conflictRow.getRemoteName() == "i0")
+            Lok.debug("debug e0k,reer");
+        if (conflictRow.hasFsEntry()) {
+            FsEntry fsEntry = conflictRow.getFsEntry();
+            if (fsEntry.getParentId().notNull()) {
+                FsDirectory fsParent = this.conflictDao.getFsDao().getFsDirectoryById(fsEntry.getParentId().v());
+                String parentPath = fsParent.getPath().v() + fsParent.getName().v();
+                String path = fsEntry.getPath().v() + fsEntry.getName().v();
+                repo.put(path, conflictRow);
+                if (repo.containsKey(parentPath)) {
+                    ConflictRow parentRow = repo.get(parentPath);
+                    parentRow.addChild(conflictRow);
+                } else {
+                    ConflictRow parentRow = new ConflictRow(fsParent);
+                    parentRow.addChild(conflictRow);
+                    repo.put(parentPath, parentRow);
+                    bottomUp(repo, conflictRow);
+                }
+            }
+        } else if (conflictRow.hasConflict()) {
+            Stage stage = null;
+            if (conflictRow.getConflict().hasLocalStage())
+                stage = conflictRow.getConflict().getLocalStage();
+            else if (conflictRow.getConflict().hasRemoteStage())
+                stage = conflictRow.getConflict().getRemoteStage();
+            if (stage != null) {
+                if (stage.getParentIdPair().notNull()) {
+                    Stage parentStage = this.conflictDao.getStageDao().getStageById(stage.getParentId());
+                    String parentPath = parentStage.getPath() + parentStage.getName();
+                    String path = stage.getPath() + stage.getName();
+                    repo.put(path, conflictRow);
+                    if (repo.containsKey(parentPath)) {
+                        ConflictRow parentRow = repo.get(parentPath);
+                        parentRow.addChild(conflictRow);
+                    } else {
+                        ConflictRow parentRow = new ConflictRow(parentStage);
+                        parentRow.addChild(conflictRow);
+                        repo.put(parentPath, parentRow);
+                        bottomUp(repo, parentRow);
+                    }
+                }
+            }
+            for (Conflict child : conflictRow.getConflict().getChildren()) {
+                ConflictRow childRow = new ConflictRow(child);
+                conflictRow.addChild(childRow);
+                bottomUp(repo, childRow);
+            }
+        } else {
+            Stage stage = conflictRow.getStage();
+            if (stage.getParentIdPair().notNull()) {
+                Stage parentStage = this.conflictDao.getStageDao().getStageById(stage.getParentId());
+                String parentPath = parentStage.getPath() + parentStage.getName();
+                ConflictRow parentRow;
+                if (repo.containsKey(parentPath)) {
+                    parentRow = repo.get(parentPath);
+                } else {
+                    parentRow = new ConflictRow(parentStage);
+                }
+                parentRow.addChild(conflictRow);
+                repo.put(parentPath, parentRow);
+            } else if (stage.getFsParentIdPair().notNull()) {
+                FsDirectory fsParent = this.conflictDao.getFsDao().getFsDirectoryById(stage.getFsParentId());
+                String parentPath = fsParent.getPath().v() + fsParent.getName().v();
+                ConflictRow parentRow = new ConflictRow(fsParent);
+                repo.put(parentPath, parentRow);
+                bottomUp(repo, parentRow);
+            }
         }
+    }
+
+    private TreeItem<ConflictRow> dfsPopulate(TreeItem<ConflictRow> parentTreeItem, ConflictRow currentRow) {
+        TreeItem<ConflictRow> currentItem = new TreeItem<>(currentRow);
+        for (ConflictRow child : currentRow.getChildren()) {
+            dfsPopulate(currentItem, child);
+        }
+        parentTreeItem.getChildren().add(currentItem);
+//        currentItem.expandedProperty().set(true);
+        return currentItem;
+    }
+
+    private Map<String, ConflictRow> populateConflicts(Collection<Conflict> conflicts) throws SqlQueriesException {
+        Map<String, ConflictRow> completePathConflictMap = new HashMap<>();
+        for (Conflict conflict : conflicts) {
+            String path = conflict.hasLocalStage() ? conflict.getLocalStage().getPath() + conflict.getLocalStage().getName() :
+                    conflict.getRemoteStage().getPath() + conflict.getRemoteStage().getName();
+            completePathConflictMap.put(path, new ConflictRow(conflict));
+        }
+        ConflictRow[] conflictRows = N.arr.fromCollection(completePathConflictMap.values(), ConflictRow.class);
+        for (ConflictRow row : conflictRows) {
+            bottomUp(completePathConflictMap, row);
+        }
+        return completePathConflictMap;
     }
 
     @Override

@@ -14,22 +14,24 @@
         <RowConstraints/>
     </rowConstraints>
     <children>
-        <TreeTableView fx:id="treeTableView" prefHeight="200.0" prefWidth="200.0" GridPane.hgrow="ALWAYS"
+        <TreeTableView fx:id="treeTableView" GridPane.hgrow="ALWAYS"
                        GridPane.vgrow="ALWAYS">
             <columns>
-                <TreeTableColumn fx:id="colLocal" prefWidth="-1.0"  text="Local" sortable="false" editable="false">
+                <TreeTableColumn fx:id="colLocal" text="Local" sortable="false" editable="false">
                     <columns>
                         <TreeTableColumn fx:id="colLocalName" text="name" sortable="false" editable="false"/>
                         <TreeTableColumn fx:id="colLocalHash" text="hash" sortable="false" editable="false"/>
                     </columns>
                 </TreeTableColumn>
-                <TreeTableColumn fx:id="colMerged" prefWidth="-1.0" text="Result" sortable="false" editable="false">
+                <TreeTableColumn fx:id="colMerged"  text="Result" sortable="false" editable="false">
                     <columns>
+                        <TreeTableColumn fx:id="colDecideLocal" text="Local" sortable="false" editable="false"/>
                         <TreeTableColumn fx:id="colMergedName" text="name" sortable="false" editable="false"/>
                         <TreeTableColumn fx:id="colMergedHash" text="hash" sortable="false" editable="false"/>
+                        <TreeTableColumn fx:id="colDecideRemote" text="Remote" sortable="false" editable="false"/>
                     </columns>
                 </TreeTableColumn>
-                <TreeTableColumn fx:id="colRemote" prefWidth="-1.0" text="Remote" sortable="false" editable="false">
+                <TreeTableColumn fx:id="colRemote" text="Remote" sortable="false" editable="false">
                     <columns>
                         <TreeTableColumn fx:id="colRemoteName" text="name" sortable="false" editable="false"/>
                         <TreeTableColumn fx:id="colRemoteHash" text="hash" sortable="false" editable="false"/>

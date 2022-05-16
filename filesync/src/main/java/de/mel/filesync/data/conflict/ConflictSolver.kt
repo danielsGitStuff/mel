@@ -13,6 +13,20 @@ import de.mel.sql.SqlQueriesException
  * Finds Conflicts according to @see bla
  * todo add link do conflict image
  */
+/**
+ * Basic object that finds pairs of local and remote conflicts.
+ *
+ * Conflicts are based on [Stage]s of a local and a remote StageSet.
+ * So it may happen that only one side has a [Stage] because it does not exist in the other.
+ * Conflicts can depend on another, because they are a tree structure.
+ *
+ * Root dependencies, conflicts without parents, are hold in [rootConflictMap].
+ *
+ * Keep in mind that this does not necessarily represent the actual dependency, since it is limited to [Stage]s only.
+ *
+ * A conflict may have multiple child conflicts on different layers that do not occur in any StageSet and therefore
+ * are represented as multiple root conflicts here.
+ */
 open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, remoteStageSet: StageSet) :
     StageSetMerger(conflictDao, localStageSet, remoteStageSet) {
     var conflictHelperUuid: String? = null
@@ -121,6 +135,8 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
                 return@loop
             conflictMap[conflict.key] = conflict
             rootConflictMap[conflict.key] = conflict
+            if (conflict.key=="7/17")
+                Lok.debug("debug tes 1")
             localStage?.let { l ->
                 localStageConflictMap[l.id] = conflict
                 // Find parent conflicts
