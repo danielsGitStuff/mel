@@ -1,9 +1,10 @@
 package de.mel.auth.tools;
 
 import de.mel.Lok;
-import de.mel.auth.tools.lock.P;
 import de.mel.auth.tools.lock.Warden;
 
+import de.mel.auth.tools.lock2.PrisonKey;
+import de.mel.auth.tools.lock2.Prison;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,6 +12,7 @@ import org.junit.Test;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,7 +45,7 @@ public class TTest {
     @Before
     public void setUp() {
         t = null;
-        P.reset();
+        de.mel.auth.tools.lock.P.reset();
         executor.shutdownNow();
         executor = Executors.newCachedThreadPool();
         waitLock = new WaitLock();
@@ -59,7 +61,9 @@ public class TTest {
 
     @Test
     public void lockIntersection() {
-        t = P.confine(A, B);
+        Lok.debug("confining A, C");
+        t = de.mel.auth.tools.lock.P.confine(A, B);
+        Lok.debug("confining A, C successful");
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
             Lok.debug("sleep ends");
@@ -68,14 +72,15 @@ public class TTest {
         });
         executor.submit(() -> {
             try {
-                P.confine(A, C);
+                Lok.debug("confining C, A");
+                de.mel.auth.tools.lock.P.confine(C, A);
+                Lok.debug("confinging C, A sucessfull");
                 triggerFlag = true;
                 fail("should not be reached");
                 waitLock.unlock();
             } catch (Exception e) {
                 return;
             }
-
         });
         Lok.debug("wait 4 unlock");
         waitLock.lock().lock();
@@ -84,8 +89,102 @@ public class TTest {
     }
 
     @Test
+    public void lockIntersection2() {
+        Lok.debug("confining A, C");
+        t = de.mel.auth.tools.lock.P.confine(A, B);
+        Lok.debug("confining A, C successful");
+        Thread thread1 = new Thread(() -> {
+            Lok.debug("confining B, A");
+            u = de.mel.auth.tools.lock.P.confine(B, A);
+            Lok.debug("confining B, A successful");
+            waitLock.unlock();
+            executor.shutdownNow();
+        });
+        Thread thread2 = new Thread(() -> {
+            try {
+                Lok.debug("confining C, A");
+                de.mel.auth.tools.lock.P.confine(C, A);
+                Lok.debug("confining C, A successful");
+                triggerFlag = true;
+                fail("should not be reached");
+                waitLock.unlock();
+            } catch (Exception e) {
+                return;
+            }
+        });
+        Thread thread3 = new Thread(() -> {
+            N.r(() -> Thread.sleep(100));
+            t.end();
+        });
+        thread1.start();
+        thread2.start();
+        thread3.start();
+
+        Lok.debug("wait 4 unlock");
+        waitLock.lock().lock();
+        assertFalse(triggerFlag);
+        Lok.debug("done");
+    }
+
+    @Test
+    public void lockIntersection3() {
+        Lok.debug("confining A /0");
+        PrisonKey t = Prison.confine(A).lock().end();
+        Lok.debug("confining A /0 successful");
+        AtomicInteger atomicInteger = new AtomicInteger(0);
+        Thread thread1 = new Thread(() -> {
+//            N.r(() -> Thread.sleep(100));
+            Lok.debug("confining A /1");
+            PrisonKey u = Prison.confine(A).lock();
+            Lok.debug("confining A /1 successful");
+            atomicInteger.addAndGet(1);
+            N.r(() -> Thread.sleep(2000));
+//            waitLock.unlock();
+
+        });
+        Thread thread2 = new Thread(() -> {
+            try {
+                N.r(() -> Thread.sleep(100));
+                Lok.debug("confining A /2");
+                PrisonKey x = Prison.confine(A).lock();
+                Lok.debug("confining A /2 successful");
+                atomicInteger.addAndGet(1);
+                N.r(() -> Thread.sleep(2000));
+//                triggerFlag = true;
+//                fail("should not be reached");
+                waitLock.unlock();
+            } catch (Exception e) {
+                return;
+            }
+        });
+        Thread thread3 = new Thread(() -> {
+            N.r(() -> Thread.sleep(300));
+            Lok.debug("releasing A /0");
+            t.end();
+            Lok.debug("releasing A /0 successful");
+        });
+        thread1.start();
+        thread2.start();
+        thread3.start();
+        new Thread(() -> N.r(() -> {
+            Thread.sleep(500);
+            Lok.debug("interrupting threads");
+            thread1.interrupt();
+            thread2.interrupt();
+            Lok.debug("interrupting threads done");
+        })).start();
+
+        Lok.debug("wait 4 unlock");
+        waitLock.lock().lock();
+        Lok.debug("atomic count is " + atomicInteger.toString());
+//        assertFalse(triggerFlag);
+        assertEquals(1, atomicInteger.get());
+        Lok.debug("done");
+    }
+
+    @Test
     public void lockWhole() {
-        t = P.confine(A, B);
+        t = de.mel.auth.tools.lock.P.confine(A, B);
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
             Lok.debug("sleep ends");
@@ -94,7 +193,7 @@ public class TTest {
         });
         executor.submit(() -> {
             try {
-                P.confine(A, B);
+                de.mel.auth.tools.lock.P.confine(A, B);
                 triggerFlag = true;
                 fail("should not be reached");
             } catch (Exception e) {
@@ -111,7 +210,7 @@ public class TTest {
 
     @Test
     public void lockDifferent() {
-        t = P.confine(A, B);
+        t = de.mel.auth.tools.lock.P.confine(A, B);
 
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
@@ -121,7 +220,7 @@ public class TTest {
             triggerFlag = true;
         });
         executor.submit(() -> {
-            P.confine(C);
+            de.mel.auth.tools.lock.P.confine(C);
             Lok.debug("unlocking");
             waitLock.unlock();
         });
@@ -133,7 +232,7 @@ public class TTest {
 
     @Test
     public void lockReadThenWrite() {
-        t = P.confine(P.read(A, B));
+        t = de.mel.auth.tools.lock.P.confine(de.mel.auth.tools.lock.P.read(A, B));
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
             Lok.debug("sleep ends");
@@ -141,7 +240,7 @@ public class TTest {
             waitLock.unlock();
         });
         executor.submit(() -> {
-            P.confine(B);
+            de.mel.auth.tools.lock.P.confine(B);
             Lok.debug("unlocking");
             triggerFlag = true;
             waitLock.unlock();
@@ -157,7 +256,7 @@ public class TTest {
         Semaphore semaphore = new Semaphore(1, false);
 //        t = T.lockingTransaction(A, B);
         Thread thread1 = new Thread(() -> {
-            Warden t1 = P.confine(A, B);
+            Warden t1 = de.mel.auth.tools.lock.P.confine(A, B);
             t1.run(() -> {
                 Lok.debug("got t1");
                 try {
@@ -176,10 +275,11 @@ public class TTest {
 
         });
 
+
         Thread thread3 = new Thread(() -> {
 //            N.r(() -> Thread.sleep(100));
             Lok.debug("trying to get t3");
-            Warden t3 = P.confine(A, B);
+            Warden t3 = de.mel.auth.tools.lock.P.confine(A, B);
             Lok.debug("got t3");
             t3.end();
             waitLock.unlock();
@@ -204,7 +304,7 @@ public class TTest {
     public void lockThenThreadDies() {
 //        t = T.lockingTransaction(A, B);
         Thread thread1 = new Thread(() -> {
-            Warden t1 = P.confine(A, B);
+            Warden t1 = de.mel.auth.tools.lock.P.confine(A, B);
             Lok.debug("got t1");
             Semaphore semaphore = new Semaphore(1, false);
             try {
@@ -223,7 +323,7 @@ public class TTest {
         Thread thread3 = new Thread(() -> {
 //            N.r(() -> Thread.sleep(100));
             Lok.debug("trying to get t3");
-            Warden t3 = P.confine(A, B);
+            Warden t3 = de.mel.auth.tools.lock.P.confine(B, A);
             Lok.debug("got t3");
             t3.end();
             waitLock.unlock();
@@ -245,7 +345,7 @@ public class TTest {
 
     @Test
     public void lockWriteThenRead() {
-        t = P.confine(A, B);
+        t = de.mel.auth.tools.lock.P.confine(A, B);
 
         executor.submit(() -> {
             N.r(() -> Thread.sleep(100));
@@ -254,7 +354,7 @@ public class TTest {
             waitLock.unlock();
         });
         executor.submit(() -> {
-            P.confine(P.read(B));
+            de.mel.auth.tools.lock.P.confine(de.mel.auth.tools.lock.P.read(B));
             Lok.debug("unlocking");
             triggerFlag = true;
             waitLock.unlock();
@@ -267,8 +367,8 @@ public class TTest {
 
     @Test
     public void lockLater() {
-        t = P.onProbation(A, B);
-        u = P.confine(A, B);
+        t = de.mel.auth.tools.lock.P.onProbation(A, B);
+        u = de.mel.auth.tools.lock.P.confine(A, B);
         executor.submit(() -> {
             // shutdown
             N.r(() -> Thread.sleep(100));
@@ -292,7 +392,7 @@ public class TTest {
 
     @Test
     public void accessTwice() {
-        t = P.onProbation(A, B);
+        t = de.mel.auth.tools.lock.P.onProbation(A, B);
         executor.submit(() -> {
             N.oneLine(() -> Thread.sleep(100));
             Lok.debug("evaluating results...");
@@ -315,7 +415,7 @@ public class TTest {
 
     @Test
     public void endWhileRun() {
-        t = P.onProbation(A, B);
+        t = de.mel.auth.tools.lock.P.onProbation(A, B);
         executor.submit(() -> {
             t.run(() -> {
                 Lok.debug("sleep");

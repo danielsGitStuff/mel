@@ -6,7 +6,7 @@ import de.mel.auth.tools.CountWaitLock;
 
 import org.junit.Test;
 
-public class LockTest {
+public class CountLockTest {
     CountLock lock = new CountLock();
     private int ll = 0, uu = 0;
 

@@ -5,6 +5,12 @@ import com.sun.org.apache.xpath.internal.operations.Bool;
 public abstract class SqlResultTransformer {
     public abstract <T> T convert(Class<T> resultClass, Object value);
 
+    /**
+     * Convenience references that can be used in Kotlin for casting reasons
+     */
+    public static Class<Long> CLASS_LONG = Long.class;
+    public static Class<Integer> CLASS_INT = Integer.class;
+
     public static SqlResultTransformer sqliteResultSetTransformer() {
         return new SqlResultTransformer() {
             @Override

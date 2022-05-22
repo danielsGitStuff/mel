@@ -2,6 +2,7 @@ package de.mel.auth.tools;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -22,6 +23,13 @@ public class Eva {
         Lok.error("Eva.ENABLED... this is for testing only");
         Lok.error("Eva.ENABLED... this is for testing only");
         Lok.error("Eva.ENABLED... this is for testing only");
+    }
+
+    public static void runIf(N.INoTryWithResult<Boolean> condition, N.INoTryRunnable after){
+        Boolean b = N.r(condition);
+        if (b!= null && b){
+            N.r(after);
+        }
     }
 
     public static int getFlagCount(String flag) {

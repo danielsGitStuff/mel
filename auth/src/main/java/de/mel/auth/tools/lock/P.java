@@ -87,6 +87,8 @@ public class P {
             }
             for (Key key : keyToLockOn) {
                 key.lock();
+            }
+            for (Key key : keyToLockOn) {
                 key.unlock();
             }
             StackTraceElement[] traceElement = Thread.currentThread().getStackTrace();
