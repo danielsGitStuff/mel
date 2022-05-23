@@ -129,22 +129,25 @@ public class XTest extends LockTest {
         assertFalse(reach2.get());
     }
 
+    /**
+     * t1, t3 finish. t2 does not cause it depends on t1, which does not exit.
+     */
     @Test
-    public void mixed1() {
+    public void mixed1a() {
         TestRunnable t1 = () -> {
-            bol1 = P.confine(P.read(locker1, locker2));
+            bol1 = P.confine(P.read(locker1, locker2)).setName("A");
             P.access(bol1);
             reach1.set(true);
         };
         TestRunnable t2 = () -> {
             Thread.sleep(100);
-            bol2 = P.confine(locker2);
+            bol2 = P.confine(locker2).setName("B");
             P.access(bol2);
             reach2.set(true);
         };
         TestRunnable t3 = () -> {
             Thread.sleep(80);
-            bol3 = P.confine(P.read(locker2));
+            bol3 = P.confine(P.read(locker2)).setName("C");
             P.access(bol3);
             reach3.set(true);
         };
@@ -154,28 +157,144 @@ public class XTest extends LockTest {
         assertTrue(reach3.get());
     }
 
+    /**
+     * all finish. t2 waits for t1 and t3
+     */
     @Test
-    public void mixed2() {
+    public void mixed1b() {
         TestRunnable t1 = () -> {
-            bol1 = P.confine(P.read(locker1, locker2));
+            bol1 = P.confine(P.read(locker1, locker2)).setName("A");
             P.access(bol1);
             reach1.set(true);
+            P.exit(bol1);
         };
         TestRunnable t2 = () -> {
             Thread.sleep(100);
-            bol2 = P.confine(locker2);
+            bol2 = P.confine(locker2).setName("B");
+            P.access(bol2);
+            reach2.set(true);
+        };
+        TestRunnable t3 = () -> {
+            Thread.sleep(80);
+            bol3 = P.confine(P.read(locker2)).setName("C");
+            P.access(bol3);
+            reach3.set(true);
+            P.exit(bol3);
+        };
+        killAfter(200, t1, t2, t3);
+        assertTrue(reach1.get());
+        assertTrue(reach2.get());
+        assertTrue(reach3.get());
+    }
+
+    /**
+     * t1 exits, t3 waits for t2
+     */
+    @Test
+    public void mixed2() {
+        TestRunnable t1 = () -> {
+            bol1 = P.confine(P.read(locker1, locker2)).setName("A");
+            P.access(bol1);
+            reach1.set(true);
+            P.exit(bol1);
+        };
+        TestRunnable t2 = () -> {
+            Thread.sleep(100);
+            bol2 = P.confine(locker2).setName("B");
             P.access(bol2);
             reach2.set(true);
         };
         TestRunnable t3 = () -> {
             Thread.sleep(120);
-            bol3 = P.confine(P.read(locker2));
+            bol3 = P.confine(P.read(locker2)).setName("C");
             P.access(bol3);
             reach3.set(true);
         };
         killAfter(200, t1, t2, t3);
         assertTrue(reach1.get());
-        assertFalse(reach2.get());
+        assertTrue(reach2.get());
+        assertFalse(reach3.get());
+    }
+
+    /**
+     * t1, t2, t3 finish in that order, no one waits for another {@link Thread}
+     */
+    @Test
+    public void mixed3() {
+        TestRunnable t1 = () -> {
+            bol1 = P.confine(P.read(locker1, locker2)).setName("A");
+            P.access(bol1);
+            reach1.set(true);
+            P.exit(bol1);
+        };
+        TestRunnable t2 = () -> {
+            Thread.sleep(100);
+            bol2 = P.confine(locker2).setName("B");
+            P.access(bol2);
+            reach2.set(true);
+        };
+        TestRunnable t3 = () -> {
+            Thread.sleep(120);
+            bol3 = P.confine(P.read(locker1)).setName("C");
+            P.access(bol3);
+            reach3.set(true);
+        };
+        killAfter(200, t1, t2, t3);
+        assertTrue(reach1.get());
+        assertTrue(reach2.get());
         assertTrue(reach3.get());
+    }
+
+    /**
+     * t2 and t3 wait for t1
+     */
+    @Test
+    public void mixed4() {
+        TestRunnable t1 = () -> {
+            bol1 = P.confine(locker1, locker2).setName("A");
+            P.access(bol1);
+            reach1.set(true);
+            Thread.sleep(120);
+            P.exit(bol1);
+        };
+        TestRunnable t2 = () -> {
+            Thread.sleep(100);
+            bol2 = P.confine(P.read(locker1, locker2)).setName("B");
+            P.access(bol2);
+            reach2.set(true);
+        };
+        TestRunnable t3 = () -> {
+            Thread.sleep(150);
+            bol3 = P.confine(P.read(locker1)).setName("C");
+            P.access(bol3);
+            reach3.set(true);
+        };
+        killAfter(200, t1, t2, t3);
+        assertTrue(reach1.get());
+        assertTrue(reach2.get());
+        assertTrue(reach3.get());
+    }
+
+    /**
+     * tests write lock ownership and change
+     */
+    @Test
+    public void mixed5() {
+        TestRunnable t1 = () -> {
+            bol1 = P.confine(locker1, locker2).setName("A");
+            P.access(bol1);
+            reach1.set(true);
+            Thread.sleep(120);
+            P.exit(bol1);
+        };
+        TestRunnable t2 = () -> {
+            Thread.sleep(100);
+            bol2 = P.confine(locker1, locker2).setName("B");
+            P.access(bol2);
+            reach2.set(true);
+        };
+        killAfter(200, t1, t2);
+        assertTrue(reach1.get());
+        assertTrue(reach2.get());
     }
 }
