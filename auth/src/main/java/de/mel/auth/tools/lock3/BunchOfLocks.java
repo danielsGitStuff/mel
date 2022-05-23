@@ -16,6 +16,8 @@ public class BunchOfLocks {
     private static final Map<Object, LockObjectEntry> globalReadObjectLockMap = new HashMap<>();
     private static final Map<Object, LockObjectEntry> globalWriteObjectLockMap = new HashMap<>();
 
+    private String name = null;
+
 
     public BunchOfLocks(Object... objects) {
         for (Object o : objects) {
@@ -32,6 +34,16 @@ public class BunchOfLocks {
             readLocks = readLocks.stream().sorted().collect(Collectors.toList());
             writeLocks = writeLocks.stream().sorted().collect(Collectors.toList());
         }
+    }
+
+    public BunchOfLocks setName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return "BOL " + (this.name == null ? "" : this.name);
     }
 
     public BunchOfLocks run(Warden.TransactionRunnable runnable) {
@@ -56,5 +68,9 @@ public class BunchOfLocks {
         List<LockObjectEntry> list = new ArrayList<>(this.writeLocks);
         list.addAll(readLocks);
         return list;
+    }
+
+    public String getName() {
+        return name == null ? "not set" : name;
     }
 }

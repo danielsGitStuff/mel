@@ -1,5 +1,6 @@
 package de.mel.auth.tools.lock3;
 
+import de.mel.Lok;
 import de.mel.auth.tools.lock2.Read;
 
 import java.util.*;
@@ -9,9 +10,11 @@ public class P {
     private static final String LOCKER = "lock string";
 
     private static final Map<LockObjectEntry, Semaphore> writeSemaphores = new HashMap<>();
+    private static final Map<BunchOfLocks, Set<Semaphore>> writeSemaphoreOwners = new HashMap<>();
     private static final Map<LockObjectEntry, Set<BunchOfLocks>> activeWrites = new HashMap<>();
     private static final Map<LockObjectEntry, Set<BunchOfLocks>> associatedWrite = new HashMap<>();
     private static final Set<BunchOfLocks> activeBunches = new HashSet<>();
+    private static final Set<BunchOfLocks> existingBunches = new HashSet<>();
 
     private static final Map<LockObjectEntry, Semaphore> readSemaphores = new HashMap<>();
     private static final Map<LockObjectEntry, Set<BunchOfLocks>> activeReads = new HashMap<>();
@@ -47,7 +50,7 @@ public class P {
                 associated.add(bunchOfLocks);
                 associatedGeneral.put(e, associated);
             }
-            activeBunches.add(bunchOfLocks);
+            existingBunches.add(bunchOfLocks);
         }
         return bunchOfLocks;
     }
@@ -61,25 +64,39 @@ public class P {
         List<Semaphore> writeLocks = new ArrayList<>();
         List<Semaphore> readLocks = new ArrayList<>();
         synchronized (LOCKER) {
+            if (!existingBunches.contains(bunchOfLocks)) {
+                Lok.error("BunchOfLocks has already been ended!");
+                return;
+            }
+            if (activeBunches.contains(bunchOfLocks)) {
+                Lok.error("BunchOfLocks has already access!!!");
+                System.exit(2);
+            }
+            Lok.debug("P.access() called from thread '" + Thread.currentThread().getName() + "'");
             // collect locks required to write
             for (LockObjectEntry e : bunchOfLocks.getWriteLocks()) {
                 // if there is an active write going on, it left a semaphore for us
-                if (P.activeWrites.containsKey(e)){
+                if (P.activeWrites.containsKey(e)) {
                     Semaphore s = writeSemaphores.get(e);
                     writeLocks.add(s);
-                }else {
+                } else {
                     // no active write means we must leave a semaphore here
                     Semaphore s = new Semaphore(1);
                     writeSemaphores.put(e, s);
                     // lock it
                     try {
                         s.acquire();
+                        // remember which BunchOfLocks owns it, so we can release the semaphore when it exits.
+                        Set<Semaphore> owned = writeSemaphoreOwners.getOrDefault(bunchOfLocks, new HashSet<>());
+                        owned.add(s);
+                        writeSemaphoreOwners.put(bunchOfLocks, owned);
                     } catch (InterruptedException ex) {
                         throw new RuntimeException(ex);
                     }
                 }
 
                 // map this LockObjectEntry to the semaphore
+                Lok.debug("P.access() Thread " + Thread.currentThread().getName() + " adding " + e.getId() + "/" + bunchOfLocks.getName() + " to activeWrites");
                 P.addToEntryBunchMap(bunchOfLocks, e, activeWrites);
 
                 // if there is a reading semaphore active, collect that too.
@@ -101,6 +118,7 @@ public class P {
                     // ma[ this LockObjectEntry to the semaphore
                     readSemaphores.put(e, s);
                 }
+                Lok.debug("P.access() Thread " + Thread.currentThread().getName() + " adding " + e.getId() + "/" + bunchOfLocks.getName() + " to activeReads");
                 // a read object might be held by multiple LockObjectEntries.
                 // so remember their mapping.
                 P.addToEntryBunchMap(bunchOfLocks, e, activeReads);
@@ -109,10 +127,21 @@ public class P {
                     readLocks.add(writeSemaphores.get(e));
                 }
             }
+            activeBunches.add(bunchOfLocks);
         }
-        List<Semaphore> semaphores = new ArrayList<>(writeLocks);
-        semaphores.addAll(readLocks);
-        for (Semaphore s : semaphores) {
+        for (Semaphore s : writeLocks) {
+            try {
+                s.acquire();
+                synchronized (LOCKER) {
+                    Set<Semaphore> owned = writeSemaphoreOwners.getOrDefault(bunchOfLocks, new HashSet<>());
+                    owned.add(s);
+                    writeSemaphoreOwners.put(bunchOfLocks, owned);
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        for (Semaphore s : readLocks) {
             try {
                 s.acquire();
             } catch (InterruptedException e) {
@@ -125,14 +154,20 @@ public class P {
         synchronized (LOCKER) {
             if (!activeBunches.contains(bunchOfLocks))
                 return;
+            // take care of write semaphore ownership
+            if (writeSemaphoreOwners.containsKey(bunchOfLocks)) {
+                // release the owned semaphores
+                Set<Semaphore> owned = writeSemaphoreOwners.remove(bunchOfLocks);
+                for (Semaphore s : owned)
+                    s.release();
+                writeSemaphoreOwners.remove(bunchOfLocks);
+            }
             for (LockObjectEntry e : bunchOfLocks.getWriteLocks()) {
+                Lok.debug("P.exit() Thread " + Thread.currentThread().getName() + " removing " + e.getId() + "/" + bunchOfLocks.getName() + " from activeWrites");
                 Set<BunchOfLocks> active = activeWrites.get(e);
                 active.remove(bunchOfLocks);
-                // that semaphore is not
                 if (active.isEmpty()) {
-                    // There is only one semaphore that has to be released and freed for writes.
-                    Semaphore s = writeSemaphores.get(e);
-                    s.release();
+                    // nothing wants to write anymore
                     writeSemaphores.remove(e);
                     activeWrites.remove(e);
                 }
@@ -140,6 +175,7 @@ public class P {
             for (LockObjectEntry e : bunchOfLocks.getReadLocks()) {
                 // remove from currently active reads
                 Set<BunchOfLocks> active = activeReads.get(e);
+                Lok.debug("P.exit() Thread " + Thread.currentThread().getName() + " removing " + e.getId() + "/" + bunchOfLocks.getName() + " from activeReads");
                 active.remove(bunchOfLocks);
                 // if no BunchOfLocks is locking on it anymore the semaphore can be released and freed.
                 if (active.isEmpty()) {
@@ -149,6 +185,7 @@ public class P {
                     readSemaphores.remove(e);
                 }
             }
+            activeBunches.remove(bunchOfLocks);
         }
     }
 
@@ -178,9 +215,9 @@ public class P {
     public static void end(BunchOfLocks bunchOfLocks) {
         exit(bunchOfLocks);
         synchronized (LOCKER) {
-            if (!activeBunches.contains(bunchOfLocks))
+            if (!existingBunches.contains(bunchOfLocks))
                 return;
-            activeBunches.remove(bunchOfLocks);
+            existingBunches.remove(bunchOfLocks);
             P.removeFromEntryBunchMap(bunchOfLocks, bunchOfLocks.getReadLocks(), associatedRead);
             P.removeFromEntryBunchMap(bunchOfLocks, bunchOfLocks.getWriteLocks(), associatedWrite);
             P.removeFromEntryBunchMap(bunchOfLocks, bunchOfLocks.getAllLocks(), associatedGeneral);

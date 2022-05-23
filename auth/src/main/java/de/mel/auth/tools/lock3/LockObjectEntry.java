@@ -53,4 +53,8 @@ public class LockObjectEntry implements Comparable<LockObjectEntry> {
     public Object getObject() {
         return object;
     }
+
+    public Integer getId() {
+        return id;
+    }
 }
