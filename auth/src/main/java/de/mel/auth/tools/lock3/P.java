@@ -6,20 +6,66 @@ import de.mel.auth.tools.lock2.Read;
 import java.util.*;
 import java.util.concurrent.Semaphore;
 
+/**
+ * <p>
+ * Can read-/write-lock multiple objects at once.<br>
+ * Create a lock, represented by {@link BunchOfLocks} by calling {@link #confine(Object... objects) P.confine}.<br>
+ * {@link #confine(Object... objects) P.confine}(foo1, foo2, {@link #read(Object... objects) P.read}(foo3)) creates a lock that writes foo1 and foo2 and reads foo3.<br>
+ * P.access(lock) grants access to the objects contained by lock.<br>
+ * P.exit(lock) revokes the access to those objects.<br>
+ * P.end(lock) revokes access and terminates the lock. It cannot be reused, because all the bookkeeping is undone.<br>
+ * </p>
+ * <p>
+ * <ul>
+ *      <li>One write-lock acquires one {@link Semaphore}. If no write is currently happening, no {@link Semaphore} is present.</li>
+ *      <li>All read-locks acquires one {@link Semaphore} together.</li>
+ *      <li>The first read-lock acquires the {@link Semaphore}. The following read-locks ignore it.</li>
+ *      <li>A write-lock will try to acquire the {@link Semaphore} if it exists.</li>
+ *      <li>If no read-locks are currently happening the {@link Semaphore} is not present.</li>
+ * </ul>
+ * </p>
+ */
 public class P {
     private static final String LOCKER = "lock string";
-
+    /**
+     * Mapping of object and the {@link Semaphore} it is write-locked by.
+     */
     private static final Map<LockObjectEntry, Semaphore> writeSemaphores = new HashMap<>();
+    /**
+     * Every semaphore held by a {@link BunchOfLocks}.
+     */
     private static final Map<BunchOfLocks, Set<Semaphore>> writeSemaphoreOwners = new HashMap<>();
+    /**
+     * Map of write-locked objects and the according {@link BunchOfLocks} at this moment.
+     */
     private static final Map<LockObjectEntry, Set<BunchOfLocks>> activeWrites = new HashMap<>();
+    /**
+     * Map of write-lockable objects and {@link BunchOfLocks} that can lock them.
+     */
     private static final Map<LockObjectEntry, Set<BunchOfLocks>> associatedWrite = new HashMap<>();
+    /**
+     * All {@link BunchOfLocks} that currently lock something.
+     */
     private static final Set<BunchOfLocks> activeBunches = new HashSet<>();
+    /**
+     * All {@link BunchOfLocks} that currently exist.
+     */
     private static final Set<BunchOfLocks> existingBunches = new HashSet<>();
-
+    /**
+     * Mapping of object and the {@link Semaphore} it is read-locked by.
+     */
     private static final Map<LockObjectEntry, Semaphore> readSemaphores = new HashMap<>();
+    /**
+     * Map of read-locked objects and the according {@link BunchOfLocks} at this moment.
+     */
     private static final Map<LockObjectEntry, Set<BunchOfLocks>> activeReads = new HashMap<>();
+    /**
+     * Map of read-lockable objects and {@link BunchOfLocks} that can lock them.
+     */
     private static final Map<LockObjectEntry, Set<BunchOfLocks>> associatedRead = new HashMap<>();
-
+    /**
+     * Map of lockable objects and {@link BunchOfLocks} that can lock them.
+     */
     private static final Map<LockObjectEntry, Set<BunchOfLocks>> associatedGeneral = new HashMap<>();
 
 
@@ -63,6 +109,7 @@ public class P {
     public static void access(BunchOfLocks bunchOfLocks) {
         List<Semaphore> writeLocks = new ArrayList<>();
         List<Semaphore> readLocks = new ArrayList<>();
+        // always synchronize when bookkeeping is done!
         synchronized (LOCKER) {
             if (!existingBunches.contains(bunchOfLocks)) {
                 Lok.error("BunchOfLocks has already been ended!");
@@ -195,10 +242,6 @@ public class P {
             associated.remove(bunchOfLocks);
             if (associated.isEmpty())
                 map.remove(e);
-//            associated = associatedGeneral.get(e);
-//            associated.remove(bunchOfLocks);
-//            if (associated.isEmpty())
-//                associatedGeneral.remove(e);
         }
     }
 
