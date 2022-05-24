@@ -1,7 +1,8 @@
-package de.mel.auth.tools.lock3;
+package de.mel.auth.tools.lock2;
 
 import de.mel.Lok;
 import de.mel.auth.tools.lock2.Read;
+import de.mel.core.serialize.serialize.tools.StringBuilder;
 
 import java.util.*;
 import java.util.concurrent.Semaphore;
@@ -68,11 +69,27 @@ public class P {
      */
     private static final Map<LockObjectEntry, Set<BunchOfLocks>> associatedGeneral = new HashMap<>();
 
+    private static boolean DEBUG_PRINT = false;
+
+    public static void enableDebugPrinting() {
+        DEBUG_PRINT = true;
+        for (int i = 0; i < 5; i++) {
+            Lok.error("P.DEBUG_PRINT=true");
+        }
+    }
+
+    private static void debug(Object msg) {
+        if (DEBUG_PRINT)
+            Lok.debug(msg);
+    }
+
 
     public static BunchOfLocks confine(Object... objects) {
         BunchOfLocks bunchOfLocks;
         synchronized (LOCKER) {
+            Map<LockObjectEntry, Boolean> doubleCheck = new IdentityHashMap<>();
             bunchOfLocks = new BunchOfLocks(objects);
+            bunchOfLocks.setName(getStackTraceName());
             // Do some bookkeeping, so we know whether we should keep semaphores and LockObjectEntries.
             // If not referenced anymore, LockObjectEntries can be freed.
             for (LockObjectEntry e : bunchOfLocks.getWriteLocks()) {
@@ -85,6 +102,10 @@ public class P {
                 associated = associatedGeneral.getOrDefault(e, new HashSet<>());
                 associated.add(bunchOfLocks);
                 associatedGeneral.put(e, associated);
+                if (doubleCheck.containsKey(e)) {
+                    Lok.error("Same object locked multiple times!!!");
+                }
+                doubleCheck.put(e, true);
             }
             // repeat for read objects
             for (LockObjectEntry e : bunchOfLocks.getReadLocks()) {
@@ -95,10 +116,32 @@ public class P {
                 associated = associatedGeneral.getOrDefault(e, new HashSet<>());
                 associated.add(bunchOfLocks);
                 associatedGeneral.put(e, associated);
+                if (doubleCheck.containsKey(e)) {
+                    Lok.error("Same object locked multiple times!!!");
+                }
+                doubleCheck.put(e, true);
             }
             existingBunches.add(bunchOfLocks);
         }
         return bunchOfLocks;
+    }
+
+    private static String getStackTraceName() {
+        Exception e;
+        try {
+            throw new Exception();
+        } catch (Exception ex) {
+            e = ex;
+        }
+        StackTraceElement[] st = e.getStackTrace();
+        StringBuilder b = new StringBuilder();
+        StackTraceElement mandatory = st[2];
+        b.append(mandatory.getClassName()).comma().append(mandatory.getMethodName().subSequence(0, Integer.min(mandatory.getMethodName().length(), 4)));
+        StackTraceElement obligatory = st.length > 3 ? st[3] : null;
+        if (obligatory != null) {
+            b.arrBegin().append(obligatory.getClassName()).comma().append(obligatory.getMethodName().subSequence(0, Integer.min(obligatory.getMethodName().length(), 4))).arrEnd();
+        }
+        return b.toString();
     }
 
     public static Read read(Object... objects) {
@@ -117,9 +160,9 @@ public class P {
             }
             if (activeBunches.contains(bunchOfLocks)) {
                 Lok.error("BunchOfLocks has already access!!!");
-                System.exit(2);
+//                System.exit(2);
             }
-            Lok.debug("P.access() called from thread '" + Thread.currentThread().getName() + "'");
+            P.debug("P.access() called from thread '" + Thread.currentThread().getName() + "'");
             // collect locks required to write
             for (LockObjectEntry e : bunchOfLocks.getWriteLocks()) {
                 // if there is an active write going on, it left a semaphore for us
@@ -143,7 +186,7 @@ public class P {
                 }
 
                 // map this LockObjectEntry to the semaphore
-                Lok.debug("P.access() Thread " + Thread.currentThread().getName() + " adding " + e.getId() + "/" + bunchOfLocks.getName() + " to activeWrites");
+                P.debug("P.access() Thread '" + Thread.currentThread().getName() + "' adding " + e.getId() + "/'" + bunchOfLocks.getName() + "' to activeWrites");
                 P.addToEntryBunchMap(bunchOfLocks, e, activeWrites);
 
                 // if there is a reading semaphore active, collect that too.
@@ -165,7 +208,7 @@ public class P {
                     // ma[ this LockObjectEntry to the semaphore
                     readSemaphores.put(e, s);
                 }
-                Lok.debug("P.access() Thread " + Thread.currentThread().getName() + " adding " + e.getId() + "/" + bunchOfLocks.getName() + " to activeReads");
+                P.debug("P.access() Thread '" + Thread.currentThread().getName() + "' adding " + e.getId() + "/'" + bunchOfLocks.getName() + "' to activeReads");
                 // a read object might be held by multiple LockObjectEntries.
                 // so remember their mapping.
                 P.addToEntryBunchMap(bunchOfLocks, e, activeReads);
@@ -199,6 +242,8 @@ public class P {
 
     public static void exit(BunchOfLocks bunchOfLocks) {
         synchronized (LOCKER) {
+            if (!existingBunches.contains(bunchOfLocks))
+                return;
             if (!activeBunches.contains(bunchOfLocks))
                 return;
             // take care of write semaphore ownership
@@ -210,7 +255,7 @@ public class P {
                 writeSemaphoreOwners.remove(bunchOfLocks);
             }
             for (LockObjectEntry e : bunchOfLocks.getWriteLocks()) {
-                Lok.debug("P.exit() Thread " + Thread.currentThread().getName() + " removing " + e.getId() + "/" + bunchOfLocks.getName() + " from activeWrites");
+                P.debug("P.exit() Thread '" + Thread.currentThread().getName() + "' removing " + e.getId() + "/'" + bunchOfLocks.getName() + "' from activeWrites");
                 Set<BunchOfLocks> active = activeWrites.get(e);
                 active.remove(bunchOfLocks);
                 if (active.isEmpty()) {
@@ -222,7 +267,7 @@ public class P {
             for (LockObjectEntry e : bunchOfLocks.getReadLocks()) {
                 // remove from currently active reads
                 Set<BunchOfLocks> active = activeReads.get(e);
-                Lok.debug("P.exit() Thread " + Thread.currentThread().getName() + " removing " + e.getId() + "/" + bunchOfLocks.getName() + " from activeReads");
+                P.debug("P.exit() Thread '" + Thread.currentThread().getName() + "' removing " + e.getId() + "/'" + bunchOfLocks.getName() + "' from activeReads");
                 active.remove(bunchOfLocks);
                 // if no BunchOfLocks is locking on it anymore the semaphore can be released and freed.
                 if (active.isEmpty()) {
@@ -239,6 +284,8 @@ public class P {
     private static void removeFromEntryBunchMap(BunchOfLocks bunchOfLocks, List<LockObjectEntry> lockObjectEntries, Map<LockObjectEntry, Set<BunchOfLocks>> map) {
         for (LockObjectEntry e : lockObjectEntries) {
             Set<BunchOfLocks> associated = map.get(e);
+            if (associated == null)
+                Lok.debug("associated == null");
             associated.remove(bunchOfLocks);
             if (associated.isEmpty())
                 map.remove(e);
@@ -257,13 +304,21 @@ public class P {
 
     public static void end(BunchOfLocks bunchOfLocks) {
         exit(bunchOfLocks);
+        P.debug("P.end() Thread '" + Thread.currentThread().getName() + "' ending '" + bunchOfLocks.getName() + "'");
         synchronized (LOCKER) {
+//            if (bunchOfLocks.getName().equals("de.mel.filesync.service.sync.ClientSyncHandler,sync[de.mel.filesync.service.sync.ClientSyncHandler,exec]"))
+//                Lok.debug("debug mmsmef");
             if (!existingBunches.contains(bunchOfLocks))
                 return;
             existingBunches.remove(bunchOfLocks);
             P.removeFromEntryBunchMap(bunchOfLocks, bunchOfLocks.getReadLocks(), associatedRead);
             P.removeFromEntryBunchMap(bunchOfLocks, bunchOfLocks.getWriteLocks(), associatedWrite);
             P.removeFromEntryBunchMap(bunchOfLocks, bunchOfLocks.getAllLocks(), associatedGeneral);
+            for (LockObjectEntry e : bunchOfLocks.getAllLocks()) {
+                if (!associatedGeneral.containsKey(e)) {
+                    LockObjectEntry.free(e);
+                }
+            }
         }
     }
 }

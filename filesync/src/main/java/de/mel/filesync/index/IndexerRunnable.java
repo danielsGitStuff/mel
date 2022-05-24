@@ -5,8 +5,8 @@ import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.IFile;
 import de.mel.auth.tools.Eva;
 import de.mel.auth.tools.Order;
-import de.mel.auth.tools.lock.P;
-import de.mel.auth.tools.lock.Warden;
+import de.mel.auth.tools.lock2.P;
+import de.mel.auth.tools.lock2.BunchOfLocks;
 import de.mel.core.serialize.serialize.tools.OTimer;
 import de.mel.filesync.bash.AutoKlausIterator;
 import de.mel.filesync.bash.BashTools;
@@ -93,7 +93,7 @@ public class IndexerRunnable extends AbstractIndexer {
                     fsRoot.setOriginalFile(AbstractFile.instance(rootDirectory.getOriginalFile()));
                 }
             }
-            Warden warden = P.confine(P.read(fsDao));
+            BunchOfLocks bunchOfLocks = P.confine(P.read(fsDao));
             try {
 
                 fileWatcher.watchDirectory(rootDirectory.getOriginalFile());
@@ -126,7 +126,7 @@ public class IndexerRunnable extends AbstractIndexer {
                 sqlQueries.commit();
                 timerExamine.stop().print();
                 if (initialIndexConflictHelper != null) {
-                    boolean conflicts = initialIndexConflictHelper.onDone(warden, this);
+                    boolean conflicts = initialIndexConflictHelper.onDone(bunchOfLocks, this);
                     if (!conflicts)
                         initialIndexConflictHelper = null;
                 }
@@ -136,15 +136,15 @@ public class IndexerRunnable extends AbstractIndexer {
                 startedPromise.reject(e);
                 return;
             } finally {
-                warden.end();
+                bunchOfLocks.end();
             }
 
 
             Lok.debug("save in  db");
-            warden = P.confine(fsDao);
+            bunchOfLocks = P.confine(fsDao);
             for (IndexListener listener : listeners)
-                listener.done(stageSetId, warden);
-            warden.end();
+                listener.done(stageSetId, bunchOfLocks);
+            bunchOfLocks.end();
             Lok.debug("indexing done");
             if (initialIndexConflictHelper == null && !startedPromise.isResolved())
                 startedPromise.resolve(this);

@@ -9,6 +9,7 @@ import de.mel.auth.service.Bootloader;
 import de.mel.auth.service.IMelService;
 import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.tools.N;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
@@ -48,6 +49,19 @@ public class NotificationListCell extends ListCell<MelNotification> {
         }
     }
 
+    private void showConflictHandler(MelNotification notification) {
+        N.r(() -> {
+            String name = melAuthService.getDatabaseManager().getServiceNameByServiceUuid(notification.getServiceUuid());
+            Bootloader bootloader = melAuthService.getMelBoot().getBootLoader(name);
+            IMelService melService = melAuthService.getMelService(notification.getServiceUuid());
+            if (bootloader instanceof BootLoaderFX) {
+                BootLoaderFX bootLoaderFX = (BootLoaderFX) bootloader;
+                String containingPath = bootLoaderFX.getPopupFXML(melService, notification);
+                Popup popup = new Popup(melAuthService, notification, containingPath, melAuthResourceBundle);
+            }
+        });
+    }
+
 
     @Override
     protected void updateItem(MelNotification notification, boolean empty) {
@@ -62,21 +76,13 @@ public class NotificationListCell extends ListCell<MelNotification> {
                 lblText.setText(melAuthService.getCompleteNotificationText(notification));
                 lblTitle.setText(notification.getTitle());
                 btnOpen.setOnAction(event -> {
-                    N.r(() -> {
-                        String name = melAuthService.getDatabaseManager().getServiceNameByServiceUuid(notification.getServiceUuid());
-                        Bootloader bootloader = melAuthService.getMelBoot().getBootLoader(name);
-                        IMelService melService = melAuthService.getMelService(notification.getServiceUuid());
-                        if (bootloader instanceof BootLoaderFX) {
-                            BootLoaderFX bootLoaderFX = (BootLoaderFX) bootloader;
-                            String containingPath = bootLoaderFX.getPopupFXML(melService, notification);
-                            Popup popup = new Popup(melAuthService, notification, containingPath, melAuthResourceBundle);
-                        }
-                    });
+                    this.showConflictHandler(notification);
                 });
                 Lok.debug("debug auto click notification");
-                if (notification.getTitle().equals("Conflict detected!")){
-                    Lok.debug();
-                    btnOpen.fire();
+                if (notification.getTitle().equals("Conflict detected!")) {
+                    Lok.debug("debug auto click notification click");
+//                    btnOpen.onActionProperty().get().handle(new ActionEvent());
+//                    btnOpen.fire();
                 }
                 btnIgnore.setOnAction(event -> {
                     if (notification.isUserCancelable())

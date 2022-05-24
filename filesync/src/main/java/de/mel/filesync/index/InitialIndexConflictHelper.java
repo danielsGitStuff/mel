@@ -3,7 +3,7 @@ package de.mel.filesync.index;
 import de.mel.Lok;
 import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.tools.Order;
-import de.mel.auth.tools.lock.Warden;
+import de.mel.auth.tools.lock2.BunchOfLocks;
 import de.mel.filesync.data.FileSyncClientSettingsDetails;
 import de.mel.filesync.data.FileSyncStrings;
 import de.mel.filesync.service.MelFileSyncClientService;
@@ -93,12 +93,12 @@ public class InitialIndexConflictHelper {
     }
 
     /**
-     * @param warden
+     * @param bunchOfLocks
      * @param indexerRunnable
      * @return false if no conflict occured and this can be ignored
      * @throws SqlQueriesException
      */
-    public boolean onDone(Warden warden, IndexerRunnable indexerRunnable) throws SqlQueriesException {
+    public boolean onDone(BunchOfLocks bunchOfLocks, IndexerRunnable indexerRunnable) throws SqlQueriesException {
         this.indexerRunnable = indexerRunnable;
         serverStageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED);
         stageDao.updateStageSet(serverStageSet);
@@ -110,7 +110,7 @@ public class InitialIndexConflictHelper {
         }
         RWLock lock = new RWLock();
         // give it the uuid so it can unlock the wait lock
-        driveClientService.getSyncHandler().handleConflict(serverStageSet, fsStageSet, warden, uuid);
+        driveClientService.getSyncHandler().handleConflict(serverStageSet, fsStageSet, bunchOfLocks, uuid);
 //        if (conflictSolvers.iterator().hasNext())
 
 //        ConflictSolver conflictSolver = new ConflictSolver(driveClientService.getDriveDatabaseManager(), serverStageSet, fsStageSet);

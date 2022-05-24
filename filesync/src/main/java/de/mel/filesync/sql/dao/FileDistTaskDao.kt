@@ -11,6 +11,7 @@ import de.mel.filesync.nio.FileDistributionTask
 import de.mel.sql.Dao
 import de.mel.sql.ISQLQueries
 import de.mel.sql.SqlQueriesException
+import de.mel.sql.transform.SqlResultTransformer
 
 /**
  * You cannot put a JSON into a database on Android
@@ -23,7 +24,7 @@ class FileDistTaskDao(sqlQueries: ISQLQueries) : Dao(sqlQueries, false) {
 
     fun isComplete(): Boolean {
         val queryDifference = "select ((select count(1) from ${dummy.tableName})-(select count(1) from ${dummy.tableName} where ${dummy.state.k()}=?))"
-        val count: Long = sqlQueries.queryValue(queryDifference, Long::class.java, ISQLQueries.args(FileDistributionTask.FileDistributionState.DONE))
+        val count: Long = sqlQueries.queryValue(queryDifference, SqlResultTransformer.CLASS_LONG, ISQLQueries.args(FileDistributionTask.FileDistributionState.DONE))
         return count == 0L
     }
 
@@ -115,20 +116,20 @@ class FileDistTaskDao(sqlQueries: ISQLQueries) : Dao(sqlQueries, false) {
 
     @Throws(SqlQueriesException::class)
     fun countAll(): Int {
-        return sqlQueries.queryValue("select count(1) from " + dummy.tableName, Int::class.java)
+        return sqlQueries.queryValue("select count(1) from " + dummy.tableName, SqlResultTransformer.CLASS_INT)
 
     }
 
     @Throws(SqlQueriesException::class)
     fun countDone(): Int {
-        return sqlQueries.queryValue("select count(1) from " + dummy.tableName + " where " + dummy.state.k() + "=?", Int::class.java, ISQLQueries.args(FileDistributionTask.FileDistributionState.DONE))
+        return sqlQueries.queryValue("select count(1) from " + dummy.tableName + " where " + dummy.state.k() + "=?", SqlResultTransformer.CLASS_INT, ISQLQueries.args(FileDistributionTask.FileDistributionState.DONE))
     }
 
 
     @Throws(SqlQueriesException::class)
     fun hasWork(): Boolean {
         val query = "select count(1) from " + dummy.tableName + " where " + dummy.state.k() + "=?"
-        val count = sqlQueries.queryValue(query, Long::class.java, ISQLQueries.args(FileDistributionTask.FileDistributionState.READY))
+        val count = sqlQueries.queryValue(query, SqlResultTransformer.CLASS_INT, ISQLQueries.args(FileDistributionTask.FileDistributionState.READY))
         return count > 0
     }
 }

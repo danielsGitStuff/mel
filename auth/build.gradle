@@ -20,6 +20,7 @@ dependencies {
 
     testImplementation project(path: ':sql')
     testImplementation project(path: ':serialize', configuration: 'serializeTestOutput')
+    testImplementation project(path: ':testtools')
 }
 
 compileJava {

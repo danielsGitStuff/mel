@@ -3,6 +3,7 @@ package de.mel.filesync.sql.dao
 import de.mel.execute.SqliteExecutor
 import de.mel.filesync.sql.*
 import de.mel.sql.ISQLQueries
+import de.mel.sql.SqlQueriesException
 
 class FsWriteDao(val fileSyncDatabaseManager: FileSyncDatabaseManager, val isqlQueries: ISQLQueries) : FsDao(fileSyncDatabaseManager, isqlQueries) {
     private val fsTable = FsFile().tableName
@@ -20,7 +21,12 @@ class FsWriteDao(val fileSyncDatabaseManager: FileSyncDatabaseManager, val isqlQ
 
     fun cleanUp() {
         val tableName = CreationScripts().tableName
-        sqlQueries.execute("drop table if exists $tableName", null)
+        try {
+            sqlQueries.execute("drop table if exists $tableName", null)
+        } catch (e: SqlQueriesException) {
+            e.printStackTrace()
+        }
+
     }
 
     fun commit() {

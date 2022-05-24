@@ -3,11 +3,10 @@ package de.mel.filesync.service.sync;
 import de.mel.Lok;
 import de.mel.auth.file.IFile;
 import de.mel.auth.service.MelAuthService;
-import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
-import de.mel.auth.tools.lock.P;
-import de.mel.auth.tools.lock.Warden;
+import de.mel.auth.tools.lock2.BunchOfLocks;
+import de.mel.auth.tools.lock2.P;
 import de.mel.core.serialize.exceptions.MelJsonException;
 import de.mel.filesync.data.*;
 import de.mel.filesync.quota.OutOfSpaceException;
@@ -56,7 +55,7 @@ public class ServerSyncHandler extends SyncHandler {
         return true;
     }
 
-    protected void executeCommit(Request request, Commit commit, Warden warden) throws SqlQueriesException {
+    protected void executeCommit(Request request, Commit commit, BunchOfLocks bunchOfLocks) throws SqlQueriesException {
         // stage everything
         StageSet stageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_CLIENT, request.getPartnerCertificate().getId().v(), commit.getServiceUuid(), null, commit.getBasedOnVersion());
         Map<Long, Long> oldStageIdStageIdMap = new HashMap<>();
@@ -66,6 +65,15 @@ public class ServerSyncHandler extends SyncHandler {
             stage.setStageSet(stageSet.getId().v());
             if (stage.getParentId() != null && oldStageIdStageIdMap.containsKey(stage.getParentId())) {
                 stage.setParentId(oldStageIdStageIdMap.get(stage.getParentId()));
+            }
+            if (stage.getFsIdPair().notNull()) {
+                FsEntry fsEntry = this.fsDao.getFsEntryById(stage.getFsId());
+                stage.setDepth(fsEntry.getDepth().v());
+                stage.setPath(fsEntry.getPath().v());
+            } else if (stage.getFsParentIdPair().notNull()) {
+                FsEntry fsParent = this.fsDao.getFsEntryById(stage.getFsParentId());
+                stage.setDepth(fsParent.getDepth().v() + 1);
+                stage.setPath(fsParent.getPath().v() + fsParent.getName() + "/");
             }
             Long oldId = stage.getId();
             stageDao.insert(stage);
@@ -79,11 +87,13 @@ public class ServerSyncHandler extends SyncHandler {
         Long oldVersion = fsDao.getLatestVersion();
         Map<Long, Long> stageIdFsIdMap = new HashMap<>();
         try {
-            this.commitStage(stageSet.getId().v(), warden, stageIdFsIdMap);
+            this.commitStage(stageSet.getId().v(), bunchOfLocks, stageIdFsIdMap);
         } catch (OutOfSpaceException e) {
             e.printStackTrace();
             request.reject(e);
             return;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         Map<Long, Long> newIdMap = new HashMap<>();
         for (Long oldeStageId : oldStageIdStageIdMap.keySet()) {
@@ -112,11 +122,13 @@ public class ServerSyncHandler extends SyncHandler {
 
     public void handleCommit(Request request) throws SqlQueriesException {
         Commit commit = (Commit) request.getPayload();
-        Warden warden = P.confine(fsDao);
+        BunchOfLocks warden = P.confine(fsDao);
         try {
             if (!canCommit(request, commit))
                 return;
             executeCommit(request, commit, warden);
+        } catch (SqlQueriesException e) {
+            e.printStackTrace();
         } finally {
             warden.end();
         }
@@ -125,8 +137,8 @@ public class ServerSyncHandler extends SyncHandler {
     }
 
     @Override
-    public boolean onFileTransferred(IFile file, String hash, Warden warden) throws SqlQueriesException, IOException {
-        boolean isNew = super.onFileTransferred(file, hash, warden);
+    public boolean onFileTransferred(IFile file, String hash, BunchOfLocks bunchOfLocks) throws SqlQueriesException, IOException {
+        boolean isNew = super.onFileTransferred(file, hash, bunchOfLocks);
         if (isNew)
             N.r(() -> hashAvailTimer.start());
         return isNew;

@@ -434,6 +434,8 @@ public class StageDao extends Dao.LockingDao {
         fsEntry.getiNode().v(stage.getiNode());
         fsEntry.getModified().v(stage.getModified());
         fsEntry.getCreated().v(stage.getCreated());
+        fsEntry.getDepth().v(stage.getDepth());
+        fsEntry.getPath().v(stage.getPath());
         return fsEntry;
     }
 
@@ -522,7 +524,7 @@ public class StageDao extends Dao.LockingDao {
 
     public Long getMaxOrder(Long stageSetId) throws SqlQueriesException {
         Stage stage = new Stage();
-        String query = "select coalesce (max(" + stage.getOrderPair().k() + "),0) from " + stage.getTableName() + " where " + stage.getOrderPair().k() + "=?";
+        String query = "select coalesce (max(" + stage.getOrderPair().k() + "),0) from " + stage.getTableName() + " where " + stage.getStageSetPair().k() + "=?";
         return sqlQueries.queryValue(query, Long.class, ISQLQueries.args(stageSetId));
     }
 
@@ -570,13 +572,13 @@ public class StageDao extends Dao.LockingDao {
         String statement = "select s." + s.getIdPair().k() + " as " + u.getSmallId().k()
                 + ", t." + s.getIdPair().k() + " as " + u.getBigId().k()
                 + ", s." + s.getOrderPair().k() + " as " + u.getSmallOrder().k()
-                + ", t." + s.getOrderPair().k() + " as " + u.getBigOrder().k() + " from " + u.getTableName() + " s left join"
+                + ", t." + s.getOrderPair().k() + " as " + u.getBigOrder().k() + " from ( select * from " + u.getTableName() + " where " + s.getStageSetPair().k() + "=?) s left join"
                 + " (select * from " + u.getTableName() + " where " + s.getStageSetPair().k() + " = ?) t on s." + s.getFsParentIdPair().k() + " = t." + s.getFsIdPair().k()
                 + " where s." + s.getStageSetPair().k() + " = ?  and "
                 + u.getSmallOrder().k() + " < " + u.getBigOrder().k()
                 + " and " + u.getBigOrder().k() + " not null order by " + u.getSmallOrder().k()
                 + " limit 1;";
-        List<UnorderedStagePair> list = sqlQueries.loadString(u.getAllAttributes(), u, statement, ISQLQueries.args(stageSetId, stageSetId));
+        List<UnorderedStagePair> list = sqlQueries.loadString(u.getAllAttributes(), u, statement, ISQLQueries.args(stageSetId, stageSetId, stageSetId));
         if (list.size() > 0)
             return list.get(0);
         return null;

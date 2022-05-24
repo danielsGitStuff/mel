@@ -28,7 +28,7 @@ public class MelTestBootloader extends Bootloader<MelTestService> {
     }
 
     @Override
-    public MelTestService bootLevelShortImpl(MelAuthServiceImpl melAuthService, Service serviceDescription) throws BootException {
+    public MelTestService bootLevelShortImpl(MelAuthService melAuthService, Service serviceDescription) throws BootException {
         MelTestService testService = new MelTestService(melAuthService, new File("testworkingdir"), 1L, "test uuid no. " + count++);
         try {
             melAuthService.registerMelService(testService);

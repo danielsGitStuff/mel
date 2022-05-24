@@ -941,8 +941,8 @@ public class FxTest {
                                                 .setMaServer(standAloneAuth1)
                                                 .setClientDriveService((MelFileSyncClientService) clientDriveService)
                                                 .setServerDriveService((MelFileSyncServerService) serverService)
-                                                .setTestdir1(testdir1)
-                                                .setTestdir2(testdir2);
+                                                .setTestdirServer(testdir1)
+                                                .setTestdirClient(testdir2);
                                         clientDriveService.setSyncListener(clientSyncListener);
                                         ((MelFileSyncClientService) clientDriveService).syncThisClient();
                                     })).start();

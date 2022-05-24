@@ -914,8 +914,8 @@ public class DriveTest {
                                                         .setMaServer(melAuthService1)
                                                         .setClientDriveService((MelFileSyncClientService) clientDriveService)
                                                         .setServerDriveService(serverService)
-                                                        .setTestdir1(testdir1)
-                                                        .setTestdir2(testdir2);
+                                                        .setTestdirServer(testdir1)
+                                                        .setTestdirClient(testdir2);
                                                 clientDriveService.setSyncListener(clientSyncListener);
                                             };
                                             new FileSyncCreateServiceHelper(melAuthService2).createClientService("client service", testdir2, 1l, serverService.getUuid(), 0.01f, 30, false);

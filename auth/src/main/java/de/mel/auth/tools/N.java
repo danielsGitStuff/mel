@@ -6,6 +6,8 @@ import de.mel.sql.SQLTableObject;
 import de.mel.sql.SqlQueriesException;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.Callable;
 
@@ -729,6 +731,27 @@ public class N {
         }
     }
 
+    public static class reflection {
+
+        private static <T> T readField(Object instance, Field field, Class<T> clazz) throws IllegalAccessException {
+            field.setAccessible(true);
+            Object v = field.get(null);
+            if (v == null)
+                return null;
+            T t = (T) v;
+            return t;
+        }
+
+        public static <T> T getProperty(Object o, String name, Class<T> clazz) throws NoSuchFieldException, IllegalAccessException {
+            Field field = o.getClass().getDeclaredField(name);
+            return N.reflection.readField(o, field, clazz);
+        }
+
+        public static <T> T getStaticProperty(Class<?> staticClass, String name, Class<T> clazz) throws NoSuchFieldException, IllegalAccessException {
+            Field field = staticClass.getDeclaredField(name);
+            return N.reflection.readField(null, field, clazz);
+        }
+    }
 
 }
 

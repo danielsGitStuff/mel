@@ -8,8 +8,8 @@ import de.mel.auth.jobs.ServiceRequestHandlerJob;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
-import de.mel.auth.tools.lock.P;
-import de.mel.auth.tools.lock.Warden;
+import de.mel.auth.tools.lock2.P;
+import de.mel.auth.tools.lock2.BunchOfLocks;
 import de.mel.filesync.data.AvailableHashes;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.FileSyncStrings;
@@ -171,7 +171,7 @@ public class MelFileSyncClientService extends MelFileSyncService<ClientSyncHandl
 
 
             @Override
-            public void done(Long stageSetId, Warden warden) {
+            public void done(Long stageSetId, BunchOfLocks bunchOfLocks) {
                 //addJob(new CommitJob(true));
             }
         };

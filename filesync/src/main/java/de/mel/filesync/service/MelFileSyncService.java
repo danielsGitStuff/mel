@@ -2,6 +2,7 @@ package de.mel.filesync.service;
 
 import de.mel.auth.file.IFile;
 import de.mel.auth.service.MelAuthService;
+import de.mel.auth.tools.lock2.BunchOfLocks;
 import de.mel.filesync.index.InitialIndexConflictHelper;
 import de.mel.filesync.index.watchdog.FileWatcherFactory;
 import org.jdeferred.Deferred;
@@ -30,7 +31,7 @@ import de.mel.auth.socket.process.transfer.FileTransferDetailSet;
 import de.mel.auth.socket.process.transfer.MelIsolatedFileProcess;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
-import de.mel.auth.tools.lock.P;
+import de.mel.auth.tools.lock2.P;
 import de.mel.auth.tools.lock.Warden;
 import de.mel.filesync.FileSyncSyncListener;
 import de.mel.filesync.data.FileSyncDetails;
@@ -214,7 +215,7 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
     protected void handleSending(Long partnerCertId, FileTransferDetailsPayload payload) {
         //todo synced nicht richtig, wenn hier haltepunkt nach der konfliktlösung
         FsDao fsDao = databaseManager.getFsDao();
-        Warden warden = P.confine(P.read(fsDao));
+        BunchOfLocks bunchOfLocks = P.confine(P.read(fsDao));
         try {
 
             FileTransferDetailSet detailSet = payload.getFileTransferDetailSet();
@@ -274,7 +275,7 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            warden.end();
+            bunchOfLocks.end();
         }
     }
 

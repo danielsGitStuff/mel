@@ -272,6 +272,15 @@ public class FsDao extends Dao {
         return null;
     }
 
+    public GenericFSEntry getGenericByPathAndName(String path, String name) throws SqlQueriesException {
+        try {
+            String where = genericDummy.getPath().k() + "=? and " + genericDummy.getName().k() + "=?";
+            return sqlQueries.loadFirstRow(genericDummy.getAllAttributes(), genericDummy, where, ISQLQueries.args(path, name), GenericFSEntry.class);
+        } finally {
+            return null;
+        }
+    }
+
     public FsDirectory getRootDirectory() throws SqlQueriesException {
         String where = dir.getParentId().k() + " is null";
         List<FsDirectory> roots = sqlQueries.load(dir.getAllAttributes(), dir, where, null, null);
@@ -405,7 +414,7 @@ public class FsDao extends Dao {
      * @return
      * @throws SqlQueriesException
      */
-    public List<String> searchTransfer() throws SqlQueriesException {
+    public List<String> searchFsForTransfers() throws SqlQueriesException {
         DbTransferDetails t = new DbTransferDetails();
         String query = "select f." + dummy.getContentHash().k() + " from " + t.getTableName() + " t left join " + dummy.getTableName()
                 + " f on f." + dummy.getContentHash().k() + "=t." + t.getHash().k() + " where f." + dummy.getSynced().k() + "=?";
@@ -479,5 +488,10 @@ public class FsDao extends Dao {
     public String getPath(long id) throws SqlQueriesException {
         String query = "select " + dummy.getPath().k() + " from " + dummy.getTableName() + " where " + dummy.getId().k() + "=?";
         return sqlQueries.queryValue(query, String.class, ISQLQueries.args(id));
+    }
+
+    public FsEntry getFsEntryById(Long id) throws SqlQueriesException {
+        String where = dummy.getId().k() + "=?";
+        return sqlQueries.loadFirstRow(dummy.getDepthAndPathAndName(), dummy, where, ISQLQueries.args(id), FsEntry.class);
     }
 }

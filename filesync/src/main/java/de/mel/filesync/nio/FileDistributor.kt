@@ -6,9 +6,7 @@ import de.mel.auth.MelNotification
 import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.IFile
 import de.mel.auth.service.MelAuthService
-import de.mel.auth.service.MelAuthServiceImpl
 import de.mel.auth.tools.N
-import de.mel.auth.tools.lock.P
 import de.mel.filesync.bash.BashTools
 import de.mel.filesync.data.FileSyncStrings
 import de.mel.filesync.service.MelFileSyncService
@@ -187,7 +185,7 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
                 moveFile(sourceFile, lastFile, lastPath, lastId)
                 // update synced flag
                 if (lastId != null)
-                    P.confine(fsDao).run {
+                    de.mel.auth.tools.lock2.P.confine(fsDao).run {
                         val fsFile = updateFs(lastId, lastFile)
                         setCreationDate(lastFile, fsFile.created.v())
                     }.end()
@@ -227,7 +225,7 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
             throw  IOException("file already exists")
         rawCopyFile(source, target)
         if (fsId != null) {
-            P.confine(fsId).run {
+            de.mel.auth.tools.lock2.P.confine(fsId).run {
                 val fsFile = updateFs(fsId, target)
                 setCreationDate(target, fsFile.created.v())
             }.end()

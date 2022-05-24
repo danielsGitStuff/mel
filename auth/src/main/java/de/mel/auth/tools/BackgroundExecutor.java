@@ -2,7 +2,7 @@ package de.mel.auth.tools;
 
 import de.mel.MelRunnable;
 import de.mel.MelThread;
-import de.mel.auth.tools.lock.P;
+import de.mel.auth.tools.lock2.P;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Semaphore;

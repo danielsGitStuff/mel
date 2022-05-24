@@ -34,7 +34,8 @@ import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.ShutDownDeferredManager;
 import de.mel.auth.tools.WaitLock;
-import de.mel.auth.tools.lock.P;
+import de.mel.auth.tools.lock2.BunchOfLocks;
+import de.mel.auth.tools.lock2.P;
 import de.mel.auth.tools.lock.Warden;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
 import de.mel.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
@@ -663,14 +664,14 @@ public class MelAuthServiceImpl extends MelAuthService {
     protected boolean isConnectedTo(Long certId) {
         AtomicBoolean connected = new AtomicBoolean(false);
         return N.result(() -> {
-            Warden warden = null;
+            BunchOfLocks bunchOfLocks = null;
             try {
-                warden = P.confine(P.read(connectedEnvironment));
+                bunchOfLocks = P.confine(P.read(connectedEnvironment));
                 if (connectedEnvironment.getValidationProcess(certId) != null)
                     connected.set(true);
             } finally {
-                if (warden != null)
-                    warden.end();
+                if (bunchOfLocks != null)
+                    bunchOfLocks.end();
             }
             return connected.get();
         }, false);

@@ -1,5 +1,6 @@
 package de.mel.filesync.sql;
 
+import de.mel.Lok;
 import de.mel.filesync.data.FileSyncStrings;
 import de.mel.sql.Pair;
 import de.mel.sql.SQLTableObject;
@@ -39,6 +40,12 @@ public class StageSet extends SQLTableObject {
     protected void init() {
         populateInsert(source, originCertId, originServiceUuid, status, version, basedOnVersion);
         populateAll(id, created);
+        id.setSetListener(value -> {
+            if (value > 4L) {
+                Lok.debug("debug stageset id");
+            }
+            return value;
+        });
     }
 
     public Pair<Long> getId() {

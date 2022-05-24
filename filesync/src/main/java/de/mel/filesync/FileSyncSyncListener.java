@@ -2,7 +2,6 @@ package de.mel.filesync;
 
 import de.mel.auth.file.IFile;
 import de.mel.auth.service.MelAuthService;
-import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.filesync.service.MelFileSyncClientService;
 import de.mel.filesync.service.MelFileSyncServerService;
 
@@ -49,12 +48,12 @@ public abstract class FileSyncSyncListener {
             return this;
         }
 
-        public DTestStructure setTestdir1(IFile testdir1) {
+        public DTestStructure setTestdirServer(IFile testdir1) {
             this.testdir1 = testdir1;
             return this;
         }
 
-        public DTestStructure setTestdir2(IFile testdir2) {
+        public DTestStructure setTestdirClient(IFile testdir2) {
             this.testdir2 = testdir2;
             return this;
         }

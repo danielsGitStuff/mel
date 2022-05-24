@@ -3,17 +3,14 @@ package de.mel.filesync.index.watchdog;
 import de.mel.DeferredRunnable;
 import de.mel.Lok;
 import de.mel.auth.file.IFile;
-import de.mel.auth.tools.lock.Warden;
+import de.mel.auth.tools.lock2.BunchOfLocks;
 import de.mel.filesync.data.PathCollection;
 import de.mel.filesync.index.IndexListener;
-import de.mel.auth.file.AbstractFile;
 import de.mel.filesync.service.MelFileSyncService;
 import de.mel.auth.tools.WatchDogTimer;
 import org.jdeferred.Promise;
 
 import java.io.*;
-import java.nio.file.FileSystems;
-import java.nio.file.WatchService;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
@@ -60,7 +57,7 @@ public abstract class FileWatcher extends DeferredRunnable implements IndexListe
     public abstract void watchDirectory(IFile dir) throws IOException;
 
     @Override
-    public void done(Long stageSetId, Warden warden) {
+    public void done(Long stageSetId, BunchOfLocks bunchOfLocks) {
         Lok.debug("IndexWatchdogListener.done");
     }
 

@@ -4,8 +4,9 @@ import de.mel.Lok;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.IFile;
 import de.mel.auth.tools.N;
-import de.mel.auth.tools.lock.P;
 import de.mel.auth.tools.lock.Warden;
+import de.mel.auth.tools.lock2.BunchOfLocks;
+import de.mel.auth.tools.lock2.P;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.bash.FsBashDetails;
 import de.mel.filesync.data.FileSyncSettings;
@@ -21,6 +22,7 @@ import de.mel.sql.SqlQueriesException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -201,6 +203,9 @@ public class Wastebin {
     }
 
     private void moveToBin(IFile file, String contentHash, FsBashDetails fsBashDetails) throws SqlQueriesException {
+        if (file.getName().equals("i0")) {
+            Lok.debug("debug move to bin");
+        }
         Waste waste = new Waste();
         waste.getModified().v(fsBashDetails.getModified());
         waste.getHash().v(contentHash);
@@ -244,9 +249,15 @@ public class Wastebin {
     }
 
     private List<String> searchTransfer() throws SqlQueriesException {
-        Warden<List<String>> warden = P.confine(P.read(wasteDao));
-        List<String> result = warden.runResult(wasteDao::searchTransfer).get();
-        warden.end();
+//        Warden<List<String>> warden = P.confine(P.read(wasteDao));
+//        List<String> result = warden.runResult(wasteDao::searchTransfer).get();
+//        warden.end();
+//        return result;
+        BunchOfLocks bunchOfLocks = P.confine(P.read(wasteDao));
+        List<String> result = new ArrayList<>();
+        bunchOfLocks.run(() -> {
+            result.addAll(wasteDao.searchTransfer());
+        }).end();
         return result;
 //        wasteDao.lockRead();
 //        try {
@@ -262,7 +273,7 @@ public class Wastebin {
 
     public void restoreFsFiles() throws SqlQueriesException, IOException {
         List<String> availableHashes = searchTransfer();
-        Warden warden = P.confine(fsDao);
+        BunchOfLocks bunchOfLocks = P.confine(fsDao, wasteDao);
         try {
             for (String hash : availableHashes) {
                 List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
@@ -279,7 +290,7 @@ public class Wastebin {
                 }
             }
         } finally {
-            warden.end();
+            bunchOfLocks.end();
         }
 
     }

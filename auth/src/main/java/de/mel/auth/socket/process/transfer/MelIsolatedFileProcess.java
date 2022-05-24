@@ -107,7 +107,7 @@ public class MelIsolatedFileProcess extends MelIsolatedProcess implements MelRun
             }
         } catch (Exception e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             blockJob.resolve(null);
         }
     }
@@ -135,6 +135,8 @@ public class MelIsolatedFileProcess extends MelIsolatedProcess implements MelRun
             FileTransferDetail transferDetail = streamIdFileMapReceiving.get(streamId);
             if (transferDetail == null) {
                 Lok.debug("MelIsolatedFileProcess.handleTransfer.NULL, id was: " + block.getStreamId());
+                block.setFirstByteToProcessIndex(block.getBytes().length);
+                return true;
             }
             transferDetail.onReceived(offset, data);
             if (transferDetail.transferred() || c.equals('t')) {

@@ -57,8 +57,8 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
             FileSyncStrings.STAGESET_SOURCE_MERGED,
             remoteStageSet.originCertId.v(),
             remoteStageSet.originServiceUuid.v(),
-            remoteStageSet.version.v(),
-            basedOnVersion
+            remoteStageSet.version.v() + 1,
+            remoteStageSet.version.v()
         )
     }
 
@@ -83,6 +83,7 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
         if (!stageDao.stageSetHasContent(mergedStageSet.id.v())) {
             stageDao.deleteStageSet(mergedStageSet.id.v())
         }
+
     }
 
 
@@ -135,7 +136,7 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
                 return@loop
             conflictMap[conflict.key] = conflict
             rootConflictMap[conflict.key] = conflict
-            if (conflict.key=="7/17")
+            if (conflict.key == "7/17")
                 Lok.debug("debug tes 1")
             localStage?.let { l ->
                 localStageConflictMap[l.id] = conflict
@@ -306,10 +307,30 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
 
     override fun foundRemote(remote: Stage) {
         remoteStageConflictMap[remote.id]?.let { conflict ->
-            if (conflict.decision!!.depth == conflict.rejection!!.depth) {
-                insertToMerged(conflict.decision!!, null)
-            } else if (conflict.decision!!.deleted && conflict.decision!!.depth <= conflict.rejection!!.depth)
+            if (conflict == null || conflict.decision == null || conflict.rejection == null)
+                Lok.debug("debug fix null here")
+            if (conflict.decision == conflict.remoteStage && conflict.remoteStage != null) {
+                insertToMerged(conflict.decision!!, conflict.rejection)
+            } else if (conflict.decision != null && conflict.rejection != null && conflict.decision!!.deleted && conflict.decision!!.depth <= conflict.rejection!!.depth)
                 return
+            else if (conflict.remoteStage?.deleted != true && conflict.chosenLocal) {
+                // stage exists in remote but not locally. it must be flagged
+                val r: Stage = conflict.remoteStage!!
+                val m = Stage(this.mergedStageSet.id.v(), r)
+                    .setDeleted(true)
+                    .setOrder(0L)
+                    .setVersion(mergedStageSet.version.v())
+                    .setParentId(idMapRemote[r.parentId])
+                conflictDao.stageDao.insert(m);
+                Lok.debug()
+            }
+//            if (conflict.decision?.depth == conflict.rejection?.depth && conflict.decision!=null){
+//
+//            }
+//            if (conflict.decision!!.depth == conflict.rejection!!.depth) {
+//                insertToMerged(conflict.decision!!, null)
+//            } else if (conflict.decision!!.deleted && conflict.decision!!.depth <= conflict.rejection!!.depth)
+//                return
             return
         }
     }

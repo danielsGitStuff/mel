@@ -1,5 +1,7 @@
-package de.mel.auth.tools;
+package de.mel;
 
+import de.mel.auth.tools.N;
+import de.mel.auth.tools.NWrap;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -43,6 +43,7 @@
 !/serialize/
 !/serverparts/
 !/sql/
+!/testtools/
 
 # add a few folders and files that are present in (almost) every project
 !*/*.md

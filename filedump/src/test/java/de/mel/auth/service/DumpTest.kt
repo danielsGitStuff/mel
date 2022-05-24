@@ -55,8 +55,8 @@ class DumpTest {
         s2 = DriveTest.createJson2()
         mb1 = MelBoot(s1!!, PowerManager(s1), DumpBootloader::class.java)
         mb2 = MelBoot(s2!!, PowerManager(s2), DumpBootloader::class.java)
-        mb1!!.boot().done { mas1: MelAuthServiceImpl ->
-            val help1 = DumpCreateServiceHelper(mas1)
+        mb1!!.boot().done { mas1: MelAuthService ->
+            val help1 = DumpCreateServiceHelper(mas1 as MelAuthServiceImpl)
             mas1.addRegisterHandler(createRegisterHandler())
             mas1.addRegisteredHandler(createRegisteredHandler())
 
@@ -64,13 +64,13 @@ class DumpTest {
                 N.r {
                     val targetUUID = mas1.databaseManager.allServices.first().uuid.v()
 
-                    mb2!!.boot().done { mas2: MelAuthServiceImpl ->
+                    mb2!!.boot().done { mas2: MelAuthService ->
                         mas2.addRegisterHandler(createRegisterHandler())
                         mas2.addRegisteredHandler { _, registered ->
                             mas2.connect("localhost", s1!!.port, s1!!.deliveryPort, false).done { mvp ->
                                 Thread {
                                     Lok.debug("ok23")
-                                    val help2 = DumpCreateServiceHelper(mas2)
+                                    val help2 = DumpCreateServiceHelper(mas2 as MelAuthServiceImpl)
                                     help2.createClientService("source", rSource, 1L, targetUUID, 0.5f, 30, false)
                                 }.start()
                             }.fail {

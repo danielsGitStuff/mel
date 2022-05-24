@@ -7,11 +7,11 @@ import de.mel.auth.data.cached.CachedInitializer;
 import de.mel.auth.jobs.Job;
 import de.mel.auth.jobs.ServiceRequestHandlerJob;
 import de.mel.auth.service.MelAuthService;
-import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
-import de.mel.auth.tools.lock.P;
 import de.mel.auth.tools.lock.Warden;
+import de.mel.auth.tools.lock2.BunchOfLocks;
+import de.mel.auth.tools.lock2.P;
 import de.mel.core.serialize.SerializableEntity;
 import de.mel.filesync.data.FileSyncDetails;
 import de.mel.filesync.data.FileSyncSettings;
@@ -59,7 +59,7 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
         Lok.debug("MelDriveServerService.onSyncReceived");
         SyncRequest task = (SyncRequest) request.getPayload();
         SyncAnswer answer = new SyncAnswer(cacheDirectory, CachedInitializer.randomId(), FileSyncSettings.CACHE_LIST_SIZE);
-        Warden warden = P.confine(P.read(databaseManager.getFsDao()));
+        BunchOfLocks bunchOfLocks = P.confine(de.mel.auth.tools.lock.P.read(databaseManager.getFsDao()));
         try {
             ISQLResource<GenericFSEntry> delta = databaseManager.getDeltaResource(task.getOldVersion());
             GenericFSEntry next = delta.getNext();
@@ -74,7 +74,7 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            warden.end();
+            bunchOfLocks.end();
         }
     }
 
@@ -107,25 +107,21 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
                 }
             } else if (unknownJob instanceof Job.ConnectionAuthenticatedJob) {
                 Job.ConnectionAuthenticatedJob authenticatedJob = (Job.ConnectionAuthenticatedJob) unknownJob;
-                P.confine(databaseManager.getTransferDao())
-                        .run(() -> {
-                            ClientData clientData = fileSyncSettings.getServerSettings().getClientData(authenticatedJob.getPartnerCertificate().getId().v());
-                            if (clientData != null) {
-                                databaseManager.getTransferDao().flagStateForRemainingTransfers(clientData.getCertId(), clientData.getServiceUuid(), TransferState.NOT_STARTED);
-                                syncHandler.researchTransfers();
-                            }
-                        })
-                        .end();
+                P.confine(databaseManager.getTransferDao()).run(() -> {
+                    ClientData clientData = fileSyncSettings.getServerSettings().getClientData(authenticatedJob.getPartnerCertificate().getId().v());
+                    if (clientData != null) {
+                        databaseManager.getTransferDao().flagStateForRemainingTransfers(clientData.getCertId(), clientData.getServiceUuid(), TransferState.NOT_STARTED);
+                        syncHandler.researchTransfers();
+                    }
+                }).end();
             } else if (unknownJob instanceof Job.CertificateSpottedJob) {
                 // reset the remaining transfers so we can try again
                 Job.CertificateSpottedJob spottedJob = (Job.CertificateSpottedJob) unknownJob;
-                P.confine(databaseManager.getTransferDao())
-                        .run(() -> {
-                            ClientData clientData = fileSyncSettings.getServerSettings().getClientData(spottedJob.getPartnerCertificate().getId().v());
-                            databaseManager.getTransferDao().flagStateForRemainingTransfers(clientData.getCertId(), clientData.getServiceUuid(), TransferState.NOT_STARTED);
-                            syncHandler.researchTransfers();
-                        })
-                        .end();
+                P.confine(databaseManager.getTransferDao()).run(() -> {
+                    ClientData clientData = fileSyncSettings.getServerSettings().getClientData(spottedJob.getPartnerCertificate().getId().v());
+                    databaseManager.getTransferDao().flagStateForRemainingTransfers(clientData.getCertId(), clientData.getServiceUuid(), TransferState.NOT_STARTED);
+                    syncHandler.researchTransfers();
+                }).end();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -162,10 +158,10 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
             StageDao stageDao = databaseManager.getStageDao();
             //fsDao.unlockRead();
             if (stageDao.stageSetHasContent(stageSetId)) {
-                Warden warden = P.confine(fsDao);
+                BunchOfLocks bunchOfLocks = P.confine(fsDao);
                 //todo conflict checks
-                N.r(() -> syncHandler.commitStage(stageSetId, warden));
-                warden.end();
+                N.r(() -> syncHandler.commitStage(stageSetId, bunchOfLocks, null));
+                bunchOfLocks.end();
                 Lok.debug("committed stageset " + stageSetId);
                 propagateNewVersion();
             } else {
@@ -192,7 +188,7 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
         return (stageSetId, transaction) -> N.r(() -> {
             databaseManager.updateVersion();
             if (stageSetId != null) {
-                syncHandler.commitStage(stageSetId, transaction);
+                syncHandler.commitStage(stageSetId, transaction, null);
             } else {
                 Lok.debug("MelDriveServerService.done(). StageSet was empty");
             }

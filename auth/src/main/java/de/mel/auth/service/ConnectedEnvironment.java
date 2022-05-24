@@ -1,5 +1,6 @@
 package de.mel.auth.service;
 
+import de.mel.auth.tools.lock2.BunchOfLocks;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -12,7 +13,7 @@ import de.mel.auth.socket.MelAuthSocket;
 import de.mel.auth.socket.MelValidationProcess;
 import de.mel.auth.socket.process.transfer.MelIsolatedFileProcess;
 import de.mel.auth.tools.N;
-import de.mel.auth.tools.lock.P;
+import de.mel.auth.tools.lock2.P;
 import de.mel.auth.tools.lock.Warden;
 import de.mel.sql.SqlQueriesException;
 
@@ -44,9 +45,9 @@ public class ConnectedEnvironment {
         DeferredObject<MelValidationProcess, Exception, Void> deferred = new DeferredObject<>();
         long certificateId = certificate.getId().v();
         // check if already connected via id and address
-        Warden warden = null;
+        BunchOfLocks bunchOfLocks = null;
         try {
-            warden = P.confine(P.read(this));
+            bunchOfLocks = P.confine(P.read(this));
             MelAuthSocket def = isCurrentlyConnecting(certificateId);
             if (def != null) {
                 return def.getConnectJob();
@@ -87,8 +88,8 @@ public class ConnectedEnvironment {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (warden != null) {
-                warden.end();
+            if (bunchOfLocks != null) {
+                bunchOfLocks.end();
             }
         }
         return deferred;
@@ -100,10 +101,10 @@ public class ConnectedEnvironment {
 
         DeferredObject<MelValidationProcess, Exception, Void> deferred = new DeferredObject<>();
         MelValidationProcess mvp;
-        Warden warden = null;
+        BunchOfLocks bunchOfLocks = null;
         // there are two try catch blocks because the connection code might be interrupted and needs to end the transaction under any circumstances
         try {
-            warden = P.confine(this);
+            bunchOfLocks = P.confine(this);
             Lok.debug("connect to: " + address + "," + port + "," + portCert + ",reg=" + regOnUnkown);
             MelAuthSocket def = isCurrentlyConnecting(address, port, portCert);
             if (def != null) {
@@ -127,7 +128,7 @@ public class ConnectedEnvironment {
                 melAuthService.execute(new ConnectWorker(melAuthService, melAuthSocket));
             }
         } finally {
-            warden.end();
+            bunchOfLocks.end();
         }
         return deferred;
     }
@@ -139,7 +140,7 @@ public class ConnectedEnvironment {
     boolean registerValidationProcess(MelValidationProcess validationProcess) {
         if (validationProcess.isClosed())
             return false;
-        Warden warden = P.confine(this);
+        BunchOfLocks bunchOfLocks = P.confine(this);
         try {
             MelValidationProcess existingProcess = idValidateProcessMap.get(validationProcess.getConnectedId());
             if (existingProcess != null) {
@@ -155,7 +156,7 @@ public class ConnectedEnvironment {
         } catch (Exception e) {
             return false;
         } finally {
-            warden.end();
+            bunchOfLocks.end();
         }
     }
 
@@ -254,7 +255,7 @@ public class ConnectedEnvironment {
 
     public void shutDown() {
         Lok.debug("attempting shutdown");
-        Warden warden = P.confine(this);
+        BunchOfLocks bunchOfLocks = P.confine(this);
         N.forEachAdvIgnorantly(currentlyConnectingAddresses, (stoppable, index, s, melAuthSocket) -> {
             if (melAuthSocket.getConnectJob() != null)
                 melAuthSocket.getConnectJob().reject(new Exception("shutting down"));
@@ -265,14 +266,14 @@ public class ConnectedEnvironment {
         });
         currentlyConnectingAddresses.clear();
         currentlyConnectingCertIds.clear();
-        warden.end();
+        bunchOfLocks.end();
         Lok.debug("success");
     }
 
     public void onSocketClosed(MelAuthSocket melAuthSocket) {
-        Warden warden = null;
+        BunchOfLocks bunchOfLocks = null;
         try {
-            warden = P.confine(this);
+            bunchOfLocks = P.confine(this);
             // find the socket in the connected environment and remove it
             AConnectJob connectJob = melAuthSocket.getConnectJob();
             if (melAuthSocket.isValidated() && melAuthSocket.getProcess() instanceof MelValidationProcess) {
@@ -285,7 +286,7 @@ public class ConnectedEnvironment {
                 } else if (connectJob.getAddress() != null) {
                     N.r(() -> removeCurrentlyConnecting(connectJob.getAddress(), connectJob.getPort(), connectJob.getPortCert()));
                 }
-                warden.end();
+                bunchOfLocks.end();
                 N.oneLine(() -> {
                     if (connectJob.isPending()) {
                         connectJob.reject(new Exception("connection closed"));
@@ -294,8 +295,8 @@ public class ConnectedEnvironment {
             }
         } finally {
 
-            if (warden != null) {
-                warden.end();
+            if (bunchOfLocks != null) {
+                bunchOfLocks.end();
             }
         }
     }

@@ -162,7 +162,7 @@ create TABLE waste
     id       INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     name     TEXT    NOT NULL,
     hash     TEXT    NOT NULL,
-    deleted  DATETIME,
+    deleted  TEXT,
     modified INTEGER NOT NULL,
     size     INTEGER NOT NULL,
     inode    INTEGER NOT NULL UNIQUE,

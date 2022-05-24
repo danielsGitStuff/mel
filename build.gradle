@@ -1,6 +1,6 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext.KOTLIN_V = '1.6.10'
+    ext.KOTLIN_V = '1.6.20'
     ext.KOTLIN_CR_V = '1.6.1'
     ext.dep_junit4 = "junit:junit:4.13"
     // get latest commit

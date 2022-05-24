@@ -20,7 +20,7 @@ public class Waste extends SQLTableObject {
     private static final String FLAG_DELETE = "f_delete";
     private Pair<String> hash = new Pair<>(String.class, HASH);
     private Pair<String> name = new Pair<>(String.class, NAME);
-    private Pair<Date> deleted = new Pair<>(Date.class, DELETED);
+    private Pair<String> deleted = new Pair<>(String.class, DELETED);
     private Pair<Long> size = new Pair<>(Long.class, SIZE);
     private Pair<Long> inode = new Pair<>(Long.class, INODE);
     private Pair<Long> modified = new Pair<>(Long.class, MODIFIED);
@@ -51,7 +51,7 @@ public class Waste extends SQLTableObject {
         return id;
     }
 
-    public Pair<Date> getDeleted() {
+    public Pair<String> getDeleted() {
         return deleted;
     }
 

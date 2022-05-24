@@ -1,9 +1,9 @@
-package de.mel.auth.tools.lock3;
+package de.mel.auth.tools.lock2;
 
-import de.mel.auth.tools.lock.Warden;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -14,7 +14,7 @@ public class LockObjectEntry implements Comparable<LockObjectEntry> {
     private final Object object;
     private boolean debugLocked;
 
-    private static final Map<Object, LockObjectEntry> INSTANCES = new HashMap<>();
+    private static final Map<Object, LockObjectEntry> INSTANCES = new IdentityHashMap<>();
     private static final String LOCKER = "lock str";
 
     public static LockObjectEntry create(Object object) {

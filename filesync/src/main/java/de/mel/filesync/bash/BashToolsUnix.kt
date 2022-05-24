@@ -30,6 +30,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
     // use this command to return the result of the actual command in English.
     private val unfrench = "LC_ALL='C' "
     protected var readCreated: Boolean = true
+
     // todo use BashTools.binPath
     protected var BIN_PATH = "bash"
     private val executorService = Executors.newCachedThreadPool()
@@ -74,9 +75,9 @@ open class BashToolsUnix : BashTools<StandardFile>() {
 
     protected fun escapePath(path: String): String {
         return path.replace("\"".toRegex(), "\\\\\"")
-                .replace("`".toRegex(), "\\\\`")
-                .replace("\\$".toRegex(), "\\\\\\$")
-                .replace(" ".toRegex(), "\\ ")
+            .replace("`".toRegex(), "\\\\`")
+            .replace("\\$".toRegex(), "\\\\\\$")
+            .replace(" ".toRegex(), "\\ ")
     }
 
 
@@ -100,6 +101,10 @@ open class BashToolsUnix : BashTools<StandardFile>() {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }
+        if (line == null) {
+            Lok.debug("line is null")
+            throw IOException("file/dir ${file.absolutePath} does not exist")
         }
         val parts = line.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         val iNode = java.lang.Long.parseLong(parts[0])

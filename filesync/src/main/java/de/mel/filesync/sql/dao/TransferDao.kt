@@ -5,6 +5,7 @@ import de.mel.auth.tools.N
 import de.mel.filesync.sql.*
 import de.mel.filesync.tasks.AvailHashEntry
 import de.mel.sql.*
+import de.mel.sql.transform.SqlResultTransformer
 import java.util.*
 
 /**
@@ -143,7 +144,7 @@ class TransferDao : Dao {
     @Throws(SqlQueriesException::class)
     fun hasNotStartedTransfers(certId: Long?, serviceUuid: String): Boolean {
         val query = "select count(*)>0 from " + dummy.tableName + " where " + dummy.certId.k() + "=? and " + dummy.serviceUuid.k() + "=?"
-        val result = sqlQueries.queryValue(query, Int::class.java, ISQLQueries.args(certId, serviceUuid))
+        val result = sqlQueries.queryValue(query, SqlResultTransformer.CLASS_INT, ISQLQueries.args(certId, serviceUuid))
         return SqliteConverter.intToBoolean(result)!!
     }
 
@@ -156,14 +157,14 @@ class TransferDao : Dao {
     @Throws(SqlQueriesException::class)
     fun count(certId: Long?, serviceUuid: String): Long {
         val query = "select count (*) from " + dummy.tableName + " where " + dummy.certId.k() + "=? and " + dummy.serviceUuid.k() + "=?"
-        return sqlQueries.queryValue(query, Long::class.java, ISQLQueries.args(certId, serviceUuid))
+        return sqlQueries.queryValue(query, SqlResultTransformer.CLASS_LONG, ISQLQueries.args(certId, serviceUuid))
     }
 
     @Throws(SqlQueriesException::class)
     fun countRemaining(certId: Long?, serviceUuid: String): Long {
         val query = "select count (*) from ${dummy.tableName} where ${dummy.certId.k()}=? and ${dummy.serviceUuid.k()}=? " +
                 "and ${dummy.state.k()}=?"
-        return sqlQueries.queryValue(query, Long::class.java, ISQLQueries.args(certId, serviceUuid, TransferState.NOT_STARTED))
+        return sqlQueries.queryValue(query, SqlResultTransformer.CLASS_LONG, ISQLQueries.args(certId, serviceUuid, TransferState.NOT_STARTED))
     }
 
     @Throws(SqlQueriesException::class)
@@ -171,7 +172,7 @@ class TransferDao : Dao {
         val query = ("select count (*) from " + dummy.tableName + " where " + dummy.state.k() + "=? and "
                 + dummy.certId.k() + "=? and "
                 + dummy.serviceUuid.k() + "=?")
-        return sqlQueries.queryValue(query, Int::class.java, ISQLQueries.args(true, certId, serviceUuid))
+        return sqlQueries.queryValue(query, SqlResultTransformer.CLASS_INT, ISQLQueries.args(true, certId, serviceUuid))
     }
 
     @Throws(SqlQueriesException::class)
@@ -266,7 +267,7 @@ class TransferDao : Dao {
     @Throws(SqlQueriesException::class)
     fun hasHash(hash: String): Boolean {
         val query = "select count(1) from " + dummy.tableName + " where " + dummy.hash.k() + "=?"
-        val count = sqlQueries.queryValue(query, Long::class.java, ISQLQueries.args(hash))
+        val count = sqlQueries.queryValue(query, SqlResultTransformer.CLASS_LONG, ISQLQueries.args(hash))
         return count > 0L
     }
 

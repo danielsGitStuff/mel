@@ -8,7 +8,8 @@ import de.mel.auth.file.IFile;
 import de.mel.auth.file.StandardFile;
 import de.mel.auth.tools.Cryptor;
 import de.mel.auth.tools.N;
-import de.mel.auth.tools.lock.P;
+import de.mel.auth.tools.lock2.BunchOfLocks;
+import de.mel.auth.tools.lock2.P;
 import de.mel.auth.tools.lock.Warden;
 import de.mel.sql.Hash;
 import de.mel.sql.ISQLQueries;
@@ -156,8 +157,8 @@ public class CertificateManager extends FileRelatedManager {
     public synchronized Certificate importCertificate(X509Certificate x509Certificate, String name, String answerUuidString, String address, Integer port, Integer portCert) throws CertificateException, SqlQueriesException, KeyStoreException, NoSuchAlgorithmException, IOException {
         AtomicReference<Certificate> certificate = new AtomicReference<>(new Certificate());
         String uuid = getNewUUID();
-        Warden warden = P.confine(certificateDao);
-        warden.run(() -> {
+        BunchOfLocks bunchOfLocks = P.confine(certificateDao);
+        bunchOfLocks.run(() -> {
             UUID answerUuid = null;
             //make sure answeruuid really is an uuid
             if (answerUuidString != null) {
@@ -182,8 +183,8 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     private void loadTrustedCertificates() throws SqlQueriesException, KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
-        Warden warden = P.confine(P.read(certificateDao));
-        warden.run(() -> {
+        BunchOfLocks bunchOfLocks = P.confine(P.read(certificateDao));
+        bunchOfLocks.run(() -> {
             for (Certificate dbCert : certificateDao.getTrustedCertificates()) {
                 X509Certificate cert = loadX509CertificateFromBytes(dbCert.getCertificate().v());
                 storeCertInKeyStore(dbCert.getUuid().v(), cert);
@@ -290,10 +291,6 @@ public class CertificateManager extends FileRelatedManager {
     public static UUID randomUUID() {
         // you can use the next few lines to create debuggable UUIDs
         Lok.error("DEBUG UUIDs ENABLED!");
-        Lok.error("DEBUG UUIDs ENABLED!");
-        Lok.error("DEBUG UUIDs ENABLED!");
-        Lok.error("DEBUG UUIDs ENABLED!");
-        Lok.error("DEBUG UUIDs ENABLED!");
         int value = UUID_DEBUG.getAndIncrement();
         String str = "00000000-a00a-a00a-a00a-" + String.format("%08d", value);
         return UUID.fromString(str);
@@ -359,11 +356,11 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     public Certificate addAnswerUuid(Long certId, String ownUuid) throws SqlQueriesException {
-        Warden warden = P.confine(certificateDao);
+        BunchOfLocks bunchOfLocks = P.confine(certificateDao);
         Certificate partnerCertificate = certificateDao.getTrustedCertificateById(certId);
         partnerCertificate.setAnswerUuid(ownUuid);
         certificateDao.updateCertificate(partnerCertificate);
-        warden.end();
+        bunchOfLocks.end();
         return partnerCertificate;
     }
 
@@ -423,9 +420,9 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     public Certificate getTrustedCertificateByHash(String hash) throws SqlQueriesException {
-        Warden<Certificate> warden = P.confine(P.read(certificateDao));
-        Certificate certificate = warden.runResult(() -> certificateDao.getTrustedCertificateByHash(hash)).get();
-        warden.end();
+        BunchOfLocks bunchOfLocks = P.confine(P.read(certificateDao));
+        Certificate certificate = bunchOfLocks.runResult(() -> certificateDao.getTrustedCertificateByHash(hash));
+        bunchOfLocks.end();
         return certificate;
     }
 

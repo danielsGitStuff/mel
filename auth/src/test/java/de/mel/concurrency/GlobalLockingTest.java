@@ -1,23 +1,26 @@
-package de.mel.auth.tools;
+package de.mel.concurrency;
 
-import de.mel.Lok;
-import de.mel.auth.tools.lock3.BunchOfLocks;
-import de.mel.auth.tools.lock3.P;
+import de.mel.auth.tools.N;
+import de.mel.auth.tools.lock2.BunchOfLocks;
+import de.mel.auth.tools.lock2.LockObjectEntry;
+import de.mel.auth.tools.lock2.P;
 import de.mel.testing.LockTest;
 import de.mel.testing.TestRunnable;
 import org.junit.After;
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import java.util.Map;
 
-public class XTest extends LockTest {
+import static org.junit.Assert.*;
+
+public class GlobalLockingTest extends LockTest {
 
     private String locker1, locker2;
     private BunchOfLocks bol1, bol2, bol3, bol4;
 
     @Override
     public void beforeImpl() {
+        P.enableDebugPrinting();
         locker1 = "l 1";
         locker2 = "l 2";
         bol1 = null;
@@ -133,7 +136,7 @@ public class XTest extends LockTest {
      * t1, t3 finish. t2 does not cause it depends on t1, which does not exit.
      */
     @Test
-    public void mixed1a() {
+    public void mixed1() {
         TestRunnable t1 = () -> {
             bol1 = P.confine(P.read(locker1, locker2)).setName("A");
             P.access(bol1);
@@ -161,7 +164,7 @@ public class XTest extends LockTest {
      * all finish. t2 waits for t1 and t3
      */
     @Test
-    public void mixed1b() {
+    public void mixed2() {
         TestRunnable t1 = () -> {
             bol1 = P.confine(P.read(locker1, locker2)).setName("A");
             P.access(bol1);
@@ -191,7 +194,7 @@ public class XTest extends LockTest {
      * t1 exits, t3 waits for t2
      */
     @Test
-    public void mixed2() {
+    public void mixed3() {
         TestRunnable t1 = () -> {
             bol1 = P.confine(P.read(locker1, locker2)).setName("A");
             P.access(bol1);
@@ -220,7 +223,7 @@ public class XTest extends LockTest {
      * t1, t2, t3 finish in that order, no one waits for another {@link Thread}
      */
     @Test
-    public void mixed3() {
+    public void mixed6() {
         TestRunnable t1 = () -> {
             bol1 = P.confine(P.read(locker1, locker2)).setName("A");
             P.access(bol1);
@@ -296,5 +299,42 @@ public class XTest extends LockTest {
         killAfter(200, t1, t2);
         assertTrue(reach1.get());
         assertTrue(reach2.get());
+    }
+
+    private static Map<Object, LockObjectEntry> getLockObjectEntriesInstanceMap() throws NoSuchFieldException, IllegalAccessException {
+        Map<Object, LockObjectEntry> instances = (Map<Object, LockObjectEntry>) N.reflection.getStaticProperty(LockObjectEntry.class, "INSTANCES", Map.class);
+        return instances;
+    }
+
+    @Test
+    public void free1() throws NoSuchFieldException, IllegalAccessException {
+        Map<Object, LockObjectEntry> instances = GlobalLockingTest.getLockObjectEntriesInstanceMap();
+        assertEquals(0, instances.size());
+        bol1 = P.confine(locker1);
+        assertEquals(1, instances.size());
+        bol1.end();
+        assertEquals(0, instances.size());
+    }
+
+    @Test
+    public void free2() throws NoSuchFieldException, IllegalAccessException {
+        Map<Object, LockObjectEntry> instances = GlobalLockingTest.getLockObjectEntriesInstanceMap();
+        assertEquals(0, instances.size());
+        bol1 = P.confine(locker1);
+        bol2 = P.confine(locker2);
+        assertEquals(2, instances.size());
+        bol1.end();
+        bol2.end();
+        assertEquals(0, instances.size());
+    }
+
+    @Test
+    public void free3() throws NoSuchFieldException, IllegalAccessException {
+        Map<Object, LockObjectEntry> instances = GlobalLockingTest.getLockObjectEntriesInstanceMap();
+        assertEquals(0, instances.size());
+        bol1 = P.confine(locker1, locker2);
+        assertEquals(2, instances.size());
+        bol1.end();
+        assertEquals(0, instances.size());
     }
 }

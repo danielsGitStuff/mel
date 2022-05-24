@@ -3,11 +3,10 @@ package de.mel.dump
 import de.mel.Lok
 import de.mel.auth.data.access.CertificateManager
 import de.mel.auth.service.MelAuthService
-import de.mel.auth.service.MelAuthServiceImpl
 import de.mel.auth.socket.process.`val`.Request
 import de.mel.auth.tools.N
-import de.mel.auth.tools.lock.P
-import de.mel.auth.tools.lock.Warden
+import de.mel.auth.tools.lock2.P
+import de.mel.auth.tools.lock2.BunchOfLocks
 import de.mel.filesync.data.Commit
 import de.mel.filesync.service.sync.ServerSyncHandler
 import de.mel.filesync.sql.DbTransferDetails
@@ -21,7 +20,7 @@ import java.time.ZoneOffset
 class TargetSyncHandler(melAuthService: MelAuthService, targetService: TargetService) : ServerSyncHandler(melAuthService, targetService) {
     override fun handleCommit(request: Request<*>?) {
         val commit = request!!.payload as Commit
-        val warden: Warden<*> = P.confine(fsDao)
+        val warden: BunchOfLocks = P.confine(fsDao)
         try {
             executeCommit(request, commit, warden)
         } finally {
@@ -33,15 +32,15 @@ class TargetSyncHandler(melAuthService: MelAuthService, targetService: TargetSer
 
     private var booted = false
 
-    override fun commitStage(stageSetId: Long, warden: Warden<*>, stageIdFsIdMap: MutableMap<Long, Long>?) {
+    override fun commitStage(stageSetId: Long, bunchOfLocks: BunchOfLocks, stageIdFsIdMap: MutableMap<Long, Long>?) {
         val stageSet = stageDao.getStageSetById(stageSetId)
         // just let the first fs commit through, it is the boot index stage set
         if (stageSet.fromFs() && !booted) {
             booted = true
-            super.commitStage(stageSetId, warden, stageIdFsIdMap)
+            super.commitStage(stageSetId, bunchOfLocks, stageIdFsIdMap)
             return
         }
-        warden.run {
+        bunchOfLocks.run {
             val localVersion = fsDao.latestVersion + 1
             // put new stuff in place
             N.readSqlResource(stageDao.getNotDeletedStagesByStageSet(stageSetId)) { sqlResource: ISQLResource<Stage>, stage: Stage ->

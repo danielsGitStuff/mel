@@ -3,12 +3,10 @@ package de.mel.filesync.transfer
 import de.mel.DeferredRunnable
 import de.mel.Lok
 import de.mel.auth.service.MelAuthService
-import de.mel.auth.service.MelAuthServiceImpl
 import de.mel.auth.socket.process.transfer.MelIsolatedFileProcess
 import de.mel.auth.socket.process.transfer.MelIsolatedProcess
 import de.mel.auth.tools.CountLock
 import de.mel.auth.tools.N
-import de.mel.auth.tools.lock.P
 import de.mel.filesync.data.FileSyncStrings
 import de.mel.filesync.nio.FileDistributionTask
 import de.mel.filesync.service.MelFileSyncService
@@ -42,6 +40,8 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
     val waitLock = CountLock()
 
     init {
+        if (melAuthService.name=="MAClient")
+            Lok.debug("debug tm")
         maintenance()
     }
 
@@ -91,7 +91,7 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
 
 
     override fun onIsolatedProcessEnds(isolatedProcess: MelIsolatedProcess) {
-        val transaction = P.confine(isolatedProcessesMap, activeTFSRunnables)
+        val transaction = de.mel.auth.tools.lock2.P.confine(isolatedProcessesMap, activeTFSRunnables)
         try {
             // keep the house clean
             isolatedProcessesMap.remove(isolatedProcess.partnerCertificateId)
@@ -112,7 +112,7 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
      * THIS METHOD BLOCKS!
      */
     private fun connect2RemainingInstances(dbTransferSets: MutableList<DbTransferDetails>) {
-        val transaction = P.confine(isolatedProcessesMap)
+        val transaction = de.mel.auth.tools.lock2.P.confine(isolatedProcessesMap)
         val atomicInt = AtomicInteger(dbTransferSets.size)
         fun checkAtom() {
             // check if all connections hve been established or failed.
@@ -133,7 +133,7 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
                         startTransfersForIsoProcess(isolatedFileProcess)
                     }.fail {
                         val c = transferDetails
-                        P.confine(transferDao).run {
+                        de.mel.auth.tools.lock2.P.confine(transferDao).run {
                             transferDao.flagStateForRemainingTransfers(transferDetails.certId.v(), transferDetails.serviceUuid.v(), TransferState.SUSPENDED)
                         }.end()
                         checkAtom()
@@ -161,14 +161,14 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
             } else {
 
                 wastebin.restoreFsFiles()
-                val fsTransaction = P.confine(fsDao)
+                val fsTransaction = de.mel.auth.tools.lock2.P.confine(fsDao)
                 try {
-                    fsDao.searchTransfer().forEach { hash ->
+                    fsDao.searchFsForTransfers().forEach { hash ->
                         val fsFiles = fsDao.getSyncedFilesByHash(hash)
                         if (fsFiles?.size!! > 0) {
                             val fsFile = fsFiles[0]
                             val aFile = fsDao.getFileByFsFile(melFileSyncService.fileSyncSettings.rootDirectory, fsFile)
-                            // the syncHandler moves the file into its places if equired.
+                            // the syncHandler moves the file into its places if required.
                             // if not, the transfer entry is obsolete and can be deleted
                             if (!syncHandler.onFileTransferred(aFile, hash, fsTransaction, fsFile))
                                 transferDao.flagForDeletionByHash(hash)
@@ -179,7 +179,7 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
                     fsTransaction.end()
                 }
                 connect2RemainingInstances(groupedTransferSets)
-                val isoTransaction = P.confine(isolatedProcessesMap)
+                val isoTransaction = de.mel.auth.tools.lock2.P.confine(isolatedProcessesMap)
                 try {
                     val values = mutableListOf<MelIsolatedFileProcess>()
                     values.addAll(isolatedProcessesMap.values)
@@ -205,7 +205,7 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
 
 
     private fun retrieveFromService(fileProcess: MelIsolatedFileProcess) {
-        val transaction = P.confine(activeTFSRunnables)
+        val transaction = de.mel.auth.tools.lock2.P.confine(activeTFSRunnables)
         try {
             if (!activeTFSRunnables.containsKey(fileProcess)) {
                 val retrieveRunnable = TransferFromServiceRunnable(this, fileProcess)
@@ -228,7 +228,7 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
     }
 
     override fun stop() {
-        P.confine(this).run {
+        de.mel.auth.tools.lock2.P.confine(this).run {
             super.stop()
             stopped = true
             N.r {
@@ -242,7 +242,7 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
     }
 
     fun start() {
-        P.confine(this).run {
+        de.mel.auth.tools.lock2.P.confine(this).run {
             stopped = false
             melFileSyncService.execute(this)
             waitLock.unlock()
@@ -255,7 +255,7 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
     }
 
     fun onTransferFromServiceFinished(retrieveRunnable: TransferFromServiceRunnable) {
-        val transaction = P.confine(activeTFSRunnables)
+        val transaction = de.mel.auth.tools.lock2.P.confine(activeTFSRunnables)
         try {
             with(retrieveRunnable.fileProcess) {
                 activeTFSRunnables.remove(this)

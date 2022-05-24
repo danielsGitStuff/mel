@@ -1,22 +1,21 @@
-package de.mel.auth.tools.lock3;
+package de.mel.auth.tools.lock2;
 
+import de.mel.auth.tools.N;
 import de.mel.auth.tools.lock.Warden;
-import de.mel.auth.tools.lock2.Read;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class BunchOfLocks {
     private List<LockObjectEntry> readLocks = new ArrayList<>();
     private List<LockObjectEntry> writeLocks = new ArrayList<>();
 
-    private static final Map<Object, LockObjectEntry> globalReadObjectLockMap = new HashMap<>();
-    private static final Map<Object, LockObjectEntry> globalWriteObjectLockMap = new HashMap<>();
+    private static final Map<Object, LockObjectEntry> globalReadObjectLockMap = new IdentityHashMap<>();
+    private static final Map<Object, LockObjectEntry> globalWriteObjectLockMap = new IdentityHashMap<>();
 
     private String name = null;
+
+    private List<Warden.TransactionRunnable> afterRunnables = new ArrayList<>();
 
 
     public BunchOfLocks(Object... objects) {
@@ -47,13 +46,47 @@ public class BunchOfLocks {
     }
 
     public BunchOfLocks run(Warden.TransactionRunnable runnable) {
-
         try {
+            P.access(this);
             runnable.run();
         } catch (Exception e) {
             throw new RuntimeException(e);
+        } finally {
+            P.exit(this);
         }
         return this;
+    }
+
+    /**
+     * Convenience function that runs the runnable after locking and returns the result.
+     * The {@link BunchOfLocks} ends afterwards!
+     *
+     * @param resultRunnable
+     * @param <T>
+     * @return
+     */
+    public <T> T runResult(Warden.TransactionResultRunnable<T> resultRunnable) {
+        T t = null;
+        try {
+            P.access(this);
+            t = resultRunnable.run();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            P.end(this);
+        }
+        return t;
+    }
+
+
+    public BunchOfLocks end() {
+        P.end(this);
+        N.forEachIgnorantly(this.afterRunnables, Warden.TransactionRunnable::run);
+        return this;
+    }
+
+    public void after(Warden.TransactionRunnable after) {
+        this.afterRunnables.add(after);
     }
 
     public List<LockObjectEntry> getReadLocks() {
