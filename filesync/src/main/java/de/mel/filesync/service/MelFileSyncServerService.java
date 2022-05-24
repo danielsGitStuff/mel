@@ -9,7 +9,6 @@ import de.mel.auth.jobs.ServiceRequestHandlerJob;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
-import de.mel.auth.tools.lock.Warden;
 import de.mel.auth.tools.lock2.BunchOfLocks;
 import de.mel.auth.tools.lock2.P;
 import de.mel.core.serialize.SerializableEntity;
@@ -59,7 +58,7 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
         Lok.debug("MelDriveServerService.onSyncReceived");
         SyncRequest task = (SyncRequest) request.getPayload();
         SyncAnswer answer = new SyncAnswer(cacheDirectory, CachedInitializer.randomId(), FileSyncSettings.CACHE_LIST_SIZE);
-        BunchOfLocks bunchOfLocks = P.confine(de.mel.auth.tools.lock.P.read(databaseManager.getFsDao()));
+        BunchOfLocks bunchOfLocks = P.confine(P.read(databaseManager.getFsDao()));
         try {
             ISQLResource<GenericFSEntry> delta = databaseManager.getDeltaResource(task.getOldVersion());
             GenericFSEntry next = delta.getNext();

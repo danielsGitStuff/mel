@@ -10,7 +10,6 @@ import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.Order;
 import de.mel.auth.tools.WaitLock;
-import de.mel.auth.tools.lock.Warden;
 import de.mel.auth.tools.lock2.BunchOfLocks;
 import de.mel.auth.tools.lock2.P;
 import de.mel.filesync.FileSyncSyncListener;
@@ -166,7 +165,7 @@ public class ClientSyncHandler extends SyncHandler {
     private void syncToServerLocked(Long stageSetId) throws SqlQueriesException, InterruptedException {
         // stage is complete. first lock on FS
         StageDao stageDao = fileSyncDatabaseManager.getStageDao();
-        BunchOfLocks bunchOfLocks = P.confine(de.mel.auth.tools.lock.P.read(stageDao));
+        BunchOfLocks bunchOfLocks = P.confine(P.read(stageDao));
         try {
             if (stageDao.stageSetHasContent(stageSetId)) {
                 //all other stages we can find at this point are complete/valid and wait at this point.

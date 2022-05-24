@@ -1,7 +1,6 @@
 package de.mel.auth.tools.lock2;
 
 import de.mel.auth.tools.N;
-import de.mel.auth.tools.lock.Warden;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -15,7 +14,7 @@ public class BunchOfLocks {
 
     private String name = null;
 
-    private List<Warden.TransactionRunnable> afterRunnables = new ArrayList<>();
+    private List<LockRunnables.TransactionRunnable> afterRunnables = new ArrayList<>();
 
 
     public BunchOfLocks(Object... objects) {
@@ -45,7 +44,7 @@ public class BunchOfLocks {
         return "BOL " + (this.name == null ? "" : this.name);
     }
 
-    public BunchOfLocks run(Warden.TransactionRunnable runnable) {
+    public BunchOfLocks run(LockRunnables.TransactionRunnable runnable) {
         try {
             P.access(this);
             runnable.run();
@@ -65,7 +64,7 @@ public class BunchOfLocks {
      * @param <T>
      * @return
      */
-    public <T> T runResult(Warden.TransactionResultRunnable<T> resultRunnable) {
+    public <T> T runResult(LockRunnables.TransactionResultRunnable<T> resultRunnable) {
         T t = null;
         try {
             P.access(this);
@@ -81,11 +80,11 @@ public class BunchOfLocks {
 
     public BunchOfLocks end() {
         P.end(this);
-        N.forEachIgnorantly(this.afterRunnables, Warden.TransactionRunnable::run);
+        N.forEachIgnorantly(this.afterRunnables, LockRunnables.TransactionRunnable::run);
         return this;
     }
 
-    public void after(Warden.TransactionRunnable after) {
+    public void after(LockRunnables.TransactionRunnable after) {
         this.afterRunnables.add(after);
     }
 
