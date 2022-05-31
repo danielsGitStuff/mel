@@ -2,7 +2,6 @@ package de.mel.auth.tools.lock2;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -56,5 +55,9 @@ public class LockObjectEntry implements Comparable<LockObjectEntry> {
 
     public Integer getId() {
         return id;
+    }
+
+    public static LockObjectEntry debugGetInstance(Object o) {
+        return INSTANCES.get(o);
     }
 }

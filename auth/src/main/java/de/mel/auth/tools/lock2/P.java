@@ -1,7 +1,6 @@
 package de.mel.auth.tools.lock2;
 
 import de.mel.Lok;
-import de.mel.auth.tools.lock2.Read;
 import de.mel.core.serialize.serialize.tools.StringBuilder;
 
 import java.util.*;
@@ -19,7 +18,7 @@ import java.util.concurrent.Semaphore;
  * <p>
  * <ul>
  *      <li>One write-lock acquires one {@link Semaphore}. If no write is currently happening, no {@link Semaphore} is present.</li>
- *      <li>All read-locks acquires one {@link Semaphore} together.</li>
+ *      <li>All read-locks acquire one {@link Semaphore} together.</li>
  *      <li>The first read-lock acquires the {@link Semaphore}. The following read-locks ignore it.</li>
  *      <li>A write-lock will try to acquire the {@link Semaphore} if it exists.</li>
  *      <li>If no read-locks are currently happening the {@link Semaphore} is not present.</li>
@@ -45,9 +44,13 @@ public class P {
      */
     private static final Map<LockObjectEntry, Set<BunchOfLocks>> associatedWrite = new HashMap<>();
     /**
-     * All {@link BunchOfLocks} that currently lock something.
+     * All {@link BunchOfLocks} that currently (intend to) lock something.
      */
     private static final Set<BunchOfLocks> activeBunches = new HashSet<>();
+    /**
+     * All {@link BunchOfLocks} that are currently successfully locked.
+     */
+    private static final Set<BunchOfLocks> grantedBunches = new HashSet<>();
     /**
      * All {@link BunchOfLocks} that currently exist.
      */
@@ -158,9 +161,16 @@ public class P {
                 Lok.error("BunchOfLocks has already been ended!");
                 return;
             }
-            if (activeBunches.contains(bunchOfLocks)) {
-                Lok.error("BunchOfLocks has already access!!!");
+            if (grantedBunches.contains(bunchOfLocks)) {
+//                Lok.error("BunchOfLocks has already access!!!");
+                Lok.debug("access already granted...");
+                return;
 //                System.exit(2);
+            }
+            if (activeBunches.contains(bunchOfLocks)) {
+                Lok.error("BunchOfLocks has already requested access!");
+                System.exit(2);
+                return;
             }
             P.debug("P.access() called from thread '" + Thread.currentThread().getName() + "'");
             // collect locks required to write
@@ -238,6 +248,11 @@ public class P {
                 throw new RuntimeException(e);
             }
         }
+        synchronized (LOCKER) {
+            // may have benn removed in the meantime
+            if (activeBunches.contains(bunchOfLocks))
+                grantedBunches.add(bunchOfLocks);
+        }
     }
 
     public static void exit(BunchOfLocks bunchOfLocks) {
@@ -245,6 +260,8 @@ public class P {
             if (!existingBunches.contains(bunchOfLocks))
                 return;
             if (!activeBunches.contains(bunchOfLocks))
+                return;
+            if (!grantedBunches.contains(bunchOfLocks))
                 return;
             // take care of write semaphore ownership
             if (writeSemaphoreOwners.containsKey(bunchOfLocks)) {
@@ -278,6 +295,7 @@ public class P {
                 }
             }
             activeBunches.remove(bunchOfLocks);
+            grantedBunches.remove(bunchOfLocks);
         }
     }
 
@@ -321,4 +339,30 @@ public class P {
             }
         }
     }
+
+    public static Set<BunchOfLocks> debugWhoLocksResource(Object lockedObject) {
+        LockObjectEntry entry = LockObjectEntry.debugGetInstance(lockedObject);
+        return associatedGeneral.get(entry);
+    }
+
+    public static Set<BunchOfLocks> debugActiveBunches() {
+        return P.activeBunches;
+    }
+
+    public static PState debugGetPState() {
+        PState p = new PState();
+        p.activeBunches = new HashSet<>(P.activeBunches);
+        p.activeReads = new HashMap<>(P.activeReads);
+        p.activeWrites = new HashMap<>(P.activeWrites);
+        p.associatedRead = new HashMap<>(P.activeWrites);
+        p.associatedWrite = new HashMap<>(P.associatedWrite);
+        p.associatedGeneral = new HashMap<>(P.associatedGeneral);
+        p.existingBunches = new HashSet<>(P.existingBunches);
+        p.grantedBunches = new HashSet<>(P.grantedBunches);
+        p.readSemaphores = new HashMap<>(P.readSemaphores);
+        p.writeSemaphores = new HashMap<>(P.writeSemaphores);
+        p.writeSemaphoreOwners = new HashMap<>(P.writeSemaphoreOwners);
+        return p;
+    }
+
 }
