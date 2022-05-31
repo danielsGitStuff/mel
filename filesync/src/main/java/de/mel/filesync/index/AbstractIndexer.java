@@ -4,6 +4,7 @@ import de.mel.DeferredRunnable;
 import de.mel.Lok;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.IFile;
+import de.mel.auth.tools.Eva;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.Order;
 import de.mel.core.serialize.serialize.tools.OTimer;
@@ -302,7 +303,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 return;
             }
         }
-
+        Eva.runIf(() -> this.databaseManager.melFileSyncService.getFileSyncSettings().isServer() && stage.getName().equals("sub1"), () -> {
+            Lok.debug("debug content hash 211");
+        });
 
         FsDirectory newFsDirectory = new FsDirectory();
         // roam directory if necessary
@@ -478,9 +481,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 v());
         RWLock waitLock = new RWLock().lockWrite();
         stage.setModified(fsBashDetails.getModified())
-                .
+                        .
 
-                        setiNode(fsBashDetails.getiNode());
+                setiNode(fsBashDetails.getiNode());
         if (fsBashDetails.isSymLink())
             stage.setSymLink(fsBashDetails.getSymLinkTarget());
         if (stage.getFsId() != null) {

@@ -56,6 +56,8 @@ class FileSyncDatabaseManager(serviceUuid: String, workingDirectory: File?, val 
 
             val creationScripts = CreationScripts()
             sqliteExecutor.executeStream(creationScripts.createFsEntry.byteInputStream())
+            sqliteExecutor.executeStream(creationScripts.createFsWrite.byteInputStream())
+            sqliteExecutor.executeStream(creationScripts.createFsBackup.byteInputStream())
             sqliteExecutor.executeStream(creationScripts.createRest.byteInputStream())
 
             hadToInitialize = true

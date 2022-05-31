@@ -503,8 +503,8 @@ public class ClientSyncHandler extends SyncHandler {
         long basedOnVersion = lStageSet.getBasedOnVersion().v() >= rStageSet.getBasedOnVersion().v() ? lStageSet.getBasedOnVersion().v() : rStageSet.getBasedOnVersion().v();
         Lok.debug("ClientSyncHandler.mergeStageSets L: " + lStageSet.getId().v() + " R: " + rStageSet.getId().v());
         StageSet mStageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_MERGED, lStageSet.getOriginCertId().v(), lStageSet.getOriginServiceUuid().v()
-                , basedOnVersion
-                , lStageSet.getVersion().v());
+                , lStageSet.getVersion().v()
+                , basedOnVersion);
         final Long mStageSetId = mStageSet.getId().v();
         /**
          * This overwrites changes in the old StageSet with the newer ones.

@@ -4,6 +4,7 @@ import de.mel.Lok
 import de.mel.auth.data.access.CertificateManager
 import de.mel.auth.service.MelAuthService
 import de.mel.auth.socket.process.`val`.Request
+import de.mel.auth.tools.MapWrap
 import de.mel.auth.tools.N
 import de.mel.auth.tools.lock2.P
 import de.mel.auth.tools.lock2.BunchOfLocks
@@ -32,7 +33,7 @@ class TargetSyncHandler(melAuthService: MelAuthService, targetService: TargetSer
 
     private var booted = false
 
-    override fun commitStage(stageSetId: Long, bunchOfLocks: BunchOfLocks, stageIdFsIdMap: MutableMap<Long, Long>?) {
+    override fun commitStage(stageSetId: Long, bunchOfLocks: BunchOfLocks, stageIdFsIdMap: MutableMap<Long, Long>) {
         val stageSet = stageDao.getStageSetById(stageSetId)
         // just let the first fs commit through, it is the boot index stage set
         if (stageSet.fromFs() && !booted) {
@@ -64,7 +65,7 @@ class TargetSyncHandler(melAuthService: MelAuthService, targetService: TargetSer
                     } else {
                         resolveConflict(stage, existing, fsEntry, stageIdFsIdMap)
                     }
-                    stageIdFsIdMap?.set(stage.id, fsEntry.id.v())
+                    stageIdFsIdMap.set(stage.id, fsEntry.id.v())
                     createDirs(fileSyncDatabaseManager.fileSyncSettings.rootDirectory, fsEntry)
                     // transfer if file
                     if (!stage.isDirectory) {
@@ -94,7 +95,7 @@ class TargetSyncHandler(melAuthService: MelAuthService, targetService: TargetSer
      * find an appropriate file name for the new file.
      * new name be like: FILE_NAME[.CREATED][.FS_ID][.RANDOM_UUID].FILE_EXT
      */
-    private fun resolveConflict(stage: Stage, existing: GenericFSEntry, fsEntry: FsEntry, stageIdFsIdMap: MutableMap<Long, Long>?) {
+    private fun resolveConflict(stage: Stage, existing: GenericFSEntry, fsEntry: FsEntry, stageIdFsIdMap: Map<Long, Long>?) {
         val baseName = existing.name.v()
 
         if (baseName == stage.name && stage.isDirectory && existing.isDirectory.v())

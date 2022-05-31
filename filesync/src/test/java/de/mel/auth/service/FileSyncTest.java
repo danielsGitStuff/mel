@@ -92,7 +92,7 @@ public class FileSyncTest {
 
             @Override
             public void onTransfersDone() {
-                Lok.debug("dzz transfer done");
+                Lok.debug("First test file transfer is done");
             }
 
             @Override

@@ -4,6 +4,7 @@ import de.mel.Lok;
 import de.mel.auth.file.IFile;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.socket.process.val.Request;
+import de.mel.auth.tools.MapWrap;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.lock2.BunchOfLocks;
 import de.mel.auth.tools.lock2.P;
@@ -85,7 +86,8 @@ public class ServerSyncHandler extends SyncHandler {
         //map old stage ids with new fs ids
         //fsDao.lockWrite();
         Long oldVersion = fsDao.getLatestVersion();
-        Map<Long, Long> stageIdFsIdMap = new HashMap<>();
+        Map<Long, Long> stageIdFsIdMap = new MapWrap(new HashMap<>());
+
         try {
             this.commitStage(stageSet.getId().v(), bunchOfLocks, stageIdFsIdMap);
         } catch (OutOfSpaceException e) {

@@ -356,18 +356,18 @@ public class StageDao extends Dao.LockingDao {
                 .setBasedOnVersion(basedOnVersion);
         Long id = sqlQueries.insert(stageSet);
 
-        if (id == 3) {
+        if (version!=null && version == 3L) {
             Lok.warn("debugl");
             Eva.eva((eva, count) -> {
                 Lok.debug("ins " + count);
             });
         }
-        if (id == 4) {
-            Lok.warn("debug");
-            Eva.eva((eva, count) -> {
-                Lok.debug("ins " + count);
-            });
-        }
+//        if (id == 4) {
+//            Lok.warn("debug");
+//            Eva.eva((eva, count) -> {
+//                Lok.debug("ins " + count);
+//            });
+//        }
         return stageSet.setId(id);
     }
 

@@ -188,6 +188,23 @@ public class FsDao extends Dao {
 
 
     public FsDirectory getDirectoryById(Long id) throws SqlQueriesException {
+        return getDirectoryById(id, this.dir);
+//        List<Object> whereArgs = new ArrayList<>();
+//        String where = dir.getId().k() + "=?";
+//        if (id != null) {
+//            where = dir.getId().k() + "=?";
+//            whereArgs.add(id);
+//        } else {
+//            where = dir.getId().k() + " is null";
+//        }
+//        List<FsDirectory> result = sqlQueries.load(dir.getAllAttributes(), dir, where, whereArgs);
+//        if (result.size() == 1)
+//            return result.get(0);
+//        return null;
+    }
+
+    public FsDirectory getDirectoryById(Long id, FsDirectory dir) throws SqlQueriesException {
+        dir = dir == null ? this.dir : dir;
         List<Object> whereArgs = new ArrayList<>();
         String where = dir.getId().k() + "=?";
         if (id != null) {

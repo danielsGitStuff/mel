@@ -97,6 +97,11 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     protected void init() {
         populateInsert(parentId, fsId, fsParentId, name, version, contentHash, isDirectory, symLink, iNode, modified, created, deleted, stageSet, size, synced, merged, order, depth, path);
         populateAll(id);
+        contentHash.setSetListener(value -> {
+            if ("20ab36eca9f3d0e19054833b90143f36".equals(value))
+                Lok.debug("debug content hash 12");
+            return value;
+        });
     }
 
     public Long getId() {

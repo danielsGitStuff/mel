@@ -40,19 +40,27 @@ create INDEX fsindex4
 create INDEX fsindex5
     ON fsentry (inode);
     """.trimIndent()
-    val tableName = "fswrite"
+    val fsEntryTable = "fsentry"
+    val fsWriteTable = "fswrite"
+    val backupTableName = "fsEntryBackup"
     val createFsWrite: String
+    val createFsBackup: String
 
     init {
 
-        var str = createFsEntry.replace("fsentry", tableName)
+        var str = createFsEntry.replace("fsentry", fsWriteTable)
         while (str.contains("fsindex"))
             str = str.replaceFirst("fsindex", "fsentryindex_${CertificateManager.randomUUID().toString().replace("-", "")}${Date().time}")
         createFsWrite = str
+
+        str = createFsEntry.replace("fsentry", backupTableName)
+        while (str.contains("fsindex"))
+            str = str.replaceFirst("fsindex", "fsbakindex_${CertificateManager.randomUUID().toString().replace("-", "")}${Date().time}")
+        createFsBackup = str
     }
 
     val createRest =
-            """
+        """
 begin TRANSACTION;
 DROP TABLE IF EXISTS stage;
 DROP TABLE IF EXISTS stageset;

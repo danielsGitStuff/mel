@@ -22,7 +22,7 @@ public class FsDirectory extends FsEntry {
     protected List<FsDirectory> subDirectories = new ArrayList<>();
 
     public FsDirectory() {
-        synced.v(true);
+        synced.v(false);
     }
 
     public boolean isRoot() {

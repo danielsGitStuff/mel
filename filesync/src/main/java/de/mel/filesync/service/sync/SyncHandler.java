@@ -179,7 +179,7 @@ public abstract class SyncHandler {
     }
 
     /**
-     * @param file   file in working directory
+     * @param file         file in working directory
      * @param hash
      * @param bunchOfLocks
      * @return true if the file is new on the device (not a copy). so it can be transferred to other devices.
@@ -239,205 +239,208 @@ public abstract class SyncHandler {
     /**
      * @param stageSetId
      */
-    public void commitStage(Long stageSetId, BunchOfLocks bunchOfLocks, Map<Long, Long> stageIdFsIdMap) throws OutOfSpaceException{
+    public void commitStage(Long stageSetId, BunchOfLocks bunchOfLocks, Map<Long, Long> stageIdFsIdMap) throws OutOfSpaceException {
         /**
          * remember: files that come from fs are always synced. otherwise they might be synced (when merged) or are not synced (from remote)
          */
 
-            bunchOfLocks.run(() -> {
-                try {
-                    // sop files being moved around
-                    fileDistributor.stop();
-                    fsWriteDao.prepare();
-                    StageSet stageSet = stageDao.getStageSetById(stageSetId);
-                    // if version not provided by the stageset we will increase the old one
-                    Long localVersion = stageSet.getVersion().notNull() ? stageSet.getVersion().v() : fileSyncDatabaseManager.getFileSyncSettings().getLastSyncedVersion() + 1;
-                    //check if sufficient space is available
-                    if (!stageSet.fromFs())
-                        quotaManager.freeSpaceForStageSet(stageSetId);
+        bunchOfLocks.run(() -> {
+            try {
+                // sop files being moved around
+                fileDistributor.stop();
+                fsWriteDao.prepare();
+                StageSet stageSet = stageDao.getStageSetById(stageSetId);
+                // if version not provided by the stageset we will increase the old one
+                Long localVersion = stageSet.getVersion().notNull() ? stageSet.getVersion().v() : fileSyncDatabaseManager.getFileSyncSettings().getLastSyncedVersion() + 1;
+                //check if sufficient space is available
+                if (!stageSet.fromFs())
+                    quotaManager.freeSpaceForStageSet(stageSetId);
 
-                    // delete all files
-                    N.readSqlResourceIgnorantly(stageDao.getDeletedFileStagesByStageSet(stageSetId), (stages, stage) -> {
-                        if (stage.getFsIdPair().notNull()) {
-                            wastebin.deleteFsEntry(stage.getFsId());
-                        } else {
-                            Lok.error("DEBUG!!!");
-                            Lok.error("DEBUG!!!");
-                            Lok.error("DEBUG!!!");
-                        }
-                    });
+                // delete all files
+                N.readSqlResourceIgnorantly(stageDao.getDeletedFileStagesByStageSet(stageSetId), (stages, stage) -> {
+                    if (stage.getFsIdPair().notNull()) {
+                        wastebin.deleteFsEntry(stage.getFsId());
+                    } else {
+                        Lok.error("DEBUG!!!");
+                        Lok.error("DEBUG!!!");
+                        Lok.error("DEBUG!!!");
+                    }
+                });
 
-                    // delete all folders
-                    N.readSqlResourceIgnorantly(stageDao.getDeletedDirectoryStagesByStageSet(stageSetId), (sqlResource, dirStage) -> {
-                        if (dirStage.getFsIdPair().notNull())
-                            fsWriteDao.deleteById(dirStage.getFsId());
-                        IFile f = stageDao.getFileByStage(dirStage);
-                        wastebin.deleteUnknown(f);
-                    });
+                // delete all folders
+                N.readSqlResourceIgnorantly(stageDao.getDeletedDirectoryStagesByStageSet(stageSetId), (sqlResource, dirStage) -> {
+                    if (dirStage.getFsIdPair().notNull())
+                        fsWriteDao.deleteById(dirStage.getFsId());
+                    IFile f = stageDao.getFileByStage(dirStage);
+                    wastebin.deleteUnknown(f);
+                });
 
-                    // put new stuff in place
-                    N.escalatingSqlResource(stageDao.getNotDeletedStagesByStageSet(stageSetId), stages -> {
-                        Stage stage = stages.getNext();
-                        while (stage != null) {
-                            if (stage.getFsId() == null) {
-                                if (stage.getIsDirectory()) {
-                                    FsDirectory dir = new FsDirectory();
-                                    dir.getVersion().v(localVersion);
-                                    dir.getContentHash().v(stage.getContentHash());
-                                    dir.getName().v(stage.getName());
-                                    dir.getModified().v(stage.getModified());
-                                    dir.getCreated().v(stage.getCreated());
-                                    dir.getiNode().v(stage.getiNode());
-                                    dir.getSymLink().v(stage.getSymLink());
-                                    dir.getDepth().v(stage.getDepth());
+                // put new stuff in place
+                N.escalatingSqlResource(stageDao.getNotDeletedStagesByStageSet(stageSetId), stages -> {
+                    Stage stage = stages.getNext();
+                    while (stage != null) {
+                        if (stage.getFsId() == null) {
+                            if (stage.getIsDirectory()) {
+                                FsDirectory dir = new FsDirectory();
+                                dir.getVersion().v(localVersion);
+                                dir.getContentHash().v(stage.getContentHash());
+                                dir.getName().v(stage.getName());
+                                dir.getModified().v(stage.getModified());
+                                dir.getCreated().v(stage.getCreated());
+                                dir.getiNode().v(stage.getiNode());
+                                dir.getSymLink().v(stage.getSymLink());
+                                dir.getDepth().v(stage.getDepth());
+                                Long fsParentId = null;
+                                if (stage.getParentId() != null) {
+                                    fsParentId = stageDao.getStageById(stage.getParentId()).getFsId();
+                                } else if (stage.getFsParentId() != null)
+                                    fsParentId = stage.getFsParentId();
+                                dir.getParentId().v(fsParentId);
+                                appendPath(dir, stage);
+                                fsWriteDao.insert(dir.toFsWriteEntry());
+                                if (stageIdFsIdMap != null) {
+                                    stageIdFsIdMap.put(stage.getId(), dir.getId().v());
+                                }
+
+                                this.createDirs(fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory(), dir);
+
+                                stage.setFsId(dir.getId().v());
+                            } else {
+                                // it is a new file
+                                FsFile fsFile = null;
+                                if (stage.getFsId() != null)
+                                    fsFile = fsWriteDao.getFile(stage.getFsId());
+                                else {
+                                    fsFile = new FsFile();
                                     Long fsParentId = null;
                                     if (stage.getParentId() != null) {
                                         fsParentId = stageDao.getStageById(stage.getParentId()).getFsId();
                                     } else if (stage.getFsParentId() != null)
                                         fsParentId = stage.getFsParentId();
-                                    dir.getParentId().v(fsParentId);
-                                    appendPath(dir, stage);
-                                    fsWriteDao.insert(dir.toFsWriteEntry());
-                                    if (stageIdFsIdMap != null) {
-                                        stageIdFsIdMap.put(stage.getId(), dir.getId().v());
-                                    }
-
-                                    this.createDirs(fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory(), dir);
-
-                                    stage.setFsId(dir.getId().v());
+                                    fsFile.getParentId().v(fsParentId);
+                                }
+                                fsFile.getName().v(stage.getName());
+                                fsFile.getContentHash().v(stage.getContentHash());
+                                fsFile.getVersion().v(localVersion);
+                                fsFile.getModified().v(stage.getModified());
+                                fsFile.getCreated().v(stage.getCreated());
+                                fsFile.getiNode().v(stage.getiNode());
+                                fsFile.getSize().v(stage.getSize());
+                                fsFile.getSymLink().v(stage.getSymLink());
+                                fsFile.getDepth().v(stage.getDepth());
+                                if (stageSet.fromFs()) {
+                                    fsFile.getSynced().v(true);
                                 } else {
-                                    // it is a new file
-                                    FsFile fsFile = null;
-                                    if (stage.getFsId() != null)
-                                        fsFile = fsWriteDao.getFile(stage.getFsId());
-                                    else {
-                                        fsFile = new FsFile();
-                                        Long fsParentId = null;
-                                        if (stage.getParentId() != null) {
-                                            fsParentId = stageDao.getStageById(stage.getParentId()).getFsId();
-                                        } else if (stage.getFsParentId() != null)
-                                            fsParentId = stage.getFsParentId();
-                                        fsFile.getParentId().v(fsParentId);
-                                    }
-                                    fsFile.getName().v(stage.getName());
-                                    fsFile.getContentHash().v(stage.getContentHash());
-                                    fsFile.getVersion().v(localVersion);
-                                    fsFile.getModified().v(stage.getModified());
-                                    fsFile.getCreated().v(stage.getCreated());
-                                    fsFile.getiNode().v(stage.getiNode());
-                                    fsFile.getSize().v(stage.getSize());
-                                    fsFile.getSymLink().v(stage.getSymLink());
-                                    fsFile.getDepth().v(stage.getDepth());
-                                    if (stageSet.fromFs()) {
-                                        fsFile.getSynced().v(true);
-                                    } else {
-                                        fsFile.getSynced().v(false);
-                                    }
-                                    appendPath(fsFile, stage);
-                                    fsWriteDao.insert(fsFile.toFsWriteEntry());
-                                    if (fsFile.isSymlink()) {
-                                        IFile f = fsWriteDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsFile);
-                                        BashTools.Companion.lnS(f, fsFile.getSymLink().v());
-                                    } else if (!stageSet.fromFs() && !stage.getIsDirectory() && !stage.isSymLink()) {
-                                        // this file porobably has to be transferred
-                                        DbTransferDetails details = new DbTransferDetails();
-                                        details.getAvailable().v(stage.getSynced());
-                                        details.getCertId().v(stageSet.getOriginCertId());
-                                        details.getServiceUuid().v(stageSet.getOriginServiceUuid());
-                                        details.getHash().v(stage.getContentHash());
-                                        details.getDeleted().v(false);
-                                        details.getSize().v(stage.getSize());
-                                        setupTransferAvailable(details, stageSet, stage);
-                                        N.r(() -> transferManager.createTransfer(details));
-                                    }
-                                    if (stageIdFsIdMap != null) {
-                                        stageIdFsIdMap.put(stage.getId(), fsFile.getId().v());
-                                    }
-                                    stage.setFsId(fsFile.getId().v());
+                                    fsFile.getSynced().v(false);
                                 }
-                            } else { // fs.id is not null
-                                if (stage.getFsParentId() != null && !fsWriteDao.hasId(stage.getFsParentId())) {//skip if parent was deleted
-                                    stage = stages.getNext();
-                                    continue;
+                                appendPath(fsFile, stage);
+                                fsWriteDao.insert(fsFile.toFsWriteEntry());
+                                if (fsFile.isSymlink()) {
+                                    IFile f = fsWriteDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsFile);
+                                    BashTools.Companion.lnS(f, fsFile.getSymLink().v());
+                                } else if (!stageSet.fromFs() && !stage.getIsDirectory() && !stage.isSymLink()) {
+                                    // this file porobably has to be transferred
+                                    DbTransferDetails details = new DbTransferDetails();
+                                    details.getAvailable().v(stage.getSynced());
+                                    details.getCertId().v(stageSet.getOriginCertId());
+                                    details.getServiceUuid().v(stageSet.getOriginServiceUuid());
+                                    details.getHash().v(stage.getContentHash());
+                                    details.getDeleted().v(false);
+                                    details.getSize().v(stage.getSize());
+                                    setupTransferAvailable(details, stageSet, stage);
+                                    N.r(() -> transferManager.createTransfer(details));
                                 }
-                                if ((stage.getDeleted() != null && stage.getDeleted() && stage.getSynced() != null && stage.getSynced()) || (stage.getIsDirectory() && stage.getDeleted())) {
-                                    //if (stage.getDeleted() != null && stage.getSynced() != null && (stage.getDeleted() && stage.getSynced())) {
-                                    //todo BUG: 3 Conflict solve dialoge kommen hoch, wenn hier Haltepunkt bei DriveFXTest.complectConflict() drin ist
+                                if (stageIdFsIdMap != null) {
+                                    stageIdFsIdMap.put(stage.getId(), fsFile.getId().v());
+                                }
+                                stage.setFsId(fsFile.getId().v());
+                            }
+                        } else { // fs.id is not null
+                            if (stage.getFsParentId() != null && !fsWriteDao.hasId(stage.getFsParentId())) {//skip if parent was deleted
+                                stage = stages.getNext();
+                                continue;
+                            }
+                            if ((stage.getDeleted() != null && stage.getDeleted() && stage.getSynced() != null && stage.getSynced()) || (stage.getIsDirectory() && stage.getDeleted())) {
+                                //if (stage.getDeleted() != null && stage.getSynced() != null && (stage.getDeleted() && stage.getSynced())) {
+                                //todo BUG: 3 Conflict solve dialoge kommen hoch, wenn hier Haltepunkt bei DriveFXTest.complectConflict() drin ist
 //                            wastebin.deleteFsEntry(stage.getFsId());
-                                    Lok.debug("debug");
-                                } else {
-                                    FsEntry fsEntry = stageDao.stage2FsEntry(stage);
-                                    if (fsEntry.getVersion().isNull()) {
-                                        Lok.debug("//pe, should not be called");
-                                        fsEntry.getVersion().v(localVersion);
-                                    }
-                                    FsEntry oldeEntry = fsWriteDao.getGenericById(fsEntry.getId().v());
-                                    // only copy modified & inode if it is not present in the new entry (it came from remote then)
-                                    if (oldeEntry != null && oldeEntry.getIsDirectory().v() && fsEntry.getIsDirectory().v() && fsEntry.getModified().isNull()) {
-                                        fsEntry.getiNode().v(oldeEntry.getiNode());
-                                        fsEntry.getModified().v(oldeEntry.getModified());
-                                        fsEntry.getCreated().v(oldeEntry.getCreated());
-                                    }
-                                    if (fsEntry.getId().v() != null && !fsEntry.getIsDirectory().v()) {
-                                        FsFile oldeFsFile = fsWriteDao.getFile(fsEntry.getId().v());
-                                        if (oldeFsFile != null && !stageSet.fromFs() && fsEntry.getSynced().notNull() && !fsEntry.getSynced().v()) {
-                                            wastebin.deleteFsFile(oldeFsFile);
-                                        } else {
-                                            // delete file. consider that it might be in the same state as the stage
-                                            IFile stageFile = stageDao.getFileByStage(stage);
-                                            if (stageFile.exists()) {
-                                                FsBashDetails fsBashDetails = BashTools.Companion.getFsBashDetails(stageFile);
-                                                if (stage.getiNode() == null || stage.getModified() == null ||
-                                                        !(fsBashDetails.getiNode().equals(stage.getiNode()) && fsBashDetails.getModified().equals(stage.getModified()))) {
-                                                    wastebin.deleteUnknown(stageFile);
+                                Lok.debug("debug");
+                            } else {
+                                FsEntry fsEntry = stageDao.stage2FsEntry(stage);
+                                if (stage.getName().equals("i0"))
+                                    Lok.debug("debug i0112");
+                                if (fsEntry.getVersion().isNull()) {
+                                    Lok.debug("//pe, should not be called");
+                                    fsEntry.getVersion().v(localVersion);
+                                }
+                                FsEntry oldeEntry = fsWriteDao.getGenericById(fsEntry.getId().v());
+                                // only copy modified & inode if it is not present in the new entry (it came from remote then)
+                                if (oldeEntry != null && oldeEntry.getIsDirectory().v() && fsEntry.getIsDirectory().v() && fsEntry.getModified().isNull()) {
+                                    fsEntry.getiNode().v(oldeEntry.getiNode());
+                                    fsEntry.getModified().v(oldeEntry.getModified());
+                                    fsEntry.getCreated().v(oldeEntry.getCreated());
+                                }
+                                if (fsEntry.getId().v() != null && !fsEntry.getIsDirectory().v()) {
+                                    FsFile oldeFsFile = fsWriteDao.getFile(fsEntry.getId().v());
+                                    if (oldeFsFile != null && !stageSet.fromFs() && fsEntry.getSynced().notNull() && !fsEntry.getSynced().v()) {
+                                        wastebin.deleteFsFile(oldeFsFile);
+                                    } else {
+                                        // delete file. consider that it might be in the same state as the stage
+                                        IFile stageFile = stageDao.getFileByStage(stage);
+                                        if (stageFile.exists()) {
+                                            FsBashDetails fsBashDetails = BashTools.Companion.getFsBashDetails(stageFile);
+                                            if (stage.getiNode() == null || stage.getModified() == null ||
+                                                    !(fsBashDetails.getiNode().equals(stage.getiNode()) && fsBashDetails.getModified().equals(stage.getModified()))) {
+                                                wastebin.deleteUnknown(stageFile);
 //                                            stage.setSynced(false);
-                                                    // we could search more recent stagesets to find some clues here and prevent deleteUnknown().
-                                                }
-                                                // else: the file is as we want it to be
+                                                // we could search more recent stagesets to find some clues here and prevent deleteUnknown().
                                             }
+                                            // else: the file is as we want it to be
                                         }
                                     }
-                                    if (!fsEntry.getIsDirectory().v() && (stage.getSynced() != null && !stage.getSynced()))
-                                        fsEntry.getSynced().v(false);
-                                    // its remote -> not in place
-                                    if (!stage.getIsDirectory() && !stageSet.fromFs())
-                                        fsEntry.getSynced().v(false);
-                                    else if (stageSet.fromFs()) {
-                                        fsEntry.getSynced().v(true);
-                                    }
-                                    if (fsEntry.getDepth().isNull())
-                                        Lok.debug("debug error 99fk");
-                                    fsWriteDao.insertOrUpdate(fsEntry.toFsWriteEntry());
-                                    if (stageSet.getOriginCertId().notNull() && !stage.getIsDirectory() && !stage.isSymLink()) {
-                                        DbTransferDetails details = new DbTransferDetails();
-                                        details.getCertId().v(stageSet.getOriginCertId());
-                                        details.getServiceUuid().v(stageSet.getOriginServiceUuid());
-                                        details.getHash().v(stage.getContentHash());
-                                        details.getDeleted().v(false);
-                                        details.getSize().v(stage.getSize());
-                                        setupTransferAvailable(details, stageSet, stage);
-                                        N.r(() -> transferManager.createTransfer(details));
-                                    }
-                                    this.createDirs(fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory(), fsEntry);
                                 }
+                                if (!fsEntry.getIsDirectory().v() && (stage.getSynced() != null && !stage.getSynced()))
+                                    fsEntry.getSynced().v(false);
+                                // its remote -> not in place
+                                if (!stage.getIsDirectory() && !stageSet.fromFs())
+                                    fsEntry.getSynced().v(false);
+                                else if (stageSet.fromFs()) {
+                                    fsEntry.getSynced().v(true);
+                                }
+                                if (fsEntry.getDepth().isNull())
+                                    Lok.debug("debug error 99fk");
+                                fsWriteDao.insertOrUpdate(fsEntry.toFsWriteEntry());
+                                if (stageSet.getOriginCertId().notNull() && !stage.getIsDirectory() && !stage.isSymLink()) {
+                                    DbTransferDetails details = new DbTransferDetails();
+                                    details.getCertId().v(stageSet.getOriginCertId());
+                                    details.getServiceUuid().v(stageSet.getOriginServiceUuid());
+                                    details.getHash().v(stage.getContentHash());
+                                    details.getDeleted().v(false);
+                                    details.getSize().v(stage.getSize());
+                                    setupTransferAvailable(details, stageSet, stage);
+                                    N.r(() -> transferManager.createTransfer(details));
+                                }
+                                this.createDirs(fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory(), fsEntry);
+                                stage.setSynced(true);
                             }
-                            stageDao.update(stage);
-                            stage = stages.getNext();
                         }
-                        fsWriteDao.commit();
-                        fileSyncDatabaseManager.updateVersion();
-                        stageDao.deleteStageSet(stageSetId);
-                        transferManager.stop();
-                        transferManager.removeUnnecessaryTransfers();
-                        transferManager.start();
-                        transferManager.research();
-                    });
-                    wastebin.maintenance();
-                } catch (Exception e) {
-                    N.r(() -> fsWriteDao.cleanUp());
-                    throw e;
-                }
-            });
+                        stageDao.update(stage);
+                        stage = stages.getNext();
+                    }
+                    fsWriteDao.commit();
+                    fileSyncDatabaseManager.updateVersion();
+                    stageDao.deleteStageSet(stageSetId);
+                    transferManager.stop();
+                    transferManager.removeUnnecessaryTransfers();
+                    transferManager.start();
+                    transferManager.research();
+                });
+                wastebin.maintenance();
+            } catch (Exception e) {
+                N.r(() -> fsWriteDao.cleanUp());
+                throw e;
+            }
+        });
     }
 
     protected void setupTransferAvailable(DbTransferDetails details, StageSet stageSet, Stage stage) {
@@ -468,7 +471,7 @@ public abstract class SyncHandler {
 
     protected void createDirs(RootDirectory rootDirectory, FsEntry fsEntry) throws SqlQueriesException, IOException, InterruptedException {
         // todo debug
-        if (fsEntry.getName().equalsValue("i0"))
+        if (fsEntry.getName().equalsValue("sub22"))
             Lok.debug();
         // if synced, it came from fs and can be ignored
         if (fsEntry.getSynced().v())
@@ -477,10 +480,10 @@ public abstract class SyncHandler {
         if (fsEntry.getParentId().v() == null)
             return;
         Stack<FsDirectory> stack = new Stack<>();
-        FsDirectory dbParent = fsWriteDao.getDirectoryById(fsEntry.getParentId().v());
+        FsDirectory dbParent = fsWriteDao.getDirectoryById(fsEntry.getParentId().v(), new FsWriteDirectory());
         while (dbParent != null && dbParent.getParentId().v() != null) {
             stack.add(dbParent);
-            dbParent = fsWriteDao.getDirectoryById(dbParent.getParentId().v());
+            dbParent = fsWriteDao.getDirectoryById(dbParent.getParentId().v(), new FsWriteDirectory());
         }
         String path = rootDirectory.getPath() + File.separator;
         if (!stack.empty()) {
@@ -489,6 +492,8 @@ public abstract class SyncHandler {
                 path += dbParent.getName().v();
                 IFile d = AbstractFile.instance(path);
                 if (!d.exists()) {
+                    if (d.getAbsolutePath().equals("/home/xor/Documents/mel/fxbundle/testdir2/sub22"))
+                        Lok.debug("debug 9vjwerj");
                     indexer.ignorePath(path, 1);
                     Lok.debug("SyncHandler.createDirs: " + d.getAbsolutePath());
                     d.mkdirs();
@@ -514,6 +519,8 @@ public abstract class SyncHandler {
                 indexer.watchDirectory(target);
                 updateInodeModified(fsEntry, target);
             }
+            fsEntry.getSynced().v(true);
+            fsWriteDao.update(fsEntry.toFsWriteEntry());
         }
     }
 

@@ -40,12 +40,22 @@ public class StageSet extends SQLTableObject {
     protected void init() {
         populateInsert(source, originCertId, originServiceUuid, status, version, basedOnVersion);
         populateAll(id, created);
-        id.setSetListener(value -> {
-            if (value > 4L) {
-                Lok.debug("debug stageset id");
-            }
+        basedOnVersion.setSetListener(value -> {
+            if (version.notNull() && version.v() < value)
+                Lok.error("debug version hazard 1");
             return value;
         });
+        version.setSetListener(value -> {
+            if (basedOnVersion.notNull() && basedOnVersion.v() > value)
+                Lok.error("debug version hazard 2");
+            return value;
+        });
+//        id.setSetListener(value -> {
+//            if (value > 4L) {
+//                Lok.debug("debug stageset id");
+//            }
+//            return value;
+//        });
     }
 
     public Pair<Long> getId() {
