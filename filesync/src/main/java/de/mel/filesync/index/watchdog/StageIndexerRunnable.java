@@ -43,8 +43,8 @@ public class StageIndexerRunnable extends AbstractIndexer {
                 Eva.runIf(() -> !StageIndexerRunnable.this.databaseManager.melFileSyncService.getFileSyncSettings().isServer(), () -> {
                     Lok.debug("SIR on client");
                 });
-                if (stageSetId != null)
-                    stagingDoneListener.onStagingFsEventsDone(stageSetId);
+                if (initialStageSetId != null)
+                    stagingDoneListener.onStagingFsEventsDone(initialStageSetId);
             } catch (Exception e) {
                 e.printStackTrace();
                 // todo check for inotify exceeded. if so, stop the service

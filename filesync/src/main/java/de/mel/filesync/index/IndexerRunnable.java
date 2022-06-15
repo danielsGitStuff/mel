@@ -98,33 +98,30 @@ public class IndexerRunnable extends AbstractIndexer {
 
                 fileWatcher.watchDirectory(rootDirectory.getOriginalFile());
                 ISQLQueries sqlQueries = stageDao.getSqlQueries();
-                OTimer timerFind = new OTimer("bash.find").start();
+//                OTimer timerFind = new OTimer("bash.find").start();
                 OTimer timerInit = new OTimer("init stageset");
                 try (AutoKlausIterator<IFile> found = BashTools.Companion.find(rootDirectory.getOriginalFile(), databaseManager.getMelFileSyncService().getFileSyncSettings().getTransferDirectory())) {
                     Lok.debug("starting stageset initialization");
-//                    Lok.error("TRANSACTION DISABLED!!!!!");
-//                    Lok.error("TRANSACTION DISABLED!!!!!");
-//                    Lok.error("TRANSACTION DISABLED!!!!!");
-//                    Lok.error("TRANSACTION DISABLED!!!!!");
-//                    Lok.error("TRANSACTION DISABLED!!!!!");
+                    Lok.error("TRANSACTION DISABLED!!!!!");
+                    Lok.error("TRANSACTION DISABLED!!!!!");
+                    Lok.error("TRANSACTION DISABLED!!!!!");
+                    Lok.error("TRANSACTION DISABLED!!!!!");
+                    Lok.error("TRANSACTION DISABLED!!!!!");
                     sqlQueries.beginTransaction();
                     timerInit.start();
                     initStage(FileSyncStrings.STAGESET_SOURCE_FS, found, fileWatcher, databaseManager.getFileSyncSettings().getLastSyncedVersion());
+                    OTimer timerExamine = new OTimer("examine stageset").start();
+                    examineStage();
+                    timerExamine.stop().print();
+                    hashFiles();
+//                    sqlQueries.commit();
                 } catch (Exception e) {
-                    //todo abort transaction
                     e.printStackTrace();
                     sqlQueries.rollback();
                 } finally {
                     timerInit.stop().print().reset();
                 }
 
-                timerFind.stop().print();
-
-                OTimer timerExamine = new OTimer("examine stageset").start();
-                Eva.flagAndRun("ii!", 2, () -> Lok.debug());
-                examineStage();
-                sqlQueries.commit();
-                timerExamine.stop().print();
                 if (initialIndexConflictHelper != null) {
                     boolean conflicts = initialIndexConflictHelper.onDone(bunchOfLocks, this);
                     if (!conflicts)
@@ -143,7 +140,7 @@ public class IndexerRunnable extends AbstractIndexer {
             Lok.debug("save in  db");
             bunchOfLocks = P.confine(fsDao);
             for (IndexListener listener : listeners)
-                listener.done(stageSetId, bunchOfLocks);
+                listener.done(initialStageSetId, bunchOfLocks);
             bunchOfLocks.end();
             Lok.debug("indexing done");
             if (initialIndexConflictHelper == null && !startedPromise.isResolved())

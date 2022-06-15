@@ -5,12 +5,14 @@ import de.mel.Lok;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.IFile;
 import de.mel.auth.tools.Eva;
+import de.mel.auth.tools.MapWrap;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.Order;
 import de.mel.core.serialize.serialize.tools.OTimer;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.bash.FsBashDetails;
 import de.mel.filesync.data.FileSyncStrings;
+import de.mel.filesync.data.RootDirectory;
 import de.mel.filesync.index.watchdog.FileWatcher;
 import de.mel.filesync.sql.*;
 import de.mel.filesync.sql.dao.FsDao;
@@ -19,6 +21,8 @@ import de.mel.sql.Hash;
 import de.mel.sql.RWLock;
 import de.mel.sql.SqlQueriesException;
 import org.jdeferred.Promise;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,8 +38,10 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     protected final FsDao fsDao;
     private final String serviceName;
     private final int rootPathLength;
-    protected StageSet stageSet;
-    protected Long stageSetId;
+    protected StageSet initialStageSet;
+    protected StageSet examinedStageSet;
+    protected Long initialStageSetId;
+    protected Long examinedStageSetId;
     private Order order = new Order();
     protected Boolean fastBooting = true;
 
@@ -56,7 +62,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
     @Override
     public Promise<Void, Void, Void> onShutDown() {
-        Lok.debug(getClass().getSimpleName() + "[" + stageSetId + "] for " + serviceName + ".onShutDown");
+        Lok.debug(getClass().getSimpleName() + "[" + initialStageSetId + "] for " + serviceName + ".onShutDown");
         return null;
     }
 
@@ -81,6 +87,230 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         return res;
     }
 
+    protected void initStage(String stageSetType, Iterator<IFile> iterator, FileWatcher fileWatcher, long basedOnVersion) throws IOException, SqlQueriesException {
+        initialStageSet = stageDao.createStageSet(stageSetType, null, null, null, basedOnVersion);
+        if (initialIndexConflictHelper != null)
+            initialIndexConflictHelper.onStart(initialStageSet);
+        final int rootPathLength = databaseManager.getFileSyncSettings().getRootDirectory().getPath().length();
+        this.initialStageSetId = initialStageSet.getId().v();
+
+        while (iterator.hasNext()) {
+            IFile f = iterator.next();
+            String name = f.getAbsolutePath().length() > rootPathLength ? f.getName() : "";
+            IFile parent = f.getParentFile();
+            String path = parent.getAbsolutePath().length() >= rootPathLength ? parent.getAbsolutePath().substring(rootPathLength) + "/" : "";
+            Stage stage = new Stage().setStageSet(initialStageSetId);
+            stage.setSynced(true); // true because this is an observation on the file system.
+            stage.setPath(path).setName(name);
+            stage.setOrder(order.ord());
+            if (stage.getDepthPair().isNull()) {
+                IFile root = AbstractFile.instance(this.databaseManager.getFileSyncSettings().getRootDirectory().getPath());
+                IFile fileUp = f;
+                int depth = 0;
+                while (!root.getAbsolutePath().equals(fileUp.getAbsolutePath()) && root.getAbsolutePath().length() > fileUp.getAbsolutePath().length()) {
+                    fileUp = fileUp.getParentFile();
+                    depth++;
+                }
+                stage.setDepth(depth);
+            }
+            stageDao.insert(stage);
+        }
+    }
+
+    /**
+     * Calculate contentHash based on all subdirectories and files found on the file system.
+     * Then add all {@link FsEntry}s that have not been synced yet.
+     * Depth First Search
+     *
+     * @param dir
+     * @param fsEntry
+     * @param order
+     * @return
+     * @throws SqlQueriesException
+     */
+    private void examineDirContentHash(@NotNull Stage stage, @NotNull IFile dir, @Nullable FsEntry fsEntry, MapWrap<Long, Long> oldIdNewId, Order order) throws SqlQueriesException {
+        Set<String> subDirectories = new HashSet<>();
+        Set<String> files = new HashSet<>();
+        // add everything in the directory
+        for (IFile f : dir.listDirectories()) {
+            subDirectories.add(f.getName());
+        }
+        for (IFile f : dir.listFiles()) {
+            files.add(f.getName());
+        }
+        // remove transfer dir
+        if (stage.getPath().equals("") && stage.getName().equals(""))
+            subDirectories.remove(FileSyncStrings.TRANSFER_DIR);
+        // add outstanding files
+        if (fsEntry != null) {
+            List<FsEntry> fsContent = fsDao.getDirectoryContent(fsEntry.getId().v());
+            for (FsEntry fsContentEntry : fsContent) {
+                if (!fsContentEntry.getIsDirectory().v() && !fsContentEntry.getSynced().v()) {
+                    files.add(fsContentEntry.getName().v());
+                }
+            }
+        }
+        String contentHash = FsDirectory.calculateContentHash(subDirectories, files);
+        // content hash did not change!
+        if (fsEntry != null && fsEntry.getContentHash().equalsValue(contentHash)) {
+            return;
+        } else {
+            // content hash differs or directory is new
+            stage.setContentHash(contentHash);
+            FsBashDetails details = BashTools.Companion.getFsBashDetails(dir);
+            // this method is only called for directories that exist. It might happen though, that a folder was deleted manually at this point and details returns null.
+            // In this case: fail, clean up, restart. So the NPE that may pop up here serves a purpose.
+            stage.applyFsBashDetails(details);
+            stageDao.update(stage);
+            for (IFile subDirectory : dir.listDirectories()) {
+                // check for transfer dir and skip
+                if (stage.getName().equals("") && subDirectory.getName().equals(FileSyncStrings.TRANSFER_DIR))
+                    continue;
+                String path = subDirectory.getParentFile().getAbsolutePath().substring(rootPathLength) + "/";
+                Stage existingStage = stageDao.getStageByPathAndName(initialStageSetId, path, subDirectory.getName());
+                Stage newStage;
+                if (existingStage == null) {
+                    newStage = new Stage();
+                    newStage.setName(subDirectory.getName());
+                    newStage.setPath(path);
+                } else {
+                    newStage = existingStage.copy();
+                }
+
+                newStage.setStageSet(examinedStageSetId);
+                newStage.setDepth(stage.getDepth() + 1);
+                newStage.setSynced(true);
+                newStage.setParentId(stage.getId());
+                newStage.setOrder(this.order.ord());
+                newStage.setIsDirectory(true);
+                newStage.setDeleted(false);
+                FsBashDetails subDetails = BashTools.Companion.getFsBashDetails(subDirectory);
+                // NPE possible, see above
+                newStage.applyFsBashDetails(subDetails);
+                newStage.setOrder(order.ord());
+
+                if (fsEntry != null) {
+                    newStage.setFsParentId(fsEntry.getId().v());
+                    newStage.setDepth(fsEntry.getDepth().v());
+                }
+
+                stageDao.insert(newStage);
+                if (existingStage != null)
+                    oldIdNewId.put(existingStage.getId(), newStage.getId());
+                FsEntry subFsEntry = fsDao.getGenericByPathAndName(path, subDirectory.getName());
+                // DFS
+                examineDirContentHash(newStage, subDirectory, subFsEntry, oldIdNewId, order);
+            }
+            for (IFile file : dir.listFiles()) {
+                String path = file.getParentFile().getAbsolutePath().substring(rootPathLength) + "/";
+                Stage existingStage = stageDao.getStageByPathAndName(initialStageSetId, path, file.getName());
+                Stage newStage;
+                if (existingStage == null) {
+                    newStage = new Stage();
+                    newStage.setName(file.getName());
+                    newStage.setPath(path);
+                } else {
+                    newStage = existingStage.copy();
+                }
+                newStage.setStageSet(examinedStageSetId);
+                newStage.setDepth(stage.getDepth() + 1);
+                newStage.setSynced(true);
+                newStage.setParentId(stage.getId());
+                newStage.setOrder(this.order.ord());
+                newStage.setIsDirectory(false);
+                newStage.setDeleted(false);
+                FsBashDetails fileDetails = BashTools.Companion.getFsBashDetails(file);
+                // NPE possible, see above
+                newStage.applyFsBashDetails(fileDetails);
+                newStage.setOrder(order.ord());
+                // old entry found. copy contentHash if modified, iNode or created changed
+                if (fsEntry != null && !fsEntry.getIsDirectory().v()) {
+                    newStage.setFsParentId(fsEntry.getId().v());
+                    if (fsEntry.getCreated().equalsValue(fileDetails.getCreated()) && fsEntry.getModified().equalsValue(fileDetails.getModified()) && fsEntry.getiNode().equalsValue(fileDetails.getiNode())) {
+                        newStage.setContentHash(fsEntry.getContentHash().v());
+                    }
+                }
+                stageDao.insert(newStage);
+                if (existingStage != null)
+                    oldIdNewId.put(existingStage.getId(), newStage.getId());
+            }
+        }
+    }
+
+    private void examineDir(@NotNull IFile iFile, @NotNull Stage stage, @Nullable FsEntry fsEntry, MapWrap<Long, Long> oldIdNewId, Order order) throws SqlQueriesException {
+        if (iFile.exists()) {
+            if (iFile.isDirectory()) {
+                stage.setIsDirectory(true);
+                IFile dir = iFile;
+                this.examineDirContentHash(stage, dir, fsEntry, oldIdNewId, order);
+            } else {
+                stage.setIsDirectory(false);
+            }
+        } else {
+            stage.setDeleted(true);
+            // todo recursive delete
+        }
+        stageDao.update(stage);
+    }
+
+    protected void examineStage() throws SqlQueriesException {
+        examinedStageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_FS, null, null, initialStageSet.getVersion().v(), initialStageSet.getBasedOnVersion().v());
+        examinedStageSetId = examinedStageSet.getId().v();
+        Order order = new Order();
+        N.sqlResource(stageDao.getStagesByStageSet(initialStageSetId), stages -> {
+            MapWrap<Long, Long> oldNewIdMap = new MapWrap<>(new HashMap<>());
+            Stage oldStage = stages.getNext();
+            while (oldStage != null) {
+                Stage stage = oldStage.copy();
+                stage.setStageSet(examinedStageSetId);
+                String name = stage.getName();
+                String path = databaseManager.getFileSyncSettings().getRootDirectory().getPath() + stage.getPath();
+                IFile f = path.length() > 0 ? AbstractFile.instance(path + name) : AbstractFile.instance(databaseManager.getFileSyncSettings().getRootDirectory().getPath());
+                IFile fParent = path.length() == 0 ? null : f.getParentFile();
+                String parentPath = fParent == null || fParent.getAbsolutePath().length() < rootPathLength ? null : fParent.getAbsolutePath().substring(rootPathLength);
+                parentPath += "/";
+                Stage existingStage = stageDao.getStageByPathAndName(examinedStageSetId, parentPath, name);
+                if (existingStage != null) {
+                    oldStage = stages.getNext();
+                    continue;
+                }
+                FsEntry fsEntry = fsDao.getGenericByPathAndName(path, name);
+                FsDirectory fsParent = fParent == null ? null : fsDao.getFsDirectoryByPathAndName(parentPath, fParent.getName());
+                if (fsEntry != null) {
+                    stage.setFsId(fsEntry.getId().v());
+                    stage.setFsParentId(fsEntry.getParentId().v());
+                    stage.setDepth(fsEntry.getDepth().v());
+                }
+                if (fsParent != null) {
+                    stage.setDepth(fsParent.getDepth().v() + 1);
+                    stage.setFsParentId(fsParent.getId().v());
+                }
+                if (oldStage.getParentId() != null && oldNewIdMap.containsKey(oldStage.getParentId())) {
+                    stage.setParentId(oldNewIdMap.get(oldStage.getParentId()));
+                }
+                stage.setOrder(order.ord());
+                stageDao.insert(stage);
+                oldNewIdMap.put(oldStage.getId(), stage.getId());
+
+                examineDir(f, stage, fsEntry, oldNewIdMap, order);
+                oldStage = stages.getNext();
+            }
+        });
+        Lok.debug("examine done");
+    }
+
+    protected void hashFiles() throws SqlQueriesException {
+        N.sqlResource(stageDao.getFilesWithoutHashAsResource(examinedStageSetId), stages -> {
+            Stage stage = stages.getNext();
+            while (stage != null) {
+                IFile file = AbstractFile.instance(this.databaseManager.getFileSyncSettings().getRootDirectory().getPath() + stage.getPath() + stage.getName());
+                stage.setContentHash(Hash.md5(file.inputStream()));
+                stageDao.update(stage);
+                stage = stages.getNext();
+            }
+        });
+    }
+
     /**
      * Compresses the {@link StageSet} to a delta of the current {@link FsEntry}s.
      * If there is no difference and the {@link StageSet} is empty it is deleted.
@@ -88,7 +318,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
      * @throws SqlQueriesException
      * @throws IOException
      */
-    protected void examineStage() throws SqlQueriesException, IOException {
+    protected void examineStageOlde() throws SqlQueriesException, IOException {
         OTimer timer = new OTimer("examine all");
         OTimer timer1 = new OTimer("examine 1");
         OTimer timer2 = new OTimer("examine 2");
@@ -96,7 +326,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         OTimer timerUpdate1 = new OTimer("updateFileStage.internal.1");
         OTimer timerUpdate2 = new OTimer("updateFileStage.internal.2");
         timer.start();
-        N.sqlResource(stageDao.getStagesByStageSet(stageSetId), stages -> {
+        N.sqlResource(stageDao.getStagesByStageSet(initialStageSetId), stages -> {
             Stage stage = stages.getNext();
             while (stage != null) {
                 // build a File
@@ -123,14 +353,14 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 stage = stages.getNext();
             }
         });
-        stageDao.deleteIdenticalToFs(stageSetId);
-        Lok.debug("StageIndexerRunnable.runTry(" + stageSetId + ").finished");
-        stageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED);
+        stageDao.deleteIdenticalToFs(initialStageSetId);
+        Lok.debug("StageIndexerRunnable.runTry(" + initialStageSetId + ").finished");
+        initialStageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED);
 
-        stageDao.updateStageSet(stageSet);
-        if (!stageDao.stageSetHasContent(stageSetId)) {
-            stageDao.deleteStageSet(stageSetId);
-            stageSetId = null;
+        stageDao.updateStageSet(initialStageSet);
+        if (!stageDao.stageSetHasContent(initialStageSetId)) {
+            stageDao.deleteStageSet(initialStageSetId);
+            initialStageSetId = null;
         }
         timer.stop().print();
         timer1.print();
@@ -141,20 +371,21 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
 
-    protected void initStage(String stageSetType, Iterator<IFile> iterator, FileWatcher fileWatcher, long basedOnVersion) throws IOException, SqlQueriesException {
+    protected void initStageOlde(String stageSetType, Iterator<IFile> iterator, FileWatcher fileWatcher, long basedOnVersion) throws IOException, SqlQueriesException {
         OTimer timer = new OTimer("initStage().connect2fs");
         OTimer timerInternal1 = new OTimer("initStage.internal.1");
         OTimer timerInternal2 = new OTimer("initStage.internal.2");
         OTimer timerInternal3 = new OTimer("initStage.internal.3");
 
 
-        stageSet = stageDao.createStageSet(stageSetType, null, null, null, basedOnVersion);
+        initialStageSet = stageDao.createStageSet(stageSetType, null, null, null, basedOnVersion);
         if (initialIndexConflictHelper != null)
-            initialIndexConflictHelper.onStart(stageSet);
+            initialIndexConflictHelper.onStart(initialStageSet);
         final int rootPathLength = databaseManager.getFileSyncSettings().getRootDirectory().getPath().length();
-        this.stageSetId = stageSet.getId().v();
+        this.initialStageSetId = initialStageSet.getId().v();
 
-        IndexHelper indexHelper = new IndexHelper(databaseManager, stageSetId, order);
+
+        IndexHelper indexHelper = new IndexHelper(databaseManager, initialStageSetId, order);
         while (iterator.hasNext()) {
             IFile f = iterator.next();
             IFile parent = f.getParentFile();
@@ -175,7 +406,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             }
             // find the actual relating FsEntry of the parent directory
             if (parent != null && parent.getAbsolutePath().length() >= rootPathLength) {
-                fsParent = fsDao.getFsDirectoryByPath(parent);
+                fsParent = fsDao.getFsDirectoryByPathOlde(parent);
             }
             // find its relating FsEntry
             if (fsParent != null) {
@@ -189,7 +420,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             }
             // still finding.. might be root dir
             if (fsEntry == null && f.isDirectory()) {
-                fsEntry = fsDao.getFsDirectoryByPath(f);
+                fsEntry = fsDao.getFsDirectoryByPathOlde(f);
             }
             timerInternal1.stop();
             //file might been deleted yet :(
@@ -233,7 +464,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 //                stage.setVersion(fsEntry.getVersion().v());
                 stage.setName(fsEntry.getName().v());
             }
-            stage.setStageSet(stageSet.getId().v());
+            stage.setStageSet(initialStageSet.getId().v());
             stage.setDeleted(!f.exists());
             if (f.isDirectory()) {
                 fileWatcher.watchDirectory(f);
@@ -286,7 +517,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     if (stage.getFsIdPair().notNull()) {
                         List<GenericFSEntry> content = fsDao.getContentByFsDirectory(stage.getFsId());
                         for (GenericFSEntry entry : content) {
-                            Stage delStage = GenericFSEntry.generic2Stage(entry, stageSetId);
+                            Stage delStage = GenericFSEntry.generic2Stage(entry, initialStageSetId);
                             delStage.setParentId(stage.getId());
                             delStage.setDeleted(true);
                             delStage.setOrder(order.ord());
@@ -341,9 +572,9 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         }
         for (String name : stuffToDelete.keySet()) {
             GenericFSEntry gen = stuffToDelete.get(name);
-            Stage alreadyOnStage = stageDao.getStageByFsId(gen.getId().v(), stageSetId);
+            Stage alreadyOnStage = stageDao.getStageByFsId(gen.getId().v(), initialStageSetId);
             if (alreadyOnStage == null) {
-                Stage delStage = GenericFSEntry.generic2Stage(gen, stageSetId)
+                Stage delStage = GenericFSEntry.generic2Stage(gen, initialStageSetId)
                         .setDeleted(true)
                         .setOrder(order.ord())
 //                        .setVersion(gen.getVersion().v())
@@ -381,7 +612,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                             .setIsDirectory(false)
                             .setParentId(stage.getId())
                             .setFsParentId(stage.getFsId())
-                            .setStageSet(stageSetId)
+                            .setStageSet(initialStageSetId)
                             .setDeleted(false)
                             .setOrder(order.ord());
 //                            .setRelativePath(subFile.getAbsolutePath().substring(rootPathLength));
@@ -447,13 +678,13 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                     leSubDirectory = fsDao.getSubDirectoryByName(stage.getFsId(), subDir.getName());
                 if (subStage == null && leSubDirectory == null) {
                     // roam
-                    subStage = new Stage().setStageSet(stageSetId)
+                    subStage = new Stage().setStageSet(initialStageSetId)
                             .setParentId(stage.getId())
                             .setFsParentId(stage.getFsId())
                             .setName(subDir.getName())
                             .setIsDirectory(true)
                             .setDeleted(!subDir.exists());
-                    Lok.debug("StageIndexerRunnable[" + stageSetId + "].roamDirectoryStage.roam sub: " + subDir.getAbsolutePath());
+                    Lok.debug("StageIndexerRunnable[" + initialStageSetId + "].roamDirectoryStage.roam sub: " + subDir.getAbsolutePath());
                     subStage.setOrder(order.ord());
                     try {
                         stageDao.insert(subStage);

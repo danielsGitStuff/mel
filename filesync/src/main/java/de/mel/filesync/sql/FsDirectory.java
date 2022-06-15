@@ -15,6 +15,22 @@ import java.util.*;
 
 public class FsDirectory extends FsEntry {
 
+    public static String calculateContentHash(Collection<String> subDirectories, Collection<String> files) {
+        FsDirectory d = new FsDirectory();
+        for (String name : subDirectories) {
+            d.addDummySubFsDirectory(name);
+        }
+        for (String name : files) {
+            d.addDummyFsFile(name);
+        }
+        d.calcContentHash();
+        return d.getContentHash().v();
+    }
+
+    public static String calculateContentHash(String[] subDirectories, String[] files) {
+        return FsDirectory.calculateContentHash(Arrays.asList(subDirectories), Arrays.asList(files));
+    }
+
     protected FsDirectory parent;
     protected List<FsFile> files = new ArrayList<>();
     @JsonIgnore
@@ -263,6 +279,7 @@ public class FsDirectory extends FsEntry {
             }
         }
     }
+
     public FsDirectory newDummyInstance() {
         return new FsDirectory();
     }

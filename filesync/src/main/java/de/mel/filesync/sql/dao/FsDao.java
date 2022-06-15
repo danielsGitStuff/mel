@@ -260,7 +260,8 @@ public class FsDao extends Dao {
 
     }
 
-    public FsDirectory getFsDirectoryByPath(IFile f) throws SqlQueriesException {
+    @Deprecated
+    public FsDirectory getFsDirectoryByPathOlde(IFile f) throws SqlQueriesException {
         try {
             RootDirectory rootDirectory = fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory();
             String rootPath = rootDirectory.getPath();
@@ -289,14 +290,17 @@ public class FsDao extends Dao {
         return null;
     }
 
-    public GenericFSEntry getGenericByPathAndName(String path, String name) throws SqlQueriesException {
-        try {
-            String where = genericDummy.getPath().k() + "=? and " + genericDummy.getName().k() + "=?";
-            return sqlQueries.loadFirstRow(genericDummy.getAllAttributes(), genericDummy, where, ISQLQueries.args(path, name), GenericFSEntry.class);
-        } finally {
-            return null;
-        }
+    public FsDirectory getFsDirectoryByPathAndName(String path, String name) throws SqlQueriesException {
+        String where = dir.getPath().k() + "=? and " + dir.getName().k() + "=?";
+        return sqlQueries.loadFirstRow(dir.getAllAttributes(), dir, where, ISQLQueries.args(path, name), FsDirectory.class);
     }
+
+    public GenericFSEntry getGenericByPathAndName(String path, String name) throws SqlQueriesException {
+        String where = genericDummy.getPath().k() + "=? and " + genericDummy.getName().k() + "=?";
+        return sqlQueries.loadFirstRow(genericDummy.getAllAttributes(), genericDummy, where, ISQLQueries.args(path, name), GenericFSEntry.class);
+    }
+
+
 
     public FsDirectory getRootDirectory() throws SqlQueriesException {
         String where = dir.getParentId().k() + " is null";

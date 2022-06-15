@@ -356,12 +356,14 @@ public class StageDao extends Dao.LockingDao {
                 .setBasedOnVersion(basedOnVersion);
         Long id = sqlQueries.insert(stageSet);
 
-        if (version!=null && version == 3L) {
+        if (version != null && version == 3L) {
             Lok.warn("debugl");
             Eva.eva((eva, count) -> {
                 Lok.debug("ins " + count);
             });
         }
+        if (id == 3L)
+            Lok.debug("debug id 3");
 //        if (id == 4) {
 //            Lok.warn("debug");
 //            Eva.eva((eva, count) -> {
@@ -475,6 +477,11 @@ public class StageDao extends Dao.LockingDao {
         args.add(false);
         String where = stage.getStageSetPair().k() + "=? and " + stage.getIsDirectoryPair().k() + "=?";
         return sqlQueries.loadResource(stage.getAllAttributes(), Stage.class, where, args);
+    }
+
+    public ISQLResource<de.mel.filesync.sql.Stage> getFilesWithoutHashAsResource(Long stageSetId) throws SqlQueriesException {
+        String where = dummy.getStageSetPair().k() + "=? and " + dummy.getIsDirectoryPair().k() + "=? and " + dummy.getContentHashPair().k() + " is null";
+        return sqlQueries.loadResource(dummy.getAllAttributes(), Stage.class, where, ISQLQueries.args(stageSetId, false));
     }
 
     public void flagMerged(Long stageId, Boolean found) throws SqlQueriesException {

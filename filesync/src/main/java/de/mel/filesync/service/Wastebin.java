@@ -219,7 +219,7 @@ public class Wastebin {
     }
 
     private void recursiveDelete(IFile dir) throws SqlQueriesException, IOException, InterruptedException {
-        FsDirectory fsDirectory = fsDao.getFsDirectoryByPath(dir);
+        FsDirectory fsDirectory = fsDao.getFsDirectoryByPathOlde(dir);
         IFile[] files = dir.listFiles();
         for (IFile f : files) {
             FsBashDetails fsBashDetails = BashTools.Companion.getFsBashDetails(f);

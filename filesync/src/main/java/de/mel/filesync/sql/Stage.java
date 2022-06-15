@@ -5,6 +5,7 @@ import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.IFile;
 import de.mel.core.serialize.JsonIgnore;
 import de.mel.core.serialize.SerializableEntity;
+import de.mel.filesync.bash.FsBashDetails;
 import de.mel.filesync.data.RootDirectory;
 import de.mel.sql.Pair;
 import de.mel.sql.SQLTableObject;
@@ -49,11 +50,7 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     @JsonIgnore
     private Pair<Long> modified = new Pair<>(Long.class, MODIFIED);
     private Pair<Long> created = new Pair<>(Long.class, CREATED);
-    private Pair<Boolean> deleted = new Pair<>(Boolean.class, DELETED).setSetListener(value -> {
-        if (value)
-            Lok.debug(); // todo debug
-        return value;
-    });
+    private Pair<Boolean> deleted = new Pair<>(Boolean.class, DELETED);
     @JsonIgnore
     private Pair<Long> stageSet = new Pair<>(Long.class, STAGESET);
     private Pair<Long> size = new Pair<Long>(Long.class, SIZE);
@@ -75,6 +72,23 @@ public class Stage extends SQLTableObject implements SerializableEntity {
 
     public Stage() {
         init();
+    }
+
+    /**
+     * copy everything but Stage IDs
+     *
+     * @return
+     */
+    public Stage copy() {
+        Stage s = new Stage();
+        for (int i = 0; i < s.insertAttributes.size(); i++) {
+            Object v = this.insertAttributes.get(i).v();
+            s.insertAttributes.get(i).setValueUnsecure(v);
+        }
+        s.id.nul();
+        s.parentId.nul();
+        s.order.nul();
+        return s;
     }
 
     public Stage(long stageSetId, Stage src) {
@@ -406,5 +420,13 @@ public class Stage extends SQLTableObject implements SerializableEntity {
             return AbstractFile.instance(rootDirectory.getPath());
         path = rootDirectory.getPath() + path + name.v();
         return AbstractFile.instance(path + name.v());
+    }
+
+    public Stage applyFsBashDetails(FsBashDetails details) {
+        this.setCreated(details.getCreated());
+        this.setiNode(details.getiNode());
+        this.setModified(details.getModified());
+        this.setSymLink(details.getSymLinkTarget());
+        return this;
     }
 }
