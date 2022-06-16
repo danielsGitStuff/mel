@@ -107,13 +107,20 @@ public class IndexerRunnable extends AbstractIndexer {
                     Lok.error("TRANSACTION DISABLED!!!!!");
                     Lok.error("TRANSACTION DISABLED!!!!!");
                     Lok.error("TRANSACTION DISABLED!!!!!");
-                    sqlQueries.beginTransaction();
+//                    sqlQueries.beginTransaction();
                     timerInit.start();
                     initStage(FileSyncStrings.STAGESET_SOURCE_FS, found, fileWatcher, databaseManager.getFileSyncSettings().getLastSyncedVersion());
                     OTimer timerExamine = new OTimer("examine stageset").start();
                     examineStage();
                     timerExamine.stop().print();
                     hashFiles();
+                    minimizeStageSet();
+                    Lok.debug("nuvng");
+                    if (!stageDao.stageSetHasContent(examinedStageSetId)) {
+                        stageDao.deleteStageSet(examinedStageSetId);
+                    }else {
+                        Lok.debug("stageset has content");
+                    }
 //                    sqlQueries.commit();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -140,7 +147,7 @@ public class IndexerRunnable extends AbstractIndexer {
             Lok.debug("save in  db");
             bunchOfLocks = P.confine(fsDao);
             for (IndexListener listener : listeners)
-                listener.done(initialStageSetId, bunchOfLocks);
+                listener.done(examinedStageSetId, bunchOfLocks);
             bunchOfLocks.end();
             Lok.debug("indexing done");
             if (initialIndexConflictHelper == null && !startedPromise.isResolved())
@@ -151,6 +158,8 @@ public class IndexerRunnable extends AbstractIndexer {
                 startedPromise.reject(e);
         }
     }
+
+
 
     public RootDirectory getRootDirectory() {
         return rootDirectory;

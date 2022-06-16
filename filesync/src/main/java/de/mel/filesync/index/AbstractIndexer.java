@@ -107,12 +107,14 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 IFile root = AbstractFile.instance(this.databaseManager.getFileSyncSettings().getRootDirectory().getPath());
                 IFile fileUp = f;
                 int depth = 0;
-                while (!root.getAbsolutePath().equals(fileUp.getAbsolutePath()) && root.getAbsolutePath().length() > fileUp.getAbsolutePath().length()) {
+                while (!root.getAbsolutePath().equals(fileUp.getAbsolutePath()) && fileUp.getAbsolutePath().length() > root.getAbsolutePath().length()) {
                     fileUp = fileUp.getParentFile();
                     depth++;
                 }
                 stage.setDepth(depth);
             }
+            if (stage.getDepthPair().equalsValue(0))
+                stage.setFsId(this.databaseManager.melFileSyncService.getFileSyncSettings().getRootDirectory().getId());
             stageDao.insert(stage);
         }
     }
@@ -251,6 +253,32 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             // todo recursive delete
         }
         stageDao.update(stage);
+    }
+
+    protected void minimizeStageSet() throws SqlQueriesException {
+        Lok.debug("asd");
+        for (Stage stage : stageDao.getStagesWithFsId(this.examinedStageSetId)) {
+            GenericFSEntry fsEntry = fsDao.getGenericById(stage.getFsId());
+            if (fsEntry.getIsDirectory().equalsValue(stage.getIsDirectory()) && fsEntry.getContentHash().equalsValue(stage.getContentHash())) {
+                // did not change
+                boolean canRemove = true;
+                List<Stage> children = stageDao.getStagesByParentId(stage.getId());
+                for (Stage child : children) {
+                    if (child.getFsIdPair().isNull() && child.getFsParentIdPair().isNull()) {
+                        canRemove = false;
+                        break;
+                    }
+                }
+                if (canRemove) {
+                    for (Stage child : children) {
+                        child.getParentIdPair().nul();
+                        stageDao.update(child);
+                    }
+                    stageDao.deleteStageById(stage.getId());
+                }
+            }
+        }
+
     }
 
     protected void examineStage() throws SqlQueriesException {

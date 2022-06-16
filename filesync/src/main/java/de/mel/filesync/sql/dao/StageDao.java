@@ -679,4 +679,15 @@ public class StageDao extends Dao.LockingDao {
         Boolean result = sqlQueries.queryValue(query, Boolean.class, ISQLQueries.args());
         return false;
     }
+
+    public List<Stage> getStagesWithFsId(Long stageSetId) throws SqlQueriesException {
+        String where = dummy.getStageSetPair().k() + "=? and " + dummy.getFsIdPair().k() + " not null";
+        return sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(stageSetId));
+    }
+
+    public List<Stage> getStagesByParentId(Long parentId) throws SqlQueriesException {
+        String where = dummy.getParentIdPair().k() + "=?";
+        return sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(parentId));
+    }
+
 }
