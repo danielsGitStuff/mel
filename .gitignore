@@ -6,7 +6,7 @@
 # add files in root
 !.gitignore
 !build.gradle
-!/settings.gradle
+!settings.gradle
 !gradle.properties
 !gradlew
 !gradlew.bat
@@ -18,12 +18,12 @@
 !gradle
 
 
-!/app/src/
-/app/src/main/assets/de/mel/auth/update.server.cert
+#!/app/src/
+#/app/src/main/assets/de/mel/auth/update.server.cert
 
 
 # add every project
-!/app/
+!/android/
 !/auth/
 !/authfx/
 !/blog/

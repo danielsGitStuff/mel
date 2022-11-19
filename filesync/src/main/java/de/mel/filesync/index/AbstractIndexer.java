@@ -221,6 +221,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 newStage.setOrder(this.order.ord());
                 newStage.setIsDirectory(false);
                 newStage.setDeleted(false);
+                newStage.setSize(file.length());
                 FsBashDetails fileDetails = BashTools.Companion.getFsBashDetails(file);
                 // NPE possible, see above
                 newStage.applyFsBashDetails(fileDetails);
@@ -324,6 +325,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 oldStage = stages.getNext();
             }
         });
+        stageDao.deleteStageSet(initialStageSetId);
         Lok.debug("examine done");
     }
 

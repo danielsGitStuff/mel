@@ -282,10 +282,6 @@ public class StageDao extends Dao.LockingDao {
     }
 
     public Stage insert(Stage stage) throws SqlQueriesException {
-        // todo debug
-        if (stage.getStageSetPair().equalsValue(3L) && stage.getNamePair().equalsValue("sub1")) {
-            Lok.debug("debug");
-        }
         Long id = sqlQueries.insert(stage);
         return stage.setId(id);
     }

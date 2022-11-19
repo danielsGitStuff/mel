@@ -87,6 +87,23 @@ public abstract class MelService extends MelWorker implements IMelService {
     }
 
     public synchronized <T extends MelIsolatedProcess> Promise<T, Exception, Void> getIsolatedProcess(Class<T> processClass, Long partnerCertId, String partnerServiceUuid) throws InterruptedException, SqlQueriesException {
+        final String key = partnerCertId + "." + partnerServiceUuid + "." + processClass.getSimpleName();
+        isolatedLock.lock();
+        DeferredObject<T, Exception, Void> alreadyDeferred = (DeferredObject<T, Exception, Void>) isolatedDeferredMap.get(key);
+        if (alreadyDeferred != null && (alreadyDeferred.isResolved() || alreadyDeferred.isPending())) {
+            isolatedLock.unlock();
+            return alreadyDeferred;
+        }
+        DeferredObject<T, Exception, Void> deferred = melAuthService.connectToService(processClass, partnerCertId, partnerServiceUuid, uuid, null, null, null);
+        isolatedDeferredMap.put(key, deferred);
+        deferred.done(result -> {
+            Lok.debug("am i first?");
+        });
+        isolatedLock.unlock();
+        return deferred;
+    }
+
+    public synchronized <T extends MelIsolatedProcess> Promise<T, Exception, Void> getIsolatedProcess2(Class<T> processClass, Long partnerCertId, String partnerServiceUuid) throws InterruptedException, SqlQueriesException {
         DeferredObject<T,Exception,Void> deferred = new DeferredObject<>();
         deferred.reject(new Exception("DEBUG exception. Isolated connection always fails!"));
         return deferred;

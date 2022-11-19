@@ -24,8 +24,14 @@ import java.util.concurrent.atomic.AtomicInteger
 /**
  * Creates a TransferFromServiceRunnable per partner that you want to receive files from and manages them.
  */
-class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao, val melFileSyncService: MelFileSyncService<out SyncHandler>
-               , val syncHandler: SyncHandler, val wastebin: Wastebin, val fsDao: FsDao) : DeferredRunnable(), MelIsolatedProcess.IsolatedProcessListener {
+class TManager(
+    val melAuthService: MelAuthService,
+    val transferDao: TransferDao,
+    val melFileSyncService: MelFileSyncService<out SyncHandler>,
+    val syncHandler: SyncHandler,
+    val wastebin: Wastebin,
+    val fsDao: FsDao
+) : DeferredRunnable(), MelIsolatedProcess.IsolatedProcessListener {
 
     override fun onShutDown(): Promise<Void, Void, Void> = ResolvedDeferredObject()
 
@@ -40,7 +46,7 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
     val waitLock = CountLock()
 
     init {
-        if (melAuthService.name=="MAClient")
+        if (melAuthService.name == "MAClient")
             Lok.debug("debug tm")
         maintenance()
     }
@@ -222,8 +228,8 @@ class TManager(val melAuthService: MelAuthService, val transferDao: TransferDao,
         transferDao.insert(detailsDb)
         // create a file distr job here
         val distributionTask = FileDistributionTask()
-                .setSourceHash(detailsDb.hash.v())
-                .setState(FileDistributionTask.FileDistributionState.NRY)
+            .setSourceHash(detailsDb.hash.v())
+            .setState(FileDistributionTask.FileDistributionState.NRY)
         syncHandler.fileDistributor.createJob(distributionTask)
     }
 

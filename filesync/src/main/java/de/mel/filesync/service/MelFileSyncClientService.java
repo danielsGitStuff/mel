@@ -172,7 +172,7 @@ public class MelFileSyncClientService extends MelFileSyncService<ClientSyncHandl
 
             @Override
             public void done(Long stageSetId, BunchOfLocks bunchOfLocks) {
-                //addJob(new CommitJob(true));
+                addJob(new CommitJob(true));
             }
         };
     }

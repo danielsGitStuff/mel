@@ -41,5 +41,5 @@ include 'json', 'serialize', 'sql', 'auth', 'filesync', ':contacts',  ':icons', 
 //project(':serialize').projectDir = new File('serialize')
 //project(':sql').projectDir = new File('sql')
 include 'testtools'
-include 'n'
+
 

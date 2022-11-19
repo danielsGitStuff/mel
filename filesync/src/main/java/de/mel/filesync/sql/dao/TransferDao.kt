@@ -163,8 +163,8 @@ class TransferDao : Dao {
     @Throws(SqlQueriesException::class)
     fun countRemaining(certId: Long?, serviceUuid: String): Long {
         val query = "select count (*) from ${dummy.tableName} where ${dummy.certId.k()}=? and ${dummy.serviceUuid.k()}=? " +
-                "and ${dummy.state.k()}=?"
-        return sqlQueries.queryValue(query, SqlResultTransformer.CLASS_LONG, ISQLQueries.args(certId, serviceUuid, TransferState.NOT_STARTED))
+                "and ${dummy.state.k()} in (?,?)";
+        return sqlQueries.queryValue(query, SqlResultTransformer.CLASS_LONG, ISQLQueries.args(certId, serviceUuid, TransferState.NOT_STARTED, TransferState.RUNNING))
     }
 
     @Throws(SqlQueriesException::class)

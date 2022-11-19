@@ -118,7 +118,12 @@ public class IndexerRunnable extends AbstractIndexer {
                     Lok.debug("nuvng");
                     if (!stageDao.stageSetHasContent(examinedStageSetId)) {
                         stageDao.deleteStageSet(examinedStageSetId);
-                    }else {
+                    } else {
+                        examinedStageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED);
+                        stageDao.updateStageSet(examinedStageSet);
+                        Eva.runIf(() -> !this.databaseManager.melFileSyncService.getFileSyncSettings().isServer(), () -> {
+                            Lok.debug("debug clien 32fi2");
+                        });
                         Lok.debug("stageset has content");
                     }
 //                    sqlQueries.commit();
@@ -158,7 +163,6 @@ public class IndexerRunnable extends AbstractIndexer {
                 startedPromise.reject(e);
         }
     }
-
 
 
     public RootDirectory getRootDirectory() {
