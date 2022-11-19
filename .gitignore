@@ -18,8 +18,8 @@
 !gradle
 
 
-#!/app/src/
-#/app/src/main/assets/de/mel/auth/update.server.cert
+!/android/app/src/
+/android/app/src/main/assets/de/mel/auth/update.server.cert
 
 
 # add every project
@@ -48,8 +48,11 @@
 # add a few folders and files that are present in (almost) every project
 !*/*.md
 !*/build.gradle
+!*/*/build.gradle
 !*/.gitignore
 !*/proguard-rules.pro
 
+!*/app/
+!*/app/**
 !*/src/
 !*/src/**

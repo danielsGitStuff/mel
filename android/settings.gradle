@@ -1,0 +1,26 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+rootProject.name = "Mel Android"
+include ':app'
+def melRoot = project(':app').projectDir.parentFile.parentFile
+println "mel root dir = '$melRoot'"
+def projects = [':json', ':serialize', ':sql', ':auth', ':filesync', ':contacts', ':icons', ':konsole', ':lok', ':filedump', ':testtools']
+
+projects.forEach(p -> {
+    include "$p"
+    def withoutColons = p.substring(1)
+    project(p).projectDir = new File(melRoot, withoutColons)
+})
+
