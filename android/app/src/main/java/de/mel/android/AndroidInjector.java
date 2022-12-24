@@ -24,7 +24,6 @@ import de.mel.contacts.ContactsInjector;
 import de.mel.contacts.data.ContactStrings;
 import de.mel.filesync.FileSyncInjector;
 import de.mel.filesync.bash.BashTools;
-import de.mel.filesync.bash.BashToolsImpl;
 import de.mel.filesync.data.FileSyncStrings;
 import de.mel.android.sql.AndroidDBConnection;
 import de.mel.execute.SqliteExecutorInjection;
@@ -51,6 +50,8 @@ public class AndroidInjector {
                         // "create trigger" hackery
                         if (sql.trim().toLowerCase().startsWith("create trigger "))
                             sql += "; " + scanner.next();
+                        if (sql.trim().isEmpty())
+                            continue;
                         Lok.debug("SqliteExecutor.executeStream: " + sql);
                         db.execSQL(sql);
                     }
@@ -127,13 +128,13 @@ public class AndroidInjector {
             return new AndroidSQLQueries(new AndroidDBConnection(helper.getWritableDatabase()));
         });
         // use a proper bash tools variant
-        BashTools bashTools;
-        bashTools = N.result(() -> {
-            if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.Q)
-                return new SAFBashTools();
-            else
-                return new BashToolsAndroid(context);
-        });
+        BashTools bashTools = new BashToolsAndroid(context);
+//        bashTools = N.result(() -> {
+//            if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.Q)
+//                return new SAFBashTools();
+//            else
+//                return new BashToolsAndroid(context);
+//        });
         BashTools.Companion.setImplementation(bashTools);
         // use a proper file watcher
         FileSyncInjector.setFileWatcherFactory(new AndroidFileWatcherFactory());

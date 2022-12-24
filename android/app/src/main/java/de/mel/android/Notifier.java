@@ -54,7 +54,7 @@ public class Notifier {
     public static void cancel(Intent intent, int requestCode) {
         Context context = Tools.getApplicationContext();
         if (intent != null) {
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
             if (pendingIntent != null)
                 pendingIntent.cancel();
         }
@@ -85,7 +85,7 @@ public class Notifier {
     public static void pendingNotificationWithIcon(int requestCode, int iconResource, Intent intent, @NonNull String channelId, CharSequence title, CharSequence text, CharSequence ticker) {
         Context context = Tools.getApplicationContext();
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification notification = builder.setSmallIcon(iconResource)
                 .setContentTitle(title)
                 .setContentText(text)

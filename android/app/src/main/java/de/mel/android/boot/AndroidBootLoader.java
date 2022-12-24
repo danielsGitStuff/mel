@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.core.app.NotificationCompat;
 import android.view.ViewGroup;
 
+import de.mel.AndroidPermission;
 import de.mel.android.MainActivity;
 import de.mel.android.MelActivity;
 import de.mel.android.controller.AndroidServiceGuiController;
@@ -22,7 +23,7 @@ public interface AndroidBootLoader<T extends IMelService> {
 
     AndroidServiceGuiController inflateEmbeddedView(ViewGroup embedded, MainActivity activity, MelAuthService melAuthService, IMelService runningInstance);
 
-    String[] getPermissions();
+    AndroidPermission[] getPermissions();
 
     int getMenuIcon();
 

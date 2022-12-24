@@ -19,7 +19,7 @@ import de.mel.auth.file.IFile
 import de.mel.filesync.index.watchdog.FileWatcher
 import de.mel.filesync.service.MelFileSyncService
 import java.io.File
-
+@Deprecated(message = "fuck SAF")
 @RequiresApi(api = Build.VERSION_CODES.Q)
 class SAFFileWatcher(melFileSyncService: MelFileSyncService<*>) : FileWatcher(melFileSyncService) {
 

@@ -33,6 +33,7 @@ import de.mel.contacts.data.db.dao.PhoneBookDao;
 import de.mel.contacts.jobs.CommitJob;
 import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
+import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mel.sql.ISQLResource;
 import de.mel.sql.SqlQueriesException;
 
@@ -143,7 +144,7 @@ public class ContactsConflictsPopupActivity extends ConflictsPopupActivity<Andro
 
             ConflictIntentExtra conflict = new ConflictIntentExtra(localPhoneBookId, receivedPhoneBookId);
             MelNotification notification = new MelNotification(service.getUuid(), ContactStrings.Notifications.INTENTION_CONFLICT, "CONFLICT TITLE", "conflict text");
-            notification.addSerializedExtra(ContactStrings.Notifications.INTENT_EXTRA_CONFLICT, conflict);
+            notification.addSerializedExtra(ContactStrings.Notifications.INTENT_EXTRA_CONFLICT, SerializableEntitySerializer.serialize(conflict));
             service.getMelAuthService().onNotificationFromService(service, notification);
 //            // store in android contacts application
 //            if (contactsToAndroidExporter != null) {

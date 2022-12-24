@@ -35,4 +35,8 @@ public class MelStrings {
         public static final String EXTRA = "n.extra/";
         public static final String REQUEST_CODE = "mel.notification.id";
     }
+
+    public static class Activity {
+        public static final String SOURCE_REQUEST_ID = "act.src.id";
+    }
 }

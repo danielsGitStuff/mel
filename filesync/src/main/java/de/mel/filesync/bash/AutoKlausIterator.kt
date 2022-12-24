@@ -1,7 +1,5 @@
 package de.mel.filesync.bash
 
-import de.mel.auth.file.StandardFile
-
 interface AutoKlausIterator<out T> : Iterator<T>, AutoCloseable {
     class EmpyAutoKlausIterator<T> : AutoKlausIterator<T> {
         @Throws(Exception::class)

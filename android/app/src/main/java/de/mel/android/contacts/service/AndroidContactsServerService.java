@@ -35,6 +35,7 @@ import de.mel.contacts.jobs.UpdatePhoneBookJob;
 import de.mel.contacts.service.ContactsServerService;
 import de.mel.core.serialize.exceptions.JsonDeserializationException;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
+import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mel.sql.ISQLResource;
 import de.mel.sql.SqlQueriesException;
 import org.jdeferred.Promise;
@@ -87,7 +88,7 @@ public class AndroidContactsServerService extends ContactsServerService {
 
             ConflictIntentExtra conflict = new ConflictIntentExtra(read.getId().v(), debugBook.getId().v());
             MelNotification notification = new MelNotification(getUuid(), ContactStrings.Notifications.INTENTION_CONFLICT, "CONFLICT TITLE", "conflict text");
-            notification.addSerializedExtra(ContactStrings.Notifications.INTENT_EXTRA_CONFLICT, conflict);
+            notification.addSerializedExtra(ContactStrings.Notifications.INTENT_EXTRA_CONFLICT, SerializableEntitySerializer.serialize(conflict));
             melAuthService.onNotificationFromService(this, notification);
         });
     }
@@ -209,7 +210,7 @@ public class AndroidContactsServerService extends ContactsServerService {
 
             ConflictIntentExtra conflict = new ConflictIntentExtra(localPhoneBookId, receivedPhoneBookId);
             MelNotification notification = new MelNotification(getUuid(), ContactStrings.Notifications.INTENTION_CONFLICT, "CONFLICT TITLE", "conflict text");
-            notification.addSerializedExtra(ContactStrings.Notifications.INTENT_EXTRA_CONFLICT, conflict);
+            notification.addSerializedExtra(ContactStrings.Notifications.INTENT_EXTRA_CONFLICT, SerializableEntitySerializer.serialize(conflict));
             melAuthService.onNotificationFromService(this, notification);
 //            // store in android contacts application
 //            if (contactsToAndroidExporter != null) {

@@ -1,5 +1,6 @@
 package de.mel.android.filesync.controller;
 
+import android.Manifest;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -17,9 +18,13 @@ import android.widget.TextView;
 
 import de.mel.auth.file.IFile;
 import de.mel.auth.service.Bootloader;
+
 import org.jdeferred.Promise;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import de.mel.Lok;
 import de.mel.R;
@@ -99,7 +104,7 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
     }
 
     public RemoteFileSyncServiceChooserGuiController(MelAuthService melAuthService, MainActivity activity, ViewGroup viewGroup, Bootloader bootloader) {
-        super(melAuthService, activity, viewGroup, R.layout.embedded_twice_drive,bootloader);
+        super(melAuthService, activity, viewGroup, R.layout.embedded_twice_drive, bootloader);
     }
 
     private void launchDirChooser() {
@@ -116,6 +121,7 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
         IFile[] rootDirs = StoragesManager.getStorageFiles(Tools.getApplicationContext());// N.arr.fromCollection(paths, N.converter(AFile.class, element -> AFile.instance(AFile.instance(element))));
         Promise<IFile, Void, Void> result = DirectoryChooserDialog.showDialog(activity, rootDirs);
         result.done(chosenDir -> {
+//            activity.runOnUiThread(() -> setPath(chosenDir.getAbsolutePath()));
             setPath(chosenDir.getAbsolutePath());
         });
     }
@@ -136,18 +142,20 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
         setPath(createDrivePath());
         btnPath.setOnClickListener(view -> {
             // explain permissions to user first
-            activity.askUserForPermissions(new AndroidFileSyncBootloader().getPermissions()
-                    , permissionsGrantedListener
-                    , R.string.permissionRequiredTitle
-                    , getPermissionsText()
-                    , () -> {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            SAFAccessor.setupAllStorages(activity).done(result -> launchDirChooser());
-                        } else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT) {
-                            launchDirChooser();
-                        }
-                    }
-                    , result -> Notifier.toast(activity, R.string.toastDrivePermissionsRequired));
+            launchDirChooser();
+//            List<String> permissions = Arrays.stream(new AndroidFileSyncBootloader().getPermissions()).map(a -> a.getPermission()).collect(Collectors.toList());
+//            activity.askUserForPermissions(permissions.toArray(new String[0])
+//                    , permissionsGrantedListener
+//                    , R.string.permissionRequiredTitle
+//                    , getPermissionsText()
+//                    , () -> {
+//                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//                            SAFAccessor.setupAllStorages(activity).done(result -> launchDirChooser());
+//                        } else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT) {
+//                            launchDirChooser();
+//                        }
+//                    }
+//                    , result -> Notifier.toast(activity, R.string.toastDrivePermissionsRequired));
         });
         maxSizeSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -242,6 +250,8 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
     }
 
     private void setPath(String path) {
+        System.out.println("RemoteFileSyncServiceChooserGuiController.setPath");
+        System.out.println(path);
         txtPath.setText(path);
         File dir = new File(path);
         totalSpace = dir.getTotalSpace();

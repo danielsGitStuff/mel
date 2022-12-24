@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import androidx.core.app.NotificationCompat
 import android.view.ViewGroup
+import de.mel.AndroidPermission
 
 import java.io.File
 import java.io.IOException
@@ -27,6 +28,7 @@ import de.mel.auth.MelNotification
 import de.mel.auth.data.db.ServiceType
 import de.mel.auth.service.IMelService
 import de.mel.auth.service.MelAuthService
+import de.mel.auth.service.MelAuthServiceImpl
 import de.mel.contacts.ContactsBootloader
 import de.mel.contacts.data.ContactStrings
 import de.mel.contacts.data.ContactsSettings
@@ -41,16 +43,16 @@ import de.mel.sql.SqlQueriesException
 
 class AndroidContactsBootloader : ContactsBootloader(), AndroidBootLoader<ContactsService> {
 
-    @Throws(JsonDeserializationException::class, JsonSerializationException::class, IOException::class, SQLException::class, SqlQueriesException::class, IllegalAccessException::class, ClassNotFoundException::class)
-    override fun createServerInstance(melAuthService: MelAuthService, workingDirectory: File, serviceId: Long?, serviceTypeId: String, contactsSettings: ContactsSettings<*>): ContactsService {
-        return AndroidContactsServerService(melAuthService, workingDirectory, serviceId, serviceTypeId, contactsSettings)
-    }
+//    @Throws(JsonDeserializationException::class, JsonSerializationException::class, IOException::class, SQLException::class, SqlQueriesException::class, IllegalAccessException::class, ClassNotFoundException::class)
+//    override fun createServerInstance(melAuthService: MelAuthService, workingDirectory: File, serviceId: Long?, serviceTypeId: String, contactsSettings: ContactsSettings<*>): ContactsService {
+//        return AndroidContactsServerService(melAuthService, workingDirectory, serviceId, serviceTypeId, contactsSettings)
+//    }
 
 
-    @Throws(JsonDeserializationException::class, JsonSerializationException::class, IOException::class, SQLException::class, SqlQueriesException::class, IllegalAccessException::class, ClassNotFoundException::class)
-    override fun createClientInstance(melAuthService: MelAuthService, workingDirectory: File, serviceTypeId: Long?, serviceUuid: String, settings: ContactsSettings<*>): ContactsService {
-        return AndroidContactsClientService(melAuthService, workingDirectory, serviceTypeId, serviceUuid, settings)
-    }
+//    @Throws(JsonDeserializationException::class, JsonSerializationException::class, IOException::class, SQLException::class, SqlQueriesException::class, IllegalAccessException::class, ClassNotFoundException::class)
+//    override fun createClientInstance(melAuthService: MelAuthService, workingDirectory: File, serviceTypeId: Long?, serviceUuid: String, settings: ContactsSettings<*>): ContactsService {
+//        return AndroidContactsClientService(melAuthService, workingDirectory, serviceTypeId, serviceUuid, settings)
+//    }
 
     override fun createService(activity: Activity, melAuthService: MelAuthService, currentController: AndroidServiceGuiController) {
 
@@ -78,8 +80,8 @@ class AndroidContactsBootloader : ContactsBootloader(), AndroidBootLoader<Contac
                 ?: RemoteContactsServiceChooserGuiController(melAuthService, activity, embedded,this)
     }
 
-    override fun getPermissions(): Array<String> {
-        return arrayOf(Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS)
+    override fun getPermissions(): Array<AndroidPermission> {
+        return arrayOf(AndroidPermission(Manifest.permission.READ_CONTACTS, titleInt = R.string.permissionRequiredTitle, textInt = R.string.permissionContacts), AndroidPermission(Manifest.permission.WRITE_CONTACTS, titleInt = R.string.permissionRequiredTitle, textInt = R.string.permissionContacts))
     }
 
     override fun getMenuIcon(): Int {

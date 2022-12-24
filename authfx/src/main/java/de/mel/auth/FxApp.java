@@ -21,7 +21,7 @@ public class FxApp extends Application {
     }
 
     public static void start() {
-        new Thread(() -> FxApp.launch()).start();
+        new Thread(FxApp::launch).start();
     }
 
 

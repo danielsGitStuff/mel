@@ -21,10 +21,11 @@ import de.mel.auth.data.ServicePayload;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.jobs.Job;
 import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
-import de.mel.auth.tools.lock.P;
-import de.mel.auth.tools.lock.Warden;
+import de.mel.auth.tools.lock2.BunchOfLocks;
+import de.mel.auth.tools.lock2.P;
 import de.mel.contacts.data.ContactStrings;
 import de.mel.contacts.data.ContactsClientSettings;
 import de.mel.contacts.data.ContactsSettings;
@@ -40,6 +41,7 @@ import de.mel.contacts.jobs.QueryJob;
 import de.mel.contacts.service.ContactsClientService;
 import de.mel.core.serialize.exceptions.JsonDeserializationException;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
+import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mel.sql.ISQLResource;
 import de.mel.sql.Pair;
 import de.mel.sql.SqlQueriesException;
@@ -134,10 +136,10 @@ public class AndroidContactsClientService extends ContactsClientService {
         final Long serverCertId = databaseManager.getSettings().getClientSettings().getServerCertId();
         final String serviceUuid = databaseManager.getSettings().getClientSettings().getServiceUuid();
         PhoneBookDao phonebookDao = databaseManager.getPhoneBookDao();
-        Warden warden = P.confine(phonebookDao);
-        melAuthService.connect(serverCertId).done(mvp -> warden.run(() ->
+        BunchOfLocks bunchOfLocks = P.confine(phonebookDao);
+        melAuthService.connect(serverCertId).done(mvp -> bunchOfLocks.run(() ->
                 mvp.request(serviceUuid, new EmptyPayload(ContactStrings.INTENT_QUERY))
-                        .done(result -> warden.run(() -> {
+                        .done(result -> bunchOfLocks.run(() -> {
                             Lok.debug("ContactsClientService.workWork.query.success");
                             PhoneBookWrapper wrapper = (PhoneBookWrapper) result;
                             PhoneBook receivedPhoneBook = wrapper.getPhoneBook();
@@ -148,19 +150,19 @@ public class AndroidContactsClientService extends ContactsClientService {
                             boolean conflictOccurred = checkConflict(lastReadId, receivedPhoneBook.getId().v());
                             if (!conflictOccurred) {
                                 Lok.debug("AndroidContactsClientService.commitPhoneBook2Server");
-                                updateLocalPhoneBook(warden, receivedPhoneBook.getId().v());
+                                updateLocalPhoneBook(bunchOfLocks, receivedPhoneBook.getId().v());
                                 databaseManager.getSettings().setMasterPhoneBookId(receivedPhoneBook.getId().v());
                                 databaseManager.getSettings().save();
                                 databaseManager.getPhoneBookDao().deletePhoneBook(master.getId().v());
                             }
-                            warden.end();
+                            bunchOfLocks.end();
                         }))
-                        .fail(result -> warden.run(() -> {
+                        .fail(result -> bunchOfLocks.run(() -> {
                             System.err.println("ContactsClientService.workWork");
                             queryJob.reject(null);
-                            warden.end();
+                            bunchOfLocks.end();
                         }))))
-                .fail(result -> warden.end());
+                .fail(result -> bunchOfLocks.end());
 
     }
 
@@ -168,23 +170,23 @@ public class AndroidContactsClientService extends ContactsClientService {
         ContactsClientSettings clientSettings = databaseManager.getSettings().getClientSettings();
         //phone book has no contacts attached yet
         PhoneBookDao phoneBookDao = databaseManager.getPhoneBookDao();
-        Warden warden = P.confine(phoneBookDao);
+        BunchOfLocks bunchOfLocks = P.confine(phoneBookDao);
         PhoneBook deepPhoneBook = databaseManager.getPhoneBookDao().loadDeepPhoneBook(phoneBookId);
         PhoneBookWrapper phoneBookWrapper = new PhoneBookWrapper(deepPhoneBook);
         phoneBookWrapper.setIntent(ContactStrings.INTENT_UPDATE);
-        warden.run(() -> melAuthService.connect(clientSettings.getServerCertId())
-                .done(mvp -> warden.run(() -> mvp.request(clientSettings.getServiceUuid(), phoneBookWrapper)
-                        .done(result -> warden.run(() -> {
+        bunchOfLocks.run(() -> melAuthService.connect(clientSettings.getServerCertId())
+                .done(mvp -> bunchOfLocks.run(() -> mvp.request(clientSettings.getServiceUuid(), phoneBookWrapper)
+                        .done(result -> bunchOfLocks.run(() -> {
                             Lok.debug("AndroidContactsClientService.workWork. update succeeded");
-                            updateLocalPhoneBook(warden, deepPhoneBook.getId().v());
-                            warden.end();
-                        })).fail(result -> warden.run(() -> {
+                            updateLocalPhoneBook(bunchOfLocks, deepPhoneBook.getId().v());
+                            bunchOfLocks.end();
+                        })).fail(result -> bunchOfLocks.run(() -> {
                             Lok.debug("updating server failed.");
                             QueryJob queryJob = new QueryJob();
                             addJob(queryJob);
-                            warden.end();
+                            bunchOfLocks.end();
                         }))))
-                .fail(result -> warden.end()));
+                .fail(result -> bunchOfLocks.end()));
     }
 
     @Override
@@ -194,9 +196,9 @@ public class AndroidContactsClientService extends ContactsClientService {
         return null;
     }
 
-    private void updateLocalPhoneBook(Warden warden, Long newPhoneBookId) throws IllegalAccessException, IOException, JsonSerializationException {
+    private void updateLocalPhoneBook(BunchOfLocks bunchOfLocks, Long newPhoneBookId) throws IllegalAccessException, IOException, JsonSerializationException {
         Lok.debug("AndroidContactsClientService.workWork. update succeeded");
-        warden.run(() -> {
+        bunchOfLocks.run(() -> {
             databaseManager.getSettings().setMasterPhoneBookId(newPhoneBookId);
             //databaseManager.getSettings().getClientSettings().setLastReadId(null);
             databaseManager.getSettings().save();
@@ -273,7 +275,7 @@ public class AndroidContactsClientService extends ContactsClientService {
 
             ConflictIntentExtra conflict = new ConflictIntentExtra(localPhoneBookId, receivedPhoneBookId);
             MelNotification notification = new MelNotification(getUuid(), ContactStrings.Notifications.INTENTION_CONFLICT, "CONFLICT TITLE", "conflict text");
-            notification.addSerializedExtra(ContactStrings.Notifications.INTENT_EXTRA_CONFLICT, conflict);
+            notification.addSerializedExtra(ContactStrings.Notifications.INTENT_EXTRA_CONFLICT, SerializableEntitySerializer.serialize(conflict));
             melAuthService.onNotificationFromService(this, notification);
 //            // store in android contacts application
 //            if (contactsToAndroidExporter != null) {

@@ -8,7 +8,8 @@ import java.util.*
 class DocFileCache(storageRootDoc: DocumentFile, private val maxItems: Int) {
     private val storageRoot = DocTreeRoot(this, storageRootDoc)
 
-    class DocTreeRoot(cache: DocFileCache, rootDocFile: DocumentFile) : DocTreeNode(cache, rootDocFile, 1, "[storageRoot]", null) {
+    class DocTreeRoot(cache: DocFileCache, rootDocFile: DocumentFile) :
+        DocTreeNode(cache, rootDocFile, 1, "[storageRoot]", null) {
         fun findDoc(queue: Queue<String>): DocumentFile {
             val currentPath = mutableSetOf<DocTreeNode>()
             currentPath.add(this)
@@ -16,7 +17,13 @@ class DocFileCache(storageRootDoc: DocumentFile, private val maxItems: Int) {
         }
     }
 
-    open class DocTreeNode(val cache: DocFileCache, val docFile: DocumentFile, var importance: Int, val name: String, val parentNode: DocTreeNode?) {
+    open class DocTreeNode(
+        val cache: DocFileCache,
+        val docFile: DocumentFile,
+        var importance: Int,
+        val name: String,
+        val parentNode: DocTreeNode?
+    ) {
         val nodes = mutableMapOf<String, DocTreeNode>()
 
         /**
@@ -48,7 +55,7 @@ class DocFileCache(storageRootDoc: DocumentFile, private val maxItems: Int) {
             }
             // doc is not present in tree now
             return cache.createNode(this, name, docFile, currentPath)
-                    ?.findDoc(queue, currentPath)
+                .findDoc(queue, currentPath)
         }
 
         fun isLeaf() = nodes.isEmpty()
@@ -61,7 +68,12 @@ class DocFileCache(storageRootDoc: DocumentFile, private val maxItems: Int) {
 
     private val allNodes = mutableSetOf<DocTreeNode>()
 
-    private fun createNode(parentNode: DocTreeNode, name: String, docFile: DocumentFile, currentPath: MutableSet<DocTreeNode>): DocTreeNode {
+    private fun createNode(
+        parentNode: DocTreeNode,
+        name: String,
+        docFile: DocumentFile,
+        currentPath: MutableSet<DocTreeNode>
+    ): DocTreeNode {
         var nodeDoc: DocumentFile? = docFile.findFile(name)
         if (nodeDoc == null) {
             throw FileNotFoundException(currentPath.toString())
@@ -83,9 +95,9 @@ class DocFileCache(storageRootDoc: DocumentFile, private val maxItems: Int) {
             return
 
         val smallLeaf = allNodes
-                .filter { !obtainThese.contains(it) && it.isLeaf() }
-                .sortedBy { it.importance }
-                .firstOrNull()
+            .filter { !obtainThese.contains(it) && it.isLeaf() }
+            .sortedBy { it.importance }
+            .firstOrNull()
         if (smallLeaf == null) {
             Lok.debug("could not free any space, because no leafs are present")
             return

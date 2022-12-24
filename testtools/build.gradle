@@ -6,7 +6,6 @@ group 'de.mel'
 version 'unspecified'
 
 repositories {
-    mavenCentral()
 }
 
 dependencies {

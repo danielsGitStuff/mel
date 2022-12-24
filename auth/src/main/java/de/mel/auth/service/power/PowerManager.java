@@ -6,6 +6,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.data.PowerManagerSettings;
+import de.mel.auth.service.MelAuthService;
 import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.tools.N;
 
@@ -16,7 +17,7 @@ import de.mel.auth.tools.N;
 public class PowerManager {
     private final MelAuthSettings melAuthSettings;
     private final PowerManagerSettings settings;
-    protected MelAuthServiceImpl melAuthService;
+    protected MelAuthService melAuthService;
     protected boolean wifi = true;
     protected ReentrantLock stateLock = new ReentrantLock(true);
     protected boolean powered = true;
@@ -32,7 +33,7 @@ public class PowerManager {
         this.settings = melAuthSettings.getPowerManagerSettings();
     }
 
-    public PowerManager setMelAuthService(MelAuthServiceImpl melAuthService) {
+    public PowerManager setMelAuthService(MelAuthService melAuthService) {
         this.melAuthService = melAuthService;
         return this;
     }

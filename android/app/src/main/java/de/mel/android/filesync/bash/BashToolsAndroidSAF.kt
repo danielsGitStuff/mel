@@ -3,7 +3,6 @@ package de.mel.android.filesync.bash
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 
@@ -16,32 +15,28 @@ import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.IFile
 import de.mel.auth.file.StandardFile
 import de.mel.filesync.bash.*
-import java.io.File
 import java.io.InputStreamReader
 
 /**
  * Created by xor on 7/20/17.
  */
-
-class BashToolsAndroid(private val context: Context) : BashTools<StandardFile>() {
-    private var findNewerFallback: BashToolsAndroidJavaImpl? = null
-    private val javaBashTools: BashToolsAndroidJavaImpl
-    private var findFallBack: BashToolsAndroidJavaImpl? = null
+class BashToolsAndroidSAF(private val context: Context) : BashTools<AndroidFile>() {
+    private var findNewerFallback: BashToolsAndroidSAFImpl? = null
+    private val javaBashTools: BashToolsAndroidSAFImpl
+    private var findFallBack: BashToolsAndroidSAFImpl? = null
     val bashTolsUnix = BashToolsUnix()
     private var BIN_PATH: String = "/system/bin/sh"
 
     init {
-        bashTolsUnix.setBinPath("sh")
-        bashTolsUnix.readCreated = false
-        javaBashTools = BashToolsAndroidJavaImpl()
+        javaBashTools = BashToolsAndroidSAFImpl()
         testCommands()
     }
 
-    override fun stuffModifiedAfter(referenceFile: StandardFile, directory: StandardFile, pruneDir: StandardFile): List<StandardFile> {
+    override fun stuffModifiedAfter(referenceFile: AndroidFile, directory: AndroidFile, pruneDir: AndroidFile): List<AndroidFile> {
         if (findNewerFallback != null)
             return findNewerFallback!!.stuffModifiedAfter(referenceFile, directory, pruneDir)
         StandardFile(referenceFile.absolutePath)
-        return bashTolsUnix.stuffModifiedAfter(StandardFile(referenceFile.absolutePath), StandardFile(directory.absolutePath), StandardFile(pruneDir.absolutePath)).map { StandardFile(it.absolutePath) }
+        return bashTolsUnix.stuffModifiedAfter(StandardFile(referenceFile.absolutePath), StandardFile(directory.absolutePath), StandardFile(pruneDir.absolutePath)).map { AndroidFile(it.absolutePath) }
     }
 
     /**
@@ -142,45 +137,69 @@ class BashToolsAndroid(private val context: Context) : BashTools<StandardFile>()
 //
 //    }
 
-
+    override fun getContentFsBashDetails(directory: AndroidFile): MutableMap<String, FsBashDetails> {
+        val dir = directory as AndroidFile
+        try {
+            val thisDoc = dir.getDocFile()!!
+            val uri: Uri = DocumentsContract.buildChildDocumentsUriUsingTree(thisDoc.uri, DocumentsContract.getDocumentId(thisDoc.uri))
+            val contentResolver: ContentResolver = (AbstractFile.configuration as AndroidFileConfiguration).context.contentResolver
+            val content = mutableMapOf<String, FsBashDetails>()
+            contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME
+                    , DocumentsContract.Document.COLUMN_LAST_MODIFIED
+                    , DocumentsContract.Document.COLUMN_DOCUMENT_ID), null, null, null, null)?.use {
+                it.moveToFirst()
+                val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                val modIndex = it.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
+                val docIdIndex = it.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
+                while (!it.isAfterLast) {
+                    val name = it.getString(nameIndex)
+                    val modified = it.getLong(modIndex)
+                    val docId = it.getLong(docIdIndex)
+                    val details = FsBashDetails(modified, modified, docId, false, null, name)
+                    content[name] = details
+                    it.moveToNext()
+                }
+            }
+            return content
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+        }
+        return mutableMapOf()
+    }
 
     @Throws(IOException::class)
-    override fun find(directory: StandardFile, pruneDir: StandardFile): AutoKlausIterator<StandardFile> {
+    override fun find(directory: AndroidFile, pruneDir: AndroidFile): AutoKlausIterator<AndroidFile> {
         return if (findFallBack != null) findFallBack!!.find(directory, pruneDir) else findImpl(directory,pruneDir)
     }
 
-    fun findImpl(directory: StandardFile, pruneDir: StandardFile): AutoKlausIterator<StandardFile> {
+    fun findImpl(directory: AndroidFile, pruneDir: AndroidFile): AutoKlausIterator<AndroidFile> {
         return exec("find ${bashTolsUnix.escapeQuotedAbsoluteFilePath(StandardFile(directory.absolutePath))} -path ${bashTolsUnix.escapeQuotedAbsoluteFilePath(StandardFile(pruneDir.absolutePath))} -prune -o -print")
     }
 
     @Throws(IOException::class)
-    private fun exec(cmd: String): AutoKlausIterator<StandardFile> {
+    private fun exec(cmd: String): AutoKlausIterator<AndroidFile> {
         val args = arrayOf(BIN_PATH, "-c", cmd)
         Lok.debug("BashToolsAndroid.exec: $cmd")
         val proc = ProcessBuilder(*args).start()
         return BufferedIterator.BufferedFileIterator(InputStreamReader(proc.inputStream))
     }
 
-    override fun setCreationDate(target: StandardFile, created: Long) {
+    override fun setCreationDate(target: AndroidFile, created: Long) {
         // android does not store creation dates
     }
 
-    override fun getFsBashDetails(file: StandardFile): FsBashDetails? {
+    override fun getFsBashDetails(file: AndroidFile): FsBashDetails? {
         return bashTolsUnix.getFsBashDetails(StandardFile(file.absolutePath))
     }
 
-    override fun lnS(file: StandardFile, target: String) {
+    override fun lnS(file: AndroidFile, target: String) {
     }
 
-    override fun rmRf(directory: StandardFile) {
-        bashTolsUnix.rmRf(directory)
+    override fun rmRf(directory: AndroidFile) {
+        throw BashToolsException.NotImplemented()
     }
 
-    override fun stuffModifiedAfter(directory: StandardFile, pruneDir: StandardFile, timeStamp: Long): AutoKlausIterator<StandardFile> {
+    override fun stuffModifiedAfter(directory: AndroidFile, pruneDir: AndroidFile, timeStamp: Long): AutoKlausIterator<AndroidFile> {
         throw NotImplementedError()
-    }
-
-    override fun getContentFsBashDetails(directory: StandardFile): MutableMap<String, FsBashDetails> {
-        TODO("Not yet implemented")
     }
 }

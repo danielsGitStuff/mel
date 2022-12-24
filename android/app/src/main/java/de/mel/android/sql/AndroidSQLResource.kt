@@ -8,29 +8,36 @@ import de.mel.sql.SqlQueriesException
 /**
  * Created by xor on 3/22/17.
  */
-class AndroidSQLResource<T : SQLTableObject?>(private val cursor: SQLiteCursor, private val clazz: Class<T>) : ISQLResource<T> {
+class AndroidSQLResource<T : SQLTableObject?>(
+    private val cursor: SQLiteCursor,
+    private val clazz: Class<T>
+) : ISQLResource<T> {
     private var countdown = 500
     private var count = 0
+
     @get:Throws(SqlQueriesException::class)
     override val next: T?
         get() {
             var sqlTable: T? = null
             try {
                 count++
-                if (cursor.window != null) {
-                    countdown--
-                    cursor.window.freeLastRow()
-                    if (countdown == 0) {
-                        cursor.window.clear()
-                        countdown = 500
-                    }
-                }
-                if (cursor.moveToNext()) {
+                // this has fixed an issue with OOM related stuff but broke somewhere between Android 10 and 13
+//                if (cursor.window != null) {
+//                    countdown--
+//                    cursor.window.freeLastRow()
+//                    if (countdown == 0) {
+//                        cursor.window.clear()
+//                        countdown = 500
+//                    }
+//                }
+                val hasNext = cursor.moveToNext()
+                if (hasNext) {
                     sqlTable = clazz.newInstance()
                     val attributes = sqlTable!!.allAttributes
                     for (pair in attributes) {
                         try {
                             AndroidSQLQueries.readCursorToPair(cursor, pair)
+//                            println("${pair.k()} -> ${pair.v()}")
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }

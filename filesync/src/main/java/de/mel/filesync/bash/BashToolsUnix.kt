@@ -29,7 +29,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
 
     // use this command to return the result of the actual command in English.
     private val unfrench = "LC_ALL='C' "
-    protected var readCreated: Boolean = true
+    var readCreated: Boolean = true
 
     // todo use BashTools.binPath
     protected var BIN_PATH = "bash"

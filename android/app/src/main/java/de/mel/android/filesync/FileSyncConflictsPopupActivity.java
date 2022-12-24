@@ -41,7 +41,7 @@ public class FileSyncConflictsPopupActivity extends ConflictsPopupActivity<MelFi
         for (ConflictSolver conflictSolver : conflictSolverMap.values()) {
             if (conflictSolver.hasConflicts() && !conflictSolver.isSolved()) {
                 this.conflictSolver = conflictSolver;
-                List<Conflict> conflicts = Conflict.getRootConflicts(conflictSolver.getConflicts());
+                List<Conflict> conflicts = Conflict.Companion.getRootConflicts(conflictSolver.getConflictMap().values());
                 listAdapter = new FileSyncConflictListAdapter(listView, this, conflicts);
                 runOnUiThread(() -> {
                     listView.setAdapter(listAdapter);
@@ -61,18 +61,18 @@ public class FileSyncConflictsPopupActivity extends ConflictsPopupActivity<MelFi
         });
         btnChooseLeft.setOnClickListener(view -> {
             if (conflictSolver != null) {
-                for (Conflict conflict : conflictSolver.getConflicts()) {
-                    if (!conflict.isLeft())
-                        conflict.chooseLeft();
+                for (Conflict conflict : conflictSolver.getConflictMap().values()) {
+                    if (!conflict.getChosenLocal())
+                        conflict.decideLocal();
                 }
                 listAdapter.notifyDataSetChanged();
             }
         });
         btnChooseRight.setOnClickListener(view -> {
             if (conflictSolver != null) {
-                for (Conflict conflict : conflictSolver.getConflicts()) {
-                    if (!conflict.isRight())
-                        conflict.chooseRight();
+                for (Conflict conflict : conflictSolver.getConflictMap().values()) {
+                    if (!conflict.getChosenRemote())
+                        conflict.decideRemote();
                 }
                 listAdapter.notifyDataSetChanged();
             }

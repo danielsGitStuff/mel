@@ -330,9 +330,11 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
     protected void hashFiles() throws SqlQueriesException {
+        List<Stage> DEBUG = new ArrayList<>();
         N.sqlResource(stageDao.getFilesWithoutHashAsResource(examinedStageSetId), stages -> {
             Stage stage = stages.getNext();
             while (stage != null) {
+                DEBUG.add(stage);
                 IFile file = AbstractFile.instance(this.databaseManager.getFileSyncSettings().getRootDirectory().getPath() + stage.getPath() + stage.getName());
                 stage.setContentHash(Hash.md5(file.inputStream()));
                 stageDao.update(stage);

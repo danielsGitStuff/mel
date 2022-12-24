@@ -8,6 +8,7 @@ import de.mel.Lok;
 import de.mel.auth.MelNotification;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.service.Bootloader;
+import de.mel.auth.service.MelAuthService;
 import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.service.MelService;
 import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
@@ -28,7 +29,7 @@ public abstract class ContactsService extends MelService {
     protected final ContactsDatabaseManager databaseManager;
     protected final ContactsSettings settings;
 
-    public ContactsService(MelAuthServiceImpl melAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, ContactsSettings settingsCfg) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
+    public ContactsService(MelAuthService melAuthService, File serviceInstanceWorkingDirectory, Long serviceTypeId, String uuid, ContactsSettings settingsCfg) throws JsonDeserializationException, JsonSerializationException, IOException, SQLException, SqlQueriesException, IllegalAccessException, ClassNotFoundException {
         super(melAuthService, serviceInstanceWorkingDirectory, serviceTypeId, uuid, Bootloader.BootLevel.SHORT);
         databaseManager = new ContactsDatabaseManager(this, serviceInstanceWorkingDirectory, settingsCfg);
         settings = databaseManager.getSettings();

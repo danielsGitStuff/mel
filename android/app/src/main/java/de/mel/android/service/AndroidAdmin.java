@@ -1,5 +1,7 @@
 package de.mel.android.service;
 
+import static android.app.PendingIntent.FLAG_IMMUTABLE;
+
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -18,6 +20,7 @@ import de.mel.auth.MelStrings;
 import de.mel.auth.service.Bootloader;
 import de.mel.auth.service.IMelService;
 import de.mel.auth.service.MelAuthService;
+import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.sql.SqlQueriesException;
 
 /**
@@ -28,7 +31,7 @@ public class AndroidAdmin implements MelAuthAdmin {
 
     private final Context context;
     private final NotificationManagerCompat notificationManager;
-    private MelAuthService melAuthService;
+    private MelAuthServiceImpl melAuthService;
 
     public AndroidAdmin(Context context) {
         this.context = context;
@@ -36,7 +39,7 @@ public class AndroidAdmin implements MelAuthAdmin {
     }
 
     @Override
-    public void start(MelAuthService melAuthService) {
+    public void start(MelAuthServiceImpl melAuthService) {
         this.melAuthService = melAuthService;
     }
 
@@ -71,7 +74,7 @@ public class AndroidAdmin implements MelAuthAdmin {
         for (String key : melNotification.getSerializedExtraKeys()) {
             intent.putExtra(MelStrings.Notifications.EXTRA + key, melNotification.getSerializedExtra(key));
         }
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT | FLAG_IMMUTABLE);
         builder.setSmallIcon(icon)
                 .setContentTitle(melNotification.getTitle())
                 .setContentText(melAuthService.getCompleteNotificationText(melNotification))

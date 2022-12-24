@@ -7,7 +7,9 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import de.mel.auth.MelStrings;
 import de.mel.auth.file.IFile;
+
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -20,6 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import de.mel.Lok;
 import de.mel.R;
 import de.mel.android.MelActivity;
@@ -69,7 +72,7 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
             parentDirs.push(currentDir);
             currentDir = clickedDir;
             depth++;
-            if (currentDir!= null){
+            if (currentDir != null) {
                 txtPath.setText(currentDir.getAbsolutePath());
             }
             Lok.debug("DirectoryChooserDialog.init.depth " + depth);
@@ -101,6 +104,7 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
             if (currentDir != null) {
                 Intent result = new Intent();
                 result.putExtra(AndroidFileSyncStrings.DIR_CHOOSER_KEY, currentDir.getAbsolutePath());
+                result.putExtra(MelStrings.Activity.SOURCE_REQUEST_ID, requestCode);
                 setResult(RESULT_OK, result);
                 finish();
             } else {

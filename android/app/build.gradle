@@ -2,15 +2,21 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
 }
-
+// define mel specific stuff here
+// keyStorePropFile MUST be private !!!
+def keyStorePropFile = rootProject.file("miniserver/server/secret/secret.properties")
+ext {
+    signed = false
+    buildVariant = "apk"
+}
 android {
-    namespace 'com.example.myapplication'
-    compileSdk 32
+    namespace 'de.mel'
+    compileSdk 33
 
     defaultConfig {
         applicationId "de.mel.mel"
-        minSdkVersion 19
-        targetSdk 32
+        minSdkVersion 26
+        targetSdk 33
         versionCode 1
         versionName "0.1-beta"
         multiDexEnabled true
@@ -20,9 +26,28 @@ android {
     }
 
     buildTypes {
+//        release {
+//            minifyEnabled false
+//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+//        }
         release {
+            if (keyStorePropFile.exists())
+                signingConfig signingConfigs.release
+            manifestPlaceholders = [appName: "Mel", icon: "ic_launcher"]
+            buildConfigField("String", "BUILD_VARIANT", "\"apk-release\"")
+            buildConfigField("String", "BUILD_COMMIT", "\"${COMMIT}\"")
+            buildConfigField("String", "BUILD_VERSION", "\"${VERSION}\"")
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            debuggable true
+        }
+        debug {
+            manifestPlaceholders = [appName: "Mel DEBUG", icon: "ic_debug"]
+            applicationIdSuffix ".debug"
+            buildConfigField("String", "BUILD_VARIANT", "\"apk-debug\"")
+            buildConfigField("String", "BUILD_COMMIT", "\"${COMMIT}\"")
+            buildConfigField("String", "BUILD_VERSION", "\"${VERSION}\"")
+            minifyEnabled false
         }
     }
     compileOptions {
@@ -34,25 +59,6 @@ android {
     }
 }
 
-
-//sourceSets {
-//    main {
-//        resources {
-//            srcDir "${project(':auth').projectDir}/src/main/resources"
-//            srcDir "${project(':filesync').projectDir}/src/main/resources"
-//            srcDir "${project(':contacts').projectDir}/src/main/resources"
-//        }
-//    }
-//}
-
-// define mel specific stuff here
-// keyStorePropFile MUST be private !!!
-def keyStorePropFile = rootProject.file("miniserver/server/secret/secret.properties")
-ext {
-    signed = false
-    buildVariant = "apk"
-}
-
 dependencies {
     implementation project(':auth')
     implementation project(':contacts')
@@ -61,7 +67,24 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.9.0'
     implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'com.google.android.material:material:1.7.0'
+    implementation 'androidx.gridlayout:gridlayout:1.0.0'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.4'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
 }
+
+//sourceSets {
+//    main {
+//        resources {
+//            srcDirs += ["${project(':auth').projectDir}/src/main/resources"
+//                        , "${project(':filesync').projectDir}/src/main/resources"
+//                        , "${project(':contacts').projectDir}/src/main/resources"]
+//            srcDir "${project(':auth').projectDir}/src/main/resources"
+//            srcDir "${project(':filesync').projectDir}/src/main/resources"
+//            srcDir "${project(':contacts').projectDir}/src/main/resources"
+//        }
+//    }
+//}
+
+
+

@@ -1,17 +1,18 @@
 package de.mel.android.service;
 
+import static android.app.PendingIntent.FLAG_IMMUTABLE;
+
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
-import android.net.ConnectivityManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 
-import de.mel.auth.MelAuthAdmin;
+import androidx.core.app.NotificationCompat;
 
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
@@ -23,8 +24,6 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import androidx.core.app.NotificationCompat;
-
 import de.mel.Lok;
 import de.mel.R;
 import de.mel.android.AndroidInjector;
@@ -32,6 +31,7 @@ import de.mel.android.AndroidRegHandler;
 import de.mel.android.MainActivity;
 import de.mel.android.Notifier;
 import de.mel.android.filesync.AndroidFileSyncBootloader;
+import de.mel.auth.MelAuthAdmin;
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.JsonSettings;
 import de.mel.auth.data.MelAuthSettings;
@@ -256,7 +256,7 @@ public class AndroidService extends Service {
      */
     private void createPermanentSticky() {
         permanentNotificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, PERMANENT_REQUEST_CODE, permanentNotificationIntent, 0);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, PERMANENT_REQUEST_CODE, permanentNotificationIntent, FLAG_IMMUTABLE);
         Notifier.createNotificationManager(this);
         Notification notification = new NotificationCompat.Builder(this, Notifier.CHANNEL_ID_SILENT)
                 .setContentTitle(getText(R.string.app_name))

@@ -52,11 +52,11 @@ public class FileSyncConflictListAdapter extends BaseAdapter {
         this.onUpClickedListener = view -> {
             if (FileSyncConflictListAdapter.this.upperConflict != null) {
                 Collection<Conflict> conflicts = null;
-                if (FileSyncConflictListAdapter.this.upperConflict.getDependsOn() != null)
-                    conflicts = FileSyncConflictListAdapter.this.upperConflict.getDependsOn().getDependents();
+                if (FileSyncConflictListAdapter.this.upperConflict.hasParent())
+                    conflicts = FileSyncConflictListAdapter.this.upperConflict.getParent().getChildren();
                 if (conflicts == null)
                     conflicts = rootConflicts;
-                init(FileSyncConflictListAdapter.this.upperConflict.getDependsOn(), conflicts);
+                init(FileSyncConflictListAdapter.this.upperConflict.getParent(), conflicts);
             } else {
                 init(null, rootConflicts);
             }
@@ -68,7 +68,7 @@ public class FileSyncConflictListAdapter extends BaseAdapter {
     private void init(Conflict upperConflict, Collection<Conflict> conflicts) {
         this.upperConflict = upperConflict;
         this.items = sort(conflicts);
-        isRoot = upperConflict == null || (upperConflict != null && upperConflict.getDependsOn() != null);
+        isRoot = upperConflict == null || (upperConflict != null && upperConflict.hasParent());
     }
 
     private List<Conflict> sort(Collection<Conflict> dependents) {
@@ -83,14 +83,14 @@ public class FileSyncConflictListAdapter extends BaseAdapter {
 
     private int compareConflicts(Conflict c1, Conflict c2) {
         Stage first, sec;
-        if (c1.getLeft() != null)
-            first = c1.getLeft();
+        if (c1.hasLocalStage())
+            first = c1.getLocalStage();
         else
-            first = c1.getRight();
-        if (c2.getLeft() != null)
-            sec = c2.getLeft();
+            first = c1.getRemoteStage();
+        if (c2.hasLocalStage())
+            sec = c2.getLocalStage();
         else
-            sec = c2.getRight();
+            sec = c2.getRemoteStage();
         return first.getName().compareTo(sec.getName());
     }
 
@@ -134,8 +134,8 @@ public class FileSyncConflictListAdapter extends BaseAdapter {
 
         Conflict conflict = items.get(i);
         // find reasonable captions for both sides
-        Stage leftStage = conflict.getLeft();
-        Stage rightStage = conflict.getRight();
+        Stage leftStage = conflict.getLocalStage();
+        Stage rightStage = conflict.getRemoteStage();
         if (leftStage != null) {
             txtLeft.setText(leftStage.getName());
             if (leftStage.getIsDirectory())
@@ -162,20 +162,20 @@ public class FileSyncConflictListAdapter extends BaseAdapter {
         }
         //setup click listener
         view.setOnClickListener(vv -> {
-            if (conflict.getDependents().size() > 0) {
-                init(conflict, conflict.getDependents());
+            if (conflict.hasChildren()) {
+                init(conflict, conflict.getChildren());
                 FileSyncConflictListAdapter.this.notifyDataSetChanged();
             }
         });
         rdLeft.setOnClickListener(vv -> {
             if (rdLeft.isChecked()) {
-                conflict.chooseLeft();
+                conflict.decideLocal();
             }
             adjustToConflict(conflict, layoutLeft, layoutRight, rdLeft, rdRight);
         });
         rdRight.setOnClickListener(vv -> {
             if (rdRight.isChecked()) {
-                conflict.chooseRight();
+                conflict.decideRemote();
             }
             adjustToConflict(conflict, layoutLeft, layoutRight, rdLeft, rdRight);
         });
@@ -184,12 +184,12 @@ public class FileSyncConflictListAdapter extends BaseAdapter {
     }
 
     private void adjustToConflict(Conflict conflict, LinearLayout layoutLeft, LinearLayout layoutRight, RadioButton rdLeft, RadioButton rdRight) {
-        if (conflict.isLeft()) {
+        if (conflict.getChosenLocal()) {
             layoutLeft.setBackgroundColor(green);
             layoutRight.setBackgroundColor(red);
             rdLeft.setChecked(true);
             rdRight.setChecked(false);
-        } else if (conflict.isRight()) {
+        } else if (conflict.getChosenRemote()) {
             layoutLeft.setBackgroundColor(red);
             layoutRight.setBackgroundColor(green);
             rdLeft.setChecked(false);

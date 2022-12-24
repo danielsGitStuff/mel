@@ -16,7 +16,7 @@ public abstract class PopupActivity<T extends IMelService> extends MelActivity {
     protected AndroidService androidService;
     protected String serviceUuid;
     protected T service;
-    protected List<MelActivityPayload> payloads;
+    protected List<MelActivityPayload<?>> payloads;
     protected N runner = new N(e -> {
         Context context = getApplicationContext();
         Notifier.toast(context, e.getMessage());
@@ -28,7 +28,7 @@ public abstract class PopupActivity<T extends IMelService> extends MelActivity {
 
     @Override
     protected void onDestroy() {
-        MelActivity.onLaunchDestroyed(requestCode);
+        MelActivity.Companion.onLaunchDestroyed(requestCode);
         super.onDestroy();
     }
 
@@ -40,7 +40,7 @@ public abstract class PopupActivity<T extends IMelService> extends MelActivity {
         if (extra != null) {
             requestCode = extra.getInt(MelStrings.Notifications.REQUEST_CODE);
             serviceUuid = extra.getString(MelStrings.Notifications.SERVICE_UUID);
-            payloads = MelActivity.getLaunchPayloads(requestCode);
+            payloads = MelActivity.Companion.getLaunchPayloads(requestCode);
         }
     }
 

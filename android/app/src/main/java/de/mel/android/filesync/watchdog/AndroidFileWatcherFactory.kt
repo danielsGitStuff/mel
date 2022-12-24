@@ -7,7 +7,7 @@ import de.mel.filesync.service.MelFileSyncService
 
 class AndroidFileWatcherFactory : FileWatcherFactory() {
     override fun runInstance(melFsSyncService: MelFileSyncService<*>): FileWatcher {
-        return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+        return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P && false) {
             SAFFileWatcher(melFsSyncService)
         } else
             RecursiveWatcher(melFsSyncService)

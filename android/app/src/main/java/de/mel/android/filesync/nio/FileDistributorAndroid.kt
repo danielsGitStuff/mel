@@ -30,7 +30,7 @@ class FileDistributorAndroid(fileSyncService: MelFileSyncService<*>) : FileDistr
             Lok.debug("moving uri '${srcDoc.uri}' with parent '${srcParentDoc.uri}' to '${targetParentDoc.uri}'")
             var movedUri = DocumentsContract.moveDocument(AndroidService.getInstance()!!.contentResolver, srcDoc.uri, srcParentDoc.uri, targetParentDoc.uri)
             val oldeUri = movedUri
-            if (!sourceFile.getName().equals(target.getName())) {
+            if (!sourceFile.getName().equals(target.getName()) && movedUri!=null) {
                 movedUri = DocumentsContract.renameDocument(AndroidService.getInstance()!!.contentResolver, movedUri, target.getName())
             }
             if (!target.exists())

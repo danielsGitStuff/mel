@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 import de.mel.Lok;
+import de.mel.PermissionsManager;
 import de.mel.R;
 import de.mel.android.Notifier;
 import de.mel.android.view.BootloaderAdapter;
@@ -79,6 +80,8 @@ public class CreateServiceController extends WakelockedGuiController implements 
     private void showSelected() {
         N.r(() -> {
             bootLoader = (AndroidBootLoader) spinner.getSelectedItem();
+            PermissionsManager permissionsManager = new PermissionsManager(mainActivity);
+            N.forEach(bootLoader.getPermissions(), permissionsManager::addPermission);
             if (bootLoader != null) {
                 embedded.removeAllViews();
                 currentController = bootLoader.inflateEmbeddedView(embedded, activity, androidService.getMelAuthService(), null);
@@ -88,17 +91,22 @@ public class CreateServiceController extends WakelockedGuiController implements 
                     chooserController.setCreateServiceController(this);
                 }
 
-                if (activity.hasPermissions(bootLoader.getPermissions())) {
+//                if (activity.hasPermissions(bootLoader.getPermissions())) {
+                if (permissionsManager.hasPermissions()) {
                     onPermissionsGranted();
                 } else {
+//                    btnCreate.setOnClickListener(v -> {
+//                        activity.askUserForPermissions(bootLoader.getPermissions()
+//                                , this
+//                                , currentController.getPermissionsTitle()
+//                                , currentController.getPermissionsText(),
+//                                this::onPermissionsGranted
+//                                , r -> Notifier.toast(mainActivity, R.string.infufficientPermissions)
+//                        );
+//                    });
                     btnCreate.setOnClickListener(v -> {
-                        activity.askUserForPermissions(bootLoader.getPermissions()
-                                , this
-                                , currentController.getPermissionsTitle()
-                                , currentController.getPermissionsText(),
-                                this::onPermissionsGranted
-                                , r -> Notifier.toast(mainActivity, R.string.infufficientPermissions)
-                        );
+//                        permissionsManager.onSuccess(this::onPermissionsGranted)
+                        permissionsManager.doIt();
                     });
                     btnCreate.setText(R.string.btnCreateRequestPerm);
                 }
@@ -149,9 +157,12 @@ public class CreateServiceController extends WakelockedGuiController implements 
 
                     }
                 });
-                //showSelected();
+//                showSelected();
                 btnCreate.setOnClickListener(defaultBtnCreateListener);
             });
+        } else {
+            if (currentController == null)
+                showSelected();
         }
     }
 

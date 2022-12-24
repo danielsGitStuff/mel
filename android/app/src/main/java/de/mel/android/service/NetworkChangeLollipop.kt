@@ -11,7 +11,7 @@ import androidx.annotation.RequiresApi
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class NetworkChangeLollipop(val androidService: AndroidService) : NetworkChangeListener {
     private var networkCallback: ConnectivityManager.NetworkCallback = object : ConnectivityManager.NetworkCallback() {
-        override fun onLost(network: Network?) {
+        override fun onLost(network: Network) {
             androidService.melAuthService.powerManager.onCommunicationsDisabled()
 
         }
@@ -20,11 +20,11 @@ class NetworkChangeLollipop(val androidService: AndroidService) : NetworkChangeL
             androidService.melAuthService.powerManager.onCommunicationsDisabled()
         }
 
-        override fun onLosing(network: Network?, maxMsToLive: Int) {
+        override fun onLosing(network: Network, maxMsToLive: Int) {
 
         }
 
-        override fun onAvailable(network: Network?) {
+        override fun onAvailable(network: Network) {
             androidService.melAuthService.powerManager.onCommunicationsEnabled()
         }
     }

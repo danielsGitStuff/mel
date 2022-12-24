@@ -55,7 +55,7 @@
     <string name="editServiceName">Name</string>
     <string name="createServiceName">Name</string>
     <string name="editServiceDrivePath">Path</string>
-    <string name="editServiceDriveChoose">Choose</string>
+    <string name="editServiceDriveChoose">Choose6</string>
     <string name="settingsMisc">Miscellaneous</string>
     <string name="settingsStartDialog">Show startup dialog again</string>
     <string name="settingsShow">Intro</string>
@@ -172,4 +172,8 @@
     <string name="permissionExplainExternalText">Please choose the external storage root.</string>
     <string name="permissionExplainInternalTitle">Internal Storage</string>
     <string name="permissionExplainInternalText">Please choose the internal storage root.</string>
+    <string name="permissionsExplainAllTitle">All?</string>
+    <string name="permissionExplainAllText">All!</string>
+    <string name="permissionsDebugTitle">Debug??</string>
+    <string name="permissionsDebugText">Debug!!</string>
 </resources>

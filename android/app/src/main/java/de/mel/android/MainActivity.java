@@ -8,9 +8,11 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
@@ -30,14 +32,18 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.navigation.NavigationView;
 
+import de.mel.AndroidPermission;
 import de.mel.android.file.SAFFileConfiguration;
 import de.mel.auth.file.IFile;
+
 import org.jdeferred.FailCallback;
 import org.jdeferred.Promise;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import de.mel.BuildConfig;
 import de.mel.Lok;
@@ -86,6 +92,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
     private int runningColor;
 
 
+
     /**
      * show a dialog with ok and cancel option
      *
@@ -105,7 +112,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
     }
 
     protected void startService() {
-        if (androidService == null) {
+        if (getAndroidService() == null) {
             Intent intent = new Intent(getBaseContext(), AndroidService.class);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(intent);
@@ -119,9 +126,9 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
     }
 
     private AndroidPowerManager getPowerManager() {
-        if (androidService == null)
+        if (getAndroidService() == null)
             return null;
-        return androidService.getAndroidPowerManager();
+        return getAndroidService().getAndroidPowerManager();
     }
 
     @Override
@@ -182,15 +189,16 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
             }
         });
         AndroidLok.setupDbLok(this);
-        SAFAccessor.setupExternalPath();
+//        SAFAccessor.setupExternalPath();
 //        SAFAccessor.setupInternalPath();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-            AbstractFile.configure(new SAFFileConfiguration(this.getApplicationContext()));
-        else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            AbstractFile.configure(new AndroidFileConfiguration(this.getApplicationContext()));
-        } else {
-            AbstractFile.configure(new DefaultFileConfiguration());
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+//            AbstractFile.configure(new SAFFileConfiguration(this.getApplicationContext()));
+//        else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+//            AbstractFile.configure(new AndroidFileConfiguration(this.getApplicationContext()));
+//        } else {
+//            AbstractFile.configure(new DefaultFileConfiguration());
+//        }
+        AbstractFile.configure(new DefaultFileConfiguration());
         //testFileWrite();
 //        annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).done(result -> {
 //
@@ -200,7 +208,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
         if (showIntro) {
             showIntroGui();
         } else {
-            if (androidService == null)
+            if (getAndroidService() == null)
                 showLoadingGui();
             else
                 showNormalGui();
@@ -220,8 +228,8 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
             runOnUiThread(this::showNormalGui);
         });
         setContentView(loadingWrapper);
-        if (androidService != null)
-            serviceBind.onAndroidServiceAvailable(androidService);
+        if (getAndroidService() != null)
+            serviceBind.onAndroidServiceAvailable(getAndroidService());
     }
 
     public void showIntroGui() {
@@ -236,8 +244,8 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
             showNormalGui();
         });
         setContentView(introWrapper);
-        if (androidService != null)
-            serviceBind.onAndroidServiceAvailable(androidService);
+        if (getAndroidService() != null)
+            serviceBind.onAndroidServiceAvailable(getAndroidService());
     }
 
     private void showNormalGui() {
@@ -393,9 +401,9 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
             enableGuiController(new LogCatController(this, content));
         } else if (id == R.id.nav_exit) {
             Lok.debug("exiting...");
-            if (androidService != null) {
+            if (getAndroidService() != null) {
                 Lok.debug("shutting down android service...");
-                androidService.shutDown();
+                getAndroidService().shutDown();
             }
             Lok.debug("bye...");
             finish();
@@ -427,8 +435,8 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
         }
         this.guiController = guiController;
         this.serviceBind = this.guiController;
-        if (androidService != null)
-            this.serviceBind.onAndroidServiceAvailable(androidService);
+        if (getAndroidService() != null)
+            this.serviceBind.onAndroidServiceAvailable(getAndroidService());
         boolean offersHelp = guiController.getHelp() != null;
         btnHelp.setVisibility(offersHelp ? View.VISIBLE : View.INVISIBLE);
     }
@@ -466,12 +474,12 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
     }
 
     public void showMenuServices() {
-        if (androidService != null) {
+        if (getAndroidService() != null) {
             runOnUiThread(() -> N.r(() -> {
                 //hide keyboard
                 InputMethodManager imm = (InputMethodManager) getSystemService(this.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(this.content.getWindowToken(), 0);
-                MelAuthService melAuthService = androidService.getMelAuthService();
+                MelAuthService melAuthService = getAndroidService().getMelAuthService();
                 Menu menu = navigationView.getMenu();
                 menu.clear();
                 SubMenu subMelAuth = menu.addSubMenu(getText(R.string.drawerTitle));
@@ -556,7 +564,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
             , int permissionTitle
             , int permissionText
             , Runnable onSuccess
-            , FailCallback onFail) {
+            , FailCallback<List<String>> onFail) {
         if (!hasPermissions(permissions)) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setMessage(permissionText)
@@ -567,7 +575,46 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
                             if (permissionsGrantedListener != null)
                                 permissionsGrantedListener.onPermissionsGranted();
                             onSuccess.run();
-                        }).fail(onFail);
+                        }).fail(result -> {
+                            Set<String> failedPermissions = new HashSet<>(result);
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                failedPermissions.remove(Manifest.permission.MANAGE_EXTERNAL_STORAGE);
+                            }
+                            result = new ArrayList<>(failedPermissions);
+                            if (result.isEmpty())
+                                onSuccess.run();
+                            else
+                                onFail.onFail(result);
+                        });
+                    });
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
+        } else {
+            onSuccess.run();
+        }
+    }
+
+    /**
+     * ask user for permission and do thing upon approval or denial. calls onSuccess when permissions granted or permissions had already been granted.
+     *
+     * @param onSuccess
+     * @param onFail
+     */
+    public void askUserForPermissionToManageAllFiles(
+            Runnable onSuccess,
+            FailCallback<Void> onFail) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            return;
+        }
+        if (!SAFAccessor.canManageAll()) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage(R.string.permissionExplainAllText)
+                    .setTitle(R.string.permissionExplainAllText)
+                    .setPositiveButton(R.string.btnOk, (dialog, which) -> {
+                        Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                        Uri uri = Uri.fromParts("package", getPackageName(), null);
+                        intent.setData(uri);
+                        startActivity(intent);
                     });
             AlertDialog alertDialog = builder.create();
             alertDialog.show();

@@ -76,12 +76,18 @@ open class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val re
     fun hasLocalStage(): Boolean = this.localStage != null
 
     fun hasRemoteStage(): Boolean = this.remoteStage != null
+    fun hasParent(): Boolean = this.parent != null
+    fun hasChildren(): Boolean = !this.children.isEmpty()
 
     companion object {
         fun createKey(lStage: Stage?, rStage: Stage?): String =
             "${lStage?.id?.toString() ?: "n"}/${rStage?.id?.toString() ?: "n"}"
 
         val stage = Stage()
+
+        fun getRootConflicts(conflicts: Collection<Conflict>): List<Conflict> {
+            return conflicts.filter { !it.hasParent() }
+        }
 
     }
 }

@@ -1,12 +1,15 @@
 package de.mel.android.file;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.provider.DocumentsContract;
 
 import de.mel.auth.file.IFile;
+
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 
@@ -122,6 +125,11 @@ public class SAFAccessor {
         throw new SAFException();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.R)
+    public static boolean canManageAll(){
+        return Environment.isExternalStorageManager();
+    }
+
     /**
      * Tests wether or not we can write to the external storage. We get the root directory of it and attempt to write a dummy file there.
      * If that works the dummy file is deleted.
@@ -161,6 +169,16 @@ public class SAFAccessor {
         return rootPath != null;
     }
 
+    public static Promise<Void, Exception, Void> askForEverything(MelActivity activity) {
+        activity.showMessage(R.string.permissionsExplainAllTitle, R.string.permissionExplainAllText, () -> {
+            activity.annoyWithPermissions(Manifest.permission.MANAGE_EXTERNAL_STORAGE).done(result -> {
+                System.out.println("SAFAccessor.askForEverything1");
+            }).fail(result -> {
+                System.out.println("SAFAccessor.askForEverything2");
+            });
+        });
+        return null;
+    }
 
     @androidx.annotation.RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public static Promise<Void, Exception, Void> askForExternalRootDirectory(MelActivity activity) {
