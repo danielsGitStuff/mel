@@ -172,5 +172,8 @@
     <string name="permissionExplainExternalText">Please choose the external storage root.</string>
     <string name="permissionExplainInternalTitle">Internal Storage</string>
     <string name="permissionExplainInternalText">Please choose the internal storage root.</string>
+    <string name="permissionsExplainAllTitle">Externen Speicher verwalten</string>
+    <string name="permissionExplainAllText">Erlaubt es Mel ohne das bescheuerte \"Storage Acceess Framework\" zu arbeiten.</string>
+    <string name="btnGrant">Grant</string>
 
 </resources>

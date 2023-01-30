@@ -5,7 +5,8 @@
 //include ':app', ':json', ':serialize', ':sql', ':auth', ':filesync', ':authfx', ':filesyncfx', ':contacts', ':contactsfx', ':fxbundle', ':miniserver', ':icons', ':konsole', ':lok', ':serverparts', ':blog', ':filedump', ':filedumpfx'
 //project(':app').projectDir = new File('app')
 //include ':json', ':serialize', ':sql', ':auth', ':filesync', ':authfx', ':filesyncfx', ':contacts', ':contactsfx', ':fxbundle', ':miniserver', ':icons', ':konsole', ':lok', ':serverparts', ':blog', ':filedump', ':filedumpfx'
-include 'json', 'serialize', 'sql', 'auth', 'filesync', ':contacts',  ':icons', ':konsole', ':lok', ':filedump' ,':authfx' ,':contactsfx', ':filedumpfx', ':filesyncfx', ':fxbundle', ':testtools'
+//include 'json', 'serialize', 'sql', 'auth', 'filesync', ':contacts',  ':icons', ':konsole', ':lok', ':filedump' ,':authfx' ,':contactsfx', ':filedumpfx', ':filesyncfx', ':fxbundle', ':testtools'
+include 'json', 'serialize', 'sql', 'auth', 'filesync', ':contacts',  ':icons', ':konsole', ':lok', ':filedump' ,':authfx' ,':contactsfx', ':filedumpfx', ':filesyncfx', ':fxbundle', ':testtools',':serverparts',':miniserver',':blog'
 //project(':auth').projectDir = new File('auth')
 ////project(':authfx').projectDir = new File('authfx')
 ////project(':blog').projectDir = new File('blog')

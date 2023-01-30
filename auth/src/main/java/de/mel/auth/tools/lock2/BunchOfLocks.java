@@ -1,17 +1,14 @@
 package de.mel.auth.tools.lock2;
 
-import de.mel.auth.tools.N;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
+
+import de.mel.auth.tools.N;
 
 public class BunchOfLocks {
     private List<LockObjectEntry> readLocks = new ArrayList<>();
     private List<LockObjectEntry> writeLocks = new ArrayList<>();
-
-    private static final Map<Object, LockObjectEntry> globalReadObjectLockMap = new IdentityHashMap<>();
-    private static final Map<Object, LockObjectEntry> globalWriteObjectLockMap = new IdentityHashMap<>();
-
     private String name = null;
 
     private List<LockRunnables.TransactionRunnable> afterRunnables = new ArrayList<>();
@@ -22,21 +19,18 @@ public class BunchOfLocks {
             if (o instanceof Read) {
                 Read read = (Read) o;
                 for (Object oo : read.getObjects()) {
-                    LockObjectEntry entry = globalReadObjectLockMap.getOrDefault(o, LockObjectEntry.create(oo));
+//                    LockObjectEntry entry = globalReadObjectLockMap.getOrDefault(o, LockObjectEntry.create(oo));
+                    LockObjectEntry entry = LockObjectEntry.create(oo);
                     readLocks.add(entry);
                 }
             } else {
-                LockObjectEntry entry = globalWriteObjectLockMap.getOrDefault(o, LockObjectEntry.create(o));
+//                LockObjectEntry entry = globalWriteObjectLockMap.getOrDefault(o, LockObjectEntry.create(o));
+                LockObjectEntry entry = LockObjectEntry.create(o);
                 writeLocks.add(entry);
             }
             readLocks = readLocks.stream().sorted().collect(Collectors.toList());
             writeLocks = writeLocks.stream().sorted().collect(Collectors.toList());
         }
-    }
-
-    public BunchOfLocks setName(String name) {
-        this.name = name;
-        return this;
     }
 
     @Override
@@ -77,7 +71,6 @@ public class BunchOfLocks {
         return t;
     }
 
-
     public BunchOfLocks end() {
         P.end(this);
         N.forEachIgnorantly(this.afterRunnables, LockRunnables.TransactionRunnable::run);
@@ -104,5 +97,10 @@ public class BunchOfLocks {
 
     public String getName() {
         return name == null ? "not set" : name;
+    }
+
+    public BunchOfLocks setName(String name) {
+        this.name = name;
+        return this;
     }
 }

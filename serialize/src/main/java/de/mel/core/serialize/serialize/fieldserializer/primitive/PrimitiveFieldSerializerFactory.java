@@ -1,38 +1,28 @@
 package de.mel.core.serialize.serialize.fieldserializer.primitive;
 
+import java.lang.reflect.Field;
+import java.util.Set;
+
 import de.mel.core.serialize.serialize.fieldserializer.FieldSerializer;
 import de.mel.core.serialize.serialize.fieldserializer.FieldSerializerFactory;
 import de.mel.core.serialize.serialize.fieldserializer.NullSerializer;
 import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
-
-import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.Set;
+import de.mel.core.serialize.serialize.reflection.FieldAnalyzer;
 
 /**
  * Created by xor on 12/20/15.
  */
 public class PrimitiveFieldSerializerFactory implements FieldSerializerFactory {
     private static PrimitiveFieldSerializerFactory ins;
+    private final Set<Class<?>> primitiveClasses = FieldAnalyzer.getPrimitiveClasses();
 
     public PrimitiveFieldSerializerFactory() {
-        for (Class clazz : getClasses())
-            primitiveClasses.add(clazz);
-        //Arrays.stream(getClasses()).forEach(primitiveClasses::add);
     }
 
     public static PrimitiveFieldSerializerFactory getInstance() {
         if (ins == null)
             ins = new PrimitiveFieldSerializerFactory();
         return ins;
-    }
-
-    private final Set<Class<?>> primitiveClasses = new HashSet();
-
-    public static Class<?>[] getClasses() {
-        return new Class<?>[]{Byte.class, byte.class, short.class, Short.class, int.class, Integer.class,
-                long.class, Long.class, float.class, Float.class, double.class, Double.class, char.class,
-                Character.class, String.class, boolean.class, Boolean.class};
     }
 
     @Override

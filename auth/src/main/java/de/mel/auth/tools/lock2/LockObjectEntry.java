@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class LockObjectEntry implements Comparable<LockObjectEntry> {
 
-    private static AtomicInteger COUNT = new AtomicInteger(1);
+    private static final AtomicInteger COUNT = new AtomicInteger(1);
     private final Integer id;
     private final Object object;
     private boolean debugLocked;

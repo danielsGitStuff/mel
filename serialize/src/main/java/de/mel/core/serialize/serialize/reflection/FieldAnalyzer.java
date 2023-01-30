@@ -124,16 +124,18 @@ public class FieldAnalyzer {
         return expected.isAssignableFrom(clazz);
     }
 
-    private static final Set<Class<?>> primitiveClasses = new HashSet();
+    private static final Set<Class<?>> primitiveClasses = new HashSet<>();
 
     static {
         Class<?>[] classes = new Class[]{Byte.class, byte.class, short.class, Short.class, int.class, Integer.class,
                 long.class, Long.class, float.class, Float.class, double.class, Double.class, char.class,
                 Character.class, String.class, boolean.class, Boolean.class
         };
-        for (Class clazz : classes) {
-            primitiveClasses.add(clazz);
-        }
+        Collections.addAll(primitiveClasses, classes);
+    }
+
+    public static Set<Class<?>> getPrimitiveClasses() {
+        return primitiveClasses;
     }
 
     public static boolean isPrimitiveClass(Class<?> type) {

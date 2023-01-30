@@ -16,7 +16,7 @@ rootProject.name = "Mel Android"
 include ':app'
 def melRoot = project(':app').projectDir.parentFile.parentFile
 println "mel root dir = '$melRoot'"
-def projects = [':json', ':serialize', ':sql', ':auth', ':filesync', ':contacts', ':icons', ':konsole', ':lok', ':filedump', ':testtools']
+def projects = [':json', ':serialize', ':sql', ':auth', ':filesync', ':contacts', ':icons', ':konsole', ':lok', ':filedump', ':testtools',':funWith']
 
 projects.forEach(p -> {
     include "$p"

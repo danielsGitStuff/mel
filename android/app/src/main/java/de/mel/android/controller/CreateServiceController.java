@@ -1,5 +1,7 @@
 package de.mel.android.controller;
 
+import android.content.Intent;
+import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -16,6 +18,10 @@ import de.mel.Lok;
 import de.mel.PermissionsManager;
 import de.mel.R;
 import de.mel.android.Notifier;
+import de.mel.android.permissions.PermissionsActivity;
+import de.mel.android.permissions.PermissionsEntry;
+import de.mel.android.permissions.PermissionsManager2;
+import de.mel.android.permissions.PermissionsPayload;
 import de.mel.android.view.BootloaderAdapter;
 import de.mel.auth.service.Bootloader;
 import de.mel.auth.service.MelAuthService;
@@ -24,11 +30,14 @@ import de.mel.android.service.AndroidService;
 import de.mel.auth.service.MelService;
 import de.mel.auth.tools.N;
 import de.mel.android.MainActivity;
+import fun.with.Lists;
 
 /**
  * Created by xor on 2/20/17.
  */
 public class CreateServiceController extends WakelockedGuiController implements PermissionsGrantedListener {
+
+
     @Override
     public void onPermissionsGranted() {
         btnCreate.setOnClickListener(defaultBtnCreateListener);
@@ -80,8 +89,8 @@ public class CreateServiceController extends WakelockedGuiController implements 
     private void showSelected() {
         N.r(() -> {
             bootLoader = (AndroidBootLoader) spinner.getSelectedItem();
-            PermissionsManager permissionsManager = new PermissionsManager(mainActivity);
-            N.forEach(bootLoader.getPermissions(), permissionsManager::addPermission);
+            PermissionsManager2 permissionsManager = new PermissionsManager2(mainActivity, Lists.wrap(bootLoader.getPermissions()).get());
+//            N.forEach(bootLoader.getPermissions(), permissionsManager::addPermission);
             if (bootLoader != null) {
                 embedded.removeAllViews();
                 currentController = bootLoader.inflateEmbeddedView(embedded, activity, androidService.getMelAuthService(), null);
@@ -90,23 +99,11 @@ public class CreateServiceController extends WakelockedGuiController implements 
                     RemoteServiceChooserController chooserController = (RemoteServiceChooserController) currentController;
                     chooserController.setCreateServiceController(this);
                 }
-
-//                if (activity.hasPermissions(bootLoader.getPermissions())) {
                 if (permissionsManager.hasPermissions()) {
                     onPermissionsGranted();
                 } else {
-//                    btnCreate.setOnClickListener(v -> {
-//                        activity.askUserForPermissions(bootLoader.getPermissions()
-//                                , this
-//                                , currentController.getPermissionsTitle()
-//                                , currentController.getPermissionsText(),
-//                                this::onPermissionsGranted
-//                                , r -> Notifier.toast(mainActivity, R.string.infufficientPermissions)
-//                        );
-//                    });
                     btnCreate.setOnClickListener(v -> {
-//                        permissionsManager.onSuccess(this::onPermissionsGranted)
-                        permissionsManager.doIt();
+                        permissionsManager.startPermissionsActivity();
                     });
                     btnCreate.setText(R.string.btnCreateRequestPerm);
                 }
@@ -118,7 +115,6 @@ public class CreateServiceController extends WakelockedGuiController implements 
         });
 
     }
-
 
     @Override
     public Integer getTitle() {

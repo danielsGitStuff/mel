@@ -91,8 +91,8 @@ public enum NumberTransformer {
     private final static Map<Class<? extends Number>, NumberTransformer> TRANSFORMER_MAP = new HashMap<>();
 
     static {
-        for (NumberTransformer tranformer : values()) {
-            TRANSFORMER_MAP.put(tranformer.type, tranformer);
+        for (NumberTransformer transformer : values()) {
+            TRANSFORMER_MAP.put(transformer.type, transformer);
         }
     }
 

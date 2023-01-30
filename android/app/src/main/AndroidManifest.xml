@@ -24,6 +24,15 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:replace="android:theme">
+        <activity
+            android:name=".android.permissions.PermissionsActivity"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="de.mel.permissions.request" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -35,16 +44,16 @@
         </provider>
 
         <receiver
-            android:exported="false"
             android:name=".android.service.NetworkChangeListenerOlde"
+            android:exported="false"
             android:label="NetworkChangeReceiver">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
                 <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
             </intent-filter>
         </receiver>
-
-        <receiver android:name=".android.service.PowerChangeReceiver"
+        <receiver
+            android:name=".android.service.PowerChangeReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
@@ -53,16 +62,16 @@
         </receiver>
 
         <activity
-            android:exported="true"
             android:name="de.mel.android.MainActivity"
+            android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity android:name=".android.filesync.FileSyncConflictsPopupActivity" />
         <activity android:name=".android.file.chooserdialog.DirectoryChooserDialog" />
         <activity android:name=".android.contacts.ContactsConflictsPopupActivity" />
@@ -70,6 +79,7 @@
         <service
             android:name="de.mel.android.service.AndroidService"
             android:exported="false" />
+
         <activity
             android:name="de.mel.android.CertActivity"
             android:label="@string/title_activity_cert_incoming"

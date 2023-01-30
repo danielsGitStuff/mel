@@ -17,7 +17,7 @@ import org.jdeferred.impl.DeferredObject
 import java.security.SecureRandom
 import kotlin.math.abs
 
-
+@Deprecated("replaced by its own activity")
 class PermissionsManager(private val melActivity: MelActivity) {
 
     private val permissions = mutableListOf<AndroidPermission>()
@@ -61,7 +61,8 @@ class PermissionsManager(private val melActivity: MelActivity) {
                     println("bla debug 59kg")
                     builder.setPositiveButton(R.string.btnOk) { dialog, which ->
                         run {
-                            val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                            val intent =
+                                Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
                             val uri: Uri = Uri.fromParts("package", melActivity.packageName, null)
                             intent.data = uri
                             melActivity.startActivity(intent)
