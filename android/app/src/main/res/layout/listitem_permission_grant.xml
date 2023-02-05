@@ -39,5 +39,6 @@
         android:text="@string/btnGrant"
         app:layout_constraintBottom_toBottomOf="@id/textText"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/textTitle"/>
+        app:layout_constraintTop_toTopOf="@+id/textTitle" 
+        app:layout_constraintStart_toEndOf="@id/textText"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
