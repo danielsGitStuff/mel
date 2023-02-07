@@ -1,7 +1,5 @@
 package de.mel.sql.transform;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
-
 public abstract class SqlResultTransformer {
     public abstract <T> T convert(Class<T> resultClass, Object value);
 

@@ -6,12 +6,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import android.widget.Button
 import android.widget.TextView
 import androidx.core.view.setPadding
 import de.mel.AndroidPermission
 import de.mel.R
 
-class PermissionsListAdapter(context: Context, val permissions: List<AndroidPermission>) :
+// todo clean
+class PermissionsListAdapter(
+    context: Context,
+    val permissions: List<AndroidPermission>,
+    private val permissionListAdapterClickListener: (AndroidPermission) -> Unit
+) :
     BaseAdapter() {
     private val layoutInflater =
         context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
@@ -26,12 +32,8 @@ class PermissionsListAdapter(context: Context, val permissions: List<AndroidPerm
 
     override fun getView(position: Int, oldeView: View?, parent: ViewGroup?): View {
         val permission = permissions[position]
-        oldeView?.let {
-            oldeView.findViewById<TextView>(R.id.textTitle).setText(permission.titleInt)
-            oldeView.findViewById<TextView>(R.id.textText).setText(permission.textInt)
-            return oldeView
-        }
-        val view = layoutInflater.inflate(R.layout.listitem_permission_grant, null)
+        val view = oldeView ?: layoutInflater.inflate(R.layout.listitem_permission_grant, null)
+//        val view = layoutInflater.inflate(R.layout.listitem_permission_grant, null)
         val textTitle = view.findViewById<TextView>(R.id.textTitle)
         textTitle.setText(permission.titleInt)
         textTitle.setTypeface(textTitle.typeface, Typeface.BOLD)
@@ -39,6 +41,8 @@ class PermissionsListAdapter(context: Context, val permissions: List<AndroidPerm
         val textText = view.findViewById<TextView>(R.id.textText)
         textText.setText(permission.textInt)
         textText.setPadding(padding, 0, padding, padding)
+        val btn = view.findViewById<Button>(R.id.btnGrant)
+        btn.setOnClickListener { permissionListAdapterClickListener(permission) }
         return view
     }
 

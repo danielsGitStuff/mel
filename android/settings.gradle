@@ -5,6 +5,7 @@ pluginManagement {
         mavenCentral()
     }
 }
+// uncommenting this makes android work
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -16,8 +17,8 @@ rootProject.name = "Mel Android"
 include ':app'
 def melRoot = project(':app').projectDir.parentFile.parentFile
 println "mel root dir = '$melRoot'"
-def projects = [':json', ':serialize', ':sql', ':auth', ':filesync', ':contacts', ':icons', ':konsole', ':lok', ':filedump', ':testtools',':funWith']
-
+//def projects = [':json', ':serialize', ':sql', ':auth', ':filesync', ':contacts', ':icons', ':konsole', ':lok', ':filedump', ':testtools',':funWith']
+def projects = [':json', ':funWith', ':auth', ':contacts',':filedump',':konsole',':sql',':serialize',':filesync',':lok']
 projects.forEach(p -> {
     include "$p"
     def withoutColons = p.substring(1)

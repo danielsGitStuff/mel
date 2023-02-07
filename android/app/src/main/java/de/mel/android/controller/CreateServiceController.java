@@ -24,6 +24,7 @@ import de.mel.android.permissions.PermissionsManager2;
 import de.mel.android.permissions.PermissionsPayload;
 import de.mel.android.view.BootloaderAdapter;
 import de.mel.auth.service.Bootloader;
+import de.mel.auth.service.IMelService;
 import de.mel.auth.service.MelAuthService;
 import de.mel.android.boot.AndroidBootLoader;
 import de.mel.android.service.AndroidService;
@@ -48,7 +49,7 @@ public class CreateServiceController extends WakelockedGuiController implements 
     private final EditText txtName;
     private LinearLayout embedded;
     private Button btnCreate;
-    private AndroidBootLoader bootLoader;
+    private AndroidBootLoader<? extends IMelService> bootLoader;
     private AndroidServiceGuiController currentController;
     private MainActivity mainActivity;
     private View.OnClickListener defaultBtnCreateListener = new View.OnClickListener() {

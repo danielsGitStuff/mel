@@ -1,6 +1,7 @@
 package de.mel.android.permissions
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -8,18 +9,17 @@ import android.os.Bundle
 import android.os.Environment
 import androidx.core.content.ContextCompat
 import de.mel.AndroidPermission
-import de.mel.android.MainActivity
 import de.mel.auth.tools.N
-
+// todo clean
 class PermissionsManager2(
-    private val mainActivity: MainActivity, val permissions: List<AndroidPermission>
+    private val context: Context, val permissions: List<AndroidPermission>
 ) {
 
-    private fun hasPermission(permission: AndroidPermission): Boolean {
+    fun hasPermission(permission: AndroidPermission): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && permission.isOfKind(Manifest.permission.MANAGE_EXTERNAL_STORAGE)) {
             Environment.isExternalStorageManager()
         } else ContextCompat.checkSelfPermission(
-            mainActivity, permission.permission
+            context, permission.permission
         ) == PackageManager.PERMISSION_GRANTED
     }
 
@@ -36,6 +36,6 @@ class PermissionsManager2(
         }
         val intent = Intent("de.mel.permissions.request")
         intent.putExtra(PermissionsActivity.PERMISSIONS_PAYLOAD, N.r<String> { payload.toJSON() })
-        mainActivity.startActivity(intent, bundle)
+        context.startActivity(intent, bundle)
     }
 }
