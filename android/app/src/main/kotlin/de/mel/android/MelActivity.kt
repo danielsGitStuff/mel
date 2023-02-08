@@ -6,12 +6,8 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Bundle
 import android.os.IBinder
-import android.os.PersistableBundle
-import android.util.SparseArray
 import androidx.activity.result.ActivityResult
-import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -41,16 +37,6 @@ abstract class MelActivity : AppCompatActivity(), NavigationView.OnNavigationIte
     protected var activityLauncher: ActivityResultLauncher<Intent>? = null
     public var androidService: AndroidService? = null
         protected set
-
-//    override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
-//        super.onCreate(savedInstanceState, persistentState)
-//        this.activityLauncher =
-//            registerForActivityResult(ActivityResultContracts.StartActivityForResult(),
-//                ActivityResultCallback {
-//                    println("DEBUG RESULT")
-//                    this.lastActivityResult = it
-//                })
-//    }
 
     init {
         this.activityLauncher =
@@ -279,6 +265,42 @@ abstract class MelActivity : AppCompatActivity(), NavigationView.OnNavigationIte
 
         fun getLaunchPayloads(requestCode: Int?): List<MelActivityPayload<*>> {
             return MelActivity.Companion.launchPayloads.get(requestCode)!!.toList()
+        }
+
+        /**
+         * annoys the user one time with each given permission.
+         *
+         * @param permissions
+         * @return Promise that resolves when all permission have been granted or will reject with all denied permissions.
+         */
+        fun annoyWithPermissions(activity: Activity, vararg permissions: String): Promise<Void?, List<String>, Void> {
+            val deferred: Deferred<Void?, List<String>, Void> = DeferredObject()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                var request = false
+                for (permission in permissions) {
+                    val result = ContextCompat.checkSelfPermission(activity, permission)
+                    if (result != PackageManager.PERMISSION_GRANTED) {
+                        request = true
+                        break
+                    }
+                }
+                var id = SecureRandom().nextInt(65536)
+                id = if (id > 0) id else -1 * id //make positive
+                if (request) {
+//                permissionManagers.append(id, deferred)
+                    ActivityCompat.requestPermissions(
+                        activity,
+                        permissions,
+                        id
+                    )
+                } else {
+                    deferred.resolve(null)
+                }
+                Lok.debug(".askForPermission()?: $request")
+            } else {
+                deferred.resolve(null)
+            }
+            return deferred
         }
     }
 }

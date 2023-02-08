@@ -175,5 +175,7 @@
     <string name="permissionsExplainAllTitle">Externen Speicher verwalten</string>
     <string name="permissionExplainAllText">Erlaubt es Mel ohne das bescheuerte \"Storage Acceess Framework\" zu arbeiten.</string>
     <string name="btnGrant">Grant</string>
+    <string name="permissionsExplainNotificationsTitle">Notifications required.</string>
+    <string name="permissionsExplainNotificationsText">This prevents Mel from being shut down while in background.</string>
 
 </resources>

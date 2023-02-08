@@ -275,4 +275,6 @@
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="btnGrant">Grant</string>
+    <string name="permissionsExplainNotificationsTitle">Notifications required.</string>
+    <string name="permissionsExplainNotificationsText">This prevents Mel from being shut down while in background.</string>
 </resources>

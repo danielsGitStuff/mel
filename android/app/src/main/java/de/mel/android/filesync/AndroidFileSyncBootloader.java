@@ -99,6 +99,9 @@ public class AndroidFileSyncBootloader extends FileSyncBootloader implements And
         List<AndroidPermission> permissions = new ArrayList<>();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             permissions.add(new AndroidPermission(Manifest.permission.MANAGE_EXTERNAL_STORAGE, R.string.permissionsExplainAllTitle, R.string.permissionExplainAllText));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                permissions.add(new AndroidPermission(Manifest.permission.POST_NOTIFICATIONS, R.string.permissionsExplainNotificationsTitle, R.string.permissionsExplainNotificationsText));
+            }
         } else {
             permissions.add(new AndroidPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, R.string.permissionRequiredTitle, R.string.permissionDriveWriteMessage));
             permissions.add(new AndroidPermission(Manifest.permission.READ_EXTERNAL_STORAGE, R.string.permissionRequiredTitle, R.string.permissionDriveWriteMessage));
