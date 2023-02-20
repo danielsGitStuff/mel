@@ -1,6 +1,8 @@
 package de.mel.android;
 
-public class MelActivityPayload<T extends Object> {
+import de.mel.core.serialize.SerializableEntity;
+
+public class MelActivityPayload<T extends Object> implements SerializableEntity {
     private final String key;
     private final T payload;
 

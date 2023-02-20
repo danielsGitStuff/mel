@@ -18,21 +18,23 @@ import com.google.android.material.navigation.NavigationView
 import de.mel.AndroidPermission
 import de.mel.Lok
 import de.mel.PermissionsManager
+import de.mel.R
 import de.mel.android.service.AndroidService
 import de.mel.android.service.AndroidService.LocalBinder
 import de.mel.auth.MelStrings
 import de.mel.auth.service.MelAuthService
+import de.mel.auth.tools.N
+import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer
 import org.jdeferred.Deferred
 import org.jdeferred.Promise
 import org.jdeferred.impl.DeferredObject
 import java.security.SecureRandom
 
-import de.mel.R
-
 /**
  * Created by xor on 03.08.2017.
  */
 abstract class MelActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+    @JvmField
     protected var lastActivityResult: ActivityResult? = null
     protected var activityLauncher: ActivityResultLauncher<Intent>? = null
     public var androidService: AndroidService? = null
@@ -40,7 +42,8 @@ abstract class MelActivity : AppCompatActivity(), NavigationView.OnNavigationIte
 
     init {
         this.activityLauncher =
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult()
+            registerForActivityResult(
+                ActivityResultContracts.StartActivityForResult()
             ) {
                 println("DEBUG RESULT")
                 this.lastActivityResult = it
@@ -94,26 +97,22 @@ abstract class MelActivity : AppCompatActivity(), NavigationView.OnNavigationIte
         val id = Tools.generateIntentRequestCode()
         launchIntent.putExtra(MelStrings.Notifications.REQUEST_CODE, id)
         this.launchResult = melActivityLaunchResult
-//        launchResultMap[id] = melActivityLaunchResult
+        // todo deprecated
         startActivityForResult(launchIntent, id)
     }
 
     fun launchActivityForResult(
         launchIntent: Intent,
         melActivityLaunchResult: MelActivityLaunchResult,
-        vararg payloads: MelActivityPayload<*>
+        payload: MelActivityPayload<*>
     ) {
         val id = Tools.generateIntentRequestCode()
-//        launchResultMap[id] = melActivityLaunchResult
         this.launchResult = melActivityLaunchResult
         launchIntent.putExtra(MelStrings.Notifications.REQUEST_CODE, id)
-        launchPayloads[id] = payloads.toMutableList()
-//        registerForActivityResult(ActivityResultContracts.StartActivityForResult(),
-//            ActivityResultCallback {
-//                println("DEBUG RESULT")
-//            }).launch(launchIntent)
+        launchIntent.putExtra(
+            MelStrings.Notifications.PAYLOAD,
+            N.rte { SerializableEntitySerializer.serialize(payload) })
         activityLauncher!!.launch(launchIntent)
-//        startActivityForResult(launchIntent, id)
     }
     /**
      * show a simple dialog where the user can only click ok
@@ -273,7 +272,10 @@ abstract class MelActivity : AppCompatActivity(), NavigationView.OnNavigationIte
          * @param permissions
          * @return Promise that resolves when all permission have been granted or will reject with all denied permissions.
          */
-        fun annoyWithPermissions(activity: Activity, vararg permissions: String): Promise<Void?, List<String>, Void> {
+        fun annoyWithPermissions(
+            activity: Activity,
+            vararg permissions: String
+        ): Promise<Void?, List<String>, Void> {
             val deferred: Deferred<Void?, List<String>, Void> = DeferredObject()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 var request = false

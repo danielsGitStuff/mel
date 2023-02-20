@@ -97,6 +97,15 @@ public class N {
             N.runner.runTry(noTryRunnable);
     }
 
+    public static void rte(N.INoTryRunnable... noTryRunnables) {
+        for (N.INoTryRunnable noTryRunnable : noTryRunnables)
+            N.runner.runTryRTE(noTryRunnable);
+    }
+
+    public static <T> T rte(INoTryWithResult<T> noTryRunnable) {
+        return N.runner.runResultRTE(noTryRunnable);
+    }
+
     /**
      * prints stacktrace when failing
      *
@@ -551,6 +560,15 @@ public class N {
         return this;
     }
 
+    public N runTryRTE(INoTryRunnable noTryRunnable) {
+        try {
+            noTryRunnable.run();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return this;
+    }
+
     private <T> T runResult(INoTryWithResult<T> noTryRunnable) {
         try {
             return noTryRunnable.run();
@@ -558,6 +576,14 @@ public class N {
             consumer.accept(e);
         }
         return null;
+    }
+
+    private <T> T runResultRTE(INoTryWithResult<T> noTryRunnable) {
+        try {
+            return noTryRunnable.run();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public N runTry(INoTryRunnable noTryRunnable, NoTryExceptionConsumer consumer) {

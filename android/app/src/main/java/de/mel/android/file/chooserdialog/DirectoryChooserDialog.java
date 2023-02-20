@@ -7,8 +7,10 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import de.mel.auth.MelStrings;
-import de.mel.auth.file.IFile;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
@@ -18,11 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import de.mel.Lok;
 import de.mel.R;
 import de.mel.android.MelActivity;
@@ -31,14 +28,17 @@ import de.mel.android.Notifier;
 import de.mel.android.PopupActivity;
 import de.mel.android.filesync.data.AndroidFileSyncStrings;
 import de.mel.auth.MelNotification;
+import de.mel.auth.MelStrings;
 import de.mel.auth.data.ServicePayload;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.file.AbstractFile;
+import de.mel.auth.file.IFile;
 import de.mel.auth.service.IMelService;
 import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.NWrap;
+import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 
 public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog.VoidService> {
     private Button btnCancel, btnOk;
@@ -63,9 +63,7 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
     }
 
     private void init() {
-
-        rootDirs = (IFile[]) payloads.get(0).getPayload();
-        FilesActivityPayload payload = (FilesActivityPayload) payloads.get(0);
+        FilesActivityPayload payload = N.rte(() ->(FilesActivityPayload) SerializableEntityDeserializer.deserialize(this.payloadJson));
         FileAdapter adapter = new FileAdapter(this, list);
         adapter.setDirectories(payload.getPayload());
         adapter.setOnClicked(clickedDir -> {

@@ -11,11 +11,11 @@ println "klu ${rootProject.dep_sqlite}"
 dependencies {
     api project(':serialize')
     testImplementation project(':serialize')
-    testImplementation project(':testtools')
+//    testImplementation project(':testtools')
     testImplementation rootProject.dep_junit4
     testImplementation rootProject.dep_sqlite
 }
 compileJava {
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
+    sourceCompatibility = '11'
+    targetCompatibility = '11'
 }

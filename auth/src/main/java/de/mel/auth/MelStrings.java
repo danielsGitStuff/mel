@@ -34,6 +34,8 @@ public class MelStrings {
         public static final String INTENTION = "n.intention";
         public static final String EXTRA = "n.extra/";
         public static final String REQUEST_CODE = "mel.notification.id";
+
+        public static final String PAYLOAD = "payload.extra";
     }
 
     public static class Activity {

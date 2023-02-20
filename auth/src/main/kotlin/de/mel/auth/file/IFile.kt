@@ -1,11 +1,12 @@
 package de.mel.auth.file
 
+import de.mel.core.serialize.SerializableEntity
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
 import kotlin.properties.ReadOnlyProperty
 
-interface IFile {
+interface IFile :SerializableEntity{
     val separator: String?
     val absolutePath: String
     val isFile: Boolean
