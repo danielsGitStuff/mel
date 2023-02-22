@@ -10,6 +10,7 @@ import android.os.Build;
 import android.view.ViewGroup;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,6 +30,7 @@ import de.mel.auth.file.IFile;
 import de.mel.auth.service.IMelService;
 import de.mel.auth.service.MelAuthService;
 import de.mel.android.boot.AndroidBootLoader;
+import de.mel.auth.tools.F;
 import de.mel.auth.tools.N;
 import de.mel.filesync.FileSyncBootloader;
 import de.mel.filesync.FileSyncCreateServiceHelper;
@@ -75,6 +77,13 @@ public class AndroidFileSyncBootloader extends FileSyncBootloader implements And
                 if (driveCreateGuiController.isServer()) {
                     fileSyncCreateServiceHelper.createServerService(name, rootFile, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays(), false);
                 } else {
+                    {// todo debug
+                        System.out.println("AndroidFileSyncBootloader.createService.DEBUBG");
+                        File subDir = new File(driveCreateGuiController.getRootFile().getAbsolutePath(), "sub1");
+                        subDir.mkdirs();
+                        File sub1txt = new File(subDir, "sub1.txt");
+                        Files.write(sub1txt.toPath(), "android".getBytes());
+                    }
                     Long certId = driveCreateGuiController.getSelectedCertId();
                     String serviceUuid = driveCreateGuiController.getSelectedService().getUuid().v();
                     fileSyncCreateServiceHelper.createClientService(name, rootFile, certId, serviceUuid, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays(), false);

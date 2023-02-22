@@ -6,9 +6,13 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.List;
+
 import de.mel.R;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.IFile;
+import de.mel.auth.tools.N;
 
 public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> {
     private final AppCompatActivity activity;
@@ -41,6 +45,10 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> {
 
     public void setDirectories(IFile[] directories) {
         this.directories = directories;
+    }
+
+    public void setDirectories(List<IFile> directories) {
+        this.directories = directories.toArray(new IFile[0]);
     }
 
     @NonNull

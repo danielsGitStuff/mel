@@ -31,7 +31,7 @@ public class IntroWrapper extends RelativeLayout implements AndroidServiceBind {
     protected TextView lblIndex;
     protected IntroPageController pageController;
     protected int index = 1;
-    protected int maxIndex = 4;
+    protected int maxIndex = 5;
     protected IntroDoneListener introDoneListener;
 
     public IntroWrapper(MainActivity melActivity) {
@@ -113,12 +113,15 @@ public class IntroWrapper extends RelativeLayout implements AndroidServiceBind {
             case 4:
                 pageController = new FourthPage(this);
                 break;
+            case 5:
+                pageController = new FifthsPage(this);
+                break;
         }
         if (melActivity.getAndroidService() != null) {
             pageController.onAndroidServiceAvailable(melActivity.getAndroidService());
         }
         lblTitle.setText(pageController.getTitle());
-        lblIndex.setText(index + "/" + 4);
+        lblIndex.setText(index + "/" + this.maxIndex);
     }
 
     public MainActivity getMelActivity() {

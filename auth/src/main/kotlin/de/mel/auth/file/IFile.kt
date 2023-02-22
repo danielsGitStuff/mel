@@ -6,12 +6,14 @@ import java.io.IOException
 import java.io.InputStream
 import kotlin.properties.ReadOnlyProperty
 
-interface IFile :SerializableEntity{
+interface IFile : SerializableEntity {
     val separator: String?
     val absolutePath: String
     val isFile: Boolean
+
     //    public abstract boolean move(T target);
     val isDirectory: Boolean
+
     //    var parentFile: IFile
     val freeSpace: Long?
     val usableSpace: Long?
@@ -33,6 +35,7 @@ interface IFile :SerializableEntity{
     fun listDirectories(): Array<out IFile>
     fun delete(): Boolean
     fun mkdirs(): Boolean
+
     @Throws(FileNotFoundException::class)
     fun inputStream(): InputStream?
 
@@ -42,6 +45,7 @@ interface IFile :SerializableEntity{
     fun writer(): AbstractFileWriter?
 
     fun lastModified(): Long?
+
     @Throws(IOException::class)
     fun createNewFile(): Boolean
 

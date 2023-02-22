@@ -34,13 +34,16 @@ import com.google.android.material.navigation.NavigationView;
 
 import de.mel.AndroidPermission;
 import de.mel.android.file.SAFFileConfiguration;
+import de.mel.android.file.chooserdialog.DirectoryChooserDialog;
 import de.mel.auth.file.IFile;
 
 import org.jdeferred.FailCallback;
 import org.jdeferred.Promise;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -76,6 +79,10 @@ import de.mel.auth.service.MelAuthService;
 import de.mel.auth.service.NetworkDiscoveryController;
 import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.tools.N;
+import de.mel.core.serialize.SerializableEntity;
+import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer;
+import de.mel.core.serialize.exceptions.JsonSerializationException;
+import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 
 
 public class MainActivity extends MelActivity implements PowerManager.IPowerStateListener<AndroidPowerManager> {
@@ -90,7 +97,6 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
     private ImageButton btnHelp;
     private int stoppedColor;
     private int runningColor;
-
 
 
     /**
@@ -145,6 +151,17 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
 
     private void dev() {
         Lok.warn("DEV DEV DEV DEV DEV START");
+        try {
+            String[] arr = new String[1];
+            AbstractFile.configure(new DefaultFileConfiguration());
+            arr[0] = new File("asd.txt").getAbsolutePath();
+            DirectoryChooserDialog.FilesActivityPayload payload = new DirectoryChooserDialog.FilesActivityPayload(List.of(arr));
+            String json = SerializableEntitySerializer.serialize(payload);
+            SerializableEntity des = SerializableEntityDeserializer.deserialize(json);
+            Lok.debug("JSON: " + json);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).done(result -> {
             N.r(() -> {
                 AndroidFile f = new AndroidFile("/storage/emulated/0/Download/mel/kkk.txt");
@@ -175,7 +192,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //dev();
+//        dev();
         Tools.init(this.getApplicationContext());
         runningColor = getResources().getColor(R.color.stateRunning);
         stoppedColor = getResources().getColor(R.color.stateDeactivated);

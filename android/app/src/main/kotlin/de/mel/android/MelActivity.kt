@@ -24,6 +24,7 @@ import de.mel.android.service.AndroidService.LocalBinder
 import de.mel.auth.MelStrings
 import de.mel.auth.service.MelAuthService
 import de.mel.auth.tools.N
+import de.mel.core.serialize.SerializableEntity
 import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer
 import org.jdeferred.Deferred
 import org.jdeferred.Promise
@@ -104,7 +105,7 @@ abstract class MelActivity : AppCompatActivity(), NavigationView.OnNavigationIte
     fun launchActivityForResult(
         launchIntent: Intent,
         melActivityLaunchResult: MelActivityLaunchResult,
-        payload: MelActivityPayload<*>
+        payload: SerializableEntity
     ) {
         val id = Tools.generateIntentRequestCode()
         this.launchResult = melActivityLaunchResult

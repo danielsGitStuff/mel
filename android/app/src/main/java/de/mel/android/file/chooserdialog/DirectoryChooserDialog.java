@@ -23,7 +23,6 @@ import java.util.Stack;
 import de.mel.Lok;
 import de.mel.R;
 import de.mel.android.MelActivity;
-import de.mel.android.MelActivityPayload;
 import de.mel.android.Notifier;
 import de.mel.android.PopupActivity;
 import de.mel.android.filesync.data.AndroidFileSyncStrings;
@@ -38,7 +37,9 @@ import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.NWrap;
+import de.mel.core.serialize.SerializableEntity;
 import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer;
+import fun.with.Lists;
 
 public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog.VoidService> {
     private Button btnCancel, btnOk;
@@ -63,9 +64,10 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
     }
 
     private void init() {
-        FilesActivityPayload payload = N.rte(() ->(FilesActivityPayload) SerializableEntityDeserializer.deserialize(this.payloadJson));
+        FilesActivityPayload payload = N.rte(() -> (FilesActivityPayload) SerializableEntityDeserializer.deserialize(this.payloadJson));
         FileAdapter adapter = new FileAdapter(this, list);
-        adapter.setDirectories(payload.getPayload());
+        List<IFile> directories = Lists.wrap(payload.getPaths()).map(AbstractFile::instance).get();
+        adapter.setDirectories(directories);
         adapter.setOnClicked(clickedDir -> {
             parentDirs.push(currentDir);
             currentDir = clickedDir;
@@ -123,9 +125,19 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
         return strings;
     }
 
-    public static class FilesActivityPayload extends MelActivityPayload<IFile[]> {
-        public FilesActivityPayload(String key, IFile[] payload) {
-            super(key, payload);
+    public static class FilesActivityPayload implements SerializableEntity {
+
+        private List<String> paths;
+
+        public FilesActivityPayload(List<String> paths) {
+            this.paths = paths;
+        }
+
+        public List<String> getPaths() {
+            return paths;
+        }
+
+        private FilesActivityPayload() {
         }
     }
 
@@ -133,7 +145,7 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
         final NWrap.BWrap isRoot = new NWrap.BWrap(true);
         Deferred<IFile, Void, Void> deferred = new DeferredObject<>();
         Intent intent = new Intent(activity, DirectoryChooserDialog.class);
-        FilesActivityPayload payload = new FilesActivityPayload(AndroidFileSyncStrings.DIR_CHOOSER_KEY, rootDirectories);
+        FilesActivityPayload payload = new FilesActivityPayload(Lists.wrap(rootDirectories).map(IFile::getAbsolutePath).get());
         activity.launchActivityForResult(intent, (resultCode, result) -> {
             if (resultCode == AppCompatActivity.RESULT_OK) {
                 String path = result.getStringExtra(AndroidFileSyncStrings.DIR_CHOOSER_KEY);
