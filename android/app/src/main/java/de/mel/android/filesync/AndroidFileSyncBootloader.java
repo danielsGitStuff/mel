@@ -12,7 +12,6 @@ import android.view.ViewGroup;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import de.mel.AndroidPermission;
@@ -30,7 +29,6 @@ import de.mel.auth.file.IFile;
 import de.mel.auth.service.IMelService;
 import de.mel.auth.service.MelAuthService;
 import de.mel.android.boot.AndroidBootLoader;
-import de.mel.auth.tools.F;
 import de.mel.auth.tools.N;
 import de.mel.filesync.FileSyncBootloader;
 import de.mel.filesync.FileSyncCreateServiceHelper;
@@ -109,7 +107,7 @@ public class AndroidFileSyncBootloader extends FileSyncBootloader implements And
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             permissions.add(new AndroidPermission(Manifest.permission.MANAGE_EXTERNAL_STORAGE, R.string.permissionsExplainAllTitle, R.string.permissionExplainAllText));
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                permissions.add(new AndroidPermission(Manifest.permission.POST_NOTIFICATIONS, R.string.permissionsExplainNotificationsTitle, R.string.permissionsExplainNotificationsText));
+                permissions.add(new AndroidPermission(Manifest.permission.POST_NOTIFICATIONS, R.string.permissionExplainNotificationsTitle, R.string.permissionExplainNotificationsText));
             }
         } else {
             permissions.add(new AndroidPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, R.string.permissionRequiredTitle, R.string.permissionDriveWriteMessage));

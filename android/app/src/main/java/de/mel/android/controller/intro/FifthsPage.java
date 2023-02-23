@@ -14,11 +14,6 @@ class FifthsPage extends IntroPageController {
         lblCaption1 = rootView.findViewById(R.id.lblCaption1);
     }
 
-    private void underline(TextView... labels) {
-        for (TextView lbl : labels) {
-            lbl.setPaintFlags(lbl.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
-        }
-    }
 
     @Override
     public String getError() {

@@ -26,6 +26,8 @@ class PermissionsManager2(
     fun hasPermissions() = permissions.all { hasPermission(it) }
 
     fun startPermissionsActivity() {
+        if (hasPermissions())
+            return
         val bundle = Bundle()
         val payload = PermissionsPayload()
         permissions.forEach {

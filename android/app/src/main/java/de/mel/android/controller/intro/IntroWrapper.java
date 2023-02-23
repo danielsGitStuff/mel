@@ -1,22 +1,24 @@
 package de.mel.android.controller.intro;
 
+import android.Manifest;
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.AppCompatImageButton;
-import androidx.core.content.ContextCompat;
+
+import java.util.List;
+
+import de.mel.AndroidPermission;
 import de.mel.R;
 import de.mel.android.MainActivity;
-import de.mel.android.MelActivity;
 import de.mel.android.Notifier;
+import de.mel.android.permissions.PermissionsManager2;
 import de.mel.android.service.AndroidService;
 import de.mel.android.service.AndroidServiceBind;
+import fun.with.Lists;
 
 public class IntroWrapper extends RelativeLayout implements AndroidServiceBind {
 
@@ -61,6 +63,9 @@ public class IntroWrapper extends RelativeLayout implements AndroidServiceBind {
                     if (introDoneListener != null) {
                         introDoneListener.introDone();
                     }
+                    List<AndroidPermission> permissions = Lists.of(new AndroidPermission(Manifest.permission.POST_NOTIFICATIONS, R.string.permissionExplainNotificationsTitle, R.string.permissionExplainNotificationsText)).get();
+                    PermissionsManager2 pm = new PermissionsManager2(this.melActivity, permissions);
+                    pm.startPermissionsActivity();
                     return;
                 }
                 if (index == maxIndex) {

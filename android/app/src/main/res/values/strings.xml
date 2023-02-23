@@ -275,6 +275,11 @@
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="btnGrant">Grant</string>
-    <string name="permissionsExplainNotificationsTitle">Notifications required.</string>
-    <string name="permissionsExplainNotificationsText">This prevents Mel from being shut down while in background.</string>
+    <string name="permissionExplainNotificationsTitle">Notifications required.</string>
+    <string name="permissionExplainNotificationsText">This prevents Mel from being shut down while in background. Also: you can neither pair nor solve any conflicts without it.</string>
+    <string name="permissionExplainLocationText">Required to show Wifi network names and IP addresses.</string>
+    <string name="permissionExplainLocationTitle">Location</string>
+    <string name="infoNotification">Notifications</string>
+    <string name="permissionStateGranted">Granted</string>
+    <string name="permissionStateDenied">Denied</string>
 </resources>
