@@ -3,15 +3,16 @@ package de.mel.android.sql;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteCursor;
-import android.database.sqlite.SQLiteCursorDriver;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteQuery;
 
 import java.sql.Date;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 
 import de.mel.Lok;
 import de.mel.sql.ISQLQueries;
@@ -29,6 +30,45 @@ public class AndroidSQLQueries extends ISQLQueries {
 
     private final SQLiteDatabase db;
     private final AndroidDBConnection androidDBConnection;
+
+    private static final Map<Class<?>, BiFunction<Cursor, Integer, Object>> classRedFunctionMap = new HashMap<>();
+
+    static {
+        classRedFunctionMap.put(boolean.class, (c, i) -> c.getInt(i) == 1);
+        classRedFunctionMap.put(Boolean.class, (c, i) -> c.getInt(i) == 1);
+        classRedFunctionMap.put(byte[].class, Cursor::getBlob);
+        classRedFunctionMap.put(Byte[].class, Cursor::getBlob);
+        classRedFunctionMap.put(Date.class, (c, i) -> {
+            Long value = c.getLong(i);
+            return new Date(TimeUnit.MILLISECONDS.toMillis(value));
+        });
+        classRedFunctionMap.put(double.class, Cursor::getDouble);
+        classRedFunctionMap.put(Double.class, Cursor::getDouble);
+        classRedFunctionMap.put(float.class, Cursor::getFloat);
+        classRedFunctionMap.put(Float.class, Cursor::getFloat);
+        classRedFunctionMap.put(int.class, Cursor::getInt);
+        classRedFunctionMap.put(Integer.class, Cursor::getInt);
+        classRedFunctionMap.put(long.class, Cursor::getLong);
+        classRedFunctionMap.put(Long.class, Cursor::getLong);
+        classRedFunctionMap.put(short.class, Cursor::getShort);
+        classRedFunctionMap.put(Short.class, Cursor::getShort);
+        classRedFunctionMap.put(String.class, Cursor::getString);
+    }
+
+    public static void readCursorIndexToPair(Cursor cursor, int index, Pair<?> pair) {
+        if (index > -1) {
+            if (cursor.isNull(index))
+                pair.setValueUnsecure(null);
+            else if (pair.getGenericClass().isEnum()) {
+                String value = cursor.getString(index);
+                Class<Enum> eType = (Class<Enum>) pair.getGenericClass();
+                Enum en = Enum.valueOf(eType, value);
+                pair.setValueUnsecure(en);
+            } else {
+                pair.setValueUnsecure(AndroidSQLQueries.classRedFunctionMap.get(pair.getGenericClass()).apply(cursor, index));
+            }
+        }
+    }
 
 
     public AndroidSQLQueries(AndroidDBConnection androidDBConnection) {
@@ -158,43 +198,6 @@ public class AndroidSQLQueries extends ISQLQueries {
         readCursorIndexToPair(cursor, index, pair);
     }
 
-    public static void readCursorIndexToPair(Cursor cursor, int index, Pair<?> pair) {
-        if (index > -1) {
-            if (cursor.isNull(index))
-                pair.setValueUnsecure(null);
-            else if (pair.getGenericClass().equals(Double.class))
-                pair.setValueUnsecure(cursor.getDouble(index));
-            else if (pair.getGenericClass().equals(Float.class))
-                pair.setValueUnsecure(cursor.getFloat(index));
-            else if (pair.getGenericClass().equals(Integer.class))
-                pair.setValueUnsecure(cursor.getInt(index));
-            else if (pair.getGenericClass().equals(Short.class))
-                pair.setValueUnsecure(cursor.getShort(index));
-            else if (pair.getGenericClass().equals(Boolean.class)) {
-                Integer v = cursor.getInt(index);
-                pair.setValueUnsecure(v == 1);
-            } else if (pair.getGenericClass().equals(Long.class))
-                pair.setValueUnsecure(cursor.getLong(index));
-            else if (pair.getGenericClass().equals(byte[].class))
-                pair.setValueUnsecure(cursor.getBlob(index));
-            else if (pair.getGenericClass().equals(Byte[].class))
-                pair.setValueUnsecure(cursor.getBlob(index));
-            else if (pair.getGenericClass().equals(String.class))
-                pair.setValueUnsecure(cursor.getString(index));
-            else if (pair.getGenericClass().isEnum()) {
-                String value = cursor.getString(index);
-                Class<Enum> eType = (Class<Enum>) pair.getGenericClass();
-                Enum en = Enum.valueOf(eType, value);
-                pair.setValueUnsecure(en);
-            } else if (pair.getGenericClass().equals(Date.class)) {
-                Long value = cursor.getLong(index);
-                Date date = new Date(TimeUnit.MILLISECONDS.toMillis(value));
-                pair.setValueUnsecure(date);
-            } else {
-                System.err.println("AndroidSQLQueries.readCursorToPair.UNKOWN TYPE");
-            }
-        }
-    }
 
     @Override
     public <T> T queryValue(String query, Class<T> clazz) throws SqlQueriesException {
