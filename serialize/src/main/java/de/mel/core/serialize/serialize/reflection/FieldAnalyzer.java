@@ -168,6 +168,10 @@ public class FieldAnalyzer {
     public static Class getBoundedClass(Type type) {
         if (type instanceof Class)
             return (Class) type;
+        if (type instanceof ParameterizedType){
+            ParameterizedType parameterizedType = (ParameterizedType) type;
+            return (Class) parameterizedType.getRawType();
+        }
         TypeVariable variable = (TypeVariable) type;
         return (Class) variable.getBounds()[0];
     }

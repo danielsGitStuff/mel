@@ -23,8 +23,10 @@ import org.junit.Before;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.function.Consumer;
 
 public class FileSyncTest {
+
     public static MelAuthService maServiceServer;
     public static MelAuthService maServiceClient;
 
@@ -52,6 +54,20 @@ public class FileSyncTest {
                 .setWorkingDirectory(MelBoot.Companion.getDefaultWorkingDir1()).setName("MAServer").setVariant(MelStrings.update.VARIANT_JAR);
         settings.setJsonFile(new File(MelBoot.Companion.getDefaultWorkingDir1(), MelBoot.Companion.getDEFAULT_SETTINGS_FILE_NAME()));
         return settings;
+    }
+
+    private Class<? extends FileSyncBootloader> serverBootloaderClass = FileSyncBootloader.class;
+
+    private Consumer<MelBoot> serverMelBootConfig =melBoot -> {};
+
+    public FileSyncTest setServerBootloaderClass(Class<? extends FileSyncBootloader> serverBootloaderClass) {
+        this.serverBootloaderClass = serverBootloaderClass;
+        return this;
+    }
+
+    public FileSyncTest setServerMelBootConfig(Consumer<MelBoot> serverMelBootConfig) {
+        this.serverMelBootConfig = serverMelBootConfig;
+        return this;
     }
 
     @After
@@ -118,7 +134,8 @@ public class FileSyncTest {
         TestDirCreator.createTestDir(FileSyncTest.testdirClient, "from client");
 
         // create MelBoot if null
-        MelBoot bootServer = new MelBoot(jsonServer, new PowerManager(jsonServer), FileSyncBootloader.class);
+        MelBoot bootServer = new MelBoot(jsonServer, new PowerManager(jsonServer), this.serverBootloaderClass);
+        this.serverMelBootConfig.accept(bootServer);
         if (nullableBootClient == null)
             nullableBootClient = new MelBoot(jsonClient, new PowerManager(jsonClient), FileSyncBootloader.class);
         final MelBoot bootClient = nullableBootClient;

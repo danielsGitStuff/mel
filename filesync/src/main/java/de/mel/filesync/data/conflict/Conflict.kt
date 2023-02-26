@@ -49,7 +49,7 @@ open class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val re
     fun decideRemote(): Conflict {
         this.decision = remoteStage
         rejection = localStage
-//        children.forEach { it.decideRemote() }
+        children.forEach { it.decideRemote() }
         return this
     }
 
@@ -57,7 +57,7 @@ open class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val re
     fun decideLocal(): Conflict {
         this.decision = localStage
         rejection = remoteStage
-//        children.forEach { it.decideLocal() }
+        children.forEach { it.decideLocal() }
         return this
     }
 

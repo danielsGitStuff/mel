@@ -2,13 +2,8 @@ package de.mel.contacts;
 
 import de.mel.Lok;
 import de.mel.auth.data.ServicePayload;
-import de.mel.contacts.data.db.AppendixWrapper;
-import de.mel.contacts.data.db.ContactAppendix;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import de.mel.contacts.data.db.Contact;
+import de.mel.contacts.data.db.ContactAppendix;
 import de.mel.contacts.data.db.PhoneBook;
 import de.mel.contacts.data.db.PhoneBookWrapper;
 import de.mel.core.serialize.SerializableEntity;
@@ -20,8 +15,11 @@ import de.mel.sql.deserialize.PairCollectionDeserializerFactory;
 import de.mel.sql.deserialize.PairDeserializerFactory;
 import de.mel.sql.serialize.PairCollectionSerializerFactory;
 import de.mel.sql.serialize.PairSerializerFactory;
+import org.junit.Before;
+import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * todo re-enable the tests. this requires work especially on the android side
@@ -29,14 +27,6 @@ import static org.junit.Assert.*;
  */
 
 public class SerializationTest {
-    public static class B implements SerializableEntity {
-        String name = "name";
-    }
-
-    public static class A extends ServicePayload {
-        B b;
-    }
-
     @Before
     public void before() {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
@@ -68,6 +58,21 @@ public class SerializationTest {
         assertEquals(wrapper.getPhoneBook().toString(), des.getPhoneBook().toString());
     }
 
+    @Test
+    public void deserialize() throws Exception {
+        String json = serializeImpl();
+        FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairCollectionDeserializerFactory.getInstance());
+        FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
+        Contact contact = (Contact) SerializableEntityDeserializer.deserialize(json);
+        ContactAppendix phone = contact.getAppendices().get(0);
+        Pair<String> pair3 = phone.getDataCols().get(3);
+        Pair<String> pair5 = phone.getDataCols().get(5);
+        assertEquals("data4", pair3.k());
+        assertEquals("3", pair3.v());
+        assertNull(pair5.v());
+        Lok.debug("SerializationTest.deserialize");
+    }
+
     public String serializeImpl() throws Exception {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairCollectionSerializerFactory.getInstance());
@@ -90,19 +95,12 @@ public class SerializationTest {
         return json;
     }
 
-    //    @Test
-    public void deserialize() throws Exception {
-        String json = serializeImpl();
-        FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairCollectionDeserializerFactory.getInstance());
-        FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
-        Contact contact = (Contact) SerializableEntityDeserializer.deserialize(json);
-        ContactAppendix phone = contact.getAppendices().get(0);
-        Pair<String> pair3 = phone.getDataCols().get(3);
-        Pair<String> pair5 = phone.getDataCols().get(5);
-        assertEquals("data4", pair3.k());
-        assertEquals("3", pair3.v());
-        assertNull(pair5.v());
-        Lok.debug("SerializationTest.deserialize");
+    public static class B implements SerializableEntity {
+        String name = "name";
+    }
+
+    public static class A extends ServicePayload {
+        B b;
     }
 
 }
