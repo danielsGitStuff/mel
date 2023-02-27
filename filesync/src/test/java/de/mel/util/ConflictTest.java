@@ -11,6 +11,7 @@ import de.mel.filesync.data.conflict.ConflictSolver;
 import de.mel.filesync.sql.Stage;
 import de.mel.filesync.sql.StageSet;
 import de.mel.sql.SqlQueriesException;
+import fun.with.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,10 +49,34 @@ import static org.junit.Assert.*;
  * |_c
  */
 public class ConflictTest extends MergeTest {
-
-
     ConflictSolver conflictSolver;
 
+    /**
+     * delete /b/bb/bbb.txt remotely
+     *
+     * @throws SqlQueriesException
+     */
+    @Test
+    public void findModifiedFileConflict2() throws SqlQueriesException {
+        Stage aatxt = creationRemoteDao.get("bbb.txt");
+        aatxt.setContentHash("bbb.txt modified");
+        stageDao.update(aatxt);
+        Lists.of("aa.txt", "a", "c").map(creationRemoteDao::get)
+                .forEach(stage -> N.r(() -> stageDao.deleteStageById(stage.getId())));
+        Lists.of("b", "bb").map(creationRemoteDao::get)
+                .forEach(stage -> N.r(() -> stageDao.update(stage.setContentHash(stage.getContentHash() + " modified"))));
+
+        createConflictSolver().findConflicts();
+        assertTrue(conflictSolver.hasConflicts());
+        assertEquals(1, conflictSolver.getConflictMap().size());
+        assertEquals(1, conflictSolver.getLocalStageConflictMap().size());
+        assertEquals(1, conflictSolver.getRemoteStageConflictMap().size());
+    }
+
+    private ConflictSolver createConflictSolver() {
+        conflictSolver = new ConflictSolver(conflictDao, localStageSet, remoteStageSet);
+        return conflictSolver;
+    }
 
     /**
      * this creates two equal stage sets.
@@ -65,13 +90,19 @@ public class ConflictTest extends MergeTest {
         super.before();
     }
 
+    @After
+    public void after() throws SqlQueriesException {
+        creationLocalDao.cleanUp();
+        super.after();
+    }
+
     /**
      * delete /a/aa.txt remotely
      *
      * @throws SqlQueriesException
      */
     @Test
-    public void findDeletedFileConflict() throws SqlQueriesException {
+    public void findDeletedFileConflict1() throws SqlQueriesException {
         Stage aatxt = creationRemoteDao.get("aa.txt");
         aatxt.setDeleted(true);
         stageDao.update(aatxt);
@@ -82,25 +113,6 @@ public class ConflictTest extends MergeTest {
         assertEquals(1, conflictSolver.getLocalStageConflictMap().size());
         assertEquals(1, conflictSolver.getRemoteStageConflictMap().size());
     }
-
-    /**
-     * cofnlict in /a/aa.txt
-     *
-     * @throws SqlQueriesException
-     */
-    @Test
-    public void findContentFileConflict() throws SqlQueriesException {
-        Stage aatxt = creationRemoteDao.get("aa.txt");
-        aatxt.setContentHash("changed");
-        stageDao.update(aatxt);
-
-        createConflictSolver().findConflicts();
-        assertTrue(conflictSolver.hasConflicts());
-        assertEquals(1, conflictSolver.getConflictMap().size());
-        assertEquals(1, conflictSolver.getLocalStageConflictMap().size());
-        assertEquals(1, conflictSolver.getRemoteStageConflictMap().size());
-    }
-
 
     /**
      * [root]
@@ -175,11 +187,6 @@ public class ConflictTest extends MergeTest {
 //        Conflict conflictI0 = conflictA.addChild()
     }
 
-    private ConflictSolver createConflictSolver() {
-        conflictSolver = new ConflictSolver(conflictDao, localStageSet, remoteStageSet);
-        return conflictSolver;
-    }
-
     /**
      * delete /b/bb/ remotely
      *
@@ -220,6 +227,24 @@ public class ConflictTest extends MergeTest {
         assertFalse(remoteConflict.getChosenRemote());
     }
 
+    /**
+     * conflict in /a/aa.txt
+     *
+     * @throws SqlQueriesException
+     */
+    @Test
+    public void findContentFileConflict() throws SqlQueriesException {
+        Stage aatxt = creationRemoteDao.get("aa.txt");
+        aatxt.setContentHash("changed");
+        stageDao.update(aatxt);
+
+        createConflictSolver().findConflicts();
+        assertTrue(conflictSolver.hasConflicts());
+        assertEquals(1, conflictSolver.getConflictMap().size());
+        assertEquals(1, conflictSolver.getLocalStageConflictMap().size());
+        assertEquals(1, conflictSolver.getRemoteStageConflictMap().size());
+    }
+
     @Test
     public void solveContentFileConflictRemote() throws SqlQueriesException {
         findContentFileConflict();
@@ -256,6 +281,16 @@ public class ConflictTest extends MergeTest {
             assertTrue(conflict.getChosenLocal());
         });
 
+    }
+
+    @Test
+    public void mergeDeleteRemoteParentRemote() throws Exception {
+        solveDeleteRemoteParentRemote();
+        conflictSolver.merge();
+        creationMergedDao.reloadStageSet(conflictSolver.mergedStageSet.getId().v());
+        assertEquals(5, creationMergedDao.getEntries().size());
+        // content of /b/ must not be in this stage set
+        assertNull(creationMergedDao.get("bb"));
     }
 
     @Test
@@ -308,16 +343,6 @@ public class ConflictTest extends MergeTest {
     }
 
     @Test
-    public void mergeDeleteRemoteParentRemote() throws Exception {
-        solveDeleteRemoteParentRemote();
-        conflictSolver.merge();
-        creationMergedDao.reloadStageSet(conflictSolver.mergedStageSet.getId().v());
-        assertEquals(5, creationMergedDao.getEntries().size());
-        // content of /b/ must not be in this stage set
-        assertNull(creationMergedDao.get("bb"));
-    }
-
-    @Test
     public void mergeDeleteRemoteParentLocal() throws Exception {
         solveDeleteRemoteParentRemote();
         conflictSolver.getConflictMap().values().forEach(Conflict::decideLocal);
@@ -333,12 +358,5 @@ public class ConflictTest extends MergeTest {
         createConflictSolver().findConflicts();
         conflictSolver.getRemoteStageConflictMap().values().forEach(Conflict::decideRemote);
         assertFalse(conflictSolver.hasConflicts());
-    }
-
-
-    @After
-    public void after() throws SqlQueriesException {
-        creationLocalDao.cleanUp();
-        super.after();
     }
 }
