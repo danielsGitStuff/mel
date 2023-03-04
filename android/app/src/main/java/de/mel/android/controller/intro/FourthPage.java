@@ -4,6 +4,7 @@ import android.graphics.Paint;
 import android.widget.TextView;
 
 import de.mel.R;
+import de.mel.android.controller.GuiController;
 
 
 class FourthPage extends IntroPageController {
@@ -16,14 +17,10 @@ class FourthPage extends IntroPageController {
         lblCaption3 = rootView.findViewById(R.id.lblCaption3);
         lblCaption4 = rootView.findViewById(R.id.lblCaption4);
         lblCaption5 = rootView.findViewById(R.id.lblCaption5);
-        underline(lblCaption1, lblCaption2, lblCaption3, lblCaption4);
+        GuiController.underline(lblCaption1, lblCaption2, lblCaption3, lblCaption4);
     }
 
-    private void underline(TextView... labels) {
-        for (TextView lbl : labels) {
-            lbl.setPaintFlags(lbl.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
-        }
-    }
+
 
     @Override
     public String getError() {

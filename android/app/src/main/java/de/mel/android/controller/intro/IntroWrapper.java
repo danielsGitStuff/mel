@@ -63,7 +63,7 @@ public class IntroWrapper extends RelativeLayout implements AndroidServiceBind {
                     if (introDoneListener != null) {
                         introDoneListener.introDone();
                     }
-                    List<AndroidPermission> permissions = Lists.of(new AndroidPermission(Manifest.permission.POST_NOTIFICATIONS, R.string.permissionExplainNotificationsTitle, R.string.permissionExplainNotificationsText)).get();
+                    List<AndroidPermission> permissions = Lists.of(AndroidPermission.Companion.getNotificationsPermission()).get();
                     PermissionsManager2 pm = new PermissionsManager2(this.melActivity, permissions);
                     pm.startPermissionsActivity();
                     return;
