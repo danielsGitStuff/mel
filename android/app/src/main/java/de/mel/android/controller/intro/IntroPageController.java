@@ -1,6 +1,8 @@
 package de.mel.android.controller.intro;
 
+import android.graphics.Paint;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import de.mel.android.MelActivity;
 import de.mel.android.controller.GuiController;
@@ -11,6 +13,8 @@ public abstract class IntroPageController extends GuiController {
         super(introWrapper.getMelActivity(), introWrapper.getContainer(), resourceId);
         this.introWrapper = introWrapper;
     }
+
+
 
     /**
      *

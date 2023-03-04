@@ -1,7 +1,9 @@
 package de.mel.android.controller;
 
+import android.graphics.Paint;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import de.mel.android.MainActivity;
 import de.mel.android.MelActivity;
@@ -15,6 +17,12 @@ import de.mel.android.service.AndroidServiceBind;
  * Created by xor on 2/23/17.
  */
 public abstract class GuiController implements AndroidServiceBind {
+
+    public static void underline(TextView... labels) {
+        for (TextView lbl : labels) {
+            lbl.setPaintFlags(lbl.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+        }
+    }
 
     protected final MainActivity activity;
     protected final View rootView;
@@ -38,7 +46,7 @@ public abstract class GuiController implements AndroidServiceBind {
     /**
      * called when the app goes in background
      */
-    public void onStop(){
+    public void onStop() {
 
     }
 

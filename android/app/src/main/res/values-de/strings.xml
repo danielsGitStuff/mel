@@ -182,5 +182,7 @@
     <string name="infoNotification">Notifications</string>
     <string name="permissionStateGranted">Granted</string>
     <string name="permissionStateDenied">Denied</string>
+    <string name="intro_5_caption_permissions">Required Permissions</string>
+    <string name="intro_5_explanation1">Without notifications Mel cannot show you any information about new pairing attempts or conflicts that may occur in one of the services. This also enables Mel to show a notification that prevents it from being shut down while running in the background.</string>
 
 </resources>
