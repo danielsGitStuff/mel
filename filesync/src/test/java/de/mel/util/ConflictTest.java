@@ -63,14 +63,14 @@ public class ConflictTest extends MergeTest {
         stageDao.update(aatxt);
         Lists.of("aa.txt", "a", "c").map(creationRemoteDao::get)
                 .forEach(stage -> N.r(() -> stageDao.deleteStageById(stage.getId())));
-        Lists.of("b", "bb").map(creationRemoteDao::get)
+        Lists.of( "root").map(creationRemoteDao::get)
                 .forEach(stage -> N.r(() -> stageDao.update(stage.setContentHash(stage.getContentHash() + " modified"))));
 
         createConflictSolver().findConflicts();
         assertTrue(conflictSolver.hasConflicts());
-        assertEquals(1, conflictSolver.getConflictMap().size());
-        assertEquals(1, conflictSolver.getLocalStageConflictMap().size());
-        assertEquals(1, conflictSolver.getRemoteStageConflictMap().size());
+        assertEquals(2, conflictSolver.getConflictMap().size());
+        assertEquals(5, conflictSolver.getLocalStageConflictMap().size());
+        assertEquals(2, conflictSolver.getRemoteStageConflictMap().size());
     }
 
     private ConflictSolver createConflictSolver() {
