@@ -4,6 +4,7 @@ import de.mel.core.serialize.SerializableEntity;
 import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
@@ -26,14 +27,10 @@ public class EntitySerializerMap {
      * stored in the database do not provide any ID. So they have to be stored
      * differently.
      */
-    private Map<SerializableEntity, SerializableEntitySerializer> entitiesWithoutIds = new HashMap<>();
+    private final Map<SerializableEntity, SerializableEntitySerializer> entitiesWithoutIds = new IdentityHashMap<>();
 
     public SerializableEntitySerializer get(SerializableEntity entity) {
-        if (entitiesWithoutIds.containsKey(entity)) {
-            return entitiesWithoutIds.get(entity);
-        } else {
-            return null;
-        }
+        return entitiesWithoutIds.getOrDefault(entity, null);
     }
 
     /**
@@ -50,9 +47,7 @@ public class EntitySerializerMap {
     public void remove(SerializableEntity entity) {
         // Long id = entity.getId();
         // if (id == null) {
-        if (entitiesWithoutIds.containsKey(entity)) {
-            entitiesWithoutIds.remove(entity);
-        }
+        entitiesWithoutIds.remove(entity);
         // } else {
         // if (entitiesWithIds.containsKey(id)) {
         // entitiesWithIds.remove(id);

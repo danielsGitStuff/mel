@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +26,7 @@ public class SerializableEntityDeserializer implements FieldDeserializer {
     public static final String TYPE_REF = "__type";
 
     public SerializableEntityDeserializer() {
-        this.idRefEntityMap = new HashMap<>();
+        this.idRefEntityMap = new IdentityHashMap<>();
     }
 
     public SerializableEntityDeserializer(Map<Integer, SerializableEntity> idRefEntityMap, JSONObject jsonMap) {

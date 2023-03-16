@@ -13,6 +13,7 @@ import de.mel.core.serialize.serialize.trace.TraceManager;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +35,7 @@ public class SerializableEntitySerializer extends FieldSerializer {
     public static final String ID = "$id";
     public static final String REF = "$ref";
 
-    private Map<Long, SerializableEntity> idEntityMap = new HashMap<>();
+    private Map<Long, SerializableEntity> idEntityMap = new IdentityHashMap<>();
     private Long refIdCount;
     private int traversalDepth = 2;
 
@@ -51,7 +52,7 @@ public class SerializableEntitySerializer extends FieldSerializer {
     public SerializableEntitySerializer(TraceManager traceManager, SerializableEntity entity)
             throws IllegalArgumentException, IllegalAccessException {
         this.entity = entity;
-        idEntityMap = new HashMap<>();
+        idEntityMap = new IdentityHashMap<>();
         refIdCount = 0L;
         this.traceManager = traceManager;
         this.refIdCount = 0L;
