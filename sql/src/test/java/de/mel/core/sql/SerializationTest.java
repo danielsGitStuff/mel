@@ -67,9 +67,9 @@ public class SerializationTest {
         parent.getPair().v("parent");
         child.getPair().v("child");
         String json = serialize(child);
-        SqlTableTester des = (SqlTableTester) SerializableEntityDeserializer.deserialize(json);
-        assertPair(child.getPair(), des.getPair());
-        assertPair(parent.getPair(), des.getParent().getPair());
+        SqlTableTester desChild = (SqlTableTester) SerializableEntityDeserializer.deserialize(json);
+        assertPair(child.getPair(), desChild.getPair());
+        assertPair(parent.getPair(), desChild.getParent().getPair());
     }
 
     private void extendLeDirectory(SqlTableTester dir, int depth) {

@@ -1,10 +1,7 @@
 package de.mel.sql;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import de.mel.sql.transform.NumberTransformer;
+import java.util.Objects;
 
 /**
  * this is a simple key value db structure which can cast its value
@@ -137,11 +134,21 @@ public class Pair<V> {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Pair<?> pair = (Pair<?>) o;
+        if (!Objects.equals(value, pair.value)) return false;
+        if (!key.equals(pair.key)) return false;
+        return type.equals(pair.type);
+    }
+
+    @Override
     public int hashCode() {
-        if (value != null) {
-            return value.hashCode();
-        }
-        return key.hashCode();
+        int result = value != null ? value.hashCode() : 0;
+        result = 31 * result + key.hashCode();
+        result = 31 * result + type.hashCode();
+        return result;
     }
 
     public int calcHash() {

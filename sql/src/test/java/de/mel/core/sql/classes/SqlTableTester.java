@@ -23,6 +23,8 @@ public class SqlTableTester extends SQLTableObject implements SerializableEntity
 
     @Override
     protected void init() {
+        populateInsert(pair);
+        populateAll();
     }
 
     public List<SqlTableTester> getChildren() {
