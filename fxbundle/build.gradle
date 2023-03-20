@@ -11,9 +11,9 @@ javafx {
     modules = project.javaFxModules
 }
 
-repositories {
-    mavenCentral()
-}
+//repositories {
+//    mavenCentral()
+//}
 
 sourceSets {
     main {
@@ -43,10 +43,10 @@ dependencies {
     testImplementation project(configuration: 'filesyncTestOutput', path: ':filesync')
     testImplementation rootProject.dep_junit4
 }
-compileJava {
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
-}
+//compileJava {
+//    sourceCompatibility = '1.8'
+//    targetCompatibility = '1.8'
+//}
 
 // the next parts build a single jar
 def props = new Properties()

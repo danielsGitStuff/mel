@@ -1,9 +1,8 @@
 package de.mel.filesync.data.conflict
 
-import de.mel.Lok
 import de.mel.filesync.sql.Stage
 import de.mel.filesync.sql.dao.ConflictDao
-import java.util.Observable
+import `fun`.with.UniqueLists
 
 /**
  * Basic object that finds pairs of local a remote conflicts. Conflicts are based on [Stage]s of a local and a remote StageSet.
@@ -22,8 +21,8 @@ open class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val re
         get
     var parent: Conflict? = null
         get
-    var children = mutableListOf<Conflict>()
-    var debugChildren  = mutableSetOf<Conflict>()
+    var children = UniqueLists.empty<Conflict>()
+    var debugChildren  = hashSetOf<Conflict>()
 
 
     var chosenLocal: Boolean = false
@@ -45,13 +44,13 @@ open class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val re
     }
 
     fun addChild(child: Conflict): Conflict {
-        if (child in debugChildren) {
-            Lok.debug("nein!!!222e")
-            return this
+        child.parent = this
+        if (children.contains(child)){
+            return children.getOriginal(child);
         }
         children.add(child)
-        child.parent = this
-        return this
+        debugChildren.add(child)
+        return child
     }
 
     fun decideRemote(): Conflict {
@@ -90,16 +89,11 @@ open class Conflict(val conflictDao: ConflictDao, val localStage: Stage?, val re
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
-
         other as Conflict
-
-        if (conflictDao != other.conflictDao) return false
         if (localStage != other.localStage) return false
         if (remoteStage != other.remoteStage) return false
         if (localId != other.localId) return false
         if (remoteId != other.remoteId) return false
-        if (children != other.children) return false
-
         return true
     }
 

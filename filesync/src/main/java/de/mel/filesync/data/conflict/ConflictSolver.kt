@@ -7,7 +7,6 @@ import de.mel.filesync.sql.FsDirectory
 import de.mel.filesync.sql.Stage
 import de.mel.filesync.sql.StageSet
 import de.mel.filesync.sql.dao.ConflictDao
-import de.mel.sql.SqlQueriesException
 
 /**
  * Finds Conflicts according to @see bla
@@ -125,13 +124,56 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
         return this
     }
 
+    fun rec(cc: Conflict, localStage: Stage?, remoteStage: Stage?) {
+        val remoteContentList: List<Stage> = if (remoteStage == null) emptyList() else stageDao.getStageContent(remoteStage.id)
+        val localContentList: List<Stage> = if (localStage == null) emptyList() else stageDao.getStageContent(localStage.id)
+        val remoteContent: Map<String, Stage> = remoteContentList.map { it.name to it }.toMap()
+        val localContent: Map<String, Stage> = localContentList.map { it.name to it }.toMap()
+        find(cc, localContent, remoteContent)
+        find(cc, remoteContent, localContent, c1IsLocal = false)
+    }
+
+    fun find(con: Conflict, c1: Map<String, Stage>, c2: Map<String, Stage>, c1IsLocal: Boolean = true) {
+        for ((name, c1Stage) in c1) {
+            if (c2.containsKey(name)) {
+                val c2Stage = c2[name]!!
+                if (c2Stage.contentHash != c1Stage.contentHash) {
+                    var c = if (c1IsLocal)
+                        Conflict(conflictDao, c1Stage, c2Stage)
+                    else
+                        Conflict(conflictDao, c2Stage, c1Stage)
+                    c = con.addChild(c)
+                    if (c1IsLocal) {
+                        localStageConflictMap[c1Stage.id] = c
+                        remoteStageConflictMap[c2Stage.id] = c
+                        rec(c, c1Stage, c2Stage)
+                    } else {
+                        localStageConflictMap[c2Stage.id] = c
+                        remoteStageConflictMap[c1Stage.id] = c
+                        rec(c, c2Stage, c1Stage)
+                    }
+                }
+            } else {
+                var c = if (c1IsLocal) Conflict(conflictDao, c1Stage, null) else Conflict(conflictDao, null, c1Stage)
+                c = con.addChild(c)
+                if (c1IsLocal) {
+                    localStageConflictMap[c1Stage.id] = c
+                    rec(c, c1Stage, null)
+                } else {
+                    remoteStageConflictMap[c1Stage.id] = c
+                    rec(c, null, c1Stage)
+                }
+            }
+        }
+    }
+
     private fun createConflicts(dbConflicts: List<DbConflict>) {
         dbConflicts.forEach loop@{ dbConflict ->
             val localStage =
                 if (dbConflict.localStageId.notNull()) stageDao.getStageById(dbConflict.localStageId.v()) else null
             val remoteStage =
                 if (dbConflict.remoteStageId.notNull()) stageDao.getStageById(dbConflict.remoteStageId.v()) else null
-            val conflict = Conflict(conflictDao, localStage, remoteStage)
+            var conflict = Conflict(conflictDao, localStage, remoteStage)
             if (conflictMap.containsKey(conflict.key))
                 return@loop
             conflictMap[conflict.key] = conflict
@@ -139,73 +181,27 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
             if (conflict.key == "7/17")
                 Lok.debug("debug tes 1")
             localStage?.let { l ->
-                localStageConflictMap[l.id] = conflict
                 // Find parent conflicts
                 if (l.parentIdPair.notNull() && localStageConflictMap.containsKey(l.parentId)) {
                     val parent = localStageConflictMap[l.parentId]!!
-                    parent.addChild(conflict)
+                    conflict = parent.addChild(conflict)
                     rootConflictMap.remove(conflict.key)
                 }
+                localStageConflictMap[l.id] = conflict
             }
             remoteStage?.let { r ->
                 remoteStageConflictMap[r.id] = conflict
                 // Find parent conflicts
                 if (r.parentIdPair.notNull() && remoteStageConflictMap.containsKey(r.parentId)) {
                     val parent = remoteStageConflictMap[r.parentId]!!
-                    parent.addChild(conflict)
+                    conflict = parent.addChild(conflict)
                     rootConflictMap.remove(conflict.key)
                 }
             }
             if (remoteStage != null && localStage != null) {
                 Lok.debug("debug WIP content missing")
                 if (remoteStage.isDirectory || localStage.isDirectory) {
-                    fun rec(cc: Conflict, localStage: Stage?, remoteStage: Stage?) {
-                        val remoteContentList: List<Stage> = if (remoteStage == null) emptyList() else stageDao.getStageContent(remoteStage.id)
-                        val localContentList: List<Stage> = if (localStage == null) emptyList() else stageDao.getStageContent(localStage.id)
-                        val remoteContent: Map<String, Stage> = remoteContentList.map { it.name to it }.toMap()
-                        val localContent: Map<String, Stage> = localContentList.map { it.name to it }.toMap()
-                        fun find(con: Conflict, c1: Map<String, Stage>, c2: Map<String, Stage>, c1IsLocal: Boolean = true) {
-                            for ((name, c1Stage) in c1) {
-                                if (c2.containsKey(name)) {
-                                    val c2Stage = c2[name]!!
-                                    if (c2Stage.contentHash != c1Stage.contentHash) {
-                                        val c = if (c1IsLocal)
-                                            Conflict(conflictDao, c1Stage, c2Stage)
-                                        else
-                                            Conflict(conflictDao, c2Stage, c1Stage)
-                                        con.addChild(c)
-                                        if (c1IsLocal) {
-                                            localStageConflictMap[c1Stage.id] = c
-                                            remoteStageConflictMap[c2Stage.id] = c
-                                            rec(c, c1Stage, c2Stage)
-                                        } else {
-                                            localStageConflictMap[c2Stage.id] = c
-                                            remoteStageConflictMap[c1Stage.id] = c
-                                            rec(c, c2Stage, c1Stage)
-                                        }
-                                    }
-                                } else {
-                                    val c = if (c1IsLocal) Conflict(conflictDao, c1Stage, null) else Conflict(conflictDao, null, c1Stage)
-                                    con.addChild(c)
-                                    if (c1IsLocal) {
-                                        localStageConflictMap[c1Stage.id] = c
-                                        rec(c, c1Stage, null)
-                                    } else {
-                                        remoteStageConflictMap[c1Stage.id] = c
-                                        rec(c, null, c1Stage)
-                                    }
-                                }
-                            }
-                        }
-                        find(cc, localContent, remoteContent)
-                        find(cc, remoteContent, localContent, c1IsLocal = false)
-//                        remoteContent.forEach { name, stage ->
-//                            Lok.debug("${stage.name}  ${stage.contentHash}")
-//
-//                        }
 
-//                        Lok.debug(conflict)
-                    }
                     rec(conflict, localStage, remoteStage)
                     Lok.debug("debug o3kaf")
                 }

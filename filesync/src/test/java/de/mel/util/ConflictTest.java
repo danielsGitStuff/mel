@@ -20,7 +20,9 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
@@ -63,7 +65,7 @@ public class ConflictTest extends MergeTest {
         stageDao.update(aatxt);
         Lists.of("aa.txt", "a", "c").map(creationRemoteDao::get)
                 .forEach(stage -> N.r(() -> stageDao.deleteStageById(stage.getId())));
-        Lists.of( "root").map(creationRemoteDao::get)
+        Lists.of("root").map(creationRemoteDao::get)
                 .forEach(stage -> N.r(() -> stageDao.update(stage.setContentHash(stage.getContentHash() + " modified"))));
 
         createConflictSolver().findConflicts();
@@ -358,5 +360,117 @@ public class ConflictTest extends MergeTest {
         createConflictSolver().findConflicts();
         conflictSolver.getRemoteStageConflictMap().values().forEach(Conflict::decideRemote);
         assertFalse(conflictSolver.hasConflicts());
+    }
+
+    /**
+     * [root]
+     * |_b
+     * | |_bb
+     * |    |_bbb.txt    <- this differs!
+     * |    |_local.txt  <- only local has this
+     */
+    @Test
+    public void findWeird1() throws SqlQueriesException {
+        Lists.of("aa.txt", "a", "c")
+                .forEach(creationLocalDao::delete)
+                .forEach(creationRemoteDao::delete);
+        stageDao.update(creationLocalDao.get("bb").setContentHash("local_bb"));
+        stageDao.update(creationRemoteDao.get("bb").setContentHash("remote_bb"));
+        stageDao.update(creationLocalDao.get("bbb.txt").setContentHash("local_bbb.txt"));
+        Stage localBBBTxt = creationLocalDao.get("bbb.txt").setContentHash("remote_bbb.txt");
+        stageDao.update(localBBBTxt);
+        Stage localTxt = new Stage()
+                .setName("local.txt")
+                .setPath("/b/bb/")
+                .setDepth(3)
+                .setContentHash("local.txt")
+                .setDeleted(false)
+                .setModified(12L)
+                .setCreated(12L)
+                .setOrder(localBBBTxt.getOrder() + 1)
+                .setParentId(creationLocalDao.get("bb").getId())
+                .setStageSet(localStageSet.getId().v());
+        creationLocalDao.insert(localTxt);
+        createConflictSolver().findConflicts();
+        Conflict bb = conflictSolver.getConflictMap().values().stream()
+                .filter(it -> it.getLocalStage().getName().equals("bb"))
+                .findFirst()
+                .get();
+        List<Conflict> bbbs = bb.getChildren().get().stream()
+                .filter(it -> it.getLocalStage().getName().equals("bbb.txt"))
+                .collect(Collectors.toList());
+        assertEquals(1, bbbs.size());
+        System.out.println("ConflictTest.findWeird1");
+    }
+
+    /**
+     * [root]
+     * |_b/
+     * | |_bb/
+     * |    |_bbb.txt    <- this differs!
+     * |    |_local.txt  <- only local has this
+     * |    |_x/         <- only local has this
+     * |      |_xx.txt   <- only local has this
+     */
+    @Test
+    public void findWeird2() throws SqlQueriesException {
+        Lists.of("aa.txt", "a", "c")
+                .forEach(creationLocalDao::delete)
+                .forEach(creationRemoteDao::delete);
+        stageDao.update(creationLocalDao.get("bb").setContentHash("local_bb"));
+        stageDao.update(creationRemoteDao.get("bb").setContentHash("remote_bb"));
+        stageDao.update(creationLocalDao.get("bbb.txt").setContentHash("local_bbb.txt"));
+        Stage localBBBTxt = creationLocalDao.get("bbb.txt").setContentHash("remote_bbb.txt");
+        stageDao.update(localBBBTxt);
+        Stage localTxt = new Stage()
+                .setIsDirectory(false)
+                .setName("local.txt")
+                .setPath("/b/bb/")
+                .setDepth(3)
+                .setContentHash("local.txt")
+                .setDeleted(false)
+                .setModified(12L)
+                .setCreated(12L)
+                .setOrder(localBBBTxt.getOrder() + 1)
+                .setParentId(creationLocalDao.get("bb").getId())
+                .setStageSet(localStageSet.getId().v());
+        creationLocalDao.insert(localTxt);
+        Stage x = new Stage()
+                .setIsDirectory(true)
+                .setName("x")
+                .setPath("/b/bb/")
+                .setDepth(3)
+                .setContentHash("x")
+                .setDeleted(false)
+                .setModified(12L)
+                .setCreated(12L)
+                .setOrder(localTxt.getOrder() + 1)
+                .setParentId(creationLocalDao.get("bb").getId())
+                .setStageSet(localStageSet.getId().v());
+        creationLocalDao.insert(x);
+        Stage xTxt = new Stage()
+                .setIsDirectory(false)
+                .setName("x.txt")
+                .setPath("/b/bb/x/")
+                .setDepth(4)
+                .setContentHash("x.txt")
+                .setDeleted(false)
+                .setModified(12L)
+                .setCreated(12L)
+                .setOrder(localBBBTxt.getOrder() + 1)
+                .setParentId(creationLocalDao.get("x").getId())
+                .setStageSet(localStageSet.getId().v());
+        creationLocalDao.insert(xTxt);
+        createConflictSolver().findConflicts();
+        Conflict bb = conflictSolver.getConflictMap().values().stream()
+                .filter(it -> it.getLocalStage().getName().equals("bb"))
+                .findFirst()
+                .get();
+        List<Conflict> bbbs = bb.getChildren().get().stream()
+                .filter(it -> it.getLocalStage().getName().equals("bbb.txt"))
+                .collect(Collectors.toList());
+        assertEquals(1, bbbs.size());
+        assertEquals(3, bb.getChildren().size());
+        System.out.println("ConflictTest.findWeird1");
     }
 }

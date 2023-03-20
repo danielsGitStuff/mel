@@ -5,9 +5,9 @@ plugins {
 
 
 dependencies {
+    api project(':funWith')
     api project(':konsole')
     api project(':sql')
-
     api rootProject.dep_k_std
     api rootProject.dep_k_cor
     api rootProject.dep_jdeferred
@@ -17,7 +17,7 @@ dependencies {
     testImplementation rootProject.dep_junit4
     testImplementation rootProject.dep_sqlite
     testImplementation rootProject.dep_jupiter
-
+    testImplementation project(path: ':testtools')
     testImplementation project(path: ':sql')
     testImplementation project(path: ':serialize', configuration: 'serializeTestOutput')
 //    testImplementation project(path: ':testtools')
