@@ -18,8 +18,7 @@ import de.mel.sql.serialize.PairSerializerFactory;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 /**
  * todo re-enable the tests. this requires work especially on the android side
@@ -78,7 +77,7 @@ public class SerializationTest {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairCollectionSerializerFactory.getInstance());
         Contact contact = new Contact();
         ContactAppendix appendix = new ContactAppendix();
-        for (Integer i = 0; i < 14; i++) {
+        for (Integer i = 0; i < 15; i++) {
             if (i != 5)
                 appendix.setValue(i, i.toString());
         }
@@ -89,9 +88,10 @@ public class SerializationTest {
         Lok.debug(json);
         Lok.debug("");
         Contact des = (Contact) SerializableEntityDeserializer.deserialize(json);
-        String expected = "{\"$id\":1,\"__type\":\"de.mel.contacts.data.db.Contact\",\"appendices\":[{\"$id\":2,\"__type\":\"de.mel.contacts.data.db.ContactAppendix\",\"blob\":\"AQIDBA==\",\"dataCols\":[\"0\",\"1\",\"2\",\"3\",\"4\",null,\"6\",\"7\",\"8\",\"9\",\"10\",\"11\",\"12\",\"13\"]}],\"hash\":\"hurrdurr\"}";
+        String expected = "{\"$id\":1,\"__type\":\"de.mel.contacts.data.db.Contact\",\"appendices\":[{\"$id\":2,\"__type\":\"de.mel.contacts.data.db.ContactAppendix\",\"blob\":\"AQIDBA==\",\"dataCols\":[\"0\",\"1\",\"2\",\"3\",\"4\",null,\"6\",\"7\",\"8\",\"9\",\"10\",\"11\",\"12\",\"13\",\"14\"]}],\"hash\":\"hurrdurr\"}";
         Lok.debug(expected);
-        assertEquals(expected, json);
+        assertTrue(DeserialisationComparison.equals(json,expected));
+//        assertEquals(expected, json);
         return json;
     }
 

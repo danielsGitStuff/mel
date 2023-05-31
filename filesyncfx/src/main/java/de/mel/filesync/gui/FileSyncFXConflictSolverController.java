@@ -159,7 +159,7 @@ public class FileSyncFXConflictSolverController extends PopupContentFX implement
                     }
                 }
             }
-            for (Conflict child : conflictRow.getConflict().getChildren()) {
+            for (Conflict child : conflictRow.getConflict().getChildren().get()) {
                 ConflictRow childRow = new ConflictRow(child);
                 conflictRow.addChild(childRow);
                 bottomUp(repo, childRow);
