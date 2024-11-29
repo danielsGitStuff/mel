@@ -293,7 +293,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                 Replacer("motto", blogSettings.motto!!),
                 Replacer("month") {
                     var result: String? = null
-                    if (entries?.size >= 1) {
+                    if (entries?.size!! >= 1) {
                         val entry = entries[0]
                         val ldt = LocalDateTime.ofEpochSecond(entry.timestamp.v(), 0, ZoneOffset.UTC)
                         result = "?m=${ldt.year}.${ldt.monthValue}"

@@ -4,7 +4,7 @@ import de.mel.Lok
 import de.mel.Versioner
 import de.mel.auth.MelStrings
 import de.mel.auth.tools.N
-import de.mel.auth.tools.lock.P
+import de.mel.auth.tools.lock2.P
 import de.mel.web.miniserver.http.BuildRequest
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -118,15 +118,15 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 var blogFile: File? = null
                 if (buildRequest.apk!!) {
                     processList.add(Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/app/build/outputs/apk/release/\"* \"${serverFilesDir.absolutePath}\""))
-                    apkFile = File("${projectRootDir.absolutePath}/app/build/outputs/apk/release/").listFiles().filter { it.extension.toLowerCase() == "apk" }.first()
+                    apkFile = File("${projectRootDir.absolutePath}/app/build/outputs/apk/release/").listFiles().filter { it.extension.lowercase() == "apk" }.first()
                 }
                 if (buildRequest.jar!!) {
                     processList.add(Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/fxbundle/build/libs/\"* \"${serverFilesDir.absolutePath}\""))
-                    fxFile = File("${projectRootDir.absolutePath}/fxbundle/build/libs/").listFiles().filter { it.extension.toLowerCase() == "jar" }.first()
+                    fxFile = File("${projectRootDir.absolutePath}/fxbundle/build/libs/").listFiles().filter { it.extension.lowercase() == "jar" }.first()
                 }
                 if (buildRequest.blog!!) {
                     processList.add(Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/blog/build/libs/\"* \"${serverFilesDir.absolutePath}\""))
-                    blogFile = File("${projectRootDir.absolutePath}/blog/build/libs/").listFiles().filter { it.extension.toLowerCase() == "jar" }.first()
+                    blogFile = File("${projectRootDir.absolutePath}/blog/build/libs/").listFiles().filter { it.extension.lowercase() == "jar" }.first()
                 }
                 processList.add(Processor("rm", "-f", "${File(serverFilesDir, "output.json")}"))
                 processList.add(Processor("/bin/sh", "-c", "chmod -R 700 \"$serverFilesDir\""))

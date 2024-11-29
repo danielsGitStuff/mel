@@ -35,11 +35,15 @@ dependencies {
     testImplementation group: 'junit', name: 'junit', version: '4.12'
 }
 
-task copyLicenseHtml(type: Copy) {
+tasks.register('copyLicenseHtml', Copy) {
     def f = rootProject.file('auth/src/main/resources/de/mel/auth/licences.html')
     def t = rootProject.file('miniserver/src/main/resources/de/mel/auth/')
-    from(f)
-    into(t)
+    def tf = new File(t, f.name)
+    if (tf.exists()){
+        tf.delete()
+    }
+    from f
+    into t
 }
 
 // the next parts build a single jar
@@ -48,7 +52,8 @@ ext {
     buildVariant = "standalone"
     jarName = "${project.name}-${buildVariant}.jar"
 }
-task createProperties(dependsOn: copyLicenseHtml) {
+tasks.register('createProperties') {
+    dependsOn copyLicenseHtml
     doLast {
         println "createProperties($buildDir)"
         props['version'] = "${VERSION}".toString()
@@ -66,12 +71,9 @@ task createProperties(dependsOn: copyLicenseHtml) {
         new File(libs, "${jarName}.properties").withWriter { w -> props.store(w, null) }
     }
 }
-tasks.named("bootJar"){
+tasks.named("bootJar") {
     mainClass = 'de.mel.web.miniserver.Main'
 }
-//bootJar {
-//    mainClassName = 'de.mel.web.miniserver.Main'
-//    archiveFileName = jarName
-//}
-processResources.dependsOn(createProperties)
+
+//processResources.dependsOn(createProperties)
 // buildJarstuff ends here

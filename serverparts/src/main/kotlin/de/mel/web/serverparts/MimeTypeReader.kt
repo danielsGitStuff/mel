@@ -11,7 +11,7 @@ object MimeTypeReader {
         val mime: String? = Files.probeContentType(Path.of(file.toURI()))
         if (mime == null) {
             val dotIndex = file.name.lastIndexOf('.')
-            if (dotIndex > 0 && file.name.substring(dotIndex + 1).toLowerCase() == "wasm") return "application/wasm"
+            if (dotIndex > 0 && file.name.substring(dotIndex + 1).lowercase() == "wasm") return "application/wasm"
         }
         return mime
     }

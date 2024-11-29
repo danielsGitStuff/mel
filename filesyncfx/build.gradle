@@ -17,8 +17,8 @@ sourceSets {
     }
 }
 compileJava {
-    sourceCompatibility = '11'
-    targetCompatibility = '11'
+    sourceCompatibility = '21'
+    targetCompatibility = '21'
 }
 jar { enabled = true }
 dependencies {

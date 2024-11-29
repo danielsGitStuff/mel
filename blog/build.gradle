@@ -35,8 +35,9 @@ dependencies {
 task copyLicenseHtml(type: Copy) {
     def f = rootProject.file('auth/src/main/resources/de/mel/auth/licences.html')
     def t = rootProject.file('miniserver/src/main/resources/de/mel/auth/')
-    from(f)
-    into(t)
+    from f
+    into t
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 // the next parts build a single jar

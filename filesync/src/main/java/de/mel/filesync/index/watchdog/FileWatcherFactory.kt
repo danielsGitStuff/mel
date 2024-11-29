@@ -16,7 +16,7 @@ open class FileWatcherFactory {
         } catch (e: IOException) {
             e.printStackTrace()
         }
-        watchdogListener = if (System.getProperty("os.name").toLowerCase().startsWith("windows")) {
+        watchdogListener = if (System.getProperty("os.name").lowercase().startsWith("windows")) {
             Lok.debug("WatchDog.windows")
             FileWatcherWindows(melFsSyncService, watchService)
         } else {
