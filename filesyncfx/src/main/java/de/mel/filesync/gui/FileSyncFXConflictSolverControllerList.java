@@ -30,7 +30,6 @@ public class FileSyncFXConflictSolverControllerList extends PopupContentFX {
     public String onOkCLicked() {
         Lok.debug("FileSyncFXConflictSolverController.onOkCLicked");
         if (conflictSolver.isSolved()) {
-//            conflictSolver.probablyFinished();
             CommitJob commitJob = new CommitJob();
             melFileSyncClientService.addJob(commitJob);
         } else {
@@ -45,20 +44,7 @@ public class FileSyncFXConflictSolverControllerList extends PopupContentFX {
         this.melFileSyncClientService = (MelFileSyncClientService) melAuthService.getMelService(notification.getServiceUuid());
         String identifier = notification.getSerializedExtra("c.id");
         this.conflictSolver = this.melFileSyncClientService.getConflictSolverMap().get(identifier);
-//        conflictSolver = (ConflictSolver) notification.getContent();
-//        ConflictSolver conflictSolver = melFileSyncClientService.getConflictSolverMap().values().iterator().next();
-//        this.conflictSolver = conflictSolver;
         Lok.debug("FileSyncFXConflictSolverController.init");
         AbstractMergeListCell.setup(listLeft, listMerge, listRight);
-//        List<Conflict> conflicts = Conflict.prepareConflicts(conflictSolver.getConflicts());
-//        listLeft.getItems().addAll(conflicts);
-//        conflictSolver.addListener(this);
     }
-
-
-//    @Override
-//    public void onConflictObsolete() {
-//        XCBFix.runLater(() -> stage.close());
-//    }
-
 }

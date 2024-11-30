@@ -85,7 +85,14 @@ public class FileSyncFXConflictSolverController extends PopupContentFX implement
             colRemoteName.setCellFactory(param -> new MelFXTextCellRemote());
             colMergedName.setCellFactory(param -> new MelFXTextCellNameMerged());
 
-
+            colLocalHash.setCellValueFactory(p -> new ReadOnlyObjectWrapper<>(p.getValue().getValue().getLocalContentHash()));
+            colRemoteHash.setCellValueFactory(p -> new ReadOnlyObjectWrapper<>(p.getValue().getValue().getRemoteContentHash()));
+            colMergedHash.setCellValueFactory(p -> {
+                if (p.getValue().getValue().getConflict() != null && p.getValue().getValue().getConflict().getDecision() != null) {
+                    String hash = p.getValue().getValue().getConflict().getDecision().getContentHash();
+                    return new ReadOnlyObjectWrapper<>(hash);
+                } else return new ReadOnlyObjectWrapper<>(null);
+            });
             treeTableView.setColumnResizePolicy(TreeTableView.CONSTRAINED_RESIZE_POLICY);
 
             try {

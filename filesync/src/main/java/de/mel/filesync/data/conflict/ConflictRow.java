@@ -46,6 +46,18 @@ public class ConflictRow {
         return ConflictRow.NAME_EMPTY;
     }
 
+        public String getLocalContentHash() {
+        if (this.fsEntry != null) {
+            return this.fsEntry.getContentHash().v();
+        }
+        if (this.stage != null)
+            return this.stage.getContentHash();
+        if (this.conflict.hasLocalStage()) {
+            return this.conflict.getLocalStage().getContentHash();
+        }
+        return ConflictRow.NAME_EMPTY;
+    }
+
     public String getRemoteName() {
         if (this.fsEntry != null) {
             return this.fsEntry.getName().v();
@@ -54,6 +66,16 @@ public class ConflictRow {
             return this.stage.getName();
         if (this.conflict.hasRemoteStage()) {
             return this.conflict.getRemoteStage().getName();
+        }
+        return ConflictRow.NAME_EMPTY;
+    } public String getRemoteContentHash() {
+        if (this.fsEntry != null) {
+            return this.fsEntry.getContentHash().v();
+        }
+        if (this.stage != null)
+            return this.stage.getContentHash();
+        if (this.conflict.hasRemoteStage()) {
+            return this.conflict.getRemoteStage().getContentHash();
         }
         return ConflictRow.NAME_EMPTY;
     }
