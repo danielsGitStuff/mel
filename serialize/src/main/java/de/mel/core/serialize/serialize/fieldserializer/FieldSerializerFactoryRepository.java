@@ -21,6 +21,7 @@ import de.mel.core.serialize.serialize.fieldserializer.primitive.PrimitiveFieldS
 import de.mel.core.serialize.serialize.reflection.FieldAnalyzer;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InaccessibleObjectException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -106,8 +107,13 @@ public class FieldSerializerFactoryRepository {
             //check if any available factory can serialize it
             for (FieldSerializerFactory factory : availableSerializationFactories.values()) {
                 if (factory.canSerialize(field)) {
-                    bindClassAndSerializerFactory(field, factory);
-                    return factory.createSerializer(parentSerializer, field);
+                    try {
+                        FieldSerializer serializer = factory.createSerializer(parentSerializer, field);
+                        bindClassAndSerializerFactory(field, factory);
+                        return serializer;
+                    } catch (InaccessibleObjectException e) {
+                        System.out.println("Cannot access field '" + field.getName() + "' of entity '" + parentSerializer.getEntity().getClass().getSimpleName() + "'.");
+                    }
                 }
             }
         }

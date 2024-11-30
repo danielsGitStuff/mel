@@ -87,7 +87,7 @@ public class SerializableEntityDeserializer implements FieldDeserializer {
             }
             List<Field> fields = EntityAnalyzer.getFields(entity.getClass());
             for (Field field : fields) {
-                if (FieldAnalyzer.isJsonIgnored(field) || FieldAnalyzer.isTransinient(field))
+                if (FieldAnalyzer.isJsonIgnored(field) || FieldAnalyzer.isTransinient(field) || !jsonMap.has(field.getName()))
                     continue;
                 String fieldName = field.getName();
                 field.setAccessible(true);
