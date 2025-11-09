@@ -1,0 +1,74 @@
+// build-logic/src/main/groovy/mel-javafx-application.gradle
+
+// 1. Apply the OpenJFX plugin and the base java plugin
+plugins {
+    id 'org.openjfx.javafxplugin'
+    id 'java-library' // <-- Apply base plugin directly
+    id 'application'
+}
+
+// 2. Get the libs catalog
+def libs = project.extensions.getByName("libs")
+
+// 3. Get the Java version
+def javaVersion = JavaVersion.toVersion(libs.versions.java.get())
+
+// 4. Set the Java version (copied from mel-java-library)
+java {
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+}
+
+// 5. Configure the 'javafx' extension
+javafx {
+    version = libs.versions.javafx.get()
+    modules = ['javafx.controls', 'javafx.fxml', 'javafx.graphics', 'javafx.web', 'javafx.swing']
+}
+
+dependencies {
+    implementation libs.javafx.base
+    implementation libs.javafx.graphics
+    implementation libs.javafx.controls
+    implementation libs.javafx.fxml
+    implementation libs.javafx.swing
+    implementation libs.javafx.web
+//    def fxVersion = libs.versions.javafx.get()
+//    compileOnly "org.openjfx:javafx-base:${fxVersion}:linux"
+//    compileOnly "org.openjfx:javafx-graphics:${fxVersion}:linux"
+//    compileOnly "org.openjfx:javafx-controls:${fxVersion}:linux"
+//    compileOnly "org.openjfx:javafx-fxml:${fxVersion}:linux"
+//    compileOnly "org.openjfx:javafx-swing:${fxVersion}:linux"
+//    compileOnly "org.openjfx:javafx-web:${fxVersion}:linux"
+
+    //
+    // --- THIS IS THE FIX ---
+    //
+    // 1. Import the Bill of Materials
+    testImplementation platform(libs.junit6.bom)
+
+    // 2. Depend *only* on the API and Engine.
+    // The BOM will provide platform-commons and platform-launcher.
+    testImplementation libs.junit6.api
+    testRuntimeOnly libs.junit6.engine
+    // --- END OF FIX ---
+}
+
+test {
+    useJUnitPlatform {
+        excludeTags 'ui'
+    }
+}
+
+// 1. Define the output directory for our generated file
+def generatedResourcesDir = project.layout.buildDirectory.dir("generated/resources/mel")
+
+// 2. Configure the main source set to *include* this new directory
+sourceSets {
+    main {
+        resources {
+            srcDir generatedResourcesDir
+        }
+    }
+}
+
+MelApplicationHelper.configure(project)

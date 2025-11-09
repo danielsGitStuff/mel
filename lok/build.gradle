@@ -1,13 +1,3 @@
 plugins {
-    id 'java-library'
-}
-
-version '1'
-
-dependencies {
-    testImplementation rootProject.dep_junit4
-}
-compileJava {
-    sourceCompatibility = '21'
-    targetCompatibility = '21'
+    id 'mel-java-library'
 }

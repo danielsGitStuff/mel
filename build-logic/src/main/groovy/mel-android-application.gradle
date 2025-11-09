@@ -1,0 +1,148 @@
+// build-logic/src/main/groovy/mel-android-application.gradle
+import org.gradle.api.attributes.Attribute
+import com.android.build.api.variant.ApplicationVariant
+
+// 1. Apply all plugins
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    // 'java-test-fixtures' is removed
+}
+
+// 2. Get libs and versions
+def libs = project.extensions.getByName("libs")
+def javaVersion = JavaVersion.toVersion(libs.versions.java.get())
+def javaVersionNumber = libs.versions.java.get().toInteger()
+
+// 3. Configure the 'android' block
+android {
+    namespace = 'de.mel.android'
+    compileSdk = libs.versions.android.compileSdk.get().toInteger()
+
+    defaultConfig {
+        applicationId = 'de.mel.android'
+        minSdk = libs.versions.android.minSdk.get().toInteger()
+        targetSdk = libs.versions.android.targetSdk.get().toInteger()
+        // --- END OF FIX ---
+
+        versionCode = 1
+        versionName = project.version.toString()
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = javaVersion
+        targetCompatibility = javaVersion
+    }
+}
+
+// 4. Configure Kotlin
+kotlin {
+    jvmToolchain(javaVersionNumber)
+}
+
+// 5. Add dependencies
+dependencies {
+    implementation libs.kotlin.stdlib
+
+    // JUnit 6 setup (without testFixtures)
+    testImplementation(platform(libs.junit6.bom)) {
+        attributes {
+            attribute(Attribute.of('org.jetbrains.kotlin.platform.type', String.class), 'platform-agnostic')
+        }
+    }
+    testRuntimeOnly(platform(libs.junit6.bom)) {
+        attributes {
+            attribute(Attribute.of('org.jetbrains.kotlin.platform.type', String.class), 'platform-agnostic')
+        }
+    }
+    testImplementation libs.junit6.api
+    testRuntimeOnly libs.junit6.engine
+    testImplementation libs.junit6.platform.commons
+    testRuntimeOnly libs.junit6.platform.launcher
+
+    // You can add Android-specific libs here
+    // implementation libs.androidx.core.ktx
+}
+
+// 6. Configure test tasks
+test {
+    useJUnitPlatform {
+        excludeTags 'ui'
+    }
+}
+
+tasks.register('runUiTests', Test) {
+    group = 'verification'
+    description = 'Runs UI tests.'
+    useJUnitPlatform {
+        includeTags 'ui'
+    }
+}
+
+// --- Android-specific 'generateVersionProperties' ---
+
+// 7. This task generates the file
+tasks.register('generateVersionProperties') {
+    description = 'Generates version.properties from project version'
+
+    // Android's generated resource path is different
+    def outputDir = project.layout.buildDirectory.dir("generated/ap_generated_sources/debug/out/de/mel")
+    def outputFile = outputDir.get().file("version.properties")
+    outputs.file(outputFile)
+
+    doLast {
+        // Reads 'ext.variant = "..."' from your android/build.gradle
+        def variant = project.findProperty('variant') ?: 'apk'
+
+        def props = new Properties()
+        props['version'] = project.version.toString()
+        props['commit'] = project.ext.commit.toString()
+        props['variant'] = variant
+
+        def propsFile = outputFile.asFile
+        propsFile.parentFile.mkdirs()
+        propsFile.withWriter { w -> props.store(w, null) }
+    }
+}
+
+// 8. This task writes the *external* properties file
+tasks.register('generateExternalVersionProperties') {
+    description = 'Generates the external version.properties file'
+
+    // This is the external file in build/libs/
+    def externalOutputFile = project.layout.buildDirectory.dir("libs").get().file("${project.name}-${project.version}-apk.properties")
+    outputs.file(externalOutputFile)
+
+    doLast {
+        def variant = project.findProperty('variant') ?: 'apk'
+        def props = new Properties()
+        props['version'] = project.version.toString()
+        props['commit'] = project.ext.commit.toString()
+        props['variant'] = variant
+
+        def extPropsFile = externalOutputFile.asFile
+        extPropsFile.parentFile.mkdirs()
+        extPropsFile.withWriter { w -> props.store(w, null) }
+    }
+}
+
+// 9. Hook the tasks into the Android build
+android.applicationVariants.all { ApplicationVariant variant ->
+    // Hook for the internal file (read by the app)
+    variant.javaCompileProvider.get().dependsOn(tasks.named('generateVersionProperties'))
+
+    // Hook for the external file (for your update mechanism)
+    // This will run when you build the debug APK
+    if (variant.name == 'debug') {
+        tasks.named("packageDebug").configure {
+            it.finalizedBy(tasks.named('generateExternalVersionProperties'))
+        }
+    }
+}

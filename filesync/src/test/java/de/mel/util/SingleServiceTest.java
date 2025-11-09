@@ -17,9 +17,10 @@ import de.mel.filesync.service.sync.ClientSyncHandler;
 import de.mel.filesync.sql.Stage;
 import de.mel.filesync.sql.StageSet;
 import de.mel.sql.SqlQueriesException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -29,7 +30,8 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 public class SingleServiceTest extends MergeTest {
 
@@ -39,7 +41,7 @@ public class SingleServiceTest extends MergeTest {
     MelAuthService melAuthService;
     private static int counter = 0;
 
-    @Before
+    @BeforeEach
     public void before() throws SqlQueriesException, IOException, SQLException, InterruptedException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException, JsonSerializationException, JsonDeserializationException {
         super.before();
         MelAuthSettings authSettings = new MelAuthSettings()
@@ -150,7 +152,7 @@ public class SingleServiceTest extends MergeTest {
         assertEquals(0, localNameMap.size());
     }
 
-    @After
+    @AfterEach
     @Override
     public void after() throws SqlQueriesException {
         super.after();

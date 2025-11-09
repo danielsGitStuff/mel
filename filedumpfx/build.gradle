@@ -1,38 +1,46 @@
 plugins {
-    id 'java-library'
-    id 'org.jetbrains.kotlin.jvm'
-    id 'org.openjfx.javafxplugin' version "${javaFxPluginVersion}"
-}
-javafx {
-    version = project.javaFxVersion
-    modules = project.javaFxModules
-}
-sourceSets {
-    main {
-        resources {
-            srcDir "${project(':filesyncfx').projectDir}/src/main/resources"
-            srcDir "${project(':filedump').projectDir}/src/main/resources"
-        }
-    }
-}
-compileJava {
-    sourceCompatibility = '21'
-    targetCompatibility = '21'
-}
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "21"
-    }
-}
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "21"
-    }
+    id 'mel-javafx-library'
 }
 dependencies {
     api project(':filedump')
     api project(':filesyncfx')
     api project(':authfx')
-    testImplementation project(configuration: 'filesyncTestOutput', path: ':filesync')
-    testImplementation rootProject.dep_junit4
 }
+//plugins {
+//    id 'java-library'
+//    id 'org.jetbrains.kotlin.jvm'
+//    id 'org.openjfx.javafxplugin' version "${javaFxPluginVersion}"
+//}
+//javafx {
+//    version = project.javaFxVersion
+//    modules = project.javaFxModules
+//}
+//sourceSets {
+//    main {
+//        resources {
+//            srcDir "${project(':filesyncfx').projectDir}/src/main/resources"
+//            srcDir "${project(':filedump').projectDir}/src/main/resources"
+//        }
+//    }
+//}
+//compileJava {
+//    sourceCompatibility = '21'
+//    targetCompatibility = '21'
+//}
+//compileKotlin {
+//    kotlinOptions {
+//        jvmTarget = "21"
+//    }
+//}
+//compileTestKotlin {
+//    kotlinOptions {
+//        jvmTarget = "21"
+//    }
+//}
+//dependencies {
+//    api project(':filedump')
+//    api project(':filesyncfx')
+//    api project(':authfx')
+//    testImplementation project(configuration: 'filesyncTestOutput', path: ':filesync')
+//    testImplementation rootProject.dep_junit4
+//}

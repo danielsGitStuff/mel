@@ -1,76 +1,49 @@
+// blog/build.gradle
+
 plugins {
-    id 'org.springframework.boot'
-    id 'java'
-    id 'java-library'
-    id 'org.jetbrains.kotlin.jvm'
+    id 'mel-kotlin-application'
 }
 
-version 'current'
-sourceSets {
-    main.java.srcDirs += 'src/main/kotlin/'
-    test.java.srcDirs += 'src/test/kotlin/'
-    main {
-        resources {
-            srcDir "${project(':auth').projectDir}/src/main/resources"
-        }
-    }
+application {
+    mainClass = 'de.mel.web.blog.Blog'
 }
+
+// 2. Add all dependencies using our central libs
 dependencies {
-    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$KOTLIN_CR_V"
-    api "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
-    api "org.jetbrains.kotlinx:kotlinx-io-jvm:0.1.15"
-    api project(':konsole')
-    api project(':auth')
-    api project(':serverparts')
+    implementation libs.kotlin.coroutines
+    implementation libs.kotlin.io
     implementation project(':konsole')
     implementation project(':auth')
     implementation project(':serverparts')
+    implementation libs.sqlite.jdbc
 
-    testImplementation project(path: ':auth')
-    api group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
-    testImplementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
-    testImplementation group: 'junit', name: 'junit', version: '4.12'
-}
-
-task copyLicenseHtml(type: Copy) {
-    def f = rootProject.file('auth/src/main/resources/de/mel/auth/licences.html')
-    def t = rootProject.file('miniserver/src/main/resources/de/mel/auth/')
-    from f
-    into t
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    // testImplementation for JUnit is already in the plugin
+    testImplementation project(':auth')
 }
 
-// the next parts build a single jar
-def props = new Properties()
-ext {
-    buildVariant = "standalone"
-    jarName = "${project.name}.jar"
-}
-jar { enabled = true }
-task createProperties() {
-    doLast {
-        println "createProperties($buildDir)"
-        props['version'] = "${VERSION}".toString()
-        props['commit'] = "${COMMIT}".toString()
-        props['variant'] = buildVariant
-        //store in jar
-        File resources = new File(buildDir, "resources")
-        File main = new File(resources, "main")
-        File de = new File(main, "de")
-        File mel = new File(de, "mel")
-        mel.mkdirs()
-        new File(mel, "version.properties").withWriter { w -> props.store(w, null) }
-        File libs = new File(buildDir, "libs")
-        libs.mkdirs()
-        new File(libs, "${jarName}.properties").withWriter { w -> props.store(w, null) }
-    }
-}
-tasks.named("bootJar"){
-    mainClass = 'de.mel.web.blog.Blog'
-}
-//bootJar {
-//    mainClassName = 'de.mel.web.blog.Blog'
-//    archiveFileName = jarName
+// 4. Configure the fat jar (replaces bootJar)
+//jar {
+//    manifest {
+//        attributes(
+//                'Main-Class': (application.mainClass) // Use the same main class
+//        )
+//    }
+//
+//    // This pulls in all dependencies and resources from other projects
+//    from {
+//        configurations.runtimeClasspath.collect {
+//            it.isDirectory() ? it : zipTree(it)
+//        }
+//    } {
+//        // Exclude all the metadata we found before
+//        exclude "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA"
+//        exclude "module-info.class"
+//        exclude "META-INF/substrate/**"
+//        exclude "META-INF/versions/**"
+//        exclude "META-INF/*.kotlin_module"
+//        exclude "de/mel/version.properties"
+//    }
+//
+//    // Ensures subproject jars are built first
+//    dependsOn configurations.runtimeClasspath.buildDependencies
 //}
-processResources.dependsOn(createProperties)
-// buildJarstuff ends here

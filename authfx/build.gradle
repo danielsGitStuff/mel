@@ -1,23 +1,7 @@
 plugins {
-//    id 'application'
-    id 'java-library'
-    id 'org.openjfx.javafxplugin' version "${javaFxPluginVersion}"
+    id 'mel-javafx-library'
 }
 
-javafx {
-    version = project.javaFxVersion
-    modules = project.javaFxModules
-}
-compileJava {
-    sourceCompatibility = '21'
-    targetCompatibility = '21'
-}
 dependencies {
-    api project(":auth")
-    api rootProject.dep_sqlite
-    testImplementation project(":auth")
-    testImplementation rootProject.dep_junit4
-    testImplementation rootProject.dep_sqlite
-    api group: 'org.openjfx', name: 'javafx-controls', version: rootProject.javaFxVersion
-    api group: 'org.openjfx', name: 'javafx-fxml', version: rootProject.javaFxVersion
+    api project(':auth')
 }

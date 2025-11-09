@@ -6,9 +6,10 @@ import de.mel.auth.tools.F;
 import de.mel.auth.tools.N;
 import de.mel.core.serialize.SerializableEntity;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -17,7 +18,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 public class CachedDataTest {
     public static class A implements SerializableEntity {
@@ -84,7 +86,7 @@ public class CachedDataTest {
     }
 
 
-    @Before
+    @BeforeEach
     public void before() throws NoSuchFieldException {
         F.rmRf(cacheDir);
         cacheDir.mkdirs();
@@ -176,7 +178,7 @@ public class CachedDataTest {
         assertFalse(f.exists());
     }
 
-    @After
+    @AfterEach
     public void after() {
         F.rmRf(cacheDir);
     }

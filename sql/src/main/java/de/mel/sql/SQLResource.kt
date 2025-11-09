@@ -1,6 +1,5 @@
 package de.mel.sql
 
-import de.mel.sql.SqlQueriesException
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.SQLException

@@ -40,9 +40,9 @@ public class PairTypeConverter {
         @Override
         public Boolean convert(Class<Boolean> type, Object value) throws TypeConvertException {
             if (value.getClass().equals(String.class)) {
-                return new Boolean(Boolean.parseBoolean((String) value));
+                return Boolean.valueOf(Boolean.parseBoolean((String) value));
             } else if (value.getClass().equals(Integer.class)) {
-                return new Boolean((((Integer) value) == 1) ? true : false);
+                return Boolean.valueOf((((Integer) value) == 1) ? true : false);
             }
             System.err.println("PairTypeConverter: COULD NOT CAST VALUE TO BOOLEAN: " + value);
             throw new TypeConvertException("COULD NOT CAST VALUE TO BOOLEAN:" + value);

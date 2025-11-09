@@ -10,9 +10,10 @@ import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntity
 import de.mel.core.sql.classes.PairSerializableEntity;
 import de.mel.sql.deserialize.PairDeserializerFactory;
 import de.mel.sql.serialize.PairSerializerFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 /**
  * Created by xor on 26.10.2015.

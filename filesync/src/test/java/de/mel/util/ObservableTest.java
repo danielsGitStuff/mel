@@ -8,13 +8,14 @@ import de.mel.filesync.sql.Stage;
 import de.mel.filesync.sql.dao.ConflictDao;
 import de.mel.filesync.sql.dao.FsDao;
 import de.mel.filesync.sql.dao.StageDao;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 
 public class ObservableTest {
     ConflictDao conflictDao;
 
-    @Before
+    @BeforeEach
     public void before() {
         FsDao fsDao = new FsDao(null, null);
         StageDao stageDao = new StageDao(null, null, fsDao);

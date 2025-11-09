@@ -2,15 +2,16 @@ import de.mel.Lok;
 import de.mel.sql.*;
 import de.mel.sql.conn.SQLConnector;
 import de.mel.sql.transform.SqlResultTransformer;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.sql.SQLException;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class SqlEnumTest {
 
@@ -116,7 +117,7 @@ public class SqlEnumTest {
         });
     }
 
-    @Before
+    @BeforeEach
     public void before() throws SQLException, ClassNotFoundException, SqlQueriesException {
         dbFile = new File("db.test.file");
         if (dbFile.exists())
@@ -131,7 +132,7 @@ public class SqlEnumTest {
         sqlQueries.insert(writeObject);
     }
 
-    @After
+    @AfterEach
     public void after() {
 //        dbFile.delete();
     }

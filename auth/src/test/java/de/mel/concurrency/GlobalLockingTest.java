@@ -6,12 +6,14 @@ import de.mel.auth.tools.lock2.LockObjectEntry;
 import de.mel.auth.tools.lock2.P;
 import de.mel.testing.LockTest;
 import de.mel.testing.TestRunnable;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+
 
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 public class GlobalLockingTest extends LockTest {
 
@@ -29,7 +31,7 @@ public class GlobalLockingTest extends LockTest {
         bol4 = null;
     }
 
-    @After
+    @AfterEach
     public void after() {
         if (bol1 != null)
             P.end(bol1);

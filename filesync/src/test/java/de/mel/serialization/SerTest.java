@@ -4,8 +4,10 @@ import de.mel.auth.data.MelResponse;
 import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mel.filesync.service.sync.TooOldVersionException;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class SerTest {
     @Test
     public void testResponseException() throws Exception {

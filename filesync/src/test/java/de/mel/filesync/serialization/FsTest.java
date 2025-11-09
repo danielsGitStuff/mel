@@ -2,8 +2,10 @@ package de.mel.filesync.serialization;
 
 import de.mel.filesync.sql.FsDirectory;
 import de.mel.filesync.sql.FsFile;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+
 
 /**
  * Created by xor on 12/6/16.

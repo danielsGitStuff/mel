@@ -1,17 +1,14 @@
+// konsole/build.gradle
+
+// 1. Apply our custom Java library template
 plugins {
-    id 'java-library'
+    id 'mel-java-library'
 }
 
-version '1'
-
-repositories {
-}
-
+// 2. Add dependencies specific to 'konsole'
 dependencies {
+    // We use 'api' here because 'konsole' DEPENDS ON 'lok'
+    // This means any project that depends on 'konsole'
+    // will AUTOMATICALLY get 'lok' as well.
     api project(':lok')
-    testImplementation rootProject.dep_junit4
-}
-compileJava {
-    sourceCompatibility = '21'
-    targetCompatibility = '21'
 }

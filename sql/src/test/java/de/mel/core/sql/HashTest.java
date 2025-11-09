@@ -1,8 +1,6 @@
 package de.mel.core.sql;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,8 +12,12 @@ import java.nio.file.Paths;
 import java.util.Random;
 
 import de.mel.sql.Hash;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 public class HashTest {
     private static final int BUFFER_SIZE = 1024;
@@ -24,7 +26,7 @@ public class HashTest {
     private byte[] srcBytes;
     private Path srcPath;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         testdir = new File("copy.test");
         System.out.println("test dir = " + testdir.getAbsolutePath());
@@ -51,7 +53,7 @@ public class HashTest {
         assertEquals(hashBytes,hashFile);
     }
 
-    @After
+    @AfterEach
     public void after() throws IOException {
       srcFile.delete();
       testdir.delete();

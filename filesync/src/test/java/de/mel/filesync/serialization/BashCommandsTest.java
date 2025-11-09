@@ -7,16 +7,16 @@ import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.file.IFile;
 import de.mel.filesync.bash.AutoKlausIterator;
 import de.mel.filesync.bash.BashTools;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Created by thefa on 7/29/2017.
@@ -26,7 +26,7 @@ public class BashCommandsTest {
     List<String> paths;
     IFile timeDir;
 
-    @Before
+    @BeforeEach
     public void before() throws Exception {
         AbstractFile.configure(new DefaultFileConfiguration());
         testDir = AbstractFile.instance("testdir1");
@@ -117,7 +117,7 @@ public class BashCommandsTest {
         assertEquals(tt1, tt2);
     }
 
-    @After
+    @AfterEach
     public void after() {
         CertificateManager.deleteDirectory(testDir);
         CertificateManager.deleteDirectory(timeDir);

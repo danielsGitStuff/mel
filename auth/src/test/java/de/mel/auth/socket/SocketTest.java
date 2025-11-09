@@ -9,7 +9,7 @@ import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.tools.N;
 import de.mel.sql.RWLock;
 import org.jdeferred.impl.DeferredObject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -25,7 +25,7 @@ import java.net.Socket;
 public class SocketTest {
     private static RWLock lock = new RWLock();
 
-//    @Test
+    @Test
     public void sendFile() throws Exception {
         lock.lockWrite();
         //init

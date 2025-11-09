@@ -19,9 +19,9 @@ import de.mel.filesync.sql.dao.ConflictDao;
 import de.mel.filesync.sql.dao.FsDao;
 import de.mel.filesync.sql.dao.StageDao;
 import de.mel.sql.SqlQueriesException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -183,7 +183,7 @@ public class MergeTest {
      * @throws IOException
      * @throws SQLException
      */
-    @Before
+    @BeforeEach
     public void before() throws SqlQueriesException, IOException, SQLException, InterruptedException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException, JsonSerializationException, JsonDeserializationException {
         BashTools.Companion.init();
         AbstractFile.configure(new DefaultFileConfiguration());
@@ -232,7 +232,7 @@ public class MergeTest {
         counter++;
     }
 
-    @After
+    @AfterEach
     public void after() throws SqlQueriesException {
         creationLocalDao.cleanUp();
         BashTools.Companion.rmRf(workingDirectory);

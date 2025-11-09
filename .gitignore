@@ -27,13 +27,14 @@
 !/auth/
 !/authfx/
 !/blog/
+!/build-logic/
 !/contacts/
 !/contactsfx/
 !/filedump/
 !/filedumpfx/
 !/filesync/
 !/filesyncfx/
-!/funWith/
+!/fun-with/
 !/fxbundle/
 !/icons/
 !/icons/**

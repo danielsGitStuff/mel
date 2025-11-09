@@ -35,8 +35,9 @@ import de.mel.filesync.sql.FsFile;
 import de.mel.filesync.sql.GenericFSEntry;
 import de.mel.sql.RWLock;
 import org.jdeferred.Promise;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +46,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 /**
  * Created by xor on 12/12/16.
@@ -65,7 +67,7 @@ public class DriveTest {
         runner.runTry(noTryRunnable);
     }
 
-    @After
+    @AfterEach
     public void after() throws IOException {
         CountLock shutdownLock = new CountLock().lock();
         ShutDownDeferredManager shut = new ShutDownDeferredManager();
@@ -81,7 +83,7 @@ public class DriveTest {
         BashTools.Companion.rmRf(testdir2);
     }
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         AbstractFile.configure(new DefaultFileConfiguration());
         BashTools.Companion.init();

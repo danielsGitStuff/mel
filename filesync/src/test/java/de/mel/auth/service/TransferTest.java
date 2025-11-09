@@ -30,9 +30,7 @@ import de.mel.sql.RWLock;
 import de.mel.sql.deserialize.PairDeserializerFactory;
 import de.mel.sql.serialize.PairSerializerFactory;
 import org.jdeferred.Promise;
-import org.junit.Before;
-
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,6 +38,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SuppressWarnings("Duplicates")
 public class TransferTest {
@@ -139,7 +140,7 @@ public class TransferTest {
 //        new WaitLock().lock().lock();
     }
 
-    @Before
+    @BeforeEach
     public void before() throws Exception {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());

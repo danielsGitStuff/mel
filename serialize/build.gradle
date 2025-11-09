@@ -1,18 +1,9 @@
 plugins {
-    id 'java-library'
-}
-
-repositories {
+    id 'mel-java-library'
 }
 configurations{
     serializeTestOutput
 }
 dependencies {
     api project(':json')
-    testImplementation dep_junit4
-    testImplementation project(':json')
-}
-compileJava {
-    sourceCompatibility = '21'
-    targetCompatibility = '21'
 }

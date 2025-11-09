@@ -1,80 +1,67 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-buildscript {
-    ext.KOTLIN_V = '2.1.0'
-    ext.KOTLIN_CR_V = '1.9.0'
-    ext.dep_junit4 = "junit:junit:4.13"
-    // get latest commit
-    ext.COMMIT = { ->
+// We need these for timestamp and git exec
+import java.text.SimpleDateFormat
+import java.io.ByteArrayOutputStream
+
+// Function to get the current Git commit hash
+def getGitCommitHash = { ->
+    try {
         def out = new ByteArrayOutputStream()
         exec {
             commandLine 'git', 'rev-parse', 'HEAD'
             standardOutput = out
+            // Don't fail the build if we're not in a git repo
+            ignoreExitValue true
         }
-        out.toString().take(7).trim()
-    }.call()
-    ext.VERSION = { ->
-        File f = new File(projectDir, "build.tmp.version")
-        println "trying to read version from ${f.getCanonicalPath()}"
-        if (f.exists()) {
-            f.readLines().get(0)
-        } else
-            "version not provided"
-    }.call()
-    println "commit=${ext.COMMIT} version=\"${ext.VERSION}\""
-    repositories {
-        jcenter()
-        mavenCentral()
-        maven {
-            url "https://maven.google.com"
-        }
-        google()
+        def hash = out.toString().trim()
+        // Return a 7-char hash or a placeholder
+        return hash.isEmpty() ? 'local' : hash.take(7)
+    } catch (Exception e) {
+        // Fallback for any other error
+        return "no-git"
     }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:3.5.2'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_V"
-        classpath "org.jetbrains.kotlin:kotlin-android-extensions:$KOTLIN_V"
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
+}.call() // .call() runs this code once at the start
+
+// Function to generate the dynamic part of the version
+def getProjectVersion = { ->
+    File f = new File(projectDir, "build.tmp.version")
+    if (f.exists()) {
+        // 1. Use the version from the file if it exists (for 'Deploy')
+        println "Using version from build.tmp.version"
+        return f.readLines().get(0)
+    } else {
+        // 2. Fallback for local dev builds (reads from gradle.properties)
+        def major = project.findProperty('melMajorVersion') ?: '1'
+        def minor = project.findProperty('melMinorVersion') ?: '0'
+        def dynamic = new SimpleDateFormat("yyyy.MM.dd.HHmmss").format(new Date())
+        def version = "${major}.${minor}.${dynamic}_dev"
+        println "Generating dev version: ${version.toString()}"
+        return version
     }
-}
-plugins {
-    // this builds the jars
-//    id 'org.springframework.boot' version '2.6.6'
-    id 'org.springframework.boot' version '2.6.6'
-}
-
-
-
-project.ext {
-    System.out.println("building with Kotlin version: $KOTLIN_V")
-    javaFxVersion = "18.0.1"
-    javaFxModules = ['javafx.controls', 'javafx.fxml', 'javafx.swing', 'javafx.web']
-    dep_bc_pkix = 'org.bouncycastle:bcpkix-jdk15on:1.70'
-    dep_bc_prov = 'org.bouncycastle:bcprov-jdk15on:1.70'
-    dep_jdeferred = 'org.jdeferred:jdeferred-core:1.2.6'
-    dep_junit4 = 'junit:junit:4.13'
-    dep_jupiter = 'org.junit.jupiter:junit-jupiter-api:5.8.2'
-    dep_k_std =  'org.jetbrains.kotlin:kotlin-stdlib:1.7.21'
-    dep_k_cor = 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
-    dep_sqlite = 'org.xerial:sqlite-jdbc:3.36.0.3'
-}
-
-def dep_strings = project.properties.findAll{ k,v -> k.startsWith('dep_')}
-println 'These are the used dependency variables and their values:'
-dep_strings.each{ k,v->
-    println "   $k -> $v"
-}
-
+}.call() // .call() runs this once at the start
 
 allprojects {
+    group = 'de.mel'
+    version = getProjectVersion // Apply the consistent version to all projects
+    ext.commit = getGitCommitHash // Apply the consistent commit to all projects
     repositories {
-        google()
         mavenCentral()
+        google() // Needed for Android dependencies
     }
 }
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
-}
-
-
+//allprojects {
+//    group= "de.mel"
+//    // Read MAJOR/MINOR from gradle.properties
+//    def major = project.findProperty('melMajorVersion') ?: '1'
+//    def minor = project.findProperty('melMinorVersion') ?: '0'
+//
+//    // Set the version for all projects
+//    version = "${major}.${minor}.${getDynamicVersion}"
+//
+//    // Set the commit hash as an extra property
+//    ext.commit = getGitCommitHash
+//    repositories {
+//        mavenCentral()
+//        google() // Needed for Android dependencies
+//    }
+//}

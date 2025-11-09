@@ -1,28 +1,12 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm'
-    id 'java-library'
-    id 'java'
+    id 'mel-kotlin-jvm-library'
 }
-
-sourceSets{
-    main.java.srcDirs += 'src/main/kotlin/'
-    test.java.srcDirs += 'src/test/kotlin/'
-}
-
 dependencies {
-    api "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
-    api "org.jetbrains.kotlinx:kotlinx-io-jvm:0.1.0"
-    api  "org.jetbrains.kotlinx:kotlinx-coroutines-core:$KOTLIN_CR_V"
-    api project(path: ':auth')
-    testImplementation project(path: ':auth')
-    api group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
-    testImplementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
-    testImplementation group: 'junit', name: 'junit', version: '4.12'
+    api libs.kotlin.stdlib
+    api libs.kotlin.coroutines
+    api libs.kotlin.io
+    api project(':auth')
+    testImplementation project(':auth')
+    api libs.sqlite.jdbc
+    testImplementation libs.sqlite.jdbc
 }
-
-//compileKotlin {
-//    kotlinOptions.jvmTarget = "21"
-//}
-//compileTestKotlin {
-//    kotlinOptions.jvmTarget = "21"
-//}

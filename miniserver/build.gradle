@@ -1,79 +1,63 @@
+// miniserver/build.gradle
+
 plugins {
-    id 'org.springframework.boot'
-    id 'org.jetbrains.kotlin.jvm'
-    id 'java'
+    // 1. Replaces 'spring-boot', 'kotlin.jvm', and 'java'
+    id 'mel-kotlin-application'
 }
 
-version '0'
-
-//sourceCompatibility =        1.8
-//targetCompatibility = "1.8"
-
-repositories {
-    mavenCentral()
+// 2. Configure the main class for './gradlew :miniserver:run'
+application {
+    // This assumes your main() is in a file named 'MiniServer.kt'
+    // If it's in a companion object inside 'MiniServer', use: 'de.mel.web.miniserver.MiniServer'
+    mainClass = 'de.mel.web.miniserver.MiniServer'
 }
-sourceSets {
-    main.java.srcDirs += 'src/main/kotlin/'
-    test.java.srcDirs += 'src/test/kotlin/'
-    main {
-        resources {
-            srcDir "${project(':auth').projectDir}/src/main/resources"
-            srcDir "${project(':blog').projectDir}/src/main/resources"
-        }
-    }
-}
+
+// 3. All dependencies are now clean and centrally managed
 dependencies {
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$KOTLIN_CR_V"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$KOTLIN_V"
-    implementation "org.jetbrains.kotlinx:kotlinx-io-jvm:0.1.15"
+    // The plugin already provides kotlin-stdlib and JUnit
+//    implementation project(':konsole')
+//    implementation project(':blog')
+//    implementation project(':auth')
+    implementation libs.kotlin.coroutines
+//    implementation libs.kotlin.io
+//    implementation project(':serverparts')
+//    implementation libs.sqlite.jdbc
+//    testImplementation project(':auth')
+    implementation project(':serverparts')
+    implementation project(':auth')
     implementation project(':konsole')
     implementation project(':blog')
-    implementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
-
-    testImplementation project(path: ':auth')
-    testImplementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
-    testImplementation group: 'junit', name: 'junit', version: '4.12'
+    testImplementation project(':auth')
 }
 
-tasks.register('copyLicenseHtml', Copy) {
-    def f = rootProject.file('auth/src/main/resources/de/mel/auth/licences.html')
-    def t = rootProject.file('miniserver/src/main/resources/de/mel/auth/')
-    def tf = new File(t, f.name)
-    if (tf.exists()){
-        tf.delete()
-    }
-    from f
-    into t
-}
-
-// the next parts build a single jar
-def props = new Properties()
-ext {
-    buildVariant = "standalone"
-    jarName = "${project.name}-${buildVariant}.jar"
-}
-tasks.register('createProperties') {
-    dependsOn copyLicenseHtml
-    doLast {
-        println "createProperties($buildDir)"
-        props['version'] = "${VERSION}".toString()
-        props['commit'] = "${COMMIT}".toString()
-        props['variant'] = buildVariant
-        //store in jar
-        File resources = new File(buildDir, "resources")
-        File main = new File(resources, "main")
-        File de = new File(main, "de")
-        File mel = new File(de, "mel")
-        mel.mkdirs()
-        new File(mel, "version.properties").withWriter { w -> props.store(w, null) }
-        File libs = new File(buildDir, "libs")
-        libs.mkdirs()
-        new File(libs, "${jarName}.properties").withWriter { w -> props.store(w, null) }
-    }
-}
-tasks.named("bootJar") {
-    mainClass = 'de.mel.web.miniserver.Main'
-}
-
-//processResources.dependsOn(createProperties)
-// buildJarstuff ends here
+//// 4. Configure the fat jar (replaces bootJar)
+//jar {
+//    manifest {
+//        attributes(
+//                'Main-Class': (application.mainClass) // Use the same main class
+//        )
+//    }
+//
+//    // This pulls in all dependencies AND resources from other projects
+//    from {
+//        configurations.runtimeClasspath.collect {
+//            it.isDirectory() ? it : zipTree(it)
+//        }
+//    } {
+//        //
+//        // --- THIS IS THE FIX ---
+//        //
+//        // Re-instate our explicit exclude rules.
+//        // This correctly removes the signature files
+//        // and other metadata causing conflicts.
+//        exclude "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA"
+//        exclude "module-info.class"
+//        exclude "META-INF/substrate/**"
+//        exclude "META-INF/versions/**"
+//        exclude "META-INF/*.kotlin_module"
+//        exclude "de/mel/version.properties"
+//    }
+//
+//    // Ensures subproject jars are built first
+//    dependsOn configurations.runtimeClasspath.buildDependencies
+//}

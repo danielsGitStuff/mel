@@ -2,16 +2,16 @@ package de.mel;
 
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.NWrap;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 public class NTest {
 
@@ -20,7 +20,7 @@ public class NTest {
     private List<String> list, nullList;
     private String completeResult;
 
-    @Before
+    @BeforeEach
     public void before() {
         array = new String[]{"a", "b", "c"};
         list = new ArrayList<>();
@@ -154,8 +154,6 @@ public class NTest {
                 stoppable.stop();
             }
         });
-        org.junit.Assert.assertTrue(matches.v());
-
-
+        assertTrue(matches.v());
     }
 }

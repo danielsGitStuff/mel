@@ -6,9 +6,10 @@ import de.mel.MelRunnable;
 import de.mel.MelThread;
 import de.mel.sql.RWLock;
 import org.jdeferred.Promise;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 
 import java.util.LinkedList;
 import java.util.concurrent.ExecutorService;
@@ -50,7 +51,7 @@ public class ThreadTest {
 
     private ExecutorService executorService;
 
-    @Before
+    @BeforeEach
     public void prepare() {
         this.executorService = Executors.newCachedThreadPool(r -> {
             MelThread melThread = null;
@@ -129,7 +130,7 @@ public class ThreadTest {
         }
     }
 
-    @After
+    @AfterEach
     public void after() {
         executorService.shutdownNow();
     }

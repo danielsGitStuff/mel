@@ -1,15 +1,17 @@
 import de.mel.Lok;
 import de.mel.KResult;
 import de.mel.konsole.Konsole;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 
 @SuppressWarnings("Duplicates")
 public class KonsoleTest {
@@ -17,7 +19,7 @@ public class KonsoleTest {
     private Konsole<Dummy> konsole;
     private Dummy dummy;
 
-    @Before
+    @BeforeEach
     public void before() {
         arguments = new String[]{"-first", "FIRST"};
         konsole = new Konsole<>(new Dummy());
@@ -86,12 +88,12 @@ public class KonsoleTest {
         assertEquals(2, dummy.manyArgs.size());
     }
 
-    @Test(expected = Konsole.KonsoleWrongArgumentsException.class)
+    @Test
     public void mandatoryNotSpecified() throws Exception {
         arguments = new String[]{"-first", "FIRST", "-unrelated", "555"};
         konsole.mandatory("-first", "first descr", (result1, args) -> result1.string = args[0])
                 .mandatory("-second", "second descr", (result, args) -> result.number = Integer.parseInt(args[0]));
-        konsole.handle(arguments);
+        assertThrows(Konsole.KonsoleWrongArgumentsException.class, () -> konsole.handle(arguments));
 
     }
 
@@ -105,11 +107,11 @@ public class KonsoleTest {
         assertEquals(888, dummy.number);
     }
 
-    @Test(expected = Konsole.KonsoleWrongArgumentsException.class)
+    @Test
     public void unknownArg() throws Exception {
         arguments = new String[]{"-first", "FIRST", "-unknown", "555"};
         konsole.mandatory("-first", "first descr", (result1, args) -> result1.string = args[0]);
-        konsole.handle(arguments);
+        assertThrows(Konsole.KonsoleWrongArgumentsException.class, () -> konsole.handle(arguments));
     }
 
     @Test
@@ -118,25 +120,28 @@ public class KonsoleTest {
         konsole.handle(arguments);
     }
 
-    @Test(expected = Konsole.HelpException.class)
+    @Test
     public void help() throws Exception {
         arguments = new String[]{"--help"};
-        konsole.handle(arguments);
+        assertThrows(Konsole.HelpException.class, () -> konsole.handle(arguments));
     }
 
-    @Test(expected = Konsole.KonsoleWrongArgumentsException.class)
+    @Test
     public void gibberish() throws Exception {
         arguments = new String[]{"one", "two"};
-        konsole.handle(arguments);
+        assertThrows(Konsole.KonsoleWrongArgumentsException.class, () -> konsole.handle(arguments));
     }
 
-    @Test(expected = Konsole.DependenciesViolatedException.class)
+    @Test
     public void dependsOnFail() throws Konsole.KonsoleWrongArgumentsException, Konsole.HelpException, Konsole.DependenciesViolatedException {
         arguments = new String[]{"-a", "AA", "-b", "BB"};
         konsole.mandatory("-a", "a desc", (result, args) -> result.manyArgs.add(args[0]))
                 .optional("-b", "b desc", (result, args) -> result.manyArgs.add(args[0]), Konsole.dependsOn("-c"))
                 .optional("-c", "c desc", (result, args) -> result.manyArgs.add(args[0]));
-        konsole.handle(arguments);
+        assertThrows(Konsole.DependenciesViolatedException.class, () -> {
+                    konsole.handle(arguments);
+                }
+        );
         Lok.debug("");
     }
 

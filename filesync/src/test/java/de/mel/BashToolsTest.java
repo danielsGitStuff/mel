@@ -8,12 +8,12 @@ import de.mel.auth.tools.F;
 import de.mel.filesync.bash.AutoKlausIterator;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.bash.FsBashDetails;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,7 +22,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 public class BashToolsTest {
 
@@ -44,7 +45,7 @@ public class BashToolsTest {
     private final IFile symFile = AbstractFile.instance(root, "symfile.txt");
     private final IFile symFileTarget = f3;
 
-    @Before
+    @BeforeEach
     public void before() throws Exception {
         Lok.debug("running in " + System.getProperties().get("user.dir"));
         if (root.exists())
@@ -62,7 +63,7 @@ public class BashToolsTest {
         return Paths.get(new File(f.getAbsolutePath()).toURI());
     }
 
-    @After
+    @AfterEach
     public void after() {
         if (root.exists())
             F.rmRf(new File(root.getAbsolutePath()));

@@ -1,31 +1,38 @@
 plugins {
-    id 'application'
-    id 'java-library'
-    id 'org.openjfx.javafxplugin' version "${javaFxPluginVersion}"
-}
-
-javafx {
-    version = project.javaFxVersion
-    modules = project.javaFxModules
-}
-
-
-sourceSets {
-    main {
-        resources {
-            srcDir "${project(':contacts').projectDir}/src/main/resources"
-        }
-    }
-}
-compileJava {
-    sourceCompatibility = '21'
-    targetCompatibility = '21'
+    id 'mel-javafx-library'
 }
 dependencies {
     api project(':contacts')
     api project(':authfx')
-    testImplementation project(':contacts')
-    testImplementation project(':authfx')
-//    implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
-
+//plugins {
+//    id 'application'
+//    id 'java-library'
+//    id 'org.openjfx.javafxplugin' version "${javaFxPluginVersion}"
+//}
+//
+//javafx {
+//    version = project.javaFxVersion
+//    modules = project.javaFxModules
+//}
+//
+//
+//sourceSets {
+//    main {
+//        resources {
+//            srcDir "${project(':contacts').projectDir}/src/main/resources"
+//        }
+//    }
+//}
+//compileJava {
+//    sourceCompatibility = '21'
+//    targetCompatibility = '21'
+//}
+//dependencies {
+//    api project(':contacts')
+//    api project(':authfx')
+//    testImplementation project(':contacts')
+//    testImplementation project(':authfx')
+////    implementation fileTree(dir: 'libs', include: ['*.jar'])
+//}
+//

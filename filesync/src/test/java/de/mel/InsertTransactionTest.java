@@ -4,7 +4,7 @@ import de.mel.core.serialize.serialize.tools.OTimer;
 import de.mel.sql.*;
 import de.mel.sql.conn.SQLConnector;
 import de.mel.sql.transform.SqlResultTransformer;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
@@ -30,7 +30,7 @@ public class InsertTransactionTest {
         }
     }
 
-//    @Test
+    @Test
     public void transaction() throws Exception {
         File dbFile = new File("performance.db");
         if (dbFile.exists())

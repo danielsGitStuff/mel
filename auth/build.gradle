@@ -1,40 +1,29 @@
 plugins {
-    id 'java-library'
-    id 'org.jetbrains.kotlin.jvm'
+    id 'mel-kotlin-jvm-library'
 }
 
 
 dependencies {
-    api project(':funWith')
+    api 'fun.with:fun.with'
     api project(':konsole')
     api project(':sql')
-    api rootProject.dep_k_std
-    api rootProject.dep_k_cor
-    api rootProject.dep_jdeferred
-    api rootProject.dep_bc_prov
-    api rootProject.dep_bc_pkix
+    implementation libs.kotlin.coroutines
+    implementation libs.bouncycastle.jdk18.pkix
+    implementation libs.bouncycastle.jdk18.prov
+    implementation libs.sqlite.jdbc
+    api libs.jdeferred
+//    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+//    implementation 'org.bouncycastle:bcprov-jdk18on:1.82'
+//    implementation 'org.xerial:sqlite-jdbc:3.50.3.0'
 
-    testImplementation rootProject.dep_junit4
-    testImplementation rootProject.dep_sqlite
-    testImplementation rootProject.dep_jupiter
     testImplementation project(path: ':testtools')
     testImplementation project(path: ':sql')
     testImplementation project(path: ':serialize', configuration: 'serializeTestOutput')
-//    testImplementation project(path: ':testtools')
-}
 
-compileJava {
-    sourceCompatibility = '21'
-    targetCompatibility = '21'
-}
 
-//compileKotlin {
-//    kotlinOptions {
-//        jvmTarget = "21"
-//    }
-//}
-//compileTestKotlin {
-//    kotlinOptions {
-//        jvmTarget = "21"
-//    }
-//}
+//    api rootProject.dep_k_std
+//    api rootProject.dep_k_cor
+//    api rootProject.dep_jdeferred
+//    api rootProject.dep_bc_prov
+//    api rootProject.dep_bc_pkix
+}

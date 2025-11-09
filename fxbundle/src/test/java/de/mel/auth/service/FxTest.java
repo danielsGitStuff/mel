@@ -44,9 +44,11 @@ import de.mel.filesync.sql.GenericFSEntry;
 import de.mel.filesync.sql.dao.FsDao;
 import de.mel.sql.*;
 import org.jdeferred.Promise;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+
 
 import java.io.File;
 import java.util.HashMap;
@@ -54,12 +56,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 /**
  * Created by xor on 09.09.2016.
  */
 @SuppressWarnings("Duplicates")
+@Tag("ui")
 public class FxTest {
 
     private static MelStandAloneAuthFX standAloneAuth2;
@@ -1064,13 +1068,13 @@ public class FxTest {
         return map;
     }
 
-    @After
+    @AfterEach
     public void clean() {
         standAloneAuth1 = standAloneAuth2 = null;
         lock = null;
     }
 
-    @Before
+    @BeforeEach
     public void before() {
         lock = new RWLock();
         AbstractFile.configure(new DefaultFileConfiguration());

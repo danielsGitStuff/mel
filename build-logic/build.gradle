@@ -1,0 +1,42 @@
+// build-logic/build.gradle
+
+plugins {
+    id 'groovy-gradle-plugin'
+}
+
+dependencies {
+    implementation libs.kotlin.gradle.plugin
+    implementation libs.android.gradle.plugin
+    implementation libs.openjfx.plugin.artifact
+}
+
+
+// This part is unchanged
+gradlePlugin {
+    plugins {
+        javaLibrary {
+            id = 'mel-java-library'
+            implementationClass = 'unused'
+        }
+        androidApplication {
+            id = 'mel-android-application'
+            implementationClass = 'unused'
+        }
+        kotlinApplication {
+            id = 'mel-kotlin-application'
+            implementationClass = 'unused'
+        }
+        kotlinJvmLibrary {
+            id = 'mel-kotlin-jvm-library'
+            implementationClass = 'unused'
+        }
+        javafxLibrary {
+            id = 'mel-javafx-library'
+            implementationClass = 'unused'
+        }
+        javafxApplication {
+            id = 'mel-javafx-application'
+            implementationClass = 'unused'
+        }
+    }
+}

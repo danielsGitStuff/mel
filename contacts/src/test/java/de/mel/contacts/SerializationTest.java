@@ -15,10 +15,11 @@ import de.mel.sql.deserialize.PairCollectionDeserializerFactory;
 import de.mel.sql.deserialize.PairDeserializerFactory;
 import de.mel.sql.serialize.PairCollectionSerializerFactory;
 import de.mel.sql.serialize.PairSerializerFactory;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 /**
  * todo re-enable the tests. this requires work especially on the android side
@@ -26,7 +27,7 @@ import static org.junit.Assert.*;
  */
 
 public class SerializationTest {
-    @Before
+    @BeforeEach
     public void before() {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());

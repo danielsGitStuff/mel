@@ -6,8 +6,10 @@ import de.mel.auth.tools.WaitLock;
 import de.mel.auth.tools.lock2.P;
 import de.mel.filesync.FileSyncBootloader;
 import de.mel.filesync.boot.FileSyncFXBootloader;
-import org.junit.Test;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
+@Tag("ui")
 public class FxTest2 {
 
     @Test

@@ -1,6 +1,7 @@
 package de.mel.filesync.serialization;
 
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Created by xor on 10.11.2017.

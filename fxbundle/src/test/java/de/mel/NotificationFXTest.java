@@ -20,10 +20,12 @@ import de.mel.sql.RWLock;
 import de.mel.sql.deserialize.PairDeserializerFactory;
 import de.mel.sql.serialize.PairSerializerFactory;
 import javafx.embed.swing.JFXPanel;
-import org.junit.Test;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
+@Tag("ui")
 public class NotificationFXTest {
 
     private static File BOOTLOADER_DIR = new File("notificationtest");

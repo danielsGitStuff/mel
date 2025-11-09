@@ -1,10 +1,11 @@
 package de.mel.core.sql;
 
-import org.junit.Test;
 
 import de.mel.sql.MD5er;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 /**
  * Created by xor on 10/10/17.

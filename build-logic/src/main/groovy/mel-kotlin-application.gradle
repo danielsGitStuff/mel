@@ -1,0 +1,71 @@
+// build-logic/src/main/groovy/mel-kotlin-application.gradle
+
+import org.gradle.api.attributes.Attribute
+
+// <-- Add this import at the top
+
+// 1. Apply Kotlin and Application plugins
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'application'
+    id 'java-test-fixtures' // For consistency
+}
+
+// 2. Get libs and versions
+def libs = project.extensions.getByName("libs")
+def javaVersion = JavaVersion.toVersion(libs.versions.java.get())
+def javaVersionNumber = libs.versions.java.get().toInteger()
+
+// 3. Configure Java
+java {
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+}
+
+// 4. Configure Kotlin
+kotlin {
+    jvmToolchain(javaVersionNumber)
+}
+
+// 5. Add dependencies
+dependencies {
+    implementation libs.kotlin.stdlib
+
+    // --- Add all our standard JUnit 6 (or 5) dependencies ---
+    testImplementation(platform(libs.junit6.bom)) {
+        attributes {
+            attribute(Attribute.of('org.jetbrains.kotlin.platform.type', String.class), 'platform-agnostic')
+        }
+    }
+    testRuntimeOnly(platform(libs.junit6.bom)) {
+        attributes {
+            attribute(Attribute.of('org.jetbrains.kotlin.platform.type', String.class), 'platform-agnostic')
+        }
+    }
+    testFixturesImplementation(platform(libs.junit6.bom)) {
+        attributes {
+            attribute(Attribute.of('org.jetbrains.kotlin.platform.type', String.class), 'platform-agnostic')
+        }
+    }
+
+    testImplementation libs.junit6.api
+    testRuntimeOnly libs.junit6.engine
+    testFixturesImplementation libs.junit6.api
+}
+
+// 6. Configure test tasks
+test {
+    useJUnitPlatform {
+        excludeTags 'ui'
+    }
+}
+
+tasks.register('runUiTests', Test) {
+    group = 'verification'
+    description = 'Runs UI tests.'
+    useJUnitPlatform {
+        includeTags 'ui'
+    }
+}
+
+MelApplicationHelper.configure(project)

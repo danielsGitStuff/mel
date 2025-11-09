@@ -18,16 +18,16 @@ import java.util.concurrent.Callable;
  * This class is also some kind of playground because programming playful is fun.
  */
 public class N {
-    private static N silentRunner = new N(e -> {
+    private static final N silentRunner = new N(e -> {
     });
-    private static N runner = new N(new NoTryExceptionConsumer() {
+    private static final N runner = new N(new NoTryExceptionConsumer() {
         @Override
         public void accept(Exception e) {
             e.printStackTrace();
         }
     });
 
-    private static N oneLiner = new N(e -> {
+    private static final N oneLiner = new N(e -> {
         String trace = "no trace";
         String exc = "no exception";
         if (e != null) {
@@ -39,7 +39,7 @@ public class N {
         }
         System.err.println(exc + ": " + trace);
     });
-    private NoTryExceptionConsumer consumer;
+    private final NoTryExceptionConsumer consumer;
 
     public N(NoTryExceptionConsumer consumer) {
         this.consumer = consumer;

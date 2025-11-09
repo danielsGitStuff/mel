@@ -2,7 +2,7 @@ package de.mel.lok;
 
 import de.mel.Lok;
 import de.mel.LokImpl;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class LokTest {
     @Test

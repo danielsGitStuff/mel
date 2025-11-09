@@ -3,14 +3,13 @@ package de.mel.core.sql;
 
 import de.mel.sql.conn.SQLConnection;
 import de.mel.sql.conn.SQLConnector;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Before;
-import org.junit.Test;
 
 import java.io.File;
 import java.sql.SQLException;
 
-import static org.junit.Assert.assertEquals;
 
 /**
  * Created by xor on 1/7/16.
@@ -24,7 +23,7 @@ public class SQLConnectorTest {
         System.out.println(c);
     }
 
-    @Before
+    @BeforeEach
     public void before() {
         sqliteFile.delete();
     }

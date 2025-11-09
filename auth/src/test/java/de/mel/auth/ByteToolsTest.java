@@ -1,9 +1,10 @@
 package de.mel.auth;
 
 import de.mel.auth.tools.ByteTools;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 /**
  * Created by xor on 12/30/16.

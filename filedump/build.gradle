@@ -1,37 +1,38 @@
 plugins {
-    id 'java-library'
-    id 'org.jetbrains.kotlin.jvm'
+    id 'mel-kotlin-jvm-library'
 }
 
-sourceSets {
-    main {
-        resources {
-//            srcDir "${project(':filesync').projectDir}/src/main/resources"
-        }
-    }
-}
+//sourceSets {
+//    main {
+//        resources {
+////            srcDir "${project(':filesync').projectDir}/src/main/resources"
+//        }
+//    }
+//}
 dependencies {
     // this is for the MainTest class only
-    implementation rootProject.dep_sqlite
+//    implementation libs.sqlite-jdbc
+//    implementation libs.kotlin-coroutines
+//    implementation rootProject.dep_sqlite
     api project(':filesync')
-    implementation rootProject.dep_k_std
-    implementation rootProject.dep_k_cor
+//    implementation rootProject.dep_k_std
+//    implementation rootProject.dep_k_cor
     testImplementation project(configuration: 'filesyncTestOutput', path: ':filesync')
-    testImplementation rootProject.dep_junit4
-    testImplementation rootProject.dep_sqlite
+//    testImplementation rootProject.dep_junit4
+//    testImplementation rootProject.dep_sqlite
 }
-compileJava {
-    sourceCompatibility = '21'
-    targetCompatibility = '21'
-}
-
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "21"
-    }
-}
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "21"
-    }
-}
+//compileJava {
+//    sourceCompatibility = '21'
+//    targetCompatibility = '21'
+//}
+//
+//compileKotlin {
+//    kotlinOptions {
+//        jvmTarget = "21"
+//    }
+//}
+//compileTestKotlin {
+//    kotlinOptions {
+//        jvmTarget = "21"
+//    }
+//}

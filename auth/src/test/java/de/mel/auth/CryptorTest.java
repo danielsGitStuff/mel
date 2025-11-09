@@ -4,11 +4,12 @@ import de.mel.Lok;
 import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.tools.Cryptor;
 import de.mel.sql.SqlQueriesException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 /**
  * Created by xor on 4/18/16.

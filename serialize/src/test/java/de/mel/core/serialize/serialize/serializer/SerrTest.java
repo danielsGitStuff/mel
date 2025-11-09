@@ -9,14 +9,15 @@ import de.mel.core.serialize.exceptions.JsonSerializationException;
 import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mel.core.serialize.serialize.reflection.classes.PrimitiveSet;
 import de.mel.core.serialize.serialize.trace.TraceManager;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Test;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 /**
  * Tests very primitive cases. Cases must be simple because the sequence of which objects are serialized is not deterministic!
@@ -260,13 +261,16 @@ public class SerrTest {
 
     }
 
-    @Test(expected = JsonDeserializationException.class)
+    @Test
     public void numberFail() throws JsonSerializationException, JsonDeserializationException {
         SimpleSerializableEntity simpleSerializableEntity = new SimpleSerializableEntity().setNumber(567);
         String json = SerializableEntitySerializer.serialize(simpleSerializableEntity);
         json = "{\"$id\":1,\"__type\":\"de.mel.core.serialize.classes.SimpleSerializableEntity\",\"number\":\"567\"}";
-        SimpleSerializableEntity des = (SimpleSerializableEntity) SerializableEntityDeserializer.deserialize(json);
-        assertEquals(simpleSerializableEntity.getNumber(), des.getNumber());
+        final String finalJson = json;
+        assertThrows(JsonDeserializationException.class, () -> {
+            SimpleSerializableEntity des = (SimpleSerializableEntity) SerializableEntityDeserializer.deserialize(finalJson);
+            assertEquals(simpleSerializableEntity.getNumber(), des.getNumber());
+        });
     }
 
     @Test

@@ -1,21 +1,11 @@
-plugins{
-    id 'java-library'
-    id 'org.jetbrains.kotlin.jvm'
-
+plugins {
+    id 'mel-kotlin-jvm-library'
 }
-
-println "klo ${rootProject.hasProperty('dep_sqlite')}"
-
-println "klu ${rootProject.dep_sqlite}"
 
 dependencies {
     api project(':serialize')
-    testImplementation project(':serialize')
+    implementation libs.kotlin.coroutines
     testImplementation project(':testtools')
-    testImplementation rootProject.dep_junit4
-    testImplementation rootProject.dep_sqlite
-}
-compileJava {
-    sourceCompatibility = '21'
-    targetCompatibility = '21'
+    implementation libs.kotlin.stdlib
+    testImplementation libs.sqlite.jdbc
 }

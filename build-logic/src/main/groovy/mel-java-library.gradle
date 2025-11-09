@@ -1,0 +1,70 @@
+// build-logic/src/main/groovy/mel-java-library.gradle
+import org.gradle.api.attributes.Attribute
+// 1. Apply the standard Java library plugin
+plugins {
+    id 'java-library'
+    id 'java-test-fixtures'
+}
+
+// 2. Set the Java version from our Version Catalog
+java {
+    sourceCompatibility = JavaVersion.toVersion(libs.versions.java.get())
+    targetCompatibility = JavaVersion.toVersion(libs.versions.java.get())
+}
+
+dependencies {
+    // For Kotlin-based plugins (ignored by mel-java-library)
+    if (project.plugins.hasPlugin('org.jetbrains.kotlin.jvm')) {
+        implementation libs.kotlin.stdlib
+    }
+
+    // For JavaFX plugin (ignored by others)
+    if (project.plugins.hasPlugin('org.openjfx.javafxplugin')) {
+        api libs.javafx.base
+        api libs.javafx.graphics
+        api libs.javafx.controls
+        api libs.javafx.fxml
+        api libs.javafx.swing
+        api libs.javafx.web
+    }
+
+    testImplementation(platform(libs.junit6.bom)) {
+        attributes {
+            attribute(Attribute.of('org.jetbrains.kotlin.platform.type', String.class), 'platform-agnostic')
+        }
+    }
+    testRuntimeOnly(platform(libs.junit6.bom)) {
+        attributes {
+            attribute(Attribute.of('org.jetbrains.kotlin.platform.type', String.class), 'platform-agnostic')
+        }
+    }
+    testFixturesImplementation(platform(libs.junit6.bom)) {
+        attributes {
+            attribute(Attribute.of('org.jetbrains.kotlin.platform.type', String.class), 'platform-agnostic')
+        }
+    }
+
+    // 2. Add all APIs and Engines
+    testImplementation libs.junit6.api
+    testRuntimeOnly libs.junit6.engine
+    testFixturesImplementation libs.junit6.api
+
+    // 3. Explicitly add Commons and Launcher (Your suggestion)
+    testImplementation libs.junit6.platform.commons
+    testRuntimeOnly libs.junit6.platform.launcher
+    // --- END OF FIX ---
+}
+
+test {
+    useJUnitPlatform {
+        excludeTags 'ui'
+    }
+}
+
+tasks.register('runUiTests', Test) {
+    group = 'verification'
+    description = 'Runs UI tests.'
+    useJUnitPlatform {
+        includeTags 'ui'
+    }
+}

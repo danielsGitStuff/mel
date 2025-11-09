@@ -1,17 +1,17 @@
 package de.mel.auth;
 
 import de.mel.Lok;
-import de.mel.core.serialize.SerializableEntity;
 import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mel.update.VersionAnswer;
 import de.mel.update.VersionAnswerEntry;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 
 public class Serrtest {
     @Test

@@ -1,6 +1,5 @@
 plugins{
-    id 'java-library'
-    id 'org.jetbrains.kotlin.jvm'
+    id 'mel-kotlin-jvm-library'
 }
 
 configurations{
@@ -14,26 +13,7 @@ sourceSets {
     }
 }
 dependencies {
-    api project(path: ':funWith')
     filesyncTestOutput sourceSets.test.output
     api project(':auth')
-    implementation rootProject.dep_k_std
-    implementation  rootProject.dep_k_cor
-    testImplementation rootProject.dep_junit4
-    testImplementation rootProject.dep_sqlite
+    implementation libs.kotlin.coroutines
 }
-
-//compileJava {
-//    sourceCompatibility = '21'
-//    targetCompatibility = '21'
-//}
-//compileKotlin {
-//    kotlinOptions {
-//        jvmTarget = "21"
-//    }
-//}
-//compileTestKotlin {
-//    kotlinOptions {
-//        jvmTarget = "21"
-//    }
-//}

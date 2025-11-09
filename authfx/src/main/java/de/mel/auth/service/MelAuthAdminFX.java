@@ -215,7 +215,7 @@ public class MelAuthAdminFX implements Initializable, MelAuthAdmin, MelNotificat
     public void initialize(URL location, ResourceBundle resources) {
         btnAbout.setOnAction(e -> {
             try {
-                Class test = Class.forName("javafx.scene.WebView");
+                Class test = Class.forName("javafx.scene.web.WebView");
                 if (test != null)
                     loadSettingsFX("de/mel/auth/about.fxml");
             } catch (ClassNotFoundException ex) {

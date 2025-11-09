@@ -3,8 +3,6 @@ package de.mel.fxbundle;
 import de.mel.Lok;
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.MelAuthSettings;
-import de.mel.auth.data.access.CertificateManager;
-import de.mel.auth.data.db.Certificate;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.gui.RegisterHandlerFX;
@@ -29,6 +27,7 @@ import de.mel.sql.deserialize.PairDeserializerFactory;
 import de.mel.sql.serialize.PairSerializerFactory;
 import de.mel.update.CurrentJar;
 import javafx.embed.swing.JFXPanel;
+import javafx.scene.web.WebView;
 
 import java.io.File;
 

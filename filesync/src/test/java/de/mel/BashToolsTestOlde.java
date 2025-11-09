@@ -4,9 +4,9 @@ import de.mel.auth.file.StandardFile;
 import de.mel.auth.tools.N;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.bash.FsBashDetails;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -15,7 +15,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 public class BashToolsTestOlde {
 
@@ -25,7 +26,7 @@ public class BashToolsTestOlde {
     private File esc4 = new File("photo-x-$7006232$180.jpg");
     private List<File> files = Arrays.asList(esc1, esc2, esc3, esc4);
 
-    @Before
+    @BeforeEach
     public void before() {
         files.forEach(this::touch);
     }
@@ -36,7 +37,7 @@ public class BashToolsTestOlde {
         }
     }
 
-    @After
+    @AfterEach
     public void after() {
         files.forEach(File::deleteOnExit);
     }

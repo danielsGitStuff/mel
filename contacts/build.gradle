@@ -1,6 +1,5 @@
 plugins{
-    id 'java-library'
-    id 'org.jetbrains.kotlin.jvm'
+    id 'mel-kotlin-jvm-library'
 }
 
 sourceSets {
@@ -12,25 +11,10 @@ sourceSets {
 }
 dependencies {
     api project(':auth')
-    implementation rootProject.dep_k_std
-    testImplementation rootProject.dep_junit4
+    implementation libs.kotlin.stdlib
+    implementation libs.kotlin.coroutines
     testImplementation project(":auth")
+//    implementation rootProject.dep_k_std
+//    testImplementation rootProject.dep_junit4
+//    testImplementation project(":auth")
 }
-
-
-
-//compileJava {
-//    sourceCompatibility = '21'
-//    targetCompatibility = '21'
-//}
-
-//compileKotlin {
-//    kotlinOptions {
-//        jvmTarget = "21"
-//    }
-//}
-//compileTestKotlin {
-//    kotlinOptions {
-//        jvmTarget = "21"
-//    }
-//}

@@ -22,14 +22,15 @@ import de.mel.filesync.serialization.TestDirCreator;
 import de.mel.filesync.service.MelFileSyncServerService;
 import de.mel.filesync.service.MelFileSyncService;
 import org.jdeferred.Promise;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class IndexTest {
     protected MelAuthService mas;
@@ -45,7 +46,7 @@ public class IndexTest {
 //
 //    }
 
-    @Before
+    @BeforeEach
     public void before() throws Exception {
         AbstractFile.configure(new DefaultFileConfiguration());
         BashTools.Companion.init();
@@ -84,7 +85,7 @@ public class IndexTest {
         }
     }
 
-    @After
+    @AfterEach
     public void after() throws IOException {
         BashTools.Companion.rmRf(testRoot);
         CertificateManager.deleteDirectory(wd);

@@ -7,12 +7,14 @@ import de.mel.core.serialize.exceptions.JsonSerializationException;
 import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mel.sql.Pair;
 import de.mel.sql.deserialize.PairDeserializerFactory;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
 
 import java.util.Vector;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 /**
  * Created by xor on 1/14/16.
@@ -22,7 +24,7 @@ public class DeserializationTest {
         Pair<String> pairString = new Pair<String>(String.class, "k1", "value1");
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         PairDeserializerFactory.addToRepo();
     }

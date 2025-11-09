@@ -22,13 +22,15 @@ import de.mel.filesync.sql.FsDirectory;
 import de.mel.filesync.sql.FsFile;
 import de.mel.filesync.sql.dao.FsDao;
 import de.mel.sql.RWLock;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 /**
  * check whether a mix of not-yet-synced files and sync files produces the correct directory contenthash.
@@ -41,7 +43,7 @@ public class IndexerTest {
     private static MelFileSyncServerService mds;
     private static RootDirectory rootDirectory;
 
-    @Before
+    @BeforeEach
     public void before() throws Exception {
         AbstractFile.configure(new DefaultFileConfiguration());
         BashTools.Companion.init();
@@ -114,7 +116,7 @@ public class IndexerTest {
         lock.lock();
     }
 
-    @After
+    @AfterEach
     public void after() {
 //        AFile.instance("indextest").delete();
     }

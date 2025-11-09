@@ -1,15 +1,16 @@
 package de.mel.core.serialize.serialize.reflection;
 
 import de.mel.core.serialize.serialize.reflection.classes.ReflectionTestPojo;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Before;
-import org.junit.Test;
 
 import java.lang.reflect.Field;
 import java.util.List;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 /**
  * Created by xor on 01.11.2015.
@@ -24,7 +25,7 @@ public class FieldAnalyzerTest {
 
     private ReflectionTestPojo object;
 
-    @Before
+    @BeforeEach
     public void prepare() {
         object = new ReflectionTestPojo();
         List<Field> fields = FieldAnalyzer.collectFields(object.getClass());

@@ -1,0 +1,70 @@
+# This file centralizes all dependency versions
+# See: https://docs.gradle.org/current/userguide/version_catalog_basics.html
+
+[versions]
+# Core
+java = "17"
+kotlin = "2.2.21"
+kotlin-coroutines = "1.10.2"
+kotlin-io = "0.1.16"
+
+# PC (JavaFX)
+javafx = "21.0.9"
+javafxPlugin = "0.1.0"
+
+# Android
+androidGradlePlugin = "8.13.0"
+androidCompileSdk = "34"
+androidMinSdk = "24"
+androidTargetSdk = "34"
+
+#[versions.android]
+#gradlePlugin = "8.13.0"
+#compileSdk = "34"
+#minSdk = "24"
+#targetSdk = "34"
+
+# Common Libs
+sqliteJdbc = "3.50.3.0"
+#junit4 = "4.13.2"
+#junit5 = "5.14.1"
+junit6 = "5.14.1"
+bouncycastle-pkix = "1.82"
+bouncycastle-prov = "1.82"
+jdeferred = "1.2.6"
+
+[libraries]
+sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqliteJdbc" }
+bouncycastle-jdk18-prov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle-prov" }
+bouncycastle-jdk18-pkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle-pkix" }
+jdeferred = { module = 'org.jdeferred:jdeferred-core', version.ref = "jdeferred" }
+
+# testing
+junit6-bom = { module = "org.junit:junit-bom", version.ref = "junit6" }
+junit6-api = { module = "org.junit.jupiter:junit-jupiter-api" }
+junit6-engine = { module = "org.junit.jupiter:junit-jupiter-engine" }
+junit6-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+junit6-platform-commons = { module = "org.junit.platform:junit-platform-commons" }
+
+
+# runtime & compile
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlin-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlin-coroutines" }
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-io = { module = "org.jetbrains.kotlinx:kotlinx-io-jvm", version.ref = "kotlin-io" }
+javafx-base = { module = "org.openjfx:javafx-base", version.ref = "javafx" }
+javafx-graphics = { module = "org.openjfx:javafx-graphics", version.ref = "javafx" }
+javafx-controls = { module = "org.openjfx:javafx-controls", version.ref = "javafx" }
+javafx-fxml = { module = "org.openjfx:javafx-fxml", version.ref = "javafx" }
+javafx-swing = { module = "org.openjfx:javafx-swing", version.ref = "javafx" }
+javafx-web = { module = "org.openjfx:javafx-web", version.ref = "javafx" }
+openjfx-plugin-artifact = { module = "org.openjfx:javafx-plugin", version.ref = "javafxPlugin" }
+
+# android
+android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "androidGradlePlugin" }
+[plugins]
+# Plugins we will use in our convention plugins
+android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+openjfx-plugin-id = { id = "org.openjfx.javafx-plugin", version.ref = "javafxPlugin" }

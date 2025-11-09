@@ -3,8 +3,8 @@ package de.mel.thread;
 import de.mel.Lok;
 import de.mel.auth.tools.CountLock;
 import de.mel.auth.tools.CountWaitLock;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Test;
 
 public class CountLockTest {
     CountLock lock = new CountLock();

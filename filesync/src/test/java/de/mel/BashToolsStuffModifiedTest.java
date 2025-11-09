@@ -5,12 +5,9 @@ package de.mel;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.file.IFile;
 import de.mel.filesync.bash.AutoKlausIterator;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -19,8 +16,12 @@ import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.file.AbstractFile;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.serialization.TestDirCreator;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 /**
  * Created by xor on 7/29/17.
@@ -33,7 +34,7 @@ public class BashToolsStuffModifiedTest {
     IFile testDir = AbstractFile.instance("testdir1");
     Set<String> paths;
 
-    @Before
+    @BeforeEach
     public void before() throws Exception {
         BashTools.Companion.init();
         AbstractFile.configure(new DefaultFileConfiguration());
@@ -117,7 +118,7 @@ public class BashToolsStuffModifiedTest {
     }
 
 
-    @After
+    @AfterEach
     public void after() {
         CertificateManager.deleteDirectory(testDir);
     }

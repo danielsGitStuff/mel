@@ -1,26 +1,51 @@
 plugins {
-    id 'java'
+    id 'mel-java-library'
 }
-
-group 'de.mel'
-version 'unspecified'
-
-repositories {
-}
-
 dependencies {
-//    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-//    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
-    testImplementation rootProject.dep_junit4
-    testImplementation rootProject.dep_sqlite
-    implementation rootProject.dep_junit4
-    implementation rootProject.dep_sqlite
+    //
+    // --- THIS IS THE FIX ---
+    //
+    // Remove the attribute fix from here as well.
+
+    // 1. Import the BOM for the 'api' scope (for src/main/java)
+    api platform(libs.junit6.bom)
+
+    // 2. Import the BOM for the 'testFixtures' scope (for src/testFixtures/java)
+    testFixturesImplementation platform(libs.junit6.bom)
+
+    // 3. Now these dependencies will have their versions provided
+    api libs.junit6.api
+    runtimeOnly libs.junit6.engine // <-- No need for 'api' scope here
+
+    // 4. Add dependencies for the test fixtures
+    testFixturesImplementation libs.junit6.api
+    // --- END OF FIX ---
 }
 
-test {
-//    useJUnitPlatform()
-}
-java {
-    sourceCompatibility = '21'
-    targetCompatibility = '21'
-}
+//dependencies {
+//    //
+//    // --- THIS IS THE FIX ---
+//    //
+//
+//    // 1. Import the BOM for the 'api' scope (for src/main/java)
+//    // We must add the platform-agnostic fix here too
+//    api(platform(libs.junit6.bom)) {
+//        attributes {
+//            attribute(Attribute.of('org.jetbrains.kotlin.platform.type', String.class), 'platform-agnostic')
+//        }
+//    }
+//
+//    // 2. Import the BOM for the 'testFixtures' scope (for src/testFixtures/java)
+//    testFixturesImplementation(platform(libs.junit6.bom)) {
+//        attributes {
+//            attribute(Attribute.of('org.jetbrains.kotlin.platform.type', String.class), 'platform-agnostic')
+//        }
+//    }
+//
+//    // 3. Now these dependencies will have their versions provided
+//    api libs.junit6.api
+//    runtimeOnly libs.junit6.engine
+//
+//    // 4. Add dependencies for the test fixtures
+//    testFixturesImplementation libs.junit6.api
+//}

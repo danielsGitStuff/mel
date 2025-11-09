@@ -1,7 +1,7 @@
 package de.mel.testing;
 
-import org.junit.Before;
-import org.junit.Test;
+
+import org.junit.jupiter.api.BeforeEach;
 
 import java.util.Arrays;
 import java.util.List;
@@ -9,15 +9,13 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.*;
-
 public abstract class LockTest {
 
     protected Semaphore waitLock = new Semaphore(1);
 
     protected AtomicBoolean reach1, reach2, reach3, reach4;
 
-    @Before
+    @BeforeEach
     public void before() {
         reach1 = new AtomicBoolean(false);
         reach2 = new AtomicBoolean(false);

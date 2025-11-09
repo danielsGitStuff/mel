@@ -1,0 +1,81 @@
+// build-logic/src/main/groovy/mel-javafx-library.gradle
+import org.gradle.api.attributes.Attribute
+// 1. Apply the standard Java library plugin
+plugins {
+    id 'org.openjfx.javafxplugin'
+    id 'java-library'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+// 2. Get the 'libs' catalog
+def libs = project.extensions.getByName("libs")
+
+// 3. Get the Java version
+def javaVersion = JavaVersion.toVersion(libs.versions.java.get())
+
+// 4. Set the Java version (copied from mel-java-library)
+java {
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+}
+
+javafx {
+    version = libs.versions.javafx.get()
+    modules = [ 'javafx.controls', 'javafx.fxml', 'javafx.graphics' ,'javafx.swing', 'javafx.web']
+}
+
+dependencies {
+    // For Kotlin-based plugins (ignored by mel-java-library)
+    if (project.plugins.hasPlugin('org.jetbrains.kotlin.jvm')) {
+        implementation libs.kotlin.stdlib
+    }
+
+    // For JavaFX plugin (ignored by others)
+    if (project.plugins.hasPlugin('org.openjfx.javafxplugin')) {
+        api libs.javafx.base
+        api libs.javafx.graphics
+        api libs.javafx.controls
+        api libs.javafx.fxml
+        api libs.javafx.swing
+        api libs.javafx.web
+    }
+
+    //
+    // --- THIS IS THE FIX ---
+    //
+    // We explicitly add all components. The BOM will provide the versions.
+
+    // 1. Add BOM to all configurations
+    testImplementation(platform(libs.junit6.bom)) {
+        attributes {
+            attribute(Attribute.of('org.jetbrains.kotlin.platform.type', String.class), 'platform-agnostic')
+        }
+    }
+    testRuntimeOnly(platform(libs.junit6.bom)) {
+        attributes {
+            attribute(Attribute.of('org.jetbrains.kotlin.platform.type', String.class), 'platform-agnostic')
+        }
+    }
+
+    // 2. Add all APIs and Engines
+    testImplementation libs.junit6.api
+    testRuntimeOnly libs.junit6.engine
+
+    // 3. Explicitly add Commons and Launcher (Your suggestion)
+    testImplementation libs.junit6.platform.commons
+    testRuntimeOnly libs.junit6.platform.launcher
+}
+
+test {
+    useJUnitPlatform {
+        excludeTags 'ui'
+    }
+}
+
+tasks.register('runUiTests', Test) {
+    group = 'verification'
+    description = 'Runs UI tests.'
+    useJUnitPlatform {
+        includeTags 'ui'
+    }
+}

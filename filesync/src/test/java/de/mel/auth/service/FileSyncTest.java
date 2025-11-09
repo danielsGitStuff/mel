@@ -18,8 +18,8 @@ import de.mel.filesync.serialization.TestDirCreator;
 import de.mel.filesync.service.MelFileSyncClientService;
 import de.mel.filesync.service.MelFileSyncServerService;
 import de.mel.sql.RWLock;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,7 +70,7 @@ public class FileSyncTest {
         return this;
     }
 
-    @After
+    @AfterEach
     public void after() throws IOException {
         CountLock shutdownLock = new CountLock().lock();
         ShutDownDeferredManager shut = new ShutDownDeferredManager();
@@ -86,7 +86,7 @@ public class FileSyncTest {
         BashTools.Companion.rmRf(testdirClient);
     }
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         AbstractFile.configure(new DefaultFileConfiguration());
         BashTools.Companion.init();

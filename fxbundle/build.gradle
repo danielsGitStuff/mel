@@ -1,83 +1,142 @@
-//import java.time.LocalDateTime
-
 plugins {
-    id 'org.springframework.boot'
-    id 'java'
-    id 'org.openjfx.javafxplugin' version "$javaFxPluginVersion"
+    id 'mel-javafx-application'
 }
 
-javafx {
-    version = project.javaFxVersion
-    modules = project.javaFxModules
-}
-
-//repositories {
-//    mavenCentral()
-//}
-
-sourceSets {
-    main {
-        resources {
-            srcDir "${project(':filedumpfx').projectDir}/src/main/resources"
-            srcDir "${project(':filesyncfx').projectDir}/src/main/resources"
-            srcDir "${project(':filesync').projectDir}/src/main/resources"
-            srcDir "${project(':contactsfx').projectDir}/src/main/resources"
-            srcDir "${project(':contacts').projectDir}/src/main/resources"
-            srcDir "${project(':authfx').projectDir}/src/main/resources"
-            srcDir "${project(':auth').projectDir}/src/main/resources"
-        }
-    }
-}
-
-version = 1.0
-
-ext {
-    buildVersion = new Date().getTime().toString()
-    buildVariant = "fx"
-}
+ext.variant = 'fx'
 
 dependencies {
-    implementation project(':filedumpfx')
-    implementation project(':filesyncfx')
-    implementation project(':contactsfx')
-    testImplementation project(configuration: 'filesyncTestOutput', path: ':filesync')
-    testImplementation rootProject.dep_junit4
+    api project(':filesyncfx')
+    api project(':filedumpfx')
+    api project(':contactsfx')
 }
-//compileJava {
-//    sourceCompatibility = '1.8'
-//    targetCompatibility = '1.8'
-//}
 
-// the next parts build a single jar
-def props = new Properties()
-ext {
-    buildVariant = "fx"
-    jarName = "${rootProject.name}-${buildVariant}.jar"
-}
-task createProperties() {
-    doLast {
-        println "createProperties($buildDir)"
-        props['version'] = "${VERSION}".toString()
-        props['commit'] = "${COMMIT}".toString()
-        props['variant'] = buildVariant
-        //store in jar
-        File resources = new File(buildDir, "resources")
-        File main = new File(resources, "main")
-        File de = new File(main, "de")
-        File mel = new File(de, "mel")
-        mel.mkdirs()
-        new File(mel, "version.properties").withWriter { w -> props.store(w, null) }
-        File libs = new File(buildDir, "libs")
-        libs.mkdirs()
-        new File(libs, "${jarName}.properties").withWriter { w -> props.store(w, null) }
-    }
-}
-tasks.named("bootJar") {
+application {
     mainClass = 'de.mel.fxbundle.Main'
 }
-//bootJar {
-//    mainClassName = 'de.mel.fxbundle.Main'
-//    archiveFileName = jarName
+javafx {
+    mainClassName = 'de.mel.fxbundle.Main'
+}
+
+// This manually adds all of 'filesync's test classes
+// to this project's test compile and runtime classpaths.
+// This is necessary to support your package-private access.
+//
+sourceSets {
+    test {
+        compileClasspath += project(':filesync').sourceSets.test.output
+        runtimeClasspath += project(':filesync').sourceSets.test.output
+    }
+}
+
+jar {
+    // 1. Add the manifest for the runnable jar
+    manifest {
+        attributes(
+                'Main-Class': 'de.mel.fxbundle.Main'
+        )
+    }
+
+    // 2. The fat jar logic (to copy all files)
+    from {
+        configurations.runtimeClasspath.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    } {
+        // Exclude signature files to prevent errors
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
+        exclude "module-info.class"
+        exclude "META-INF/substrate/**"
+        exclude "META-INF/versions/**"
+//        exclude "META-INF/versions/9/module-info.class"
+    }
+
+    // This line tells Gradle to build all the project
+    // dependencies *before* trying to build this fat jar.
+    dependsOn configurations.runtimeClasspath.buildDependencies
+}
+
+////import java.time.LocalDateTime
+//
+//plugins {
+//    id 'org.springframework.boot'
+//    id 'java'
+//    id 'org.openjfx.javafxplugin' version "$javaFxPluginVersion"
 //}
-bootJar.dependsOn(createProperties)
-// buildJarstuff ends here
+//
+//javafx {
+//    version = project.javaFxVersion
+//    modules = project.javaFxModules
+//}
+//
+////repositories {
+////    mavenCentral()
+////}
+//
+//sourceSets {
+//    main {
+//        resources {
+//            srcDir "${project(':filedumpfx').projectDir}/src/main/resources"
+//            srcDir "${project(':filesyncfx').projectDir}/src/main/resources"
+//            srcDir "${project(':filesync').projectDir}/src/main/resources"
+//            srcDir "${project(':contactsfx').projectDir}/src/main/resources"
+//            srcDir "${project(':contacts').projectDir}/src/main/resources"
+//            srcDir "${project(':authfx').projectDir}/src/main/resources"
+//            srcDir "${project(':auth').projectDir}/src/main/resources"
+//        }
+//    }
+//}
+//
+//version = 1.0
+//
+//ext {
+//    buildVersion = new Date().getTime().toString()
+//    buildVariant = "fx"
+//}
+//
+//dependencies {
+//    implementation project(':filedumpfx')
+//    implementation project(':filesyncfx')
+//    implementation project(':contactsfx')
+//    testImplementation project(configuration: 'filesyncTestOutput', path: ':filesync')
+//    testImplementation rootProject.dep_junit4
+//}
+////compileJava {
+////    sourceCompatibility = '1.8'
+////    targetCompatibility = '1.8'
+////}
+//
+//// the next parts build a single jar
+//def props = new Properties()
+//ext {
+//    buildVariant = "fx"
+//    jarName = "${rootProject.name}-${buildVariant}.jar"
+//}
+//task createProperties() {
+//    doLast {
+//        println "createProperties($buildDir)"
+//        props['version'] = "${VERSION}".toString()
+//        props['commit'] = "${COMMIT}".toString()
+//        props['variant'] = buildVariant
+//        //store in jar
+//        File resources = new File(buildDir, "resources")
+//        File main = new File(resources, "main")
+//        File de = new File(main, "de")
+//        File mel = new File(de, "mel")
+//        mel.mkdirs()
+//        new File(mel, "version.properties").withWriter { w -> props.store(w, null) }
+//        File libs = new File(buildDir, "libs")
+//        libs.mkdirs()
+//        new File(libs, "${jarName}.properties").withWriter { w -> props.store(w, null) }
+//    }
+//}
+//tasks.named("bootJar") {
+//    mainClass = 'de.mel.fxbundle.Main'
+//}
+////bootJar {
+////    mainClassName = 'de.mel.fxbundle.Main'
+////    archiveFileName = jarName
+////}
+//bootJar.dependsOn(createProperties)
+//// buildJarstuff ends here

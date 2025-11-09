@@ -12,9 +12,9 @@ import de.mel.filesync.sql.Stage;
 import de.mel.filesync.sql.StageSet;
 import de.mel.sql.SqlQueriesException;
 import fun.with.Lists;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -24,7 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 /**
  * find.. methods create conflicts in the stage sets and must find them or must not find them.
@@ -87,12 +88,12 @@ public class ConflictTest extends MergeTest {
      * @throws IOException
      * @throws SQLException
      */
-    @Before
+    @BeforeEach
     public void before() throws SqlQueriesException, IOException, SQLException, InterruptedException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, NoSuchFieldException, JsonSerializationException, JsonDeserializationException {
         super.before();
     }
 
-    @After
+    @AfterEach
     public void after() throws SqlQueriesException {
         creationLocalDao.cleanUp();
         super.after();

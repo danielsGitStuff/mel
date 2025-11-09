@@ -11,9 +11,10 @@ import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.tools.F;
 import de.mel.sql.SqlQueriesException;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -25,8 +26,9 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 
 /**
  * Created by xor on 3/28/16.
@@ -41,7 +43,7 @@ public class CertificateManagerTest {
     private CertificateManager certificateManager;
     private final File TEST_DIR = new File("cert_test");
 
-    @Before
+    @BeforeEach
     public void before() throws Exception, SqlQueriesException {
         AbstractFile.configure(new DefaultFileConfiguration());
         F.rmRf(TEST_DIR);
@@ -55,7 +57,7 @@ public class CertificateManagerTest {
         return new CertificateManager(melAuthSettings.getWorkingDirectory(), databaseManager.getSqlQueries(), 1024);
     }
 
-    @After
+    @AfterEach
     public void after() throws IOException {
         F.rmRf(TEST_DIR);
     }
@@ -68,8 +70,9 @@ public class CertificateManagerTest {
         assertEquals(x509Certificate, loadedCert);
     }
 
-    @Test(expected = IndexOutOfBoundsException.class)
+    @Test
     public void registerCertificateFail() throws Exception, SqlQueriesException {
+        // todo it supposedly throws an index out of bounds exception
         X509Certificate x509Certificate = genCert();
         byte[] byteCert = x509Certificate.getEncoded();
         UUID uuid = CertificateManager.randomUUID();

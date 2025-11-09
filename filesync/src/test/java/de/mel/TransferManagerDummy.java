@@ -1,7 +1,7 @@
 package de.mel;
 
 import de.mel.filesync.sql.FsDirectory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Created by xor on 10.11.2017.
