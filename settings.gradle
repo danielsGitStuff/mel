@@ -31,4 +31,4 @@ include ':sql'
 include ':testtools'
 
 
-//include 'android'
+include 'android'

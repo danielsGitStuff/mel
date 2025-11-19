@@ -1,57 +1,47 @@
 // build-logic/src/main/groovy/mel-android-application.gradle
 import org.gradle.api.attributes.Attribute
 import com.android.build.api.variant.ApplicationVariant
+import org.gradle.api.tasks.testing.Test // Import the Test task for configuration
+import com.android.build.api.component.AndroidComponentsExtension
 
-// 1. Apply all plugins
+// 1. Apply core plugins (No java-library)
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
-    // 'java-test-fixtures' is removed
 }
 
-// 2. Get libs and versions
+// 2. Get libs and versions (unchanged)
 def libs = project.extensions.getByName("libs")
 def javaVersion = JavaVersion.toVersion(libs.versions.java.get())
 def javaVersionNumber = libs.versions.java.get().toInteger()
 
-// 3. Configure the 'android' block
+// 3. Configure the 'android' block (Unchanged)
 android {
     namespace = 'de.mel.android'
-    compileSdk = libs.versions.android.compileSdk.get().toInteger()
+
+    compileSdk = libs.versions.androidCompileSdk.get().toInteger()
 
     defaultConfig {
         applicationId = 'de.mel.android'
-        minSdk = libs.versions.android.minSdk.get().toInteger()
-        targetSdk = libs.versions.android.targetSdk.get().toInteger()
-        // --- END OF FIX ---
+        minSdk = libs.versions.androidMinSdk.get().toInteger()
+        targetSdk = libs.versions.androidTargetSdk.get().toInteger()
 
         versionCode = 1
         versionName = project.version.toString()
     }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility = javaVersion
-        targetCompatibility = javaVersion
-    }
+    // ... (compileOptions, etc.) ...
 }
 
-// 4. Configure Kotlin
+// 4. Configure Kotlin (for AGP)
 kotlin {
     jvmToolchain(javaVersionNumber)
 }
 
-// 5. Add dependencies
+// 5. Add dependencies (Unchanged)
 dependencies {
     implementation libs.kotlin.stdlib
 
-    // JUnit 6 setup (without testFixtures)
+    // JUnit 6 setup for LOCAL unit tests
     testImplementation(platform(libs.junit6.bom)) {
         attributes {
             attribute(Attribute.of('org.jetbrains.kotlin.platform.type', String.class), 'platform-agnostic')
@@ -67,12 +57,21 @@ dependencies {
     testImplementation libs.junit6.platform.commons
     testRuntimeOnly libs.junit6.platform.launcher
 
-    // You can add Android-specific libs here
-    // implementation libs.androidx.core.ktx
+    androidTestImplementation(platform(libs.junit6.bom)) {
+        attributes {
+            attribute(Attribute.of('org.jetbrains.kotlin.platform.type', String.class), 'platform-agnostic')
+        }
+    }
+    androidTestImplementation libs.junit6.api
+    androidTestRuntimeOnly libs.junit6.engine
 }
 
-// 6. Configure test tasks
-test {
+//
+// --- RESTORED TEST LOGIC & CORRECTED HOOKS ---
+//
+
+// 6. Restore Test/Tagging Logic (using generic task types - Fixes missing 'test' method)
+tasks.withType(Test) {
     useJUnitPlatform {
         excludeTags 'ui'
     }
@@ -86,63 +85,22 @@ tasks.register('runUiTests', Test) {
     }
 }
 
-// --- Android-specific 'generateVersionProperties' ---
+// 7. Hook the tasks into the Android build (Final Syntax Fix)
+//    We use a local variable (androidComponentsExtension) to avoid delegation failures.
+def androidComponentsExtension = extensions.getByType(AndroidComponentsExtension) // <-- ACCESS THE PUBLIC INTERFACE
 
-// 7. This task generates the file
-tasks.register('generateVersionProperties') {
-    description = 'Generates version.properties from project version'
-
-    // Android's generated resource path is different
-    def outputDir = project.layout.buildDirectory.dir("generated/ap_generated_sources/debug/out/de/mel")
-    def outputFile = outputDir.get().file("version.properties")
-    outputs.file(outputFile)
-
-    doLast {
-        // Reads 'ext.variant = "..."' from your android/build.gradle
-        def variant = project.findProperty('variant') ?: 'apk'
-
-        def props = new Properties()
-        props['version'] = project.version.toString()
-        props['commit'] = project.ext.commit.toString()
-        props['variant'] = variant
-
-        def propsFile = outputFile.asFile
-        propsFile.parentFile.mkdirs()
-        propsFile.withWriter { w -> props.store(w, null) }
-    }
-}
-
-// 8. This task writes the *external* properties file
-tasks.register('generateExternalVersionProperties') {
-    description = 'Generates the external version.properties file'
-
-    // This is the external file in build/libs/
-    def externalOutputFile = project.layout.buildDirectory.dir("libs").get().file("${project.name}-${project.version}-apk.properties")
-    outputs.file(externalOutputFile)
-
-    doLast {
-        def variant = project.findProperty('variant') ?: 'apk'
-        def props = new Properties()
-        props['version'] = project.version.toString()
-        props['commit'] = project.ext.commit.toString()
-        props['variant'] = variant
-
-        def extPropsFile = externalOutputFile.asFile
-        extPropsFile.parentFile.mkdirs()
-        extPropsFile.withWriter { w -> props.store(w, null) }
-    }
-}
-
-// 9. Hook the tasks into the Android build
-android.applicationVariants.all { ApplicationVariant variant ->
-    // Hook for the internal file (read by the app)
-    variant.javaCompileProvider.get().dependsOn(tasks.named('generateVersionProperties'))
+// 8. Define the action closure
+def registerVariantHooks = { ApplicationVariant variant ->
+    // Hook for the internal version.properties file
+    variant.javaCompile.dependsOn(tasks.named('generateVersionProperties'))
 
     // Hook for the external file (for your update mechanism)
-    // This will run when you build the debug APK
     if (variant.name == 'debug') {
         tasks.named("packageDebug").configure {
             it.finalizedBy(tasks.named('generateExternalVersionProperties'))
         }
     }
 }
+
+// 9. Apply the action using the correct API method
+androidComponentsExtension.onVariants(registerVariantHooks)

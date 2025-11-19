@@ -1,53 +1,73 @@
-buildscript {
-    ext.KOTLIN_V = '1.8.0'
-    ext.KOTLIN_CR_V = '1.6.4'
-    // get latest commit
-    ext.COMMIT = { ->
-        def out = new ByteArrayOutputStream()
-        exec {
-            commandLine 'git', 'rev-parse', 'HEAD'
-            standardOutput = out
-        }
-        out.toString().take(7).trim()
-    }.call()
-    ext.VERSION = { ->
-        File f = new File(projectDir, "build.tmp.version")
-        println "trying to read version from ${f.getCanonicalPath()}"
-        if (f.exists()) {
-            f.readLines().get(0)
-        } else
-            "version not provided"
-    }.call()
-    println "commit=${ext.COMMIT} version=\"${ext.VERSION}\""
-    dependencies {
-        classpath 'com.android.tools.build:gradle:7.4.1'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_V"
-        classpath "org.jetbrains.kotlin:kotlin-android-extensions:$KOTLIN_V"
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
-    }
-}
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+// android/build.gradle
+
 plugins {
-    id 'com.android.application' version '7.4.1' apply false
-    id 'com.android.library' version '7.4.1' apply false
-    id 'org.jetbrains.kotlin.android' version '1.7.20' apply false
+    id 'mel-android-application'
 }
 
+// 1. Set the variant for the version.properties file
+ext.variant = 'apk'
 
+// 2. Add your dependencies
+dependencies {
+    implementation project(':auth')
+    implementation project(':filesync')
+    implementation project(':filedump')
+    implementation project(':contacts')
 
-project.ext {
-    KOTLIN_V = '1.8.0'
-    KOTLIN_CR_V = '1.6.4'
-    System.out.println("building with Kotlin version: $KOTLIN_V")
-    javaFxVersion = "18.0.1"
-    javaFxModules = ['javafx.controls', 'javafx.fxml', 'javafx.swing', 'javafx.web']
-    dep_bc_pkix = 'org.bouncycastle:bcpkix-jdk15on:1.70'
-    dep_bc_prov = 'org.bouncycastle:bcprov-jdk15on:1.70'
-    dep_jdeferred = 'org.jdeferred:jdeferred-core:1.2.6'
-    dep_junit4 = 'junit:junit:4.13'
-    dep_jupiter = 'org.junit.jupiter:junit-jupiter-api:5.8.2'
-    dep_k_std =  'org.jetbrains.kotlin:kotlin-stdlib:1.7.21'
-    dep_k_cor = 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
-    dep_sqlite = 'org.xerial:sqlite-jdbc:3.36.0.3'
+    // Add any Android-specific libraries from your libs.versions.toml
+    // implementation libs.androidx.core.ktx
+    // implementation libs.androidx.appcompat
 }
+//buildscript {
+//    ext.KOTLIN_V = '1.8.0'
+//    ext.KOTLIN_CR_V = '1.6.4'
+//    // get latest commit
+//    ext.COMMIT = { ->
+//        def out = new ByteArrayOutputStream()
+//        exec {
+//            commandLine 'git', 'rev-parse', 'HEAD'
+//            standardOutput = out
+//        }
+//        out.toString().take(7).trim()
+//    }.call()
+//    ext.VERSION = { ->
+//        File f = new File(projectDir, "build.tmp.version")
+//        println "trying to read version from ${f.getCanonicalPath()}"
+//        if (f.exists()) {
+//            f.readLines().get(0)
+//        } else
+//            "version not provided"
+//    }.call()
+//    println "commit=${ext.COMMIT} version=\"${ext.VERSION}\""
+//    dependencies {
+//        classpath 'com.android.tools.build:gradle:7.4.1'
+//        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_V"
+//        classpath "org.jetbrains.kotlin:kotlin-android-extensions:$KOTLIN_V"
+//        // NOTE: Do not place your application dependencies here; they belong
+//        // in the individual module build.gradle files
+//    }
+//}
+//// Top-level build file where you can add configuration options common to all sub-projects/modules.
+//plugins {
+//    id 'com.android.application' version '7.4.1' apply false
+//    id 'com.android.library' version '7.4.1' apply false
+//    id 'org.jetbrains.kotlin.android' version '1.7.20' apply false
+//}
+//
+//
+//
+//project.ext {
+//    KOTLIN_V = '1.8.0'
+//    KOTLIN_CR_V = '1.6.4'
+//    System.out.println("building with Kotlin version: $KOTLIN_V")
+//    javaFxVersion = "18.0.1"
+//    javaFxModules = ['javafx.controls', 'javafx.fxml', 'javafx.swing', 'javafx.web']
+//    dep_bc_pkix = 'org.bouncycastle:bcpkix-jdk15on:1.70'
+//    dep_bc_prov = 'org.bouncycastle:bcprov-jdk15on:1.70'
+//    dep_jdeferred = 'org.jdeferred:jdeferred-core:1.2.6'
+//    dep_junit4 = 'junit:junit:4.13'
+//    dep_jupiter = 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+//    dep_k_std =  'org.jetbrains.kotlin:kotlin-stdlib:1.7.21'
+//    dep_k_cor = 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
+//    dep_sqlite = 'org.xerial:sqlite-jdbc:3.36.0.3'
+//}

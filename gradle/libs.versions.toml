@@ -5,24 +5,13 @@
 # Core
 java = "17"
 kotlin = "2.2.21"
+kotlin-gradle = "2.2.21"
 kotlin-coroutines = "1.10.2"
 kotlin-io = "0.1.16"
 
 # PC (JavaFX)
 javafx = "21.0.9"
 javafxPlugin = "0.1.0"
-
-# Android
-androidGradlePlugin = "8.13.0"
-androidCompileSdk = "34"
-androidMinSdk = "24"
-androidTargetSdk = "34"
-
-#[versions.android]
-#gradlePlugin = "8.13.0"
-#compileSdk = "34"
-#minSdk = "24"
-#targetSdk = "34"
 
 # Common Libs
 sqliteJdbc = "3.50.3.0"
@@ -32,6 +21,11 @@ junit6 = "5.14.1"
 bouncycastle-pkix = "1.82"
 bouncycastle-prov = "1.82"
 jdeferred = "1.2.6"
+
+androidGradlePluginVersion = "8.13.0"
+androidCompileSdk = "34"
+androidMinSdk = "24"
+androidTargetSdk = "34"
 
 [libraries]
 sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqliteJdbc" }
@@ -61,10 +55,12 @@ javafx-web = { module = "org.openjfx:javafx-web", version.ref = "javafx" }
 openjfx-plugin-artifact = { module = "org.openjfx:javafx-plugin", version.ref = "javafxPlugin" }
 
 # android
-android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "androidGradlePlugin" }
+android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "androidGradlePluginVersion" }
+android-gradle-api = { module = "com.android.tools.build:gradle-api", version.ref = "androidGradlePluginVersion" }
+
 [plugins]
 # Plugins we will use in our convention plugins
-android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
+android-application = { id = "com.android.application", version.ref = "androidGradlePluginVersion" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 openjfx-plugin-id = { id = "org.openjfx.javafx-plugin", version.ref = "javafxPlugin" }

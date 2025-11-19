@@ -22,7 +22,8 @@ open class BashToolsUnix : BashTools<StandardFile>() {
     override fun lnS(file: StandardFile, target: String) {
         val escapedFilePath = escapeQuotedAbsoluteFilePath(file)
         val escapedTarget = escapeQuotedPath(target)
-        val args = arrayOf(BIN_PATH, "-c", "ln -s ${escapedTarget} ${escapedFilePath} ")
+//        val args = arrayOf(BIN_PATH, "-c", "ln -s ${escapedTarget} ${escapedFilePath} ")
+        val args = arrayOf(BIN_PATH, "-c", "ln", "-s", File(target).absolutePath, file.absolutePath)
         val proc = ProcessBuilder(*args).start()
         proc.waitFor()
     }
@@ -84,7 +85,8 @@ open class BashToolsUnix : BashTools<StandardFile>() {
     // todo null
     @Throws(IOException::class, InterruptedException::class)
     override fun getFsBashDetails(file: StandardFile): FsBashDetails? {
-        val args = arrayOf(BIN_PATH, "-c", "$unfrench stat -c %i\\ %W\\ '%F'\\ %N " + escapeQuotedAbsoluteFilePath(file))
+//        val args = arrayOf(BIN_PATH, "-c", "$unfrench stat -c %i\\ %W\\ '%F'\\ %N " + escapeQuotedAbsoluteFilePath(file))
+        val args = arrayOf(BIN_PATH, "-c" , unfrench,"stat","-c", "%i\\ %W\\ %F\\ %N", file.absolutePath)
         val proc = ProcessBuilder(*args).start()
         //proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false
         val reader = BufferedReader(InputStreamReader(proc.inputStream))
@@ -142,7 +144,8 @@ open class BashToolsUnix : BashTools<StandardFile>() {
         val escaped = escapeAbsoluteFilePath(directory)
         // the secont path below fixed something but I forgot what it is. it also returns "." and ".."
         val path = "\"$escaped${File.separator}\"* \"$escaped${File.separator}\".*"
-        val args = arrayOf(BIN_PATH, "-c", "$unfrench stat -c %i\\ //\\ %W\\ //\\ '%F'\\ //\\ %N\\ //\\ %n $path;")
+//        val args = arrayOf(BIN_PATH, "-c", "$unfrench stat -c %i\\ //\\ %W\\ //\\ '%F'\\ //\\ %N\\ //\\ %n $path;")
+        val args = arrayOf(BIN_PATH, "-c", unfrench, "stat","-c" , " %i\\ //\\ %W\\ //\\ '%F'\\ //\\ %N\\ //\\ %n", path )
 
         val proc = ProcessBuilder(*args).start()
 //        proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false
