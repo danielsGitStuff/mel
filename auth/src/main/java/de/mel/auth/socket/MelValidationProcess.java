@@ -10,6 +10,7 @@ import de.mel.auth.data.cached.CachedPart;
 import de.mel.auth.data.cached.CachedPartOlde;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.data.db.Service;
+import de.mel.auth.service.MelAuthService;
 import de.mel.auth.service.MelService;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
@@ -110,7 +111,7 @@ public class MelValidationProcess extends MelProcess {
      */
     private boolean handleCached(SerializableEntity deserialized) throws MelJsonException, IOException {
 
-        // if chached stuff starts then as a StateMsg
+        // if cached stuff starts then as a StateMsg
         if (deserialized instanceof StateMsg) {
             StateMsg stateMsg = (StateMsg) deserialized;
             if (stateMsg.getPayload() instanceof CachedInitializer) {
@@ -303,12 +304,20 @@ public class MelValidationProcess extends MelProcess {
     }
 
     private boolean isServiceAllowed(String serviceUuid) throws SqlQueriesException {
-        Service service = melAuthSocket.getMelAuthService().getDatabaseManager().getServiceByUuid(serviceUuid);
+        return isServiceAllowed(melAuthSocket.getMelAuthService(), partnerCertificate.getId().v(), serviceUuid);
+    }
+
+    /**
+     * The access matrix decides which services a paired partner may talk to. Unknown services are never allowed.
+     * Everything that hands a service to a partner (requests, isolated connections) must ask here.
+     */
+    public static boolean isServiceAllowed(MelAuthService melAuthService, Long partnerCertificateId, String serviceUuid) throws SqlQueriesException {
+        Service service = melAuthService.getDatabaseManager().getServiceByUuid(serviceUuid);
         if (service == null) {
-            //todo debug
-            Lok.debug("MelValidationProcess.isServiceAllowed.debug");
+            Lok.debug("service " + serviceUuid + " is not known, access denied");
+            return false;
         }
-        return melAuthSocket.getMelAuthService().getDatabaseManager().isApproved(partnerCertificate.getId().v(), service.getId().v());
+        return melAuthService.getDatabaseManager().isApproved(partnerCertificateId, service.getId().v());
     }
 
     private boolean handleGetServices(SerializableEntity deserialized) throws

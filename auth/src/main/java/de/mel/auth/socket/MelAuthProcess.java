@@ -93,6 +93,11 @@ public class MelAuthProcess extends MelProcess {
                             }
                         } else {
                             Lok.debug("leaving for IsolationProcess");
+                            if (!MelValidationProcess.isServiceAllowed(melAuthSocket.getMelAuthService(), partnerCertificate.getId().v(), isolationDetails.getTargetService())) {
+                                Lok.debug("partner has no access to service " + isolationDetails.getTargetService());
+                                refuse(request, socket);
+                                return;
+                            }
                             IMelService service = melAuthSocket.getMelAuthService().getMelService(isolationDetails.getTargetService());
                             Class<? extends MelIsolatedProcess> isolatedClass = (Class<? extends MelIsolatedProcess>) getClass().forName(isolationDetails.getProcessClass());
                             MelIsolatedProcess isolatedProcess = MelIsolatedProcess.instance(isolatedClass, melAuthSocket, service, partnerCertificate.getId().v(), isolationDetails.getSourceService(), isolationDetails.getIsolationUuid());

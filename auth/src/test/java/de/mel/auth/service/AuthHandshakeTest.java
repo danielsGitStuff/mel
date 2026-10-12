@@ -5,6 +5,7 @@ import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.data.IsolationDetails;
 import de.mel.auth.data.MelRequest;
 import de.mel.auth.data.db.Certificate;
+import de.mel.auth.data.db.Service;
 import de.mel.auth.data.access.CertificateCreator;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
@@ -315,9 +316,19 @@ public class AuthHandshakeTest {
         assertFalse(server.isConnectedTo(pairedClient.getId().v()));
     }
 
+    /**
+     * Test services are only registered in memory. The access matrix refers to database rows, so make one.
+     */
+    private Long serverServiceId() throws Exception {
+        Long typeId = server.getDatabaseManager().createServiceType("test type", "only for AuthHandshakeTest").getId().v();
+        Service row = new Service().setUuid(serverService.getUuid()).setTypeId(typeId).setName("server test service").setActive(true);
+        return server.getDatabaseManager().getSqlQueries().insert(row);
+    }
+
     @Test
     public void pairedClientCanOpenAnIsolatedConnection() throws Exception {
         Long serverCertId = pair();
+        server.getDatabaseManager().grant(serverServiceId(), server.getCertificateManager().getTrustedCertificates().get(0).getId().v());
         CountDownLatch opened = new CountDownLatch(1);
         AtomicReference<MelIsolatedProcess> process = new AtomicReference<>();
         client.connectToService(TestIsolatedProcess.class, serverCertId, serverService.getUuid(), clientService.getUuid(), null, null, null)
@@ -332,6 +343,38 @@ public class AuthHandshakeTest {
         assertEquals(clientService.getUuid(), serverSide.getPartnerServiceUuid());
         Long clientCertId = server.getCertificateManager().getTrustedCertificates().get(0).getId().v();
         assertEquals(clientCertId, serverSide.getPartnerCertificateId());
+    }
+
+    /**
+     * Being paired is not enough: the access matrix decides which services a partner may talk to.
+     * Normal requests are checked against it (MelValidationProcess.isServiceAllowed), isolated connections must be, too.
+     */
+    @Test
+    public void pairedClientWithoutAccessCannotOpenAnIsolatedConnection() throws Exception {
+        Long serverCertId = pair();
+        // paired, but the server never granted this client access to its service
+        Long clientCertId = server.getCertificateManager().getTrustedCertificates().get(0).getId().v();
+        Long serviceId = serverServiceId();
+        assertFalse(server.getDatabaseManager().isApproved(clientCertId, serviceId), "test setup: client must not have access yet");
+        CountDownLatch opened = new CountDownLatch(1);
+        client.connectToService(TestIsolatedProcess.class, serverCertId, serverService.getUuid(), clientService.getUuid(), null, null, null)
+                .done(p -> opened.countDown());
+        assertFalse(serverService.firstEstablished.await(5, TimeUnit.SECONDS), "a partner without access was handed an isolated connection to the service");
+        assertTrue(serverService.established.isEmpty());
+        assertEquals(1, opened.getCount(), "the client believes it has an isolated connection to a service it has no access to");
+    }
+
+    @Test
+    public void pairedClientWithAccessCanOpenAnIsolatedConnection() throws Exception {
+        Long serverCertId = pair();
+        Long clientCertId = server.getCertificateManager().getTrustedCertificates().get(0).getId().v();
+        Long serviceId = serverServiceId();
+        server.getDatabaseManager().grant(serviceId, clientCertId);
+        CountDownLatch opened = new CountDownLatch(1);
+        client.connectToService(TestIsolatedProcess.class, serverCertId, serverService.getUuid(), clientService.getUuid(), null, null, null)
+                .done(p -> opened.countDown());
+        assertTrue(opened.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), "a partner with access could not open an isolated connection");
+        assertTrue(serverService.firstEstablished.await(TIMEOUT_SECONDS, TimeUnit.SECONDS));
     }
 
     @Test
