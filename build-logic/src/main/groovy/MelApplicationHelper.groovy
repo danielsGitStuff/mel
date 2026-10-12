@@ -84,6 +84,8 @@ class MelApplicationHelper {
                 exclude "META-INF/substrate/**"
                 exclude "META-INF/versions/**"
                 exclude "META-INF/*.kotlin_module"
+                // every BouncyCastle jar ships its own copy
+                exclude "META-INF/LICENSE.md"
                 exclude "de/mel/version.properties"
             }
 

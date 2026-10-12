@@ -44,6 +44,8 @@ jar {
         exclude "META-INF/*.DSA"
         exclude "META-INF/*.RSA"
         exclude "module-info.class"
+        // every BouncyCastle jar ships its own copy
+        exclude "META-INF/LICENSE.md"
         exclude "META-INF/substrate/**"
         exclude "META-INF/versions/**"
 //        exclude "META-INF/versions/9/module-info.class"

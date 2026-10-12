@@ -4,29 +4,28 @@
 [versions]
 # Core
 java = "21"
-kotlin = "2.2.21"
-kotlin-coroutines = "1.10.2"
+kotlin = "2.4.21"
+kotlin-coroutines = "1.11.0"
 
 # PC (JavaFX)
-javafx = "21.0.9"
+javafx = "21.0.12"
 javafxPlugin = "0.1.0"
 
 # Common Libs
-sqliteJdbc = "3.50.3.0"
-#junit4 = "4.13.2"
-#junit5 = "5.14.1"
-junit6 = "5.14.1"
-bouncycastle-pkix = "1.82"
-bouncycastle-prov = "1.82"
+sqliteJdbc = "3.53.4.0"
+junit6 = "6.1.3"
+bouncycastle-pkix = "1.86"
+bouncycastle-prov = "1.86"
 jdeferred = "1.2.6"
 
-androidGradlePluginVersion = "8.13.0"
-androidxCore = "1.16.0"
-androidxAppcompat = "1.7.1"
-androidxMaterial = "1.12.0"
+androidGradlePluginVersion = "8.13.2"
+androidxCore = "1.18.0"
+androidxAppcompat = "1.8.0"
+androidxMaterial = "1.14.0"
 androidxGridlayout = "1.1.0"
-androidxConstraintlayout = "2.2.1"
-androidxNavigation = "2.9.5"
+androidxDocumentfile = "1.1.0"
+androidxConstraintlayout = "2.2.2"
+androidxNavigation = "2.10.2"
 androidCompileSdk = "36"
 androidMinSdk = "26"
 androidTargetSdk = "36"
@@ -59,10 +58,11 @@ openjfx-plugin-artifact = { module = "org.openjfx:javafx-plugin", version.ref = 
 androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppcompat" }
 androidx-material = { module = "com.google.android.material:material", version.ref = "androidxMaterial" }
+androidx-documentfile = { module = "androidx.documentfile:documentfile", version.ref = "androidxDocumentfile" }
 androidx-gridlayout = { module = "androidx.gridlayout:gridlayout", version.ref = "androidxGridlayout" }
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "androidxConstraintlayout" }
 androidx-navigation-fragment = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "androidxNavigation" }
 androidx-navigation-ui = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "androidxNavigation" }
 
 [bundles]
-androidx = ["androidx-core", "androidx-appcompat", "androidx-material", "androidx-gridlayout", "androidx-constraintlayout", "androidx-navigation-fragment", "androidx-navigation-ui"]
+androidx = ["androidx-core", "androidx-appcompat", "androidx-material", "androidx-documentfile", "androidx-gridlayout", "androidx-constraintlayout", "androidx-navigation-fragment", "androidx-navigation-ui"]

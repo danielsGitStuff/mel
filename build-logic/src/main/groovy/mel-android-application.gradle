@@ -77,6 +77,13 @@ android {
         abortOnError = false
     }
 
+    packaging {
+        resources {
+            // every BouncyCastle jar (bcprov, bcpkix, bcutil) ships its own copy
+            excludes += ['META-INF/LICENSE.md']
+        }
+    }
+
     buildFeatures {
         viewBinding = true
         buildConfig = true
