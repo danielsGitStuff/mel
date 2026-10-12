@@ -9,6 +9,7 @@ import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.tools.N;
 import de.mel.sql.RWLock;
 import org.jdeferred.impl.DeferredObject;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.io.DataInputStream;
@@ -22,6 +23,7 @@ import java.net.Socket;
 /**
  * Created by xor on 12/12/16.
  */
+@Tag("ui")
 public class SocketTest {
     private static RWLock lock = new RWLock();
 

@@ -24,6 +24,7 @@ import de.mel.filesync.service.MelFileSyncService;
 import org.jdeferred.Promise;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 
@@ -32,6 +33,7 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Tag("ui")
 public class IndexTest {
     protected MelAuthService mas;
     private Bootloader dbl;

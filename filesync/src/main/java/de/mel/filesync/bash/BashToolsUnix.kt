@@ -20,16 +20,16 @@ import java.util.concurrent.Executors
  */
 open class BashToolsUnix : BashTools<StandardFile>() {
     override fun lnS(file: StandardFile, target: String) {
-        val escapedFilePath = escapeQuotedAbsoluteFilePath(file)
-        val escapedTarget = escapeQuotedPath(target)
-//        val args = arrayOf(BIN_PATH, "-c", "ln -s ${escapedTarget} ${escapedFilePath} ")
-        val args = arrayOf(BIN_PATH, "-c", "ln", "-s", File(target).absolutePath, file.absolutePath)
-        val proc = ProcessBuilder(*args).start()
+        val proc = ProcessBuilder("ln", "-s", File(target).absolutePath, file.absolutePath).start()
         proc.waitFor()
     }
 
-    // use this command to return the result of the actual command in English.
-    private val unfrench = "LC_ALL='C' "
+    /** makes a process return the result of the actual command in English. */
+    private fun ProcessBuilder.unfrench(): ProcessBuilder {
+        environment()["LC_ALL"] = "C"
+        return this
+    }
+
     var readCreated: Boolean = true
 
     // todo use BashTools.binPath
@@ -85,14 +85,13 @@ open class BashToolsUnix : BashTools<StandardFile>() {
     // todo null
     @Throws(IOException::class, InterruptedException::class)
     override fun getFsBashDetails(file: StandardFile): FsBashDetails? {
-//        val args = arrayOf(BIN_PATH, "-c", "$unfrench stat -c %i\\ %W\\ '%F'\\ %N " + escapeQuotedAbsoluteFilePath(file))
-        val args = arrayOf(BIN_PATH, "-c" , unfrench,"stat","-c", "%i\\ %W\\ %F\\ %N", file.absolutePath)
-        val proc = ProcessBuilder(*args).start()
-        //proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false
+        val args = arrayOf("stat", "-c", "%i %W %F", file.absolutePath)
+        val proc = ProcessBuilder(*args).unfrench().start()
+//        proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false
         val reader = BufferedReader(InputStreamReader(proc.inputStream))
         val line = reader.readLine()
         if (line == null) {
-            Lok.debug("reading error for: " + args[2])
+            Lok.debug("reading error for: " + file.absolutePath)
             try {
                 val r = BufferedReader(InputStreamReader(proc.errorStream))
                 var l: String? = r.readLine()
@@ -104,10 +103,11 @@ open class BashToolsUnix : BashTools<StandardFile>() {
                 e.printStackTrace()
             }
         }
-        if (line == null) {
-            Lok.debug("line is null")
+        if (!file.exists()) {
             throw IOException("file/dir ${file.absolutePath} does not exist")
         }
+        if (line == null)
+            throw IOException("stat returned nothing for ${file.absolutePath}")
         val parts = line.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         val iNode = java.lang.Long.parseLong(parts[0])
         val created = if (readCreated) java.lang.Long.parseLong(parts[1]) * 1000 else null
@@ -115,7 +115,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
         val name = file.getName()
         val modified = file.lastModified()
         val symLinkTarget: String? = if (symLink)
-            parseSymLink(file, parts[6])
+            parseSymLink(file, Files.readSymbolicLink(Paths.get(file.absolutePath)).toString())
         else
             null
         return createFsBashDetails(created, modified!!, iNode, symLink, symLinkTarget, name)
@@ -126,7 +126,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
      */
     private fun parseSymLink(file: StandardFile, line: String): String {
         var symLinkTarget: String? = null
-        val originalSym = line.drop(1).dropLast(1)
+        val originalSym = line
         val parentCanonical = file.getParentFile()!!.canonicalPath
         val completePath = parentCanonical + File.separator + originalSym
         val ComplecteCanonical = File(completePath).canonicalPath
@@ -141,13 +141,12 @@ open class BashToolsUnix : BashTools<StandardFile>() {
 
     override fun getContentFsBashDetails(directory: StandardFile): MutableMap<String, FsBashDetails> {
         val map = mutableMapOf<String, FsBashDetails>()
-        val escaped = escapeAbsoluteFilePath(directory)
-        // the secont path below fixed something but I forgot what it is. it also returns "." and ".."
-        val path = "\"$escaped${File.separator}\"* \"$escaped${File.separator}\".*"
-//        val args = arrayOf(BIN_PATH, "-c", "$unfrench stat -c %i\\ //\\ %W\\ //\\ '%F'\\ //\\ %N\\ //\\ %n $path;")
-        val args = arrayOf(BIN_PATH, "-c", unfrench, "stat","-c" , " %i\\ //\\ %W\\ //\\ '%F'\\ //\\ %N\\ //\\ %n", path )
+        // the shell expands the globs; the directory is passed as $1 so it needs no escaping.
+        // the second glob also returns "." and ".."
+        val script = "stat -c '%i // %W // %F // %n' \"\$1\"/* \"\$1\"/.*"
+        val args = arrayOf(BIN_PATH, "-c", script, BIN_PATH, directory.absolutePath)
 
-        val proc = ProcessBuilder(*args).start()
+        val proc = ProcessBuilder(*args).unfrench().start()
 //        proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false
         val reader = BufferedReader(InputStreamReader(proc.inputStream))
         reader.lines().forEach { line ->
@@ -157,15 +156,14 @@ open class BashToolsUnix : BashTools<StandardFile>() {
             val iNode = java.lang.Long.parseLong(parts[0])
             val created = if (readCreated) java.lang.Long.parseLong(parts[1]) * 1000 else null
             val symLink = parts[2].startsWith("sym")
-            val absolutePath = parts[4]
+            val absolutePath = parts[3]
             val f = File(absolutePath)
             val name = f.name
             val modified = f.lastModified()
             var symLinkTarget: String? = null
             if (symLink) {
-                // parse something like: "'/a/b '-> '/c/d'"
-                // drop quotes, spaces etc
-                symLinkTarget = parts[3].drop(absolutePath.length + 7).dropLast(1)
+                // the target as it is stored in the link (not resolved)
+                symLinkTarget = Files.readSymbolicLink(Paths.get(absolutePath)).toString()
             }
             val details = createFsBashDetails(created, modified, iNode, symLink, symLinkTarget, name) //FsBashDetails(created, modified, iNode, symLink, symLinkTarget, name)
             map[details.name] = details
