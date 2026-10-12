@@ -5,6 +5,7 @@ import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.data.IsolationDetails;
 import de.mel.auth.data.MelRequest;
 import de.mel.auth.data.db.Certificate;
+import de.mel.auth.data.access.CertificateCreator;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.service.power.PowerManager;
@@ -13,7 +14,6 @@ import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
 import de.mel.auth.socket.process.reg.IRegisterHandler;
 import de.mel.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mel.auth.tools.CountLock;
-import de.mel.auth.tools.Cryptor;
 import de.mel.auth.tools.ShutDownDeferredManager;
 import de.mel.core.serialize.SerializableEntity;
 import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer;
@@ -36,10 +36,9 @@ import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.security.KeyPairGenerator;
+import java.security.KeyPair;
 import java.security.Principal;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -187,35 +186,25 @@ public class AuthHandshakeTest {
     }
 
     /**
-     * Plays an attacker: a TLS client that holds none of the paired keys but claims to be a paired device.
-     * It does what an honest client would do, as far as it can: it sends an auth request with the claimed uuid and a secret
-     * encrypted for the server, and answers the server's challenge with its best guess, because it cannot decrypt it.
-     * This is the only protocol specific part of the negative tests.
+     * Plays an attacker: a TLS client that is not any of the paired devices and tries to get authenticated by the server.
+     * This is the only part of the negative tests that knows the auth protocol: it sends an auth request and listens to what comes back.
      *
+     * @param isolated      ask for an isolated connection to the server's service
+     * @param presentedCert the certificate shown during the TLS handshake, null = none at all
+     * @param signingKey    the key that signs the handshake. Whoever shows a certificate without owning its key fails right there.
      * @return the last thing the server said, or null if it hung up or stayed silent
      */
-    private SerializableEntity impersonate(String claimedUuid) throws Exception {
-        return impersonate(claimedUuid, false, null);
-    }
-
-    /**
-     * @param isolated       ask for an isolated connection to the server's service
-     * @param presentedCert  if not null, the attacker shows this (public, trusted) certificate during the TLS handshake - but signs with a key of its own
-     */
-    private SerializableEntity impersonate(String claimedUuid, boolean isolated, X509Certificate presentedCert) throws Exception {
+    private SerializableEntity impersonate(boolean isolated, X509Certificate presentedCert, PrivateKey signingKey) throws Exception {
         SSLContext context = SSLContext.getInstance("TLS");
         KeyManager[] keyManagers = null;
         if (presentedCert != null) {
-            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-            generator.initialize(2048);
-            PrivateKey attackersKey = generator.generateKeyPair().getPrivate();
             keyManagers = new KeyManager[]{new X509KeyManager() {
                 public String[] getClientAliases(String keyType, Principal[] issuers) {
-                    return new String[]{"victim"};
+                    return new String[]{"attacker"};
                 }
 
                 public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket) {
-                    return "victim";
+                    return "attacker";
                 }
 
                 public String[] getServerAliases(String keyType, Principal[] issuers) {
@@ -231,7 +220,7 @@ public class AuthHandshakeTest {
                 }
 
                 public PrivateKey getPrivateKey(String alias) {
-                    return attackersKey;
+                    return signingKey;
                 }
             }};
         }
@@ -253,10 +242,7 @@ public class AuthHandshakeTest {
             socket.setSoTimeout(3000);
             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
             DataInputStream in = new DataInputStream(socket.getInputStream());
-            PublicKey serverKey = socket.getSession().getPeerCertificates()[0].getPublicKey();
-            MelRequest request = new MelRequest(MelStrings.SERVICE_NAME, MelStrings.msg.INTENT_AUTH)
-                    .setUserUuid(claimedUuid)
-                    .setSecret(Cryptor.encrypt(serverKey, "attacker secret"));
+            MelRequest request = new MelRequest(MelStrings.SERVICE_NAME, MelStrings.msg.INTENT_AUTH);
             if (isolated) {
                 request.setPayLoad(new IsolationDetails()
                         .setTargetService(serverService.getUuid())
@@ -267,15 +253,8 @@ public class AuthHandshakeTest {
             out.writeUTF(request.toJSON());
             out.flush();
             last = SerializableEntityDeserializer.deserialize(in.readUTF());
-            if (last instanceof MelRequest) {
-                MelRequest challenge = (MelRequest) last;
-                MelRequest answer = challenge.request().setDecryptedSecret("a guess");
-                out.writeUTF(answer.toJSON());
-                out.flush();
-                last = SerializableEntityDeserializer.deserialize(in.readUTF());
-            }
         } catch (EOFException | SocketTimeoutException | SSLException e) {
-            // hung up on us or stayed silent: fine
+            // hung up on us, stayed silent or failed the handshake: fine
         }
         return last;
     }
@@ -288,22 +267,31 @@ public class AuthHandshakeTest {
         }
     }
 
-    @Test
-    public void knowingAPairedUuidIsNotEnough() throws Exception {
-        pair();
-        Certificate pairedClient = server.getCertificateManager().getTrustedCertificates().get(0);
-        SerializableEntity answer = impersonate(pairedClient.getUuid().v());
-        assertNothingLeaked(answer);
-        assertFalse(server.isConnectedTo(pairedClient.getId().v()), "impostor was accepted as the paired client");
+    /**
+     * @return certificate and key of someone the server was never paired with
+     */
+    private KeyPair strangersKeys() throws Exception {
+        return CertificateCreator.generateKeyPair(2048);
     }
 
     @Test
-    public void unknownUuidIsNotAuthenticated() throws Exception {
+    public void clientWithoutCertificateIsNotAuthenticated() throws Exception {
         pair();
-        SerializableEntity answer = impersonate(UUID.randomUUID().toString());
+        Certificate pairedClient = server.getCertificateManager().getTrustedCertificates().get(0);
+        SerializableEntity answer = impersonate(false, null, null);
         assertNothingLeaked(answer);
-        Long pairedClientId = server.getCertificateManager().getTrustedCertificates().get(0).getId().v();
-        assertFalse(server.isConnectedTo(pairedClientId));
+        assertFalse(server.isConnectedTo(pairedClient.getId().v()), "a client without any certificate got in as the paired client");
+    }
+
+    @Test
+    public void clientWithAnUnknownCertificateIsNotAuthenticated() throws Exception {
+        pair();
+        Certificate pairedClient = server.getCertificateManager().getTrustedCertificates().get(0);
+        KeyPair stranger = strangersKeys();
+        SerializableEntity answer = impersonate(false, CertificateCreator.generateCertificate(stranger, "stranger"), stranger.getPrivate());
+        assertNothingLeaked(answer);
+        assertFalse(server.isConnectedTo(pairedClient.getId().v()));
+        assertEquals(1, server.getCertificateManager().getTrustedCertificates().size(), "the server trusts someone new");
     }
 
     @Test
@@ -349,11 +337,19 @@ public class AuthHandshakeTest {
     @Test
     public void impostorCannotOpenAnIsolatedConnection() throws Exception {
         pair();
-        Certificate pairedClient = server.getCertificateManager().getTrustedCertificates().get(0);
-        SerializableEntity answer = impersonate(pairedClient.getUuid().v(), true, null);
+        KeyPair stranger = strangersKeys();
+        SerializableEntity answer = impersonate(true, CertificateCreator.generateCertificate(stranger, "stranger"), stranger.getPrivate());
         assertNothingLeaked(answer);
         assertFalse(serverService.firstEstablished.await(2, TimeUnit.SECONDS), "an impostor was handed an isolated connection to a service");
         assertTrue(serverService.established.isEmpty());
+    }
+
+    @Test
+    public void clientWithoutCertificateCannotOpenAnIsolatedConnection() throws Exception {
+        pair();
+        SerializableEntity answer = impersonate(true, null, null);
+        assertNothingLeaked(answer);
+        assertFalse(serverService.firstEstablished.await(2, TimeUnit.SECONDS), "a client without certificate was handed an isolated connection to a service");
     }
 
     @Test
@@ -361,7 +357,8 @@ public class AuthHandshakeTest {
         pair();
         Certificate pairedClient = server.getCertificateManager().getTrustedCertificates().get(0);
         X509Certificate victimsCertificate = client.getCertificateManager().getMyX509Certificate();
-        SerializableEntity answer = impersonate(pairedClient.getUuid().v(), false, victimsCertificate);
+        // shows the victim's public certificate but can only sign with a key of its own
+        SerializableEntity answer = impersonate(false, victimsCertificate, strangersKeys().getPrivate());
         assertNothingLeaked(answer);
         assertFalse(server.isConnectedTo(pairedClient.getId().v()), "someone with the victim's public certificate but not its key got in");
     }

@@ -1,6 +1,5 @@
 package de.mel.auth.socket;
 
-import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.service.MelService;
 
@@ -24,7 +23,6 @@ import de.mel.auth.service.IMelService;
 import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
 import de.mel.auth.socket.process.val.MelServicesPayload;
-import de.mel.auth.tools.Cryptor;
 import de.mel.auth.tools.N;
 import de.mel.core.serialize.SerializableEntity;
 import de.mel.sql.SqlQueriesException;
@@ -35,9 +33,6 @@ import de.mel.sql.SqlQueriesException;
  */
 @SuppressWarnings("Duplicates")
 public class MelAuthProcess extends MelProcess {
-    private String mySecret;
-    // this is not mine
-    private String decryptedSecret;
     private boolean partnerAuthenticated = false;
     private MelValidationProcess validationProcess;
 
@@ -58,6 +53,10 @@ public class MelAuthProcess extends MelProcess {
         response.setPayLoad(payload);
     }
 
+    /**
+     * Server side. There is no application level handshake: TLS already made the peer prove that it owns the private key of the certificate it showed.
+     * All that is left is to find out whether that certificate belongs to a device we are paired with.
+     */
     @Override
     public void onMessageReceived(SerializableEntity deserialized, MelAuthSocket socket) {
         try {
@@ -65,66 +64,46 @@ public class MelAuthProcess extends MelProcess {
                 if (deserialized instanceof MelRequest) {
                     MelRequest request = (MelRequest) deserialized;
                     try {
-                        this.partnerCertificate = melAuthSocket.getMelAuthService().getCertificateManager().getTrustedCertificateByUuid(request.getUserUuid());
-                        assert partnerCertificate != null;
-                        this.decryptedSecret = melAuthSocket.getMelAuthService().getCertificateManager().decrypt(request.getSecret());
-                        this.mySecret = CertificateManager.randomUUID().toString();
+                        this.partnerCertificate = melAuthSocket.getTrustedPartnerCertificate();
+                        if (partnerCertificate == null) {
+                            Lok.debug("refusing: the peer does not show a certificate we trust");
+                            refuse(request, socket);
+                            return;
+                        }
                         IsolationDetails isolationDetails = null;
                         if (request.getPayload() != null && request.getPayload() instanceof IsolationDetails) {
                             isolationDetails = (IsolationDetails) request.getPayload();
                         }
-                        byte[] secret = Cryptor.encrypt(partnerCertificate, mySecret);
-                        MelRequest answer = request.request().setRequestHandler(this).queue()
-                                .setDecryptedSecret(decryptedSecret)
-                                .setSecret(secret);
-                        IsolationDetails finalIsolationDetails = isolationDetails;
-                        answer.getAnswerDeferred().done(result -> {
-                            MelRequest r = (MelRequest) result;
-                            MelResponse response = r.reponse();
-                            try {
-                                if (r.getDecryptedSecret().equals(mySecret)) {
-                                    if (finalIsolationDetails == null) {
-                                        partnerAuthenticated = true;
-                                        MelValidationProcess validationProcess = new MelValidationProcess(socket, partnerCertificate, true);
-                                        if (melAuthSocket.getMelAuthService().registerValidationProcess(validationProcess)) {
-                                            // get all allowed Services
-                                            MelAuthProcess.addAllowedServices(melAuthSocket.getMelAuthService(), partnerCertificate, response);
-                                            send(response);
-                                            // done here, set up validationprocess
-                                            Lok.debug(melAuthSocket.getMelAuthService().getName() + " AuthProcess leaves socket");
-                                            // propagate that we are connected!
-                                            // note: if the connection is incoming, we cannot use the ports from the socket here.
-                                            // whenever an outgoing connection is set up a random high port is used to do so (port 50k+)
-                                            propagateAuthentication(this.partnerCertificate, socket.getSocket().getInetAddress().getHostAddress(), partnerCertificate.getPort().v());
-//                                            propagateAuthentication(this.partnerCertificate, socket.getSocket().getInetAddress().getHostAddress(), socket.getSocket().getLocalPort());
-                                        } else {
-//                                            Lok.debug("leaving, cause connection to cert " + partnerCertificate.getId().v() + " already exists. closing...");
-                                            Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already exists. waiting for the other side to close connection.");
-//                                            this.stop();
-                                        }
-
-                                    } else {
-                                        Lok.debug("leaving for IsolationProcess");
-                                        IMelService service = melAuthSocket.getMelAuthService().getMelService(finalIsolationDetails.getTargetService());
-                                        Class<? extends MelIsolatedProcess> isolatedClass = (Class<? extends MelIsolatedProcess>) getClass().forName(finalIsolationDetails.getProcessClass());
-                                        MelIsolatedProcess isolatedProcess = MelIsolatedProcess.instance(isolatedClass, melAuthSocket, service, partnerCertificate.getId().v(), finalIsolationDetails.getSourceService(), finalIsolationDetails.getIsolationUuid());
-                                        isolatedProcess.setService(service);
-                                        service.onIsolatedConnectionEstablished(isolatedProcess);
-                                        send(response);
-                                    }
-                                } else {
-                                    response.setState(MelStrings.msg.STATE_ERR);
-                                    send(response);
-                                }
-                            } catch (Exception e) {
-                                Lok.error("leaving socket, because of EXCEPTION: " + e.toString());
-                                MelAuthProcess.this.removeThyself();
+                        MelResponse response = request.reponse();
+                        if (isolationDetails == null) {
+                            partnerAuthenticated = true;
+                            MelValidationProcess validationProcess = new MelValidationProcess(socket, partnerCertificate, true);
+                            if (melAuthSocket.getMelAuthService().registerValidationProcess(validationProcess)) {
+                                // get all allowed Services
+                                MelAuthProcess.addAllowedServices(melAuthSocket.getMelAuthService(), partnerCertificate, response);
+                                send(response);
+                                // done here, set up validationprocess
+                                Lok.debug(melAuthSocket.getMelAuthService().getName() + " AuthProcess leaves socket");
+                                // propagate that we are connected!
+                                // note: if the connection is incoming, we cannot use the ports from the socket here.
+                                // whenever an outgoing connection is set up a random high port is used to do so (port 50k+)
+                                propagateAuthentication(this.partnerCertificate, socket.getSocket().getInetAddress().getHostAddress(), partnerCertificate.getPort().v());
+                            } else {
+                                Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already exists. waiting for the other side to close connection.");
                             }
-                        });
-                        send(answer);
+                        } else {
+                            Lok.debug("leaving for IsolationProcess");
+                            IMelService service = melAuthSocket.getMelAuthService().getMelService(isolationDetails.getTargetService());
+                            Class<? extends MelIsolatedProcess> isolatedClass = (Class<? extends MelIsolatedProcess>) getClass().forName(isolationDetails.getProcessClass());
+                            MelIsolatedProcess isolatedProcess = MelIsolatedProcess.instance(isolatedClass, melAuthSocket, service, partnerCertificate.getId().v(), isolationDetails.getSourceService(), isolationDetails.getIsolationUuid());
+                            isolatedProcess.setService(service);
+                            service.onIsolatedConnectionEstablished(isolatedProcess);
+                            send(response);
+                        }
                     } catch (Exception e) {
-                        Lok.debug("leaving, because of exception: " + e.toString());
+                        Lok.error("leaving socket, because of EXCEPTION: " + e.toString());
                         e.printStackTrace();
+                        refuse(request, socket);
                     }
                 } else
                     Lok.debug("MelAuthProcess.onMessageReceived.ELSE1");
@@ -136,6 +115,14 @@ public class MelAuthProcess extends MelProcess {
                 e1.printStackTrace();
             }
         }
+    }
+
+    /**
+     * tells the peer that it is not welcome and hangs up
+     */
+    private void refuse(MelRequest request, MelAuthSocket socket) {
+        N.r(() -> send(request.respondError(null)));
+        N.s(() -> socket.disconnect());
     }
 
 
@@ -159,24 +146,24 @@ public class MelAuthProcess extends MelProcess {
         return getClass().getSimpleName() + "." + melAuthSocket.getMelAuthService().getName();
     }
 
+    /**
+     * Client side. TLS has already authenticated both of us: we trust the server's certificate (it is in our keystore since pairing)
+     * and the server saw ours. The request only tells the server what we want, the response tells us whether it accepted us.
+     */
     void authenticate(AConnectJob job) {
         final Long id = job.getCertificateId();
         final String address = job.getAddress();
         final Integer port = job.getPort();
         try {
             melAuthSocket.connectSSL(id, address, port);
-            mySecret = CertificateManager.randomUUID().toString();
             if (partnerCertificate == null)
                 this.partnerCertificate = melAuthSocket.getTrustedPartnerCertificate();
             N runner = new N(e -> {
                 e.printStackTrace();
                 job.reject(e);
             });
-            this.mySecret = CertificateManager.randomUUID().toString();
-            byte[] secret = Cryptor.encrypt(partnerCertificate, mySecret);
             MelRequest request = new MelRequest(MelStrings.SERVICE_NAME, MelStrings.msg.INTENT_AUTH)
-                    .setRequestHandler(this).queue().setSecret(secret)
-                    .setUserUuid(partnerCertificate.getAnswerUuid().v());
+                    .setRequestHandler(this).queue();
             if (job instanceof IsolatedConnectJob) {
                 IsolatedConnectJob isolatedConnectJob = (IsolatedConnectJob) job;
                 IsolationDetails isolationDetails = new IsolationDetails()
@@ -187,68 +174,51 @@ public class MelAuthProcess extends MelProcess {
                 request.setPayLoad(isolationDetails);
             }
             request.getAnswerDeferred().done(result -> {
-                MelRequest r = (MelRequest) result;
-                if (r.getDecryptedSecret().equals(this.mySecret)) {
-                    runner.runTry(() -> {
-                        decryptedSecret = melAuthSocket.getMelAuthService().getCertificateManager().decrypt(r.getSecret());
-                        MelRequest answer = r.request()
-                                .setDecryptedSecret(decryptedSecret)
-                                .setAuthenticated(true)
-                                .setRequestHandler(this).queue();
-                        answer.getAnswerDeferred().done(result1 -> {
-                            runner.runTry(() -> {
-                                if (job instanceof ConnectJob) {
-                                    // check if already connected to that cert
-                                    MelValidationProcess validationProcess = new MelValidationProcess(melAuthSocket, partnerCertificate, false);
-                                    if (melAuthSocket.getMelAuthService().registerValidationProcess(validationProcess)) {
-                                        // propagate that we are connected!
-                                        propagateAuthentication(partnerCertificate, melAuthSocket.getSocket().getInetAddress().getHostAddress(), melAuthSocket.getSocket().getPort());
-                                        // done here, set up validationprocess
-                                        Lok.debug(melAuthSocket.getMelAuthService().getName() + " AuthProcess leaves socket");
-                                        // tell MAS we are connected & authenticated
-                                        job.resolve(validationProcess);
-                                        //
-                                        final Long[] actualRemoteCertId = new Long[1];
-                                        runner.runTry(() -> {
-                                            actualRemoteCertId[0] = (job.getCertificateId() == null) ? partnerCertificate.getId().v() : job.getCertificateId();
-                                            melAuthSocket.getMelAuthService().updateCertAddresses(actualRemoteCertId[0], address, port, job.getPortCert());
-                                        });
-                                    } else {
-                                        Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already existing. closing... v=" + melAuthSocket.getV());
-                                        job.resolve(validationProcess);
-                                        return;
-                                    }
-
-
-                                } else if (job instanceof IsolatedConnectJob) {
-                                    IsolatedConnectJob isolatedConnectJob = (IsolatedConnectJob) job;
-                                    if (partnerCertificate.getId().v() != job.getCertificateId()) {
-                                        job.reject(new Exception("not the partner I expected"));
-                                    } else {
-                                        Lok.debug("MelAuthProcess.authenticate465");
-                                        IMelService service = melAuthSocket.getMelAuthService().getMelService(isolatedConnectJob.getOwnServiceUuid());
-                                        Class isolatedProcessClass = isolatedConnectJob.getProcessClass();
-                                        MelIsolatedProcess melIsolatedProcess = MelIsolatedProcess.instance(isolatedProcessClass, melAuthSocket, service, partnerCertificate.getId().v(), isolatedConnectJob.getRemoteServiceUuid(), isolatedConnectJob.getIsolatedUuid());
-                                        Promise<Void, Exception, Void> isolated = melIsolatedProcess.sendIsolate();
-                                        isolated.done(nil -> {
-                                            service.onIsolatedConnectionEstablished(melIsolatedProcess);
-                                            melIsolatedProcess.setService(service);
-                                            job.resolve(melIsolatedProcess);
-                                        }).fail(excc -> job.reject(excc));
-                                    }
-                                }
-
-                            });
-                        });
-                        send(answer);
-                    });
-                } else {
-                    //error stuff
-                    Lok.debug("MelAuthProcess.authenticate.error.decrypted.secret: " + r.getDecryptedSecret());
-                    Lok.debug("MelAuthProcess.authenticate.error.should.be: " + mySecret);
-                    job.reject(new Exception("find aok39ka"));
+                if (result instanceof MelResponse && MelStrings.msg.STATE_ERR.equals(((MelResponse) result).getState())) {
+                    job.reject(new Exception("the server refused to authenticate us"));
+                    return;
                 }
-            });
+                runner.runTry(() -> {
+                    if (job instanceof ConnectJob) {
+                        // check if already connected to that cert
+                        MelValidationProcess validationProcess = new MelValidationProcess(melAuthSocket, partnerCertificate, false);
+                        if (melAuthSocket.getMelAuthService().registerValidationProcess(validationProcess)) {
+                            // propagate that we are connected!
+                            propagateAuthentication(partnerCertificate, melAuthSocket.getSocket().getInetAddress().getHostAddress(), melAuthSocket.getSocket().getPort());
+                            // done here, set up validationprocess
+                            Lok.debug(melAuthSocket.getMelAuthService().getName() + " AuthProcess leaves socket");
+                            // tell MAS we are connected & authenticated
+                            job.resolve(validationProcess);
+                            //
+                            final Long[] actualRemoteCertId = new Long[1];
+                            runner.runTry(() -> {
+                                actualRemoteCertId[0] = (job.getCertificateId() == null) ? partnerCertificate.getId().v() : job.getCertificateId();
+                                melAuthSocket.getMelAuthService().updateCertAddresses(actualRemoteCertId[0], address, port, job.getPortCert());
+                            });
+                        } else {
+                            Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already existing. closing... v=" + melAuthSocket.getV());
+                            job.resolve(validationProcess);
+                            return;
+                        }
+                    } else if (job instanceof IsolatedConnectJob) {
+                        IsolatedConnectJob isolatedConnectJob = (IsolatedConnectJob) job;
+                        if (partnerCertificate.getId().v() != job.getCertificateId()) {
+                            job.reject(new Exception("not the partner I expected"));
+                        } else {
+                            Lok.debug("MelAuthProcess.authenticate465");
+                            IMelService service = melAuthSocket.getMelAuthService().getMelService(isolatedConnectJob.getOwnServiceUuid());
+                            Class isolatedProcessClass = isolatedConnectJob.getProcessClass();
+                            MelIsolatedProcess melIsolatedProcess = MelIsolatedProcess.instance(isolatedProcessClass, melAuthSocket, service, partnerCertificate.getId().v(), isolatedConnectJob.getRemoteServiceUuid(), isolatedConnectJob.getIsolatedUuid());
+                            Promise<Void, Exception, Void> isolated = melIsolatedProcess.sendIsolate();
+                            isolated.done(nil -> {
+                                service.onIsolatedConnectionEstablished(melIsolatedProcess);
+                                melIsolatedProcess.setService(service);
+                                job.resolve(melIsolatedProcess);
+                            }).fail(excc -> job.reject(excc));
+                        }
+                    }
+                });
+            }).fail(e -> job.reject(e));
             send(request);
         } catch (Exception e) {
             Lok.error("Exception occured: " + e.toString() + " v=" + melAuthSocket.getV());

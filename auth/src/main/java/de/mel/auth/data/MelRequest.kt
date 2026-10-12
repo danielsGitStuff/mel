@@ -23,14 +23,6 @@ class MelRequest() : MelMessage() {
     private var requestHandler: IRequestHandler? = null
     @JsonIgnore
     val answerDeferred: DeferredObject<SerializableEntity, ResponseException, Void> = DeferredObject()
-    var secret: ByteArray? = null
-        private set
-    var decryptedSecret: String? = null
-        private set
-    var userUuid: String? = null
-        private set
-    var authenticated: Boolean? = null
-        private set
     var certificate: Certificate? = null
         private set
 
@@ -72,26 +64,6 @@ class MelRequest() : MelMessage() {
 
     fun setAnswerId(answerId: Long): MelRequest {
         this.answerId = answerId
-        return this
-    }
-
-    fun setSecret(secret: ByteArray): MelRequest {
-        this.secret = secret
-        return this
-    }
-
-    fun setDecryptedSecret(decryptedSecret: String?): MelRequest {
-        this.decryptedSecret = decryptedSecret
-        return this
-    }
-
-    fun setUserUuid(userUuid: String?): MelRequest {
-        this.userUuid = userUuid
-        return this
-    }
-
-    fun setAuthenticated(authenticated: Boolean): MelRequest {
-        this.authenticated = authenticated
         return this
     }
 

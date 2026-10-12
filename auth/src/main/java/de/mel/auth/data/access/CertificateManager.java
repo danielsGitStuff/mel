@@ -5,7 +5,6 @@ import de.mel.auth.data.db.Certificate;
 import de.mel.auth.data.db.dao.CertificateDao;
 import de.mel.auth.file.IFile;
 import de.mel.auth.file.StandardFile;
-import de.mel.auth.tools.Cryptor;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.lock2.BunchOfLocks;
 import de.mel.auth.tools.lock2.P;
@@ -310,10 +309,46 @@ public class CertificateManager extends FileRelatedManager {
         kmf.init(keyStore, PASS.toCharArray());
         TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
         tmf.init(keyStore);
+        TrustManager[] trustManagers = tmf.getTrustManagers();
+        for (int i = 0; i < trustManagers.length; i++) {
+            if (trustManagers[i] instanceof X509TrustManager)
+                trustManagers[i] = new PairingTrustManager((X509TrustManager) trustManagers[i]);
+        }
         SSLContext sslContext = null;
         sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), new SecureRandom());
+        sslContext.init(kmf.getKeyManagers(), trustManagers, new SecureRandom());
         return sslContext;
+    }
+
+    /**
+     * Servers are checked against the keystore (the devices we are paired with).
+     * Clients are accepted by TLS no matter what certificate they show, because pairing starts with certificates we do not know yet.
+     * That is safe: the TLS handshake still makes the client prove that it owns the private key of the certificate it shows.
+     * Whether we <b>trust</b> that certificate is decided by its hash, see {@link de.mel.auth.socket.MelAuthSocket#getTrustedPartnerCertificate()}.
+     */
+    private static class PairingTrustManager implements X509TrustManager {
+        private final X509TrustManager serverTrust;
+
+        private PairingTrustManager(X509TrustManager serverTrust) {
+            this.serverTrust = serverTrust;
+        }
+
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType) {
+            if (chain == null || chain.length == 0)
+                throw new IllegalArgumentException("no client certificate");
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+            serverTrust.checkServerTrusted(chain, authType);
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            // an empty list tells clients to show their certificate whoever issued it. We do not have a CA, every certificate is self signed.
+            return new X509Certificate[0];
+        }
     }
 
 
@@ -322,13 +357,7 @@ public class CertificateManager extends FileRelatedManager {
         return factory.createSocket();
     }
 
-    public byte[] encrypt(String original) throws NoSuchPaddingException, NoSuchAlgorithmException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, ClassNotFoundException {
-        return Cryptor.encrypt(publicKey, original);
-    }
 
-    public String decrypt(byte[] encrypted) throws NoSuchPaddingException, NoSuchAlgorithmException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, ClassNotFoundException {
-        return Cryptor.decrypt(privateKey, encrypted);
-    }
 
     public Certificate getTrustedCertificateByUuid(String uuid) throws SqlQueriesException {
         return certificateDao.getTrustedCertificateByUuid(uuid);
@@ -399,6 +428,8 @@ public class CertificateManager extends FileRelatedManager {
     @SuppressWarnings("Duplicates")
     public SSLServerSocket createServerSocket() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
         SSLServerSocket socket = (SSLServerSocket) getSSLContext().getServerSocketFactory().createServerSocket();
+        // 'want', not 'need': clients without a certificate (e.g. update checks) may connect, they just cannot authenticate
+        socket.setWantClientAuth(true);
         try {
             socket.setEnabledProtocols(new String[]{"TLSv1.2"});
         } catch (Exception e) {
