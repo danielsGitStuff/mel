@@ -1,25 +1,4 @@
 // build-logic/build.gradle
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        // Use your versions from the TOML file
-        def versionKotlinGradle = libs.versions.kotlin.gradle.get().toString()
-        def versionAndroidBuild = libs.versions.androidGradlePluginVersion.get()
-//        def gradlePlugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:${libs.versions.kotlin.asProvider().get()}"
-//        def buildPlugin = "com.android.tools.build:gradle:${libs.versions.androidGradlePluginVersion.get()}"
-        println("VERSION kotlin gradle plugin ${versionKotlinGradle}")
-        println("VERSION android tools ${versionAndroidBuild}")
-
-        classpath "com.android.tools.build:gradle:${versionAndroidBuild}"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versionKotlinGradle}"
-//        classpath "com.android.tools.build:gradle:${buildPlugin}"
-//        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${gradlePlugin}"
-    }
-}
-
 plugins {
     id 'groovy-gradle-plugin'
 }
@@ -27,8 +6,7 @@ plugins {
 
 dependencies {
     implementation libs.kotlin.gradle.plugin
-    implementation "com.android.tools.build:gradle-api:${libs.versions.androidGradlePluginVersion.get()}"
-//    implementation libs.android.gradle.plugin
+    implementation "com.android.tools.build:gradle:${libs.versions.androidGradlePluginVersion.get()}"
     implementation libs.openjfx.plugin.artifact
 }
 

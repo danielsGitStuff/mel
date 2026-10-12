@@ -1,8 +1,6 @@
 // build-logic/src/main/groovy/mel-android-application.gradle
 import org.gradle.api.attributes.Attribute
-import com.android.build.api.variant.ApplicationVariant
 import org.gradle.api.tasks.testing.Test // Import the Test task for configuration
-import com.android.build.api.component.AndroidComponentsExtension
 
 // 1. Apply core plugins (No java-library)
 plugins {
@@ -85,22 +83,4 @@ tasks.register('runUiTests', Test) {
     }
 }
 
-// 7. Hook the tasks into the Android build (Final Syntax Fix)
-//    We use a local variable (androidComponentsExtension) to avoid delegation failures.
-def androidComponentsExtension = extensions.getByType(AndroidComponentsExtension) // <-- ACCESS THE PUBLIC INTERFACE
-
-// 8. Define the action closure
-def registerVariantHooks = { ApplicationVariant variant ->
-    // Hook for the internal version.properties file
-    variant.javaCompile.dependsOn(tasks.named('generateVersionProperties'))
-
-    // Hook for the external file (for your update mechanism)
-    if (variant.name == 'debug') {
-        tasks.named("packageDebug").configure {
-            it.finalizedBy(tasks.named('generateExternalVersionProperties'))
-        }
-    }
-}
-
-// 9. Apply the action using the correct API method
-androidComponentsExtension.onVariants(registerVariantHooks)
+// TODO(android rework): generate version.properties for the APK (JVM modules get it via MelApplicationHelper)

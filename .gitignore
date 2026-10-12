@@ -13,6 +13,7 @@
 !/*.md
 !/*.pro
 !/*.sh
+!/.gitmodules
 
 # leave the gradle folder alone
 !gradle
@@ -34,7 +35,7 @@
 !/filedumpfx/
 !/filesync/
 !/filesyncfx/
-!/fun-with/
+!/fun.with
 !/fxbundle/
 !/icons/
 !/icons/**

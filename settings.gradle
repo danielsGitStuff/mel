@@ -6,6 +6,16 @@ pluginManagement {
     }
 }
 
+plugins {
+    // downloads a missing JDK (see jvmToolchain in build-logic) on machines that lack it
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+// fun.with is a git submodule; a plain clone leaves the folder empty
+if (!file('fun.with/settings.gradle').exists()) {
+    throw new GradleException("fun.with is missing or empty. Run: git submodule update --init")
+}
+
 includeBuild 'build-logic'
 includeBuild 'fun.with'
 rootProject.name = 'mel'

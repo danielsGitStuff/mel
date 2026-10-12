@@ -1,0 +1,3 @@
+[submodule "fun.with"]
+	path = fun.with
+	url = https://github.com/danielsGitStuff/fun.with.git
