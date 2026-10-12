@@ -1,43 +1,36 @@
-// We need these for timestamp and git exec
-import java.text.SimpleDateFormat
-import java.io.ByteArrayOutputStream
 
-// Function to get the current Git commit hash
+// Short hash of the current git commit, or a placeholder when git is not available.
+// providers.exec replaces the project.exec{} that is removed in Gradle 9.
 def getGitCommitHash = { ->
     try {
-        def out = new ByteArrayOutputStream()
-        exec {
-            commandLine 'git', 'rev-parse', 'HEAD'
-            standardOutput = out
-            // Don't fail the build if we're not in a git repo
-            ignoreExitValue true
+        def result = providers.exec {
+            commandLine 'git', 'rev-parse', '--short=7', 'HEAD'
+            workingDir = rootDir
+            ignoreExitValue = true
         }
-        def hash = out.toString().trim()
-        // Return a 7-char hash or a placeholder
-        return hash.isEmpty() ? 'local' : hash.take(7)
+        def hash = result.standardOutput.asText.get().trim()
+        return hash.isEmpty() ? 'local' : hash
     } catch (Exception e) {
-        // Fallback for any other error
         return "no-git"
     }
-}.call() // .call() runs this code once at the start
+}.call()
 
-// Function to generate the dynamic part of the version
+// Release builds: the miniserver Deploy writes the version (a timestamp the updater can parse) into build.tmp.version.
+// Dev builds: MAJOR.MINOR.<commit>_dev, stable between builds so tasks stay up to date. Dev versions are not
+// parseable by the updater on purpose, they must not update themselves.
 def getProjectVersion = { ->
     File f = new File(projectDir, "build.tmp.version")
     if (f.exists()) {
-        // 1. Use the version from the file if it exists (for 'Deploy')
         println "Using version from build.tmp.version"
         return f.readLines().get(0)
     } else {
-        // 2. Fallback for local dev builds (reads from gradle.properties)
         def major = project.findProperty('melMajorVersion') ?: '1'
         def minor = project.findProperty('melMinorVersion') ?: '0'
-        def dynamic = new SimpleDateFormat("yyyy.MM.dd.HHmmss").format(new Date())
-        def version = "${major}.${minor}.${dynamic}_dev"
-        println "Generating dev version: ${version.toString()}"
+        def version = "${major}.${minor}.${getGitCommitHash}_dev"
+        println "Generating dev version: ${version}"
         return version
     }
-}.call() // .call() runs this once at the start
+}.call()
 
 allprojects {
     group = 'de.mel'

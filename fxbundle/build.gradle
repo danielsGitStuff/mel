@@ -13,9 +13,6 @@ dependencies {
 application {
     mainClass = 'de.mel.fxbundle.Main'
 }
-javafx {
-    mainClassName = 'de.mel.fxbundle.Main'
-}
 
 // This manually adds all of 'filesync's test classes
 // to this project's test compile and runtime classpaths.
