@@ -142,4 +142,23 @@ tasks.register('runUiTests', Test) {
     }
 }
 
-// TODO(android rework): generate version.properties for the APK (JVM modules get it via MelApplicationHelper)
+// The app itself reads version/commit/variant from BuildConfig (see MainActivity), so no bundled version.properties.
+// The update mechanism (miniserver Deploy) wants "<apk name>.properties" next to every apk, like the jars get one.
+def commitForProps = commit
+def versionForProps = buildVersion
+tasks.register('generateExternalVersionProperties') {
+    description = 'Writes <apk>.properties (version, commit, variant) next to every built apk'
+    doLast {
+        def variantName = project.findProperty('variant') ?: 'apk'
+        fileTree(dir: layout.buildDirectory.dir('outputs/apk').get().asFile, include: '**/*.apk').each { apk ->
+            def props = new Properties()
+            props['version'] = versionForProps
+            props['commit'] = commitForProps
+            props['variant'] = variantName.toString()
+            new File(apk.parentFile, apk.name + '.properties').withWriter { w -> props.store(w, null) }
+        }
+    }
+}
+tasks.matching { it.name == 'assembleDebug' || it.name == 'assembleRelease' }.configureEach { t ->
+    t.finalizedBy(tasks.named('generateExternalVersionProperties'))
+}

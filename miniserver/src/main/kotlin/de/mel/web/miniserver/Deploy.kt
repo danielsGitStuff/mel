@@ -97,36 +97,36 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
 
 
                 if (buildRequest.jar!!)
-                    processList.add(Processor(gradle.absolutePath, ":fxbundle:bootJar"))
+                    processList.add(Processor(gradle.absolutePath, ":fxbundle:fatJar"))
                 if (buildRequest.apk!!)
                     processList.add(Processor(gradle.absolutePath, ":android:assembleRelease"))
                 if (buildRequest.server!!)
-                    processList.add(Processor(gradle.absolutePath, ":miniserver:bootJar"))
+                    processList.add(Processor(gradle.absolutePath, ":miniserver:fatJar"))
                 if (buildRequest.blog!!)
-                    processList.add(Processor(gradle.absolutePath, ":blog:bootJar"))
+                    processList.add(Processor(gradle.absolutePath, ":blog:fatJar"))
                 Processor.runProcesses("assemble/build", *processList.toTypedArray())
 
 
                 //copy MiniServer.jar
                 processList.clear()
                 if (buildRequest.server!!) {
-                    val miniServerSource = File("${projectRootDir.absolutePath}/miniserver/build/libs/").listFiles().filter { it.name.endsWith(".jar") }.first()
+                    val miniServerSource = File("${projectRootDir.absolutePath}/miniserver/build/libs/").listFiles().filter { it.name.endsWith("-fat.jar") }.first()
                     processList.add(Processor("cp", miniServerSource.absolutePath, miniServerTarget.absolutePath))
                 }
                 var apkFile: File? = null
                 var fxFile: File? = null
                 var blogFile: File? = null
                 if (buildRequest.apk!!) {
-                    processList.add(Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/app/build/outputs/apk/release/\"* \"${serverFilesDir.absolutePath}\""))
-                    apkFile = File("${projectRootDir.absolutePath}/app/build/outputs/apk/release/").listFiles().filter { it.extension.lowercase() == "apk" }.first()
+                    processList.add(Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/android/build/outputs/apk/release/\"* \"${serverFilesDir.absolutePath}\""))
+                    apkFile = File("${projectRootDir.absolutePath}/android/build/outputs/apk/release/").listFiles().filter { it.extension.lowercase() == "apk" }.first()
                 }
                 if (buildRequest.jar!!) {
                     processList.add(Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/fxbundle/build/libs/\"* \"${serverFilesDir.absolutePath}\""))
-                    fxFile = File("${projectRootDir.absolutePath}/fxbundle/build/libs/").listFiles().filter { it.extension.lowercase() == "jar" }.first()
+                    fxFile = File("${projectRootDir.absolutePath}/fxbundle/build/libs/").listFiles().filter { it.name.endsWith("-fat.jar") }.first()
                 }
                 if (buildRequest.blog!!) {
                     processList.add(Processor("/bin/sh", "-c", "cp \"${projectRootDir.absolutePath}/blog/build/libs/\"* \"${serverFilesDir.absolutePath}\""))
-                    blogFile = File("${projectRootDir.absolutePath}/blog/build/libs/").listFiles().filter { it.extension.lowercase() == "jar" }.first()
+                    blogFile = File("${projectRootDir.absolutePath}/blog/build/libs/").listFiles().filter { it.name.endsWith("-fat.jar") }.first()
                 }
                 processList.add(Processor("rm", "-f", "${File(serverFilesDir, "output.json")}"))
                 processList.add(Processor("/bin/sh", "-c", "chmod -R 700 \"$serverFilesDir\""))
