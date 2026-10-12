@@ -364,6 +364,25 @@ public class AuthHandshakeTest {
         assertEquals(1, opened.getCount(), "the client believes it has an isolated connection to a service it has no access to");
     }
 
+    /**
+     * Certificate ids are Longs. Ids above 127 are no longer cached boxed objects, so comparing them with == breaks.
+     */
+    @Test
+    public void isolatedConnectionWorksWithLargeCertificateIds() throws Exception {
+        for (int i = 0; i < 130; i++) {
+            Certificate filler = client.getCertificateManager().importCertificate(
+                    CertificateCreator.generateCertificate(strangersKeys(), "filler" + i), "filler" + i, UUID.randomUUID().toString(), "localhost", 1, 1);
+            client.getCertificateManager().trustCertificate(filler.getId().v(), false);
+        }
+        Long serverCertId = pair();
+        assertTrue(serverCertId > 127, "test setup: the server's certificate id must be above 127, was " + serverCertId);
+        server.getDatabaseManager().grant(serverServiceId(), server.getCertificateManager().getTrustedCertificates().get(0).getId().v());
+        CountDownLatch opened = new CountDownLatch(1);
+        client.connectToService(TestIsolatedProcess.class, serverCertId, serverService.getUuid(), clientService.getUuid(), null, null, null)
+                .done(p -> opened.countDown());
+        assertTrue(opened.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), "isolated connection failed for a certificate id above 127");
+    }
+
     @Test
     public void pairedClientWithAccessCanOpenAnIsolatedConnection() throws Exception {
         Long serverCertId = pair();

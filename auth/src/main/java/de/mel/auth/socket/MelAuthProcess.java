@@ -7,6 +7,7 @@ import org.jdeferred.Promise;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 import de.mel.Lok;
 import de.mel.auth.MelStrings;
@@ -207,7 +208,7 @@ public class MelAuthProcess extends MelProcess {
                         }
                     } else if (job instanceof IsolatedConnectJob) {
                         IsolatedConnectJob isolatedConnectJob = (IsolatedConnectJob) job;
-                        if (partnerCertificate.getId().v() != job.getCertificateId()) {
+                        if (!Objects.equals(partnerCertificate.getId().v(), job.getCertificateId())) {
                             job.reject(new Exception("not the partner I expected"));
                         } else {
                             Lok.debug("MelAuthProcess.authenticate465");
