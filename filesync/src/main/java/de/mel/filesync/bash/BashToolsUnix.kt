@@ -264,6 +264,29 @@ open class BashToolsUnix : BashTools<StandardFile>() {
     }
 
 
-    override fun stuffModifiedAfter(directory: StandardFile, pruneDir: StandardFile, timeStamp: Long): AutoKlausIterator<StandardFile> = AutoKlausIterator.EmptyAutoKlausIterator()
+    /**
+     * Everything below [directory] that was modified after [timeStamp] (ms), except what lives in [pruneDir].
+     * [directory] itself is included if it was modified at or after [timeStamp]. Same semantics as the Windows implementation.
+     */
+    override fun stuffModifiedAfter(directory: StandardFile, pruneDir: StandardFile, timeStamp: Long): AutoKlausIterator<StandardFile> {
+        val root = Paths.get(directory.absolutePath)
+        val prune = pruneDir.absolutePath
+        val stream = Files.walk(root)
+        val iterator = stream
+            .filter { path ->
+                val f = path.toFile()
+                val pruned = f.absolutePath == prune || f.absolutePath.startsWith(prune + File.separator)
+                val modified = f.lastModified()
+                !pruned && if (path == root) modified >= timeStamp else modified > timeStamp
+            }
+            .map { StandardFile(it.toFile().absolutePath) }
+            .iterator()
+        return object : AutoKlausIterator<StandardFile> {
+            override fun hasNext(): Boolean = iterator.hasNext()
+            override fun next(): StandardFile = iterator.next()
+            override fun close() = stream.close()
+        }
+    }
+
 
 }

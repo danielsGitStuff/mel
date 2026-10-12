@@ -28,6 +28,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 /**
@@ -72,18 +73,12 @@ public class CertificateManagerTest {
 
     @Test
     public void registerCertificateFail() throws Exception, SqlQueriesException {
-        // todo it supposedly throws an index out of bounds exception
         X509Certificate x509Certificate = genCert();
-        byte[] byteCert = x509Certificate.getEncoded();
         UUID uuid = CertificateManager.randomUUID();
         Certificate buildCertificate = certificateManager.importCertificate(x509Certificate, "testname", uuid.toString(), null, null, null);
-        // the next line should return n zero length list, cause the certificate is not trusted now
-        Certificate dbCertificate = certificateManager.getTrustedCertificates().get(0);
-        X509Certificate dbX509Certificate = CertificateManager.loadX509CertificateFromBytes(dbCertificate.getCertificate().v());
-        assertEquals(x509Certificate, dbX509Certificate);
         assertNotNull(buildCertificate.getId().v());
-        buildCertificate.setId(dbCertificate.getId().v());
-        assertEquals(Arrays.toString(byteCert), Arrays.toString(dbCertificate.getCertificate().v()));
+        // the certificate was imported but never trusted, so it must not show up as trusted
+        assertTrue(certificateManager.getTrustedCertificates().isEmpty());
     }
 
     @Test
