@@ -10,12 +10,9 @@ application {
 
 // 2. Add all dependencies using our central libs
 dependencies {
-    implementation libs.kotlin.coroutines
-    implementation libs.kotlin.io
     implementation project(':konsole')
     implementation project(':auth')
     implementation project(':serverparts')
-    implementation libs.sqlite.jdbc
 
     // testImplementation for JUnit is already in the plugin
     testImplementation project(':auth')

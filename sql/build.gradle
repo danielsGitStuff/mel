@@ -4,7 +4,6 @@ plugins {
 
 dependencies {
     api project(':serialize')
-    implementation libs.kotlin.coroutines
     testImplementation project(':testtools')
     implementation libs.kotlin.stdlib
     testImplementation libs.sqlite.jdbc

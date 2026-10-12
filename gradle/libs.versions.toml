@@ -3,11 +3,9 @@
 
 [versions]
 # Core
-java = "17"
+java = "21"
 kotlin = "2.2.21"
-kotlin-gradle = "2.2.21"
 kotlin-coroutines = "1.10.2"
-kotlin-io = "0.1.16"
 
 # PC (JavaFX)
 javafx = "21.0.9"
@@ -46,12 +44,10 @@ junit6-engine = { module = "org.junit.jupiter:junit-jupiter-engine" }
 junit6-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 junit6-platform-commons = { module = "org.junit.platform:junit-platform-commons" }
 
-
 # runtime & compile
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlin-coroutines" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-kotlin-io = { module = "org.jetbrains.kotlinx:kotlinx-io-jvm", version.ref = "kotlin-io" }
 javafx-base = { module = "org.openjfx:javafx-base", version.ref = "javafx" }
 javafx-graphics = { module = "org.openjfx:javafx-graphics", version.ref = "javafx" }
 javafx-controls = { module = "org.openjfx:javafx-controls", version.ref = "javafx" }
@@ -59,10 +55,6 @@ javafx-fxml = { module = "org.openjfx:javafx-fxml", version.ref = "javafx" }
 javafx-swing = { module = "org.openjfx:javafx-swing", version.ref = "javafx" }
 javafx-web = { module = "org.openjfx:javafx-web", version.ref = "javafx" }
 openjfx-plugin-artifact = { module = "org.openjfx:javafx-plugin", version.ref = "javafxPlugin" }
-
-# android
-android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "androidGradlePluginVersion" }
-android-gradle-api = { module = "com.android.tools.build:gradle-api", version.ref = "androidGradlePluginVersion" }
 
 androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppcompat" }
@@ -74,10 +66,3 @@ androidx-navigation-ui = { module = "androidx.navigation:navigation-ui-ktx", ver
 
 [bundles]
 androidx = ["androidx-core", "androidx-appcompat", "androidx-material", "androidx-gridlayout", "androidx-constraintlayout", "androidx-navigation-fragment", "androidx-navigation-ui"]
-
-[plugins]
-# Plugins we will use in our convention plugins
-android-application = { id = "com.android.application", version.ref = "androidGradlePluginVersion" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-openjfx-plugin-id = { id = "org.openjfx.javafx-plugin", version.ref = "javafxPlugin" }
