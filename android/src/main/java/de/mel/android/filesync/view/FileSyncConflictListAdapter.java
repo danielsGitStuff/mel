@@ -53,7 +53,7 @@ public class FileSyncConflictListAdapter extends BaseAdapter {
             if (FileSyncConflictListAdapter.this.upperConflict != null) {
                 Collection<Conflict> conflicts = null;
                 if (FileSyncConflictListAdapter.this.upperConflict.hasParent())
-                    conflicts = FileSyncConflictListAdapter.this.upperConflict.getParent().getChildren();
+                    conflicts = FileSyncConflictListAdapter.this.upperConflict.getParent().getChildren().get();
                 if (conflicts == null)
                     conflicts = rootConflicts;
                 init(FileSyncConflictListAdapter.this.upperConflict.getParent(), conflicts);
@@ -163,7 +163,7 @@ public class FileSyncConflictListAdapter extends BaseAdapter {
         //setup click listener
         view.setOnClickListener(vv -> {
             if (conflict.hasChildren()) {
-                init(conflict, conflict.getChildren());
+                init(conflict, conflict.getChildren().get());
                 FileSyncConflictListAdapter.this.notifyDataSetChanged();
             }
         });

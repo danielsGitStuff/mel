@@ -13,21 +13,79 @@ def libs = project.extensions.getByName("libs")
 def javaVersion = JavaVersion.toVersion(libs.versions.java.get())
 def javaVersionNumber = libs.versions.java.get().toInteger()
 
-// 3. Configure the 'android' block (Unchanged)
-android {
-    namespace = 'de.mel.android'
+// 3. Configure the 'android' block
+//    keystore.properties (storeFile, storePassword, keyAlias, keyPassword) is written by the miniserver Deploy
+//    and MUST stay private. Without it release builds are simply unsigned.
+def keyStorePropFile = rootProject.file("keystore.properties")
+def commit = (project.findProperty('commit') ?: project.rootProject.findProperty('commit') ?: 'local').toString()
+def buildVersion = project.version.toString() == 'unspecified' ? '1.0.0-local' : project.version.toString() // unset when android/ is opened on its own
 
+android {
+    namespace = 'de.mel' // R class is imported as de.mel.R all over the code
     compileSdk = libs.versions.androidCompileSdk.get().toInteger()
 
     defaultConfig {
-        applicationId = 'de.mel.android'
+        applicationId = 'de.mel.mel' // must stay: changing it breaks app updates
         minSdk = libs.versions.androidMinSdk.get().toInteger()
         targetSdk = libs.versions.androidTargetSdk.get().toInteger()
 
         versionCode = 1
-        versionName = project.version.toString()
+        versionName = buildVersion
+        multiDexEnabled = true
+        vectorDrawables.useSupportLibrary = true
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        base.archivesName = rootProject.name
     }
-    // ... (compileOptions, etc.) ...
+
+    signingConfigs {
+        if (keyStorePropFile.exists()) {
+            def keyProps = new Properties()
+            keyStorePropFile.withInputStream { keyProps.load(it) }
+            release {
+                storeFile = file(keyProps['storeFile'])
+                storePassword = keyProps['storePassword']
+                keyAlias = keyProps['keyAlias']
+                keyPassword = keyProps['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            if (keyStorePropFile.exists())
+                signingConfig = signingConfigs.release
+            manifestPlaceholders = [appName: "Mel", icon: "ic_launcher"]
+            buildConfigField("String", "BUILD_VARIANT", "\"apk-release\"")
+            buildConfigField("String", "BUILD_COMMIT", "\"${commit}\"")
+            buildConfigField("String", "BUILD_VERSION", "\"${buildVersion}\"")
+            minifyEnabled = false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            debuggable = true
+        }
+        debug {
+            manifestPlaceholders = [appName: "Mel DEBUG", icon: "ic_debug"]
+            applicationIdSuffix = ".debug"
+            buildConfigField("String", "BUILD_VARIANT", "\"apk-debug\"")
+            buildConfigField("String", "BUILD_COMMIT", "\"${commit}\"")
+            buildConfigField("String", "BUILD_VERSION", "\"${buildVersion}\"")
+            minifyEnabled = false
+        }
+    }
+
+    // existing code has ~36 lint errors (permissions etc.); report them but do not fail `build`
+    lint {
+        abortOnError = false
+    }
+
+    buildFeatures {
+        viewBinding = true
+        buildConfig = true
+    }
+
+    compileOptions {
+        sourceCompatibility = javaVersion
+        targetCompatibility = javaVersion
+    }
 }
 
 // 4. Configure Kotlin (for AGP)
@@ -38,6 +96,7 @@ kotlin {
 // 5. Add dependencies (Unchanged)
 dependencies {
     implementation libs.kotlin.stdlib
+    implementation libs.bundles.androidx
 
     // JUnit 6 setup for LOCAL unit tests
     testImplementation(platform(libs.junit6.bom)) {

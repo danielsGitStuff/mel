@@ -5,6 +5,6 @@ git pull
 ./gradlew clean
 ./gradlew :miniserver:buildServerJar
 #./gradlew :fxbundle:buildFxJar
-#./gradlew :app:assembleRelease
+#./gradlew :android:assembleRelease
 cp miniserver/build/libs/miniserver-standalone.jar miniserver/server/miniserver.jar
 systemctl --user restart miniserver.service

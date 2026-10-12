@@ -23,9 +23,15 @@ bouncycastle-prov = "1.82"
 jdeferred = "1.2.6"
 
 androidGradlePluginVersion = "8.13.0"
-androidCompileSdk = "34"
-androidMinSdk = "24"
-androidTargetSdk = "34"
+androidxCore = "1.16.0"
+androidxAppcompat = "1.7.1"
+androidxMaterial = "1.12.0"
+androidxGridlayout = "1.1.0"
+androidxConstraintlayout = "2.2.1"
+androidxNavigation = "2.9.5"
+androidCompileSdk = "36"
+androidMinSdk = "26"
+androidTargetSdk = "36"
 
 [libraries]
 sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqliteJdbc" }
@@ -57,6 +63,17 @@ openjfx-plugin-artifact = { module = "org.openjfx:javafx-plugin", version.ref = 
 # android
 android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "androidGradlePluginVersion" }
 android-gradle-api = { module = "com.android.tools.build:gradle-api", version.ref = "androidGradlePluginVersion" }
+
+androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppcompat" }
+androidx-material = { module = "com.google.android.material:material", version.ref = "androidxMaterial" }
+androidx-gridlayout = { module = "androidx.gridlayout:gridlayout", version.ref = "androidxGridlayout" }
+androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "androidxConstraintlayout" }
+androidx-navigation-fragment = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "androidxNavigation" }
+androidx-navigation-ui = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "androidxNavigation" }
+
+[bundles]
+androidx = ["androidx-core", "androidx-appcompat", "androidx-material", "androidx-gridlayout", "androidx-constraintlayout", "androidx-navigation-fragment", "androidx-navigation-ui"]
 
 [plugins]
 # Plugins we will use in our convention plugins

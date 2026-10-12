@@ -1,0 +1,39 @@
+// Lets Android Studio open the android/ folder on its own. `./gradlew` from the repo root does NOT use this file,
+// it uses ../settings.gradle. Keep the two in sync (the module list below only needs what :android depends on).
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+}
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+// repositories and version catalog; ../build.gradle provides these when building from the repo root
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        google()
+    }
+    versionCatalogs {
+        libs {
+            from(files('../gradle/libs.versions.toml'))
+        }
+    }
+}
+
+if (!file('../fun.with/settings.gradle').exists()) {
+    throw new GradleException("fun.with is missing or empty. Run: git submodule update --init")
+}
+
+includeBuild '../build-logic'
+includeBuild '../fun.with'
+rootProject.name = 'mel'
+
+['auth', 'contacts', 'filedump', 'filesync', 'json', 'konsole', 'lok', 'serialize', 'sql', 'testtools'].each { name ->
+    include ":${name}"
+    project(":${name}").projectDir = file("../${name}")
+}

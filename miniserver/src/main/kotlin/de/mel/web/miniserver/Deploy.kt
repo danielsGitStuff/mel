@@ -53,7 +53,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                     gradleCache.deleteRecursively()
                 Processor.runProcesses("clean",
                         Processor(gradle.absolutePath, "clean"),
-                        Processor(gradle.absolutePath, ":app:clean"))
+                        Processor(gradle.absolutePath, ":android:clean"))
 
                 // create a version and write it to the "version.now" file
                 val version = kotlin.run {
@@ -99,7 +99,7 @@ class Deploy(val miniServer: MiniServer, private val secretFile: File, val build
                 if (buildRequest.jar!!)
                     processList.add(Processor(gradle.absolutePath, ":fxbundle:bootJar"))
                 if (buildRequest.apk!!)
-                    processList.add(Processor(gradle.absolutePath, ":app:assembleRelease"))
+                    processList.add(Processor(gradle.absolutePath, ":android:assembleRelease"))
                 if (buildRequest.server!!)
                     processList.add(Processor(gradle.absolutePath, ":miniserver:bootJar"))
                 if (buildRequest.blog!!)

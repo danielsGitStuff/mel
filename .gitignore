@@ -19,8 +19,10 @@
 !gradle
 
 
-!/android/app/src/
-/android/app/src/main/assets/de/mel/auth/update.server.cert
+!/android/gradle/
+!/android/gradle/**
+!/android/src/
+/android/src/main/assets/de/mel/auth/update.server.cert
 
 
 # add every project

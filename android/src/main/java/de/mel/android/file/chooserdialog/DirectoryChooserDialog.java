@@ -145,7 +145,7 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
         final NWrap.BWrap isRoot = new NWrap.BWrap(true);
         Deferred<IFile, Void, Void> deferred = new DeferredObject<>();
         Intent intent = new Intent(activity, DirectoryChooserDialog.class);
-        FilesActivityPayload payload = new FilesActivityPayload(Lists.wrap(rootDirectories).map(IFile::getAbsolutePath).get());
+        FilesActivityPayload payload = new FilesActivityPayload(Lists.wrap(java.util.Arrays.asList(rootDirectories)).map(IFile::getAbsolutePath).get());
         activity.launchActivityForResult(intent, (resultCode, result) -> {
             if (resultCode == AppCompatActivity.RESULT_OK) {
                 String path = result.getStringExtra(AndroidFileSyncStrings.DIR_CHOOSER_KEY);

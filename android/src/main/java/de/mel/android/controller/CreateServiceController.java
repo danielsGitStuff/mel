@@ -90,7 +90,7 @@ public class CreateServiceController extends WakelockedGuiController implements 
     private void showSelected() {
         N.r(() -> {
             bootLoader = (AndroidBootLoader) spinner.getSelectedItem();
-            PermissionsManager2 permissionsManager = new PermissionsManager2(mainActivity, Lists.wrap(bootLoader.getPermissions()).get());
+            PermissionsManager2 permissionsManager = new PermissionsManager2(mainActivity, Lists.wrap(java.util.Arrays.asList(bootLoader.getPermissions())).get());
 //            N.forEach(bootLoader.getPermissions(), permissionsManager::addPermission);
             if (bootLoader != null) {
                 embedded.removeAllViews();
