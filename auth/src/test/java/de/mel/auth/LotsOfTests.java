@@ -1,7 +1,5 @@
 package de.mel.auth;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Created by xor on 12/15/16.

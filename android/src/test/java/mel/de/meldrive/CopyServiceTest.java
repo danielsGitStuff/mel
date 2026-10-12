@@ -1,8 +1,8 @@
 package mel.de.meldrive;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,7 +20,7 @@ import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.filesync.bash.BashTools;
 import de.mel.sql.Hash;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CopyServiceTest {
     private File testdir;
@@ -29,7 +29,7 @@ public class CopyServiceTest {
     private Path srcPath;
     private byte[] srcBytes;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         BashTools.Companion.init();
         AbstractFile.configure(new DefaultFileConfiguration());
@@ -62,7 +62,7 @@ public class CopyServiceTest {
         assertEquals(hash2, hash3);
     }
 
-    @After
+    @AfterEach
     public void after() throws IOException {
 //        BashTools.Companion.rmRf(AFile.instance(testdir));
     }
