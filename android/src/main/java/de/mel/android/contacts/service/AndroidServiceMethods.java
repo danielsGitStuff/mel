@@ -79,9 +79,9 @@ public class AndroidServiceMethods {
         while (contactCursor.moveToNext()) {
             // read rawId first
             Contact contact = new Contact();
-            final String contactId = contactCursor.getString(contactCursor.getColumnIndex(ContactsContract.Contacts._ID));
-            final String photoFileId = contactCursor.getString(contactCursor.getColumnIndex(ContactsContract.Contacts.PHOTO_FILE_ID));
-            contact.getAndroidId().v(contactCursor.getLong(contactCursor.getColumnIndex(ContactsContract.Contacts.NAME_RAW_CONTACT_ID)));
+            final String contactId = contactCursor.getString(contactCursor.getColumnIndexOrThrow(ContactsContract.Contacts._ID));
+            final String photoFileId = contactCursor.getString(contactCursor.getColumnIndexOrThrow(ContactsContract.Contacts.PHOTO_FILE_ID));
+            contact.getAndroidId().v(contactCursor.getLong(contactCursor.getColumnIndexOrThrow(ContactsContract.Contacts.NAME_RAW_CONTACT_ID)));
             String rawContactId = contact.getAndroidId().v().toString();
             readAppendices(contact, rawContactId);
             readPhoto(contact, contactId);
@@ -151,7 +151,7 @@ public class AndroidServiceMethods {
     }
 
     public String read(Cursor cursor, String col) {
-        return cursor.getString(cursor.getColumnIndex(col));
+        return cursor.getString(cursor.getColumnIndexOrThrow(col));
     }
 
     private WatchDogTimer watchDogTimer;

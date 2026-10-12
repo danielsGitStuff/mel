@@ -86,7 +86,7 @@ public class AndroidAdmin implements MelAuthAdmin {
                 finalBuilder.setProgress(max, current, indeterminate);
                 finalBuilder.setContentTitle(melNotification.getTitle())
                         .setContentText(melNotification.getText());
-                notificationManager.notify(requestCode, finalBuilder.build());
+                Notifier.notify(notificationManager, requestCode, finalBuilder.build());
             }
 
             @Override
@@ -99,13 +99,13 @@ public class AndroidAdmin implements MelAuthAdmin {
                 finalBuilder.setProgress(1, 1, false);
                 finalBuilder.setContentTitle(melNotification.getTitle())
                         .setContentText(melNotification.getText());
-                notificationManager.notify(requestCode, finalBuilder.build());
+                Notifier.notify(notificationManager, requestCode, finalBuilder.build());
             }
         });
         if (!melNotification.isUserCancelable()) {
             builder.setOngoing(true);
         }
-        notificationManager.notify(requestCode, builder.build());
+        Notifier.notify(notificationManager, requestCode, builder.build());
     }
 
     @Override

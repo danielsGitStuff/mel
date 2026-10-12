@@ -1,6 +1,7 @@
 package de.mel.android;
 
 import android.Manifest;
+import androidx.activity.OnBackPressedCallback;
 import android.content.ContentProviderOperation;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -192,6 +193,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        registerBackHandler();
 //        dev();
         Tools.init(this.getApplicationContext());
         runningColor = getResources().getColor(R.color.stateRunning);
@@ -360,14 +362,22 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
     }
 
 
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        if (drawer != null && drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
+    /**
+     * Closes the navigation drawer on back, otherwise lets the system handle it. Works with predictive back gestures.
+     */
+    private void registerBackHandler() {
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                DrawerLayout drawer = findViewById(R.id.drawer_layout);
+                if (drawer != null && drawer.isDrawerOpen(GravityCompat.START)) {
+                    drawer.closeDrawer(GravityCompat.START);
+                } else {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
+        });
     }
 
     @Override

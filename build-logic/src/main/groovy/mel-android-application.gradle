@@ -72,9 +72,8 @@ android {
         }
     }
 
-    // existing code has ~36 lint errors (permissions etc.); report them but do not fail `build`
     lint {
-        abortOnError = false
+        abortOnError = true
     }
 
     packaging {

@@ -1,6 +1,7 @@
 package de.mel.android.file;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.net.Uri;
@@ -181,6 +182,7 @@ public class SAFAccessor {
     }
 
     @androidx.annotation.RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @SuppressLint("WrongConstant") // flags are masked to the grant flags, as documented for takePersistableUriPermission
     public static Promise<Void, Exception, Void> askForExternalRootDirectory(MelActivity activity) {
         DeferredObject<Void, Exception, Void> deferred = new DeferredObject<>();
         if (!hasExternalSdCard())
@@ -213,6 +215,7 @@ public class SAFAccessor {
     }
 
     @androidx.annotation.RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @SuppressLint("WrongConstant") // flags are masked to the grant flags, as documented for takePersistableUriPermission
     public static Promise<Void, Exception, Void> askForInternalRootDirectory(MelActivity activity) {
         DeferredObject<Void, Exception, Void> deferred = new DeferredObject<>();
         if (Tools.getSharedPreferences().getString(INT_STORAGE_URI, null) != null) {

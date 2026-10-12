@@ -53,7 +53,7 @@ public class ContactsToAndroidExporter {
             // delete everything first
             Cursor cursor = contentResolver.query(ContactsContract.RawContacts.CONTENT_URI, new String[]{ContactsContract.RawContacts._ID}, null, null, null);
             while (cursor.moveToNext()) {
-                String _id = cursor.getString(cursor.getColumnIndex(ContactsContract.RawContacts._ID));
+                String _id = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.RawContacts._ID));
                 List<Pair<String>> colNames = readCols(cursor);
                 Uri uri = ContactsContract.RawContacts.CONTENT_URI;
 

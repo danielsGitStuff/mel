@@ -36,7 +36,7 @@ class PermissionsManager2(
                     .setText(it.textInt)
             )
         }
-        val intent = Intent("de.mel.permissions.request")
+        val intent = Intent(context, PermissionsActivity::class.java)
         intent.putExtra(PermissionsActivity.PERMISSIONS_PAYLOAD, N.r<String> { payload.toJSON() })
         context.startActivity(intent, bundle)
     }

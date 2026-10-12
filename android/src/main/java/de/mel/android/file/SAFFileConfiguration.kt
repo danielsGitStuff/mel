@@ -1,12 +1,15 @@
 package de.mel.android.file
 
 import android.content.Context
+import android.os.Build
 import android.os.Environment
+import androidx.annotation.RequiresApi
 import androidx.documentfile.provider.DocumentFile
 import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.IFile
 import java.io.File
 
+@RequiresApi(Build.VERSION_CODES.Q)
 class SAFFileConfiguration(val context: Context) : AbstractFile.Configuration<SAFFile>() {
      var internalCache: DocFileCache? = null
     get

@@ -16,6 +16,7 @@ import androidx.core.app.NotificationManagerCompat;
 
 import android.widget.Toast;
 
+import de.mel.Lok;
 import de.mel.R;
 
 /**
@@ -23,6 +24,17 @@ import de.mel.R;
  */
 
 public class Notifier {
+
+    /**
+     * Posting needs POST_NOTIFICATIONS (API 33+), which the user may deny. Without it the notification is simply dropped.
+     */
+    public static void notify(NotificationManagerCompat manager, int requestCode, Notification notification) {
+        try {
+            manager.notify(requestCode, notification);
+        } catch (SecurityException e) {
+            Lok.error("notification dropped, POST_NOTIFICATIONS not granted");
+        }
+    }
 
     public static final String CHANNEL_ID_SOUND = "dx33rm";
     public static final String CHANNEL_ID_SILENT = "d44op";
@@ -92,7 +104,7 @@ public class Notifier {
                 .setTicker(ticker)
                 .setContentIntent(pendingIntent)
                 .build();
-        Notifier.createNotificationManager(context).notify(requestCode, notification);
+        notify(Notifier.createNotificationManager(context), requestCode, notification);
     }
 
 
@@ -105,7 +117,7 @@ public class Notifier {
                 .setTicker(ticker)
                 .setProgress(max, progress, false)
                 .build();
-        Notifier.createNotificationManager(context).notify(requestCode, notification);
+        notify(Notifier.createNotificationManager(context), requestCode, notification);
     }
 
     public static void button(int requestCode, int iconResource, @NonNull String channelId, CharSequence title, CharSequence text, PendingIntent intent) {
@@ -116,7 +128,7 @@ public class Notifier {
                 .setContentText(text)
                 .addAction(R.drawable.exchange_graphic, title, intent)
                 .build();
-        Notifier.createNotificationManager(context).notify(requestCode, notification);
+        notify(Notifier.createNotificationManager(context), requestCode, notification);
     }
 
 
@@ -128,7 +140,7 @@ public class Notifier {
                 .setContentText(text)
                 .setTicker(ticker)
                 .build();
-        Notifier.createNotificationManager(context).notify(requestCode, notification);
+        notify(Notifier.createNotificationManager(context), requestCode, notification);
     }
 
     public static void pendingNotification(int requestCode, Intent intent, @NonNull String channelId, CharSequence title, CharSequence text, CharSequence ticker) {
