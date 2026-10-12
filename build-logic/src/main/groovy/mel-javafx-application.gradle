@@ -59,6 +59,18 @@ test {
     }
 }
 
+tasks.register('runUiTests', Test) {
+    group = 'verification'
+    description = 'Runs tests tagged "ui" (GUI/manual launchers that may never return). Use --tests to pick one.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    outputs.upToDateWhen { false }
+    useJUnitPlatform {
+        includeTags 'ui'
+    }
+    testLogging.showStandardStreams = true
+}
+
 // 1. Define the output directory for our generated file
 def generatedResourcesDir = project.layout.buildDirectory.dir("generated/resources/mel")
 

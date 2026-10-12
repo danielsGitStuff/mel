@@ -62,10 +62,14 @@ test {
 
 tasks.register('runUiTests', Test) {
     group = 'verification'
-    description = 'Runs UI tests.'
+    description = 'Runs tests tagged "ui" (GUI/manual launchers that may never return). Use --tests to pick one.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    outputs.upToDateWhen { false }
     useJUnitPlatform {
         includeTags 'ui'
     }
+    testLogging.showStandardStreams = true
 }
 
 MelApplicationHelper.configure(project)
