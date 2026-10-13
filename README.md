@@ -85,6 +85,11 @@ That still requires creating public and private keys where also tons of thing ma
 For this very reason [Bouncy Castle](https://www.bouncycastle.org/java.html) is employed. BC is quite old and made by people who know their stuff.
 So no own crypto is used in this program.
 
+Devices authenticate each other with mutual TLS: both sides present their certificate and prove they own its private key during the TLS handshake.
+A device only gets in if its certificate is one you accepted while pairing. Being paired is not enough to use a service though:
+a partner only reaches the services you explicitly allowed it to ("Access"). This also holds for the direct (isolated) connections used for file transfers.
+Note: this protocol is not compatible with versions that still had the old secret exchange, so update all your devices together.
+
 
 ## License
 You can find all licenses and according modules and usage under `auth/src/main/resources/de/mel/auth/licenses.html`.
