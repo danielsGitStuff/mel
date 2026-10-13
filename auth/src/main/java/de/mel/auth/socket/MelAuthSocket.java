@@ -91,9 +91,7 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
         try {
             melAuthService.getPowerManager().wakeLock(this);
             SerializableEntity deserialized = SerializableEntityDeserializer.deserialize(msg);
-            //todo debug
-            if (deserialized instanceof MelResponse) {
-                MelResponse response = (MelResponse) deserialized;
+            if (deserialized instanceof MelResponse response) {
                 if (response.getPayload() instanceof MelServicesPayload) {
                     Lok.debug();
                 }
@@ -102,8 +100,7 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
             }
             if (process != null) {
                 process.onMessageReceived(deserialized, this);
-            } else if (deserialized instanceof MelRequest) {
-                MelRequest request = (MelRequest) deserialized;
+            } else if (deserialized instanceof MelRequest request) {
                 if (request.getServiceUuid().equals(MelStrings.SERVICE_NAME) &&
                         request.getIntent().equals(MelStrings.msg.INTENT_REGISTER)) {
                     MelRegisterProcess melRegisterProcess = new MelRegisterProcess(this);

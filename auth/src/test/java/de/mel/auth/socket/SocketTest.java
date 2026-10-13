@@ -31,13 +31,26 @@ public class SocketTest {
     public void sendFile() throws Exception {
         lock.lockWrite();
         //init
-        MelAuthSettings json1 = new MelAuthSettings().setPort(8888).setDeliveryPort(8889)
-                .setBrotcastListenerPort(9966).setBrotcastPort(6699)
-                .setWorkingDirectory((MelBoot.Companion.getDefaultWorkingDir1())).setName("MA1").setVariant(MelStrings.update.VARIANT_JAR);
-        MelAuthSettings json2 = new MelAuthSettings().setPort(8890).setDeliveryPort(8891)
+        MelAuthSettings json1 = new MelAuthSettings()
+                .setPort(8888)
+                .setDeliveryPort(8889)
+                .setBrotcastListenerPort(9966)
+                .setBrotcastPort(6699)
+                .setWorkingDirectory((MelBoot.Companion.getDefaultWorkingDir1()))
+                .setName("MA1")
+                .setVariant(MelStrings.update.VARIANT_JAR);
+        MelAuthSettings json2 = new MelAuthSettings()
+                .setPort(8890)
+                .setDeliveryPort(8891)
                 .setBrotcastPort(9966) // does not listen! only one listener seems possible
-                .setBrotcastListenerPort(6699).setBrotcastPort(9966)
-                .setWorkingDirectory((MelBoot.Companion.getDefaultWorkingDir2())).setName("MA2").setVariant(MelStrings.update.VARIANT_JAR);
+                .setBrotcastListenerPort(6699)
+                .setBrotcastPort(9966)
+                .setWorkingDirectory((MelBoot.Companion.getDefaultWorkingDir2()))
+                .setName("MA2")
+                .setVariant(MelStrings.update.VARIANT_JAR);
+
+        json1.setJsonFile(new File(json1.getWorkingDirectory(),"settings.json"));
+        json2.setJsonFile(new File(json2.getWorkingDirectory(),"settings.json"));
 
         MelBoot melBoot1 = new MelBoot(json1, new PowerManager(json1));
         MelBoot melBoot2 = new MelBoot(json2, new PowerManager(json2));

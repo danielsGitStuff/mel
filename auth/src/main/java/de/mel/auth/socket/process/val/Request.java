@@ -13,7 +13,7 @@ public class Request<T extends ServicePayload> extends DeferredObject<T, Excepti
     private Certificate partnerCertificate;
     private String serviceUuid;
 
-    public Request setPayload(T payload) {
+    public Request<T> setPayload(T payload) {
         this.payload = payload;
         return this;
     }
@@ -35,7 +35,7 @@ public class Request<T extends ServicePayload> extends DeferredObject<T, Excepti
         return payload != null && payload.hasIntent(intentQuery);
     }
 
-    public Request setServiceUuid(String serviceUuid) {
+    public Request<T> setServiceUuid(String serviceUuid) {
         this.serviceUuid = serviceUuid;
         return this;
     }
