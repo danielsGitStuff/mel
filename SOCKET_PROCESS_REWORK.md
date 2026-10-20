@@ -177,7 +177,7 @@ On the branch (`./gradlew :auth:test`, about 2 minutes):
 
 ## Order of work
 
-1. Merge `registration-tests` into `gradle-fixes` (or branch from it).
+1. Done: branch `rework2026` (from `registration-tests`) is the main line for this and all following reworks.
 2. Tests above, against the old code where possible.
 3. New state type behind the existing getters, then migrate the processes one by one.
 4. Only then the JDeferred port (`fun.with.promise`), see `mel-jdeferred-replacement` in memory. The port touches the same classes.
