@@ -68,7 +68,7 @@ Two devices:
   - some free storage on that device
 - PC*:
   - a Linux distribution of you choice or Windows (7 and up) if you prefer that
-  - with at least a Java 11 runtime installed
+  - with at least a Java 21 runtime installed
   - Graphical Interface of your choice (currently there is no CLI version)
 
 <sub>
@@ -86,9 +86,17 @@ For this very reason [Bouncy Castle](https://www.bouncycastle.org/java.html) is 
 So no own crypto is used in this program.
 
 Devices authenticate each other with mutual TLS: both sides present their certificate and prove they own its private key during the TLS handshake.
-A device only gets in if its certificate is one you accepted while pairing. Being paired is not enough to use a service though:
+A device only gets in if its certificate is one you accepted while pairing. Pairing needs both users to accept: if one side says no (or does not answer in time), neither device trusts the other. Being paired is not enough to use a service though:
 a partner only reaches the services you explicitly allowed it to ("Access"). This also holds for the direct (isolated) connections used for file transfers.
-Note: this protocol is not compatible with versions that still had the old secret exchange, so update all your devices together.
+Note: this protocol is not compatible with versions that still had the old secret exchange (the pairing messages and the certificate table changed as well), so update all your devices together.
+
+## Building from source
+- Needs a JDK 21 for Gradle and the git submodule: `git submodule update --init` (`fun.with`).
+- `./gradlew build` builds and tests everything (the `auth` tests take a couple of minutes, they pair real instances over loopback).
+  `./gradlew build -x test` is the quick variant.
+- PC: `./gradlew :fxbundle:fatJar` (runnable jar in `fxbundle/build/libs`). Android: `./gradlew :android:assembleDebug`, or open `android/` in Android Studio.
+- Tests that start GUIs or never return are tagged `ui` and left out of `test`: `./gradlew :fxbundle:runUiTests`.
+- The release APK is unsigned unless a `keystore.properties` exists in the root directory.
 
 
 ## License

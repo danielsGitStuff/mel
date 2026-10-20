@@ -44,7 +44,11 @@ Related: `ConnectedEnvironment` (one validation process per certificate: `regist
    Suspected, not tested.
 5. `MelValidationProcess.onMessageReceived` and `MelProcess.handleAnswer` are `synchronized` although incoming messages are
    already serialized by the worker. The first holds the monitor during the whole service interaction.
-6. The register socket is not closed after success (`//todo send done, so the other side can connect!`).
+6. The register socket is not closed after success (`//todo send done, so the other side can connect!`). The same missing
+   "done" leaves a small window: if the server's user accepts first and the client confirms later, the client is finished at once
+   and may connect on a new socket while the server is still processing the client's confirmation (the server trusts the client
+   only then). Practically hidden by the TCP+TLS handshake, but not guaranteed. `RegistrationTest.serverAlreadyTrustsTheClientWhenTheClientIsDone`
+   measures it (0 of 10 rounds).
 7. `MelAuthWorker`/`MelBoot`: a part of the worker that does not start (taken port, brotcaster) never reaches the caller of
    `MelBoot.boot()` (pending forever), pinned in `BootFailureTest`. Related but small, take it along if it fits.
 8. `suspend()` / `resume()` of `MelAuthService` have no callers anywhere. Candidates for deletion.
@@ -77,8 +81,9 @@ Related: `ConnectedEnvironment` (one validation process per certificate: `regist
 
 On the branch (`./gradlew :auth:test`, about 2 minutes):
 - `AuthHandshakeTest`: pairing, auth over real TLS, impostors, isolated connections, suspend/resume.
-- `RegistrationTest`: accept/reject on both sides in both orders, instant handlers, trust only after both confirmed.
-- `BootAndShutdownTest`, `BootFailureTest`: boot levels, shutdown, startup failures.
+- `RegistrationTest` (12): accept/reject on both sides in both orders, instant handlers, who is told what on a rejection, trust only after
+  both confirmed (a late accept after a rejection leaves nothing behind), the server trusts the client when the client is done.
+- `BootAndShutdownTest` (11), `BootFailureTest` (4): boot levels, shutdown, startup failures.
 - Known flake: the multicast discovery of the two test instances now and then swallows the explicit pairing connect.
   `RegistrationTest.startPairing()` retries; `AuthHandshakeTest.pair()` also retries, and was seen failing once in about six full runs.
 
@@ -102,6 +107,9 @@ On the branch (`./gradlew :auth:test`, about 2 minutes):
 - `./gradlew build` (tests included) passes; `build -x test` is the fast variant.
 - Git identity is not configured: commit with `-c user.name=xor -c user.email=mrkeule@gmail.com`.
 - Test ports: each test class takes its own port range (18000 handshake, 19000 registration, 20000 boot, 21000 boot failure).
+- `.gitignore` is a whitelist: new directories and files outside the listed modules are ignored (a `docs/` folder is). Root `*.md` files are fine.
+- Already fixed on the branch (do not redo): the register request is sent before the register handlers are asked; a rejection by the local user
+  is reported as local on both sides; the receiving side trusts a partner only when both sides confirmed; `answerUuid` is gone (code and database).
 
 ## Open questions
 
