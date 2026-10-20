@@ -31,7 +31,7 @@ Start state: branch `rework2026`, commit `05afb263` and later. `./gradlew :auth:
 | F13 | `getAllowedServices(certId)` throws a `NullPointerException` when there is no connection to that certificate. | `MelAuthServiceImpl` | minor | read |
 | F14 | Discovery (`connectAndCollect`) makes both instances connect to each other when they see each other: the simultaneous-connect case of the duplicate rule is the normal case on a LAN, not an edge case. | `MelAuthServiceImpl`, brotcaster | design input | read |
 | F15 | `DeferredRunnable.stopped` is not `volatile`, and `run()` sets it back to `false`: a `stop()` that comes before the thread has started is lost and the runnable runs anyway. Every worker and socket inherits this. (`MelAuthServiceImpl.startUpCommunications` relies on the reset to restart a stopped worker.) | `auth/src/main/java/de/mel/DeferredRunnable.java` | race | read |
-| F16 | `MelWorker` drops every queued job when it is stopped (the loop just ends). This is the mechanism behind "a close cuts off queued messages". | `MelWorker.runImpl` | correctness | read + tests |
+| F16 | `MelWorker` drops every queued job when it is stopped (the loop just ends). This is the mechanism behind "a close cuts off queued messages". **Decided: fine for `MelWorker` in general** (a deliberate stop ends the party). The bug is only that a *peer close* stops the socket worker; step 2 makes that an event at the end of the socket's own queue, so `MelWorker` stays as it is. | `MelWorker.runImpl` | correctness | read + tests |
 
 Already in the brief, now confirmed by tests: the lost last message on a hang-up, and the pairing "flake" that is the same bug in
 `MelCertRetriever`.
@@ -220,7 +220,8 @@ For the session that does the work. Steps in this order; each one is a commit (o
 
 ### Step 1: independent bugs (small)
 
-- [ ] F15: `DeferredRunnable.stopped` -> `volatile`; `run()` must not resurrect a runnable that was stopped before it started.
+- [ ] F15: `DeferredRunnable.stopped` -> `volatile`; `run()` must not resurrect a runnable that was stopped before it started
+      (today such a worker or socket runs until somebody stops it again, possibly forever).
       Keep restartability explicit (`startUpCommunications` restarts the worker): e.g. a `restart()` that resets, used there.
       Test (unit): `stop()` before `run()` -> `runImpl` is not entered.
 - [ ] F12: `update/BinarySocket` and `miniserver/.../SendBinarySocket` get their own buffer constant (same value as today).
