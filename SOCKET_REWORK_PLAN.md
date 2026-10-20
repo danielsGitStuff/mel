@@ -4,6 +4,9 @@ Companion to `SOCKET_PROCESS_REWORK.md` (the brief: problems, decisions, wire fo
 **what** we want; this file says **where and how**, class by class, plus what a code analysis on 2026-10-21 found on top.
 Read the brief first. Nothing in here is implemented.
 
+**For the session that does the work:** read the brief, then sections 1 and 3 here, then work through section 4 step by step
+(checkboxes; tick them as you go and commit the ticks with the work).
+
 Start state: branch `rework2026`, commit `05afb263` and later. `./gradlew :auth:test` (fast, ~12 s),
 `./gradlew :auth:integrationTest` (~3 min). The `@Disabled` tests are the to-do list; each names what it waits for.
 
@@ -27,6 +30,8 @@ Start state: branch `rework2026`, commit `05afb263` and later. `./gradlew :auth:
 | F12 | `MelSocket.BLOCK_SIZE` is used as a buffer size by the updater (`update/BinarySocket`) and the miniserver (`SendBinarySocket`), which have their own sockets. Changing the block/frame size must not change them by accident. | `update`, `miniserver` | coupling | read |
 | F13 | `getAllowedServices(certId)` throws a `NullPointerException` when there is no connection to that certificate. | `MelAuthServiceImpl` | minor | read |
 | F14 | Discovery (`connectAndCollect`) makes both instances connect to each other when they see each other: the simultaneous-connect case of the duplicate rule is the normal case on a LAN, not an edge case. | `MelAuthServiceImpl`, brotcaster | design input | read |
+| F15 | `DeferredRunnable.stopped` is not `volatile`, and `run()` sets it back to `false`: a `stop()` that comes before the thread has started is lost and the runnable runs anyway. Every worker and socket inherits this. (`MelAuthServiceImpl.startUpCommunications` relies on the reset to restart a stopped worker.) | `auth/src/main/java/de/mel/DeferredRunnable.java` | race | read |
+| F16 | `MelWorker` drops every queued job when it is stopped (the loop just ends). This is the mechanism behind "a close cuts off queued messages". | `MelWorker.runImpl` | correctness | read + tests |
 
 Already in the brief, now confirmed by tests: the lost last message on a hang-up, and the pairing "flake" that is the same bug in
 `MelCertRetriever`.
@@ -194,29 +199,187 @@ for rejected pairings until they are cleaned up), as today.
 with the new `getState()`/registry API. Remove the pairing retries (`RegistrationTest.startPairing`, `AuthHandshakeTest.pair`,
 `TwoInstances.pair`) once close-as-event is in. Delete `SocketTest`, `LargeJson`, and the suspend/resume test with the code.
 
-## 4. Order of steps
+## 4. Work breakdown
 
-Each step ends with `:auth:test` and `:auth:integrationTest` green and the listed `@Disabled` tests enabled.
+For the session that does the work. Steps in this order; each one is a commit (or a few) on `rework2026`.
 
-1. **Small and independent:** F12 (own buffer constants), F10 (shared scheduler), F13, `sockets` thread-safe.
-2. **Close as an event, exactly once, pending requests rejected** (F4) -> enable
-   `RegistrationCommitTest.theLastDecisionCountsAlthoughThePartnerHangsUpRightBehindIt`; remove the pairing retries.
-3. **Send lock** -> enable `ConcurrentSendTest.longMessagesFromSeveralThreadsArriveWhole` (works even before frames).
-4. **Typed frames + max frame size** (+ `RawPeer`) -> F3 gone; block tests can now be expressed.
-5. **State type + transition unit test; dispatch by state; protocol violations close with a reason** -> enable the
-   `ProtocolViolationTest`s, make them check the reason.
-6. **Auth: partner certificate from TLS and the trusted check on both sides (F1), wrong-but-trusted partner handled, duplicate
-   rule in `ConnectedEnvironment`** -> enable the `DuplicateConnectionTest`s.
-7. **Registration rewrite** (Final, single-statement commit, re-registration, TLS certificate) -> enable
-   `RegistrationCommitTest.aKnownPartnerCanRegisterAgainAndKeepsItsAccess`.
-8. **Isolated as a state, blocks as frames, file process one record per frame, service creates the process, several isolated
-   connections per service pair (F9).**
-9. **`ConnectWorker` rewrite, timeouts (connect, NEW, AUTHENTICATING, REGISTERING), certificate delivery per client (F7, F8).**
-10. **Cleanup:** suspend/resume, address map, placeholder sockets, `SocketTest`/`LargeJson`, update the brief.
+### Rules for every step
 
-Then the JDeferred port (separate task).
+- Before: read the step, write or enable its tests first, see them fail for the expected reason.
+- Done when: `./gradlew :auth:test` and `./gradlew :auth:integrationTest` are green, the step's `@Disabled` tests are enabled
+  and pass, nothing else got disabled. From step 4 on also `./gradlew build -x test -x integrationTest` (all modules compile,
+  including `android`, `filesync`, `contacts`, `filedump`, `authfx`, `miniserver`).
+- Integration tests that are about timing (duplicates, hang-up) run 5 times in a row before the step counts as done
+  (`--rerun` in a loop); a flake is a failure.
+- After: tick the step here, update the brief's "Problems found"/test table if something changed, commit (identity and trailer:
+  see the brief's practical notes). Ask the user before deviating from a decision in the brief or in section 1.
+- Language: Java, as the surrounding code. Pattern-matching `instanceof` is already used in `auth` and builds for Android;
+  check `android` still assembles before relying on newer features (records, sealed types).
+- Keep the public API other modules use (section 3, "Users") unless a step says otherwise.
+- Leave JDeferred alone except where code is deleted anyway; its replacement is the next task.
 
-## 5. Tests to add in the new session
+### Step 1: independent bugs (small)
+
+- [ ] F15: `DeferredRunnable.stopped` -> `volatile`; `run()` must not resurrect a runnable that was stopped before it started.
+      Keep restartability explicit (`startUpCommunications` restarts the worker): e.g. a `restart()` that resets, used there.
+      Test (unit): `stop()` before `run()` -> `runImpl` is not entered.
+- [ ] F12: `update/BinarySocket` and `miniserver/.../SendBinarySocket` get their own buffer constant (same value as today).
+- [ ] F10: one `ScheduledExecutorService` per `MelAuthService` (daemon threads) for request timeouts; `MelRequest` creates its
+      timeout only when it is sent (`MelProcess.send`), not in the constructor; restart = cancel + schedule. Remove
+      `WatchDogTimer` from `MelRequest` (other users of `WatchDogTimer` stay). Test (unit): constructing/deserializing 1000
+      requests starts no threads (compare `Thread.activeCount()` or a thread name prefix).
+- [ ] F13: `getAllowedServices(certId)` without a connection -> rejected promise, not an NPE.
+- [ ] F5 (part): `MelAuthServiceImpl.sockets` -> `ConcurrentHashMap.newKeySet()`; every `MelSocket` removes itself on close (not
+      only `MelAuthSocket`); `ConnectedEnvironment.connect(Certificate)` keeps the connect job without a placeholder socket.
+      `TwoInstances.openNormalConnections` loses its CME retry loop.
+- [ ] F6 (part): fix the two no-op removals in `ConnectedEnvironment.removeValidationProcess`.
+
+### Step 2: close is an event, exactly once (F4, F16)
+
+- [ ] Replace `SocketWorker extends MelWorker` with a socket-owned loop on a `BlockingQueue<SocketEvent>`:
+      `MessageReceived(String)`, `BlockReceived(byte[])` (until step 4), `PeerClosed(Exception cause)`, `CloseRequested(CloseReason)`.
+      The worker drains events in order; a close event ends the loop **after** the events before it are handled.
+      Bounded queue (e.g. 64) so the reader blocks when the worker lags (replaces `queueLock` for blocks).
+- [ ] New `enum CloseReason { PEER_CLOSED, SHUTDOWN, PROTOCOL_VIOLATION, DUPLICATE, UNTRUSTED, WRONG_PARTNER, REFUSED,
+      NO_ACCESS, REJECTED, REGISTERED, TIMEOUT, IO_ERROR }` (extend as needed).
+- [ ] The reader thread never calls listeners; on EOF/error it enqueues `PeerClosed` and ends.
+- [ ] `stop()`, `disconnect()`, `removeThyself()`, `ConnectWorker.shutDown`, `refuse` -> `close(reason)` = enqueue
+      `CloseRequested`. Only the worker closes the Java socket.
+- [ ] Exactly one close callback: `MelSocketListener.onClose(reason, remote)` once, from the worker. Remove the
+      `onClose(42, ...)`/`onClose(100, ...)` paths and the duplicate `melAuthService.onSocketClosed` call.
+- [ ] `MelProcess.onSocketClosed`: reject every pending request (`requestMap`) at once with the close reason.
+- [ ] `MelCertRetriever` and `MelAuthCertDelivery` use the same `MelSocket`, so they get the fix too.
+- Enable: `RegistrationCommitTest.theLastDecisionCountsAlthoughThePartnerHangsUpRightBehindIt`.
+- New tests: a pending request fails right after the partner closes (not after 30 s); `onIsolatedConnectionClosed` called
+  exactly once.
+- Then remove the pairing retries (`RegistrationTest.startPairing`, `AuthHandshakeTest.pair`, `TwoInstances.pair`) and run the
+  integration tests 5 times: the old "flake" must be gone.
+
+### Step 3: send lock (problem 4)
+
+- [ ] One lock around everything that writes to the stream (`send`, `sendBlock`), e.g. `synchronized (out)` or a
+      `ReentrantLock` field. Still the old chunking; frames come next.
+- Enable: `ConcurrentSendTest.longMessagesFromSeveralThreadsArriveWhole`.
+
+### Step 4: typed frames (F3)
+
+- [ ] `FrameCodec` (new, `de.mel.auth.socket`): `write(out, type, bytes)` and `read(in) -> Frame(type, bytes)`; header
+      `type (1) | length (4, big endian, DataOutputStream.writeInt)`; `MAX_FRAME = 1 MiB` (constant); length < 0 or > MAX ->
+      `ProtocolViolation` before allocating. Types: `MESSAGE = 1` (UTF-8 JSON), `BLOCK = 2`. Unit tests with
+      `PipedInput/OutputStream` or byte arrays: round trip, empty payload, exactly MAX, MAX+1, negative length, truncated stream.
+- [ ] `MelSocket`: reader = `FrameCodec.read` loop, `send(String)` = MESSAGE frame (UTF-8), `sendBlock(byte[])` = BLOCK frame.
+      Delete `MAX_CHARS`, `TOO_LONG_APPENDIX`, `msgBuffer`, the `MODE_ISOLATE` handling in the reader, `isIsolated`,
+      `allowIsolation`, `BLOCK_SIZE`-sized reads. A BLOCK frame on a socket whose state does not take blocks -> step 5; until
+      then hand it to the listener as today.
+- [ ] Isolation handshake for now: keep `MODE_ISOLATE` as a normal MESSAGE that the process handles (the echo goes away in
+      step 8). `MelIsolatedFileProcess.transfer()` keeps its packing for now but sends blocks via `sendBlock` (one frame each).
+- [ ] `RawPeer`: `sendText`/`receive` via frames, `sendBlock` = BLOCK frame, `sendUnparsable` = MESSAGE frame with junk;
+      add `sendRawHeader(type, length)` for the max-size test.
+- [ ] Certificate delivery/retrieval: same framing on both ends (`MelAuthCertDelivery` reads its request with `FrameCodec`).
+- New tests: long message with many non-ASCII characters arrives whole; a header announcing MAX+1 closes the connection.
+- Done also: `filesync` transfer tests still pass (`./gradlew :filesync:test :filesync:integrationTest` if tagged, otherwise
+  `:filesync:test`).
+
+### Step 5: the state type (problems 1, 3, 5; the state table)
+
+- [ ] `SocketState` (new): `New`, `Registering(MelRegisterProcess)`, `Authenticating(MelAuthProcess)`,
+      `Established(MelValidationProcess, Certificate partner)`, `Isolated(MelIsolatedProcess, Certificate partner)`,
+      `Closed(CloseReason, boolean remote)`. Immutable. `MelAuthSocket` holds it in an `AtomicReference`; only the worker
+      sets it; other threads read it or request a close.
+- [ ] `Transitions` (new, pure, no I/O): `(state, event, role) -> Result(next state, actions)`, actions like `Send(entity)`,
+      `Close(reason)`, `Notify...`. The table is the one in the brief. **Unit test it exhaustively** (every state x every
+      message kind -> expected next state or `PROTOCOL_VIOLATION`); this is the fast replacement for most socket-level
+      violation tests.
+- [ ] `MelAuthSocket.onMessage` dispatches through `Transitions`; remove the lazy process creation, the `process` field,
+      `setProcess`, the blind casts in `onIsolated`/`onBlockReceived`; `getProcess()` callers move to `getState()`.
+      `MelProcess` constructor no longer calls `setProcess`.
+- [ ] Protocol violation = send `ProtocolError(reason)` (new small `SerializableEntity`) then close with
+      `PROTOCOL_VIOLATION`. Unparsable JSON is a violation too.
+- [ ] Remove `synchronized` from `MelValidationProcess.onMessageReceived` and `MelProcess.handleAnswer`; cache maps ->
+      `ConcurrentHashMap` (F11).
+- [ ] Expose the close reason for tests: e.g. `MelAuthSocket.getState()` returning `Closed(reason, remote)` after the end, and
+      a listener/`CompletableFuture<Closed>` `whenClosed()`. Replace the reflection in `TwoInstances` with it.
+- Enable: all 7 `ProtocolViolationTest`s; make each also assert the reason (`RawPeer` can read the `ProtocolError` before the
+  hang-up). Consider moving most cases to the `Transitions` unit test and keeping 2-3 at socket level.
+
+### Step 6: authentication and duplicates (F1, problem 2, F14)
+
+- [ ] Both sides: partner = certificate from the TLS session, looked up by sha256 among **trusted** rows
+      (`getTrustedCertificateByHash`). Not trusted -> `UNTRUSTED`. Client: if it is trusted but not the expected one ->
+      connection kept as one to that partner, the original connect job rejected with `WRONG_PARTNER`. Database: only the
+      partner's address/port (`propagateAuthentication`), nothing else.
+- [ ] `MelAuthSocket.connectSSL` no longer sets `partnerCertificate` from the id; `getTrustedPartnerCertificate` is the only
+      source, on both sides.
+- [ ] `ConnectedEnvironment`: one `Map<Long, MelAuthSocket>` of established normal connections by partner id plus
+      "connecting" by partner id; `decideDuplicate(socket)` under one lock: different initiators -> the connection initiated by
+      the side with the lower certificate hash wins; same initiator -> the newer wins; the loser gets
+      `CloseRequested(DUPLICATE)`. Called on S when the `AuthRequest` arrives, on C when `AuthResponse(ok)` arrives (brief).
+      Drop `addressValidateProcessMap` as identity (F6); `connect(address, ...)` checks "connected to the certificate at this
+      address" via the certificate row, not via the map.
+- [ ] `MelAuthProcess`: no `new MelValidationProcess(...)` before the decision. Client side `if (job instanceof ConnectJob)`
+      branch: register only after `decideDuplicate` said "keep".
+- New tests first (section 5): untrusted certificate answers -> closed, nothing stored; a different trusted partner answers ->
+  counts as that partner, `WRONG_PARTNER`, only its address changed (compare all certificate rows).
+- Enable: `DuplicateConnectionTest.bothSidesConnectAtTheSameMoment` (5 repetitions) and
+  `reconnectWhileThePartnerStillHoldsTheOldConnection`.
+
+### Step 7: registration (problem 6, the commit, re-registration)
+
+- [ ] New messages (`de.mel.auth.data` or a `reg` subpackage): `RegisterRequest(name, port, deliveryPort)` (no certificate
+      field: the TLS client certificate is the certificate), `RegisterDecision(boolean)`, `RegisterFinal(boolean)`.
+      Remove `MelRegisterConfirm` and the `certificate` field on `MelRequest` if nothing else uses it.
+- [ ] `MelRegisterProcess` rewritten as the REGISTERING handler: S persists (single statement setting `trusted`: INSERT of a
+      trusted row, or UPDATE of a known row) **before** sending `Final(true)`; C persists on `Final(true)` (UPDATE of the row the
+      retriever imported, or of its known row), then closes with `REGISTERED`. A rejection persists nothing; C deletes the
+      untrusted imported row as today, never a row that was trusted before. No `DefaultDeferredManager().when(...)`.
+- [ ] Register timeout: REGISTERING closes with `TIMEOUT` after 5 min; make it a setting so tests can use 1 s.
+- [ ] `IRegisterHandler.acceptCertificate`: tell the user when the partner is known already (extra parameter or flag);
+      adapt `RegisterHandlerFX`, `AndroidRegHandler`, the test handlers.
+- [ ] The handler callbacks (`onRemoteAccepted`, `onLocallyAccepted`, `onRegistrationCompleted`, rejections) keep their
+      meaning; `RegistrationTest` pins them.
+- Enable: `RegistrationCommitTest.aKnownPartnerCanRegisterAgainAndKeepsItsAccess`; `serverAlreadyTrustsTheClientWhenTheClientIsDone`
+  must now hold by construction (run 5 times).
+- New tests: one side deleted the other, both directions; pairing by mistake with an already trusted partner -> no
+  registration, nobody asked, only address/port changed; REGISTERING timeout with a short setting.
+
+### Step 8: isolated connections (F9)
+
+- [ ] ISOLATED is reached by the auth answer: S switches after sending `AuthResponse(ok)`, C on receiving it. Remove
+      `sendIsolate`, `onIsolated`, `isolatedPromise`, `MODE_ISOLATE` (and `MelStrings.msg.MODE_ISOLATE`).
+- [ ] In ISOLATED only BLOCK frames are allowed; anything else -> `PROTOCOL_VIOLATION`.
+- [ ] `MelIsolatedFileProcess.transfer()`: one record per BLOCK frame, sized as needed (no padding, no 0 terminator, no packing);
+      `onBlockReceived` reads exactly one record. Fix the javadoc (8 vs 4 byte length).
+- [ ] The service creates the isolated process: `IMelService.createIsolatedProcess(IsolationDetails, MelAuthSocket, partnerId)`
+      or a factory registered per process class; no `Class.forName` on a name from the peer. Adapt `filesync`, `contacts`,
+      `android` (`DirectoryChooserDialog`), `TestIsolatedProcess`/`IsolationRecordingService`.
+- [ ] `MelService`: track established isolated processes by `isolatedUuid`; closing one removes only that one;
+      `getIsolatedProcess` may reuse an open one.
+- New test: two isolated connections between the same two services at once, both usable; closing one leaves the other.
+- Done also: `filesync` transfer tests pass.
+
+### Step 9: connecting (F7, F8)
+
+- [ ] `ConnectWorker` rewritten as a straight sequence per job with one local variable per socket: auth first; if the partner
+      is unknown and registration is allowed: retrieve certificate (reuse an existing row) -> register socket -> wait for its
+      CLOSED(`REGISTERED`) -> auth socket. Pairing by mistake with an already trusted partner: the first auth succeeds, report
+      "already paired".
+- [ ] Timeouts: connect 10 s (`connectSSL`, `MelCertRetriever`), TLS handshake, NEW 30 s, AUTHENTICATING 30 s (settings, short
+      in tests).
+- [ ] `MelAuthCertDelivery`: no reading in the accept thread; one short task per client with a read timeout.
+- [ ] `shutDownCommunications` closes all connections with `SHUTDOWN` (decided).
+- New tests: a silent TCP client on the delivery port does not stop a pairing; connecting to an unroutable address fails within
+  the connect timeout (use a non-routable address such as `10.255.255.1`; skip if the CI network behaves differently).
+
+### Step 10: cleanup
+
+- [ ] Delete `suspend()`/`resume()` and `AuthHandshakeTest.pairedClientCanConnectAgainAfterTheServerWasSuspendedAndResumed`.
+- [ ] Delete `auth/src/test/.../socket/SocketTest.java`, `LargeJson.java`; `LotsOfTests` if it only holds commented tests.
+- [ ] Remove leftovers: `MelSocket.BLOCK_SIZE`, `MelStrings.msg.MODE_ISOLATE`, `MelRegisterConfirm`, unused exceptions.
+- [ ] Brief: mark the problems fixed, move the open items to the JDeferred task; memory: mark the rework done.
+
+Then the JDeferred port (separate task, see memory `mel-jdeferred-replacement`).
+
+## 5. Tests to add (also listed in the steps)
 
 - **F1:** the client connects to partner X's address and an *untrusted* certificate answers (e.g. one only imported, never
   trusted) -> closed, nothing stored. A *different trusted* partner Y answers -> the connection counts as one to Y,

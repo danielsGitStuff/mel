@@ -207,7 +207,7 @@ AUTHENTICATING, REGISTERING; they need a way to set short timeouts in tests), cl
 
 1. Done: branch `rework2026` (from `registration-tests`) is the main line for this and all following reworks.
 2. Done: tests above, against the old code where possible.
-3. New state type behind the existing getters, then migrate the processes one by one.
+3. The rework itself: `SOCKET_REWORK_PLAN.md`, section 4 (10 steps with checkboxes, tests and "done when" per step).
 4. Only then the JDeferred port (`fun.with.promise`), see `mel-jdeferred-replacement` in memory. The port touches the same classes.
 
 ## Practical notes
