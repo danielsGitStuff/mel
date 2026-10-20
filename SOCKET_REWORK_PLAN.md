@@ -216,7 +216,8 @@ For the session that does the work. Steps in this order; each one is a commit (o
 - Language: Java, as the surrounding code. Pattern-matching `instanceof` is already used in `auth` and builds for Android;
   check `android` still assembles before relying on newer features (records, sealed types).
 - Keep the public API other modules use (section 3, "Users") unless a step says otherwise.
-- Leave JDeferred alone except where code is deleted anyway; its replacement is the next task.
+- No new JDeferred code: rewritten code uses `fun.with.promise` (or plain state); the public API stays JDeferred behind the
+  temporary `PromiseAdapters` until P4 of `REWORK_RUNBOOK.md`.
 
 ### Step 1: independent bugs (small)
 
@@ -378,7 +379,8 @@ For the session that does the work. Steps in this order; each one is a commit (o
 - [ ] Remove leftovers: `MelSocket.BLOCK_SIZE`, `MelStrings.msg.MODE_ISOLATE`, `MelRegisterConfirm`, unused exceptions.
 - [ ] Brief: mark the problems fixed, move the open items to the JDeferred task; memory: mark the rework done.
 
-Then the JDeferred port (separate task, see memory `mel-jdeferred-replacement`).
+Then P3/P4 of `REWORK_RUNBOOK.md` (JDeferred tests and port), in the same unattended run. During these steps: new code uses
+`fun.with.promise`, the public API stays JDeferred behind `PromiseAdapters` until P4 (runbook).
 
 ## 5. Tests to add (also listed in the steps)
 
