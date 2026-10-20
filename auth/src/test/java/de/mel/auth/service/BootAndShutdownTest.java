@@ -11,6 +11,7 @@ import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -29,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * an empty list resolves at once, a promise that is settled already still calls its callbacks, a service that fails or
  * returns no promise must not keep the others from shutting down.
  */
+@Tag("integration")
 public class BootAndShutdownTest {
     private static final int TIMEOUT_SECONDS = 30;
     private static final AtomicInteger nextPortBase = new AtomicInteger(20000);

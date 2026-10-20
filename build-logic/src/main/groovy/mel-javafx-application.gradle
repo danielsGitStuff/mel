@@ -52,8 +52,24 @@ dependencies {
 
 test {
     useJUnitPlatform {
+        excludeTags 'ui', 'integration'
+    }
+}
+
+tasks.register('integrationTest', Test) {
+    group = 'verification'
+    description = 'Runs tests tagged "integration" (real Mel instances on real sockets: minutes, not seconds). Part of check.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    shouldRunAfter test
+    useJUnitPlatform {
+        includeTags 'integration'
         excludeTags 'ui'
     }
+}
+
+tasks.named('check') {
+    dependsOn 'integrationTest'
 }
 
 tasks.register('runUiTests', Test) {

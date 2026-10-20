@@ -17,30 +17,18 @@ import de.mel.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mel.auth.tools.CountLock;
 import de.mel.auth.tools.ShutDownDeferredManager;
 import de.mel.core.serialize.SerializableEntity;
-import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509KeyManager;
-import javax.net.ssl.X509TrustManager;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.File;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketTimeoutException;
+import java.net.SocketException;
 import java.security.KeyPair;
-import java.security.Principal;
 import java.security.PrivateKey;
-import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.UUID;
@@ -55,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Pins down how connections are authenticated, independent of how the handshake is implemented.
  * Must live in this package: {@link MelAuthService#connect(String, int, int, boolean)} is package private.
  */
+@Tag("integration")
 public class AuthHandshakeTest {
     private static final int TIMEOUT_SECONDS = 30;
 
@@ -213,7 +202,7 @@ public class AuthHandshakeTest {
 
     /**
      * Plays an attacker: a TLS client that is not any of the paired devices and tries to get authenticated by the server.
-     * This is the only part of the negative tests that knows the auth protocol: it sends an auth request and listens to what comes back.
+     * It sends an auth request and listens to what comes back. How that travels is {@link RawPeer}'s business.
      *
      * @param isolated      ask for an isolated connection to the server's service
      * @param presentedCert the certificate shown during the TLS handshake, null = none at all
@@ -221,68 +210,21 @@ public class AuthHandshakeTest {
      * @return the last thing the server said, or null if it hung up or stayed silent
      */
     private SerializableEntity impersonate(boolean isolated, X509Certificate presentedCert, PrivateKey signingKey) throws Exception {
-        SSLContext context = SSLContext.getInstance("TLS");
-        KeyManager[] keyManagers = null;
-        if (presentedCert != null) {
-            keyManagers = new KeyManager[]{new X509KeyManager() {
-                public String[] getClientAliases(String keyType, Principal[] issuers) {
-                    return new String[]{"attacker"};
-                }
-
-                public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket) {
-                    return "attacker";
-                }
-
-                public String[] getServerAliases(String keyType, Principal[] issuers) {
-                    return null;
-                }
-
-                public String chooseServerAlias(String keyType, Principal[] issuers, Socket socket) {
-                    return null;
-                }
-
-                public X509Certificate[] getCertificateChain(String alias) {
-                    return new X509Certificate[]{presentedCert};
-                }
-
-                public PrivateKey getPrivateKey(String alias) {
-                    return signingKey;
-                }
-            }};
+        IsolationDetails isolation = null;
+        if (isolated) {
+            isolation = new IsolationDetails()
+                    .setTargetService(serverService.getUuid())
+                    .setSourceService("attackers service")
+                    .setIsolationUuid(UUID.randomUUID().toString())
+                    .setProcessClass(TestIsolatedProcess.class.getName());
         }
-        // an attacker does not care who the server is
-        context.init(keyManagers, new TrustManager[]{new X509TrustManager() {
-            public void checkClientTrusted(X509Certificate[] chain, String authType) {
-            }
-
-            public void checkServerTrusted(X509Certificate[] chain, String authType) {
-            }
-
-            public X509Certificate[] getAcceptedIssuers() {
-                return new X509Certificate[0];
-            }
-        }}, new SecureRandom());
-        SerializableEntity last = null;
-        try (SSLSocket socket = (SSLSocket) context.getSocketFactory().createSocket()) {
-            socket.connect(new InetSocketAddress("localhost", server.getSettings().getPort()), 5000);
-            socket.setSoTimeout(3000);
-            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-            DataInputStream in = new DataInputStream(socket.getInputStream());
-            MelRequest request = new MelRequest(MelStrings.SERVICE_NAME, MelStrings.msg.INTENT_AUTH);
-            if (isolated) {
-                request.setPayLoad(new IsolationDetails()
-                        .setTargetService(serverService.getUuid())
-                        .setSourceService("attackers service")
-                        .setIsolationUuid(UUID.randomUUID().toString())
-                        .setProcessClass(TestIsolatedProcess.class.getName()));
-            }
-            out.writeUTF(request.toJSON());
-            out.flush();
-            last = SerializableEntityDeserializer.deserialize(in.readUTF());
-        } catch (EOFException | SocketTimeoutException | SSLException e) {
-            // hung up on us, stayed silent or failed the handshake: fine
+        try (RawPeer attacker = RawPeer.connect(server.getSettings().getPort(), presentedCert, signingKey)) {
+            attacker.send(RawPeer.authRequest(isolation));
+            return attacker.receive(3000);
+        } catch (EOFException | SocketException | SSLException e) {
+            // hung up on us or failed the handshake: fine
+            return null;
         }
-        return last;
     }
 
     private void assertNothingLeaked(SerializableEntity lastAnswer) {

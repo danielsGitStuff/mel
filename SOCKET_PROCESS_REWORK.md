@@ -158,36 +158,63 @@ when the `AuthRequest` arrives.
 
 ## Safety net that exists
 
-On the branch (`./gradlew :auth:test`, about 2 minutes):
+Tests that boot real instances are tagged `@Tag("integration")`. `./gradlew :auth:test` runs only the fast ones (about 12 s);
+`./gradlew :auth:integrationTest` runs the integration tests (minutes); `check`/`build` run both. Set up in the build-logic plugins.
+
+Integration tests on the branch:
 - `AuthHandshakeTest`: pairing, auth over real TLS, impostors, isolated connections, suspend/resume.
 - `RegistrationTest` (12): accept/reject on both sides in both orders, instant handlers, who is told what on a rejection, trust only after
   both confirmed (a late accept after a rejection leaves nothing behind), the server trusts the client when the client is done.
 - `BootAndShutdownTest` (11), `BootFailureTest` (4): boot levels, shutdown, startup failures.
-- Known flake: the multicast discovery of the two test instances now and then swallows the explicit pairing connect.
-  `RegistrationTest.startPairing()` retries; `AuthHandshakeTest.pair()` also retries, and was seen failing once in about six full runs.
+- Known flake, cause found: it is not the multicast discovery. The certificate delivery (`MelAuthCertDelivery`) answers and hangs
+  up at once; on the client (`MelCertRetriever`) the end of stream shuts the socket worker down while the answer is still queued,
+  so the pairing silently never starts. Same bug as "a close by the peer cuts off queued messages" (see the decision that a
+  close by the peer is an event in the queue). `RegistrationTest.startPairing()`, `AuthHandshakeTest.pair()` and `TwoInstances.pair()` retry;
+  remove the retries once closing is an event in the queue.
 
-## Tests to write first
+## Tests written first (done, against the old code)
 
-- Concurrent long sends on one socket (problem 4).
-- Two simultaneous connections for the same certificate pair, both directions at once: exactly one survives, the same on both
-  sides (problem 2). Also: a reconnect while the partner still holds the old connection.
-- A peer close right behind the registration's last message: the receiver still persists.
-- Messages that do not fit the state (auth message in the register state, block data without isolation, and so on).
-- A plain unit test of the transition table (no sockets).
+Helpers in `auth/src/test/java/de/mel/auth/service`:
+- `RawPeer`: a hand-made TLS peer. Everything that knows the wire format and the protocol messages is in there
+  (`authRequest`, `registerRequest`, `registerDecision`, `send`, `sendUnparsable`, `sendBlock`, `receive`, `hangsUpWithin`).
+  The rework changes this class, not the tests. `AuthHandshakeTest.impersonate` uses it, too.
+- `TwoInstances`: two instances that do NOT find each other by multicast, pairing, connecting, granting access, and a look
+  into the instance (by reflection, no API yet) for the open normal connections to a partner.
+
+Disabled tests are the to-do list: each `@Disabled` names the problem; enable them as the rework fixes it.
+
+| Test | Old code |
+|---|---|
+| `ConcurrentSendTest.longMessagesFromSeveralThreadsArriveWhole` | disabled: pieces interleave (problem 4), log shows `malformed input` and JSON broken at character 64513 |
+| `ConcurrentSendTest.longMessagesFromOneThreadArriveWhole` | passes (control) |
+| `DuplicateConnectionTest.oneSideConnects` | passes |
+| `DuplicateConnectionTest.bothSidesConnectAtTheSameMoment` (x5) | disabled: 1 of 5 ends with two connections on each side (problem 2) |
+| `DuplicateConnectionTest.reconnectWhileThePartnerStillHoldsTheOldConnection` | disabled: the server never answers the new connection, the client is locked out |
+| `ProtocolViolationTest` (7: decision without registration, unparsable, block on a new / a normal connection, registration on a normal connection, second auth) | all disabled: the connection stays open. With a block the server even stops reading but keeps the connection |
+| `RegistrationCommitTest.aKnownPartnerCanRegisterAgainAndKeepsItsAccess` | disabled: `UNIQUE (certificate)` |
+| `RegistrationCommitTest.rejectingTheRegistrationOfAKnownPartnerKeepsIt` | passes |
+| `RegistrationCommitTest.theLastDecisionCountsWhenThePartnerStays` | passes (control) |
+| `RegistrationCommitTest.theLastDecisionCountsAlthoughThePartnerHangsUpRightBehindIt` | disabled: 10 of 10 lost, the close shuts the worker down before the queued decision is handled |
+
+Still to write, together with the new code: a plain unit test of the transition table (no sockets), the timeouts (NEW,
+AUTHENTICATING, REGISTERING; they need a way to set short timeouts in tests), close reasons visible on both sides (the
+`ProtocolViolationTest`s then check the reason, not only the hang-up), the maximum frame size.
 
 ## Order of work
 
 1. Done: branch `rework2026` (from `registration-tests`) is the main line for this and all following reworks.
-2. Tests above, against the old code where possible.
+2. Done: tests above, against the old code where possible.
 3. New state type behind the existing getters, then migrate the processes one by one.
 4. Only then the JDeferred port (`fun.with.promise`), see `mel-jdeferred-replacement` in memory. The port touches the same classes.
 
 ## Practical notes
 
 - `. ~/tools/env.sh` first (JDK 21; if `~/tools` is empty, see `mel-build-overview` in memory).
-- `./gradlew build` (tests included) passes; `build -x test` is the fast variant.
+- `./gradlew build` (unit and integration tests included) passes; `build -x test -x integrationTest` is the fast variant.
 - Git identity is not configured: commit with `-c user.name=xor -c user.email=mrkeule@gmail.com`.
-- Test ports: each test class takes its own port range (18000 handshake, 19000 registration, 20000 boot, 21000 boot failure).
+- Test ports: each test class takes its own port range (18000 handshake, 19000 registration, 20000 boot, 21000 boot failure, 22000 concurrent send, 23000 duplicate
+  connections, 24000 protocol violations, 25000 registration commit).
+- The new test classes have a 3 minute timeout each (`@Timeout`, separate thread): a hang fails instead of blocking the build.
 - `.gitignore` is a whitelist: new directories and files outside the listed modules are ignored (a `docs/` folder is). Root `*.md` files are fine.
 - Already fixed on the branch (do not redo): the register request is sent before the register handlers are asked; a rejection by the local user
   is reported as local on both sides; the receiving side trusts a partner only when both sides confirmed; `answerUuid` is gone (code and database).

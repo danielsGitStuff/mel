@@ -13,6 +13,7 @@ import de.mel.auth.tools.CountLock;
 import de.mel.auth.tools.ShutDownDeferredManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -32,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Pins down what each side is told and what is left in the certificate store afterwards.
  * Must live in this package: {@link MelAuthService#connect(String, int, int, boolean)} is package private.
  */
+@Tag("integration")
 public class RegistrationTest {
     private static final int TIMEOUT_SECONDS = 30;
     private static final int USER_THINKING_MILLIS = 300;

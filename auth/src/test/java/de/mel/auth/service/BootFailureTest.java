@@ -10,6 +10,7 @@ import org.jdeferred.impl.DeferredObject;
 import de.mel.DeferredRunnable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -30,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * a failing start does not reach the caller of {@link MelBoot#boot()}, the promise just stays pending.
  * Whoever changes that, changes these tests on purpose.
  */
+@Tag("integration")
 public class BootFailureTest {
     /**
      * long enough for a healthy boot (a few hundred milliseconds), short enough to keep the tests fast
