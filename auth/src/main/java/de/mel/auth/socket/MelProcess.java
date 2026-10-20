@@ -28,7 +28,6 @@ public abstract class MelProcess implements IRequestHandler {
     public MelProcess(MelAuthSocket melAuthSocket) {
         this.melAuthSocket = melAuthSocket;
         melAuthSocket.setProcess(this);
-        //TODO nach timeout bitte selbst löschen
     }
 
 

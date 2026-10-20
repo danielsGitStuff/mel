@@ -37,6 +37,11 @@ public class MelRegisterProcess extends MelProcess {
 
 
     private N runner = new N(Throwable::printStackTrace);
+
+    private void log(String msg) {
+        Lok.debug("[" + Thread.currentThread().getName() + "] " + melAuthSocket.getMelAuthService().getName() + ".MelRegisterProcess: " + msg);
+    }
+
     private DeferredObject<MelRegisterConfirm, Exception, Void> confirmedPromise = new DeferredObject<>();
     private DeferredObject<Certificate, Exception, Void> acceptedPromise = new DeferredObject<>();
 
@@ -102,7 +107,17 @@ public class MelRegisterProcess extends MelProcess {
         MelRequest request = new MelRequest(MelStrings.SERVICE_NAME, MelStrings.msg.INTENT_REGISTER)
                 .setCertificate(myCert)
                 .setRequestHandler(this).queue();
+
+
+        new DefaultDeferredManager().when(confirmedPromise, acceptedPromise).done(result -> {
+            Lok.debug("MelRegisterProcess.register");
+            deferred.resolve(partnerCertificate);
+        });
+        String json = SerializableEntitySerializer.serialize(request);
+        log("sending registration request");
+        this.melAuthSocket.send(json);
         for (IRegisterHandler regHandler : melAuthSocket.getMelAuthService().getRegisterHandlers()) {
+            log("asking register handler " + regHandler.getClass().getSimpleName());
             regHandler.acceptCertificate(new IRegisterHandlerListener() {
                 @Override
                 public void onCertificateAccepted(MelRequest request, Certificate certificate) {
@@ -123,43 +138,12 @@ public class MelRegisterProcess extends MelProcess {
                     });
                 }
             }, request, melAuthSocket.getMelAuthService().getMyCertificate(), partnerCertificate);
-
         }
-        request.getAnswerDeferred().done(result -> {
-            MelRequest r = (MelRequest) result;
-            Certificate certificate = r.getCertificate();
-            try {
-                partnerCertificate = melAuthSocket.getMelAuthService().getCertificateManager().addAnswerUuid(partnerCertificate.getId().v(), certificate.getAnswerUuid().v());
-                MelResponse response = r.reponse();
-                response.setState(MelStrings.msg.STATE_OK);
-                send(response);
-                MelRegisterProcess.this.removeThyself();
-                for (IRegisteredHandler registeredHandler : melAuthSocket.getMelAuthService().getRegisteredHandlers()) {
-                    try {
-                        registeredHandler.onCertificateRegistered(melAuthSocket.getMelAuthService(), partnerCertificate);
-                    } catch (SqlQueriesException e) {
-                        e.printStackTrace();
-                    }
-                }
-                deferred.resolve(partnerCertificate);
-            } catch (Exception e) {
-                e.printStackTrace();
-                deferred.reject(e);
-            }
-        }).fail(result -> {
-            Lok.debug("MelRegisterProcess.onFail!!!!!!!!");
-            deferred.reject(result);
-        });
-        new DefaultDeferredManager().when(confirmedPromise, acceptedPromise).done(result -> {
-            Lok.debug("MelRegisterProcess.register");
-            deferred.resolve(partnerCertificate);
-        });
-        String json = SerializableEntitySerializer.serialize(request);
-        this.melAuthSocket.send(json);
         return deferred;
     }
 
     public void sendConfirmation(boolean trusted) throws JsonSerializationException, IllegalAccessException {
+        log("sending confirmation, trusted=" + trusted);
         MelMessage message = new MelMessage(MelStrings.SERVICE_NAME, null);
         if (trusted)
             message.setPayLoad(new MelRegisterConfirm().setConfirmed(trusted).setAnswerUuid(partnerCertificate.getUuid().v()));
@@ -175,6 +159,7 @@ public class MelRegisterProcess extends MelProcess {
         if (!handleAnswer(deserialized))
             if (deserialized instanceof MelRequest) {
                 MelRequest request = (MelRequest) deserialized;
+                log("received registration request");
                 try {
                     Certificate certificate = request.getCertificate();
                     if (melAuthSocket.getMelAuthService().getRegisterHandlers().size() == 0) {
@@ -219,6 +204,7 @@ public class MelRegisterProcess extends MelProcess {
                 MelMessage message = (MelMessage) deserialized;
                 if (message.getPayload() != null && message.getPayload() instanceof MelRegisterConfirm) {
                     MelRegisterConfirm confirm = (MelRegisterConfirm) message.getPayload();
+                    log("received confirmation, confirmed=" + confirm.isConfirmed());
                     if (confirm.isConfirmed()) {
                         confirmedPromise.resolve(confirm);
                     } else {

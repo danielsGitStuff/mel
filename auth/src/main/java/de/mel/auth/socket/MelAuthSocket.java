@@ -2,6 +2,7 @@ package de.mel.auth.socket;
 
 import de.mel.Lok;
 import de.mel.auth.MelStrings;
+import de.mel.auth.data.MelMessage;
 import de.mel.auth.data.MelRequest;
 import de.mel.auth.data.MelResponse;
 import de.mel.auth.data.db.Certificate;
@@ -111,7 +112,12 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
                     MelAuthProcess melAuthProcess = new MelAuthProcess(this);
                     process = melAuthProcess;
                     melAuthProcess.onMessageReceived(deserialized, this);
+                } else {
+                    Lok.warn("[" + Thread.currentThread().getName() + "] " + melAuthService.getName() + ".MelAuthSocket.onMessage: DROPPED request, no process and unknown intent: " + request.getServiceUuid() + "/" + request.getIntent());
                 }
+            } else {
+                // e.g. a confirmation that overtook the registration request it belongs to
+                Lok.warn("[" + Thread.currentThread().getName() + "] " + melAuthService.getName() + ".MelAuthSocket.onMessage: DROPPED " + deserialized.getClass().getSimpleName() + ", no process on this socket yet (payload: " + (deserialized instanceof MelMessage m && m.getPayload() != null ? m.getPayload().getClass().getSimpleName() : "none") + ")");
             }
         } catch (Exception e) {
             e.printStackTrace();
