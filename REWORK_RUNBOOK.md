@@ -1,7 +1,8 @@
 # Rework runbook: sockets + JDeferred, unattended
 
 This file drives one long, **unattended** run on branch `rework2026`. The user gives a "GO" and is away for 5+ hours on a slow
-machine. Nobody answers questions during the run.
+machine. Nobody answers questions during the run. **Time is not a constraint:** the machine keeps running (16 hours are fine,
+user 2026-10-21). Never cut corners or stop early to save time; thoroughness over speed.
 
 Related documents:
 - `SOCKET_PROCESS_REWORK.md`: the brief (problems, decisions, wire format, state table).
