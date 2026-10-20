@@ -19,7 +19,11 @@ import java.util.concurrent.ThreadFactory;
 public class MelTestService extends MelServiceWorker {
 
     public MelTestService(MelAuthService melAuthService, File workingDirectory, Long serviceTypeId, String uuid) {
-        super(melAuthService, workingDirectory,serviceTypeId,uuid, Bootloader.BootLevel.SHORT);
+        this(melAuthService, workingDirectory, serviceTypeId, uuid, Bootloader.BootLevel.SHORT);
+    }
+
+    public MelTestService(MelAuthService melAuthService, File workingDirectory, Long serviceTypeId, String uuid, Bootloader.BootLevel bootLevel) {
+        super(melAuthService, workingDirectory, serviceTypeId, uuid, bootLevel);
     }
 
     @Override
