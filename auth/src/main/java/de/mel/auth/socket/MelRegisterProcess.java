@@ -153,6 +153,8 @@ public class MelRegisterProcess extends MelProcess {
                 log("received registration request");
                 try {
                     Certificate certificate = request.getCertificate();
+                    // not imported yet, but from now on there is somebody to tell the handlers about and to clean up after
+                    partnerCertificate = certificate;
                     if (melAuthSocket.getMelAuthService().getRegisterHandlers().size() == 0) {
                         Lok.debug("MelRegisterProcess.onMessageReceived.NO.HANDLER.FOR.REGISTRATION.AVAILABLE");
                     }
@@ -180,7 +182,7 @@ public class MelRegisterProcess extends MelProcess {
                             public void onCertificateRejected(MelRequest request, Certificate certificate) {
                                 runner.runTry(() -> {
                                     MelRegisterProcess.this.sendConfirmation(false);
-                                    acceptedPromise.reject(new PartnerDidNotTrustException());
+                                    acceptedPromise.reject(new UserDidNotTrustException());
                                 });
                             }
                         }, request, melAuthSocket.getMelAuthService().getMyCertificate(), certificate);

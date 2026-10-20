@@ -13,7 +13,6 @@ import de.mel.auth.tools.CountLock;
 import de.mel.auth.tools.ShutDownDeferredManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -45,6 +44,10 @@ public class RegistrationTest {
      */
     private static class RecordingHandler implements IRegisterHandler {
         final List<String> events = new CopyOnWriteArrayList<>();
+        /**
+         * events whose certificate was null: the user cannot be told who it is about
+         */
+        final List<String> eventsWithoutCertificate = new CopyOnWriteArrayList<>();
         private final boolean accept;
         private final boolean instant;
 
@@ -58,6 +61,12 @@ public class RegistrationTest {
         RecordingHandler(boolean accept, boolean instant) {
             this.accept = accept;
             this.instant = instant;
+        }
+
+        private void record(String event, Certificate partnerCertificate) {
+            events.add(event);
+            if (partnerCertificate == null)
+                eventsWithoutCertificate.add(event);
         }
 
         @Override
@@ -87,27 +96,27 @@ public class RegistrationTest {
 
         @Override
         public void onRegistrationCompleted(Certificate partnerCertificate) {
-            events.add("onRegistrationCompleted");
+            record("onRegistrationCompleted", partnerCertificate);
         }
 
         @Override
         public void onRemoteRejected(Certificate partnerCertificate) {
-            events.add("onRemoteRejected");
+            record("onRemoteRejected", partnerCertificate);
         }
 
         @Override
         public void onLocallyRejected(Certificate partnerCertificate) {
-            events.add("onLocallyRejected");
+            record("onLocallyRejected", partnerCertificate);
         }
 
         @Override
         public void onRemoteAccepted(Certificate partnerCertificate) {
-            events.add("onRemoteAccepted");
+            record("onRemoteAccepted", partnerCertificate);
         }
 
         @Override
         public void onLocallyAccepted(Certificate partnerCertificate) {
-            events.add("onLocallyAccepted");
+            record("onLocallyAccepted", partnerCertificate);
         }
     }
 
@@ -363,8 +372,6 @@ public class RegistrationTest {
      * Who is told what when somebody says no. The one who said no was rejected by their own user:
      * locally, and the other one hears about it as a remote rejection.
      */
-    @Disabled("known bug: MelRegisterProcess.onMessageReceived rejects with PartnerDidNotTrustException when the local user says no, "
-            + "so the server's handlers get onRemoteRejected instead of onLocallyRejected (the client side uses UserDidNotTrustException)")
     @Test
     public void serverUserRejectionIsReportedAsLocalToTheServer() throws Exception {
         startInstances(false, true);
@@ -375,6 +382,10 @@ public class RegistrationTest {
         assertTrue(serverUser.events.contains("onLocallyRejected"), "the server's own rejection was not reported as local: " + serverUser.events);
         assertFalse(serverUser.events.contains("onRemoteRejected"), "the server was told the other side rejected, but it was the server's own user: " + serverUser.events);
         assertFalse(clientUser.events.contains("onLocallyRejected"), clientUser.events.toString());
+        assertTrue(serverUser.eventsWithoutCertificate.isEmpty(), "the server was not told who was rejected: " + serverUser.eventsWithoutCertificate);
+        assertTrue(clientUser.eventsWithoutCertificate.isEmpty(), "the client was not told who rejected: " + clientUser.eventsWithoutCertificate);
+        // the rejection is over, the connection must not be kept
+        assertNoTrustedPartner(server, "server");
     }
 
     @Test
