@@ -18,7 +18,6 @@ CREATE TABLE `certificate` (
   `id`          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   `uuid`        TEXT    NOT NULL UNIQUE,
   `type`        TEXT    NOT NULL,
-  `answeruuid`  TEXT,
   `certificate` BLOB    NOT NULL,
   `port`  TEXT,
 `greeting`  TEXT,
@@ -35,5 +34,4 @@ CREATE TABLE `approval` (
   UNIQUE (serviceId, certificateid)
 );
 CREATE INDEX uuidindex ON certificate (uuid);
-CREATE INDEX ownuuidindex ON certificate (answerUuid);
 COMMIT;

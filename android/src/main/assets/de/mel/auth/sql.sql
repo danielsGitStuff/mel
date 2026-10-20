@@ -25,7 +25,6 @@ CREATE TABLE  certificate  (
    id           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
    uuid         TEXT    NOT NULL UNIQUE,
    name         TEXT    NOT NULL,
-   answeruuid   TEXT,
    certificate  BLOB    NOT NULL,
    address      TEXT,
    port         INTEGER,
@@ -46,6 +45,4 @@ CREATE TABLE  approval  (
 );
 CREATE INDEX uuidindex
   ON certificate (uuid);
-CREATE INDEX ownuuidindex
-  ON certificate (answerUuid);
 COMMIT;
