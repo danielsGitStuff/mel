@@ -13,6 +13,7 @@ import de.mel.auth.tools.CountLock;
 import de.mel.auth.tools.ShutDownDeferredManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -356,5 +357,35 @@ public class RegistrationTest {
         settle();
         assertEquals(List.of("regtest-SERVER"), clientRegistered,
                 "the client reported the same registration more than once");
+    }
+
+    /**
+     * Who is told what when somebody says no. The one who said no was rejected by their own user:
+     * locally, and the other one hears about it as a remote rejection.
+     */
+    @Disabled("known bug: MelRegisterProcess.onMessageReceived rejects with PartnerDidNotTrustException when the local user says no, "
+            + "so the server's handlers get onRemoteRejected instead of onLocallyRejected (the client side uses UserDidNotTrustException)")
+    @Test
+    public void serverUserRejectionIsReportedAsLocalToTheServer() throws Exception {
+        startInstances(false, true);
+        startPairing();
+        assertTrue(waitFor(() -> clientUser.events.contains("onRemoteRejected")), clientUser.events.toString());
+        settle();
+
+        assertTrue(serverUser.events.contains("onLocallyRejected"), "the server's own rejection was not reported as local: " + serverUser.events);
+        assertFalse(serverUser.events.contains("onRemoteRejected"), "the server was told the other side rejected, but it was the server's own user: " + serverUser.events);
+        assertFalse(clientUser.events.contains("onLocallyRejected"), clientUser.events.toString());
+    }
+
+    @Test
+    public void clientUserRejectionIsReportedAsRemoteToTheServer() throws Exception {
+        startInstances(true, false);
+        startPairing();
+        assertTrue(waitFor(() -> clientUser.events.contains("onLocallyRejected")), clientUser.events.toString());
+        assertTrue(waitFor(() -> serverUser.events.contains("onRemoteRejected")), "the server never heard that the client said no: " + serverUser.events);
+        settle();
+
+        assertFalse(serverUser.events.contains("onLocallyRejected"), "the server's user accepted: " + serverUser.events);
+        assertFalse(clientUser.events.contains("onRemoteRejected"), clientUser.events.toString());
     }
 }
