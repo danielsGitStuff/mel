@@ -75,6 +75,40 @@ Related: `ConnectedEnvironment` (one validation process per certificate: `regist
   tie-breaker that both sides compute equally. Do NOT use certificate ids: they are local to each database. Something both sides
   know, e.g. the sha256 hash of the certificates: the connection initiated by the side with the lower hash wins.
 - Register socket: closing it after success is fine.
+- No "done" message. The mutual confirmation is the commit (a "done" round would only move the unavoidable window, two generals).
+  The server has the final say:
+  1. C -> S `RegisterRequest` (name, ports; the certificate is the TLS client certificate)
+  2. S -> C `Decision(accepted)`, only if S's user decides first (informational)
+  3. C -> S `Decision(accepted)`
+  4. S -> C `Final(accepted)` once S has both decisions: S persists first, then sends it
+  5. C persists, then C closes the register socket, then connects for auth. S closes only on timeout.
+  A rejection: `Decision(false)` (or `Final(false)` from S), nothing persisted, the rejecting side closes.
+  Window that cannot be closed: S persisted and `Final` is lost -> re-registration repairs it (see below).
+- The persistence must never be cut off by a close: the side that persists last (C) closes, and a close by the peer is an event in
+  the socket's queue behind the messages already received, never an immediate stop. Today it is: the reader thread calls
+  `listener.onClose` directly on EOF and `MelSocket.stop()` shuts the worker down, so a message still queued may never be handled.
+  Persisting a registration is a single statement, no transaction: one INSERT of the already trusted row (new partner) or one
+  UPDATE (known partner), written only after the outcome is final, never during the wait for the users. Nothing is written before.
+  (`SQLQueries.beginTransaction` only switches autocommit off on the one shared connection, so it would not isolate anything from
+  other threads.)
+- Register socket timeout: about 5 minutes waiting for the users, then `CLOSED(TIMEOUT)`, nothing persisted.
+- A message that does not fit the state is a protocol violation: send an error with a reason, then close. No queueing, no
+  recovery. Errors inside a valid state (a service refuses a request) are answered and the connection stays. Every close carries a
+  reason (`CLOSED(PROTOCOL_VIOLATION | DUPLICATE | REJECTED | TIMEOUT | PEER_CLOSED | ...)`), visible to tests on both sides.
+- Duplicate validation connections (isolated ones are exempt): exactly one survives, the same one on both sides. Rule, independent
+  of the local state of either side: different initiators -> the connection initiated by the lower certificate hash wins; same
+  initiator -> the newer one wins (the initiator gave up the old one, e.g. a half-open TCP connection; MQTT session takeover).
+  A side never opens a second outgoing connection to a partner it already has one to. Restricting the rule to pending
+  connections does not work: the two sides see "established" at different moments and could close both.
+- Registration of an already known certificate (two-generals leftover, partner deleted us, or a needless re-pairing): runs the
+  normal flow, the user is told the partner is known already. Accept: keep the row (id and service approvals stay), refresh
+  name/address/ports, trust it. Reject: leave the existing entry untouched (today's reject path deletes `partnerCertificate`,
+  which must never hit an existing entry). Today such a registration fails on `UNIQUE (certificate)`.
+- The registering certificate must be proven: the partner certificate is the TLS client certificate of the register socket,
+  not a certificate carried in the request payload (otherwise anyone could re-register a known partner's public certificate
+  and redirect its address).
+- Isolated connections: `ISOLATED` becomes a state of its own (the reader thread checks the state instead of casting the process).
+- `MelCertRetriever` / `MelAuthCertDelivery`: left out of the model for now.
 - A full re-implementation of the socket/process part is allowed, including wire format and database.
 
 ## Safety net that exists
@@ -90,7 +124,9 @@ On the branch (`./gradlew :auth:test`, about 2 minutes):
 ## Tests to write first
 
 - Concurrent long sends on one socket (problem 4).
-- Two simultaneous connections for the same certificate pair, both directions at once: exactly one survives (problem 2).
+- Two simultaneous connections for the same certificate pair, both directions at once: exactly one survives, the same on both
+  sides (problem 2). Also: a reconnect while the partner still holds the old connection.
+- A peer close right behind the registration's last message: the receiver still persists.
 - Messages that do not fit the state (auth message in the register state, block data without isolation, and so on).
 - A plain unit test of the transition table (no sockets).
 
@@ -113,6 +149,4 @@ On the branch (`./gradlew :auth:test`, about 2 minutes):
 
 ## Open questions
 
-1. Is the register socket closed by the side that completes first, or by both? (depends on the "done" message)
-2. Isolated connections: should the block mode switch become a state of its own, or stay a flag inside the isolated process?
-3. `MelCertRetriever` / `MelAuthCertDelivery` sockets: part of this model or left alone?
+None at the moment.
