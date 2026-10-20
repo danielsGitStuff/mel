@@ -9,8 +9,6 @@ import de.mel.auth.tools.F;
 import de.mel.sql.Hash;
 import de.mel.sql.RWLock;
 
-import org.junit.After;
-import org.junit.Before;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -25,8 +23,6 @@ import java.security.cert.CertificateException;
 import java.util.Properties;
 import java.util.Random;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 
 @SuppressWarnings("Duplicates")
 public class Test {

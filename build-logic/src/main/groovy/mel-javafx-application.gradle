@@ -40,17 +40,14 @@ dependencies {
 //    compileOnly "org.openjfx:javafx-swing:${fxVersion}:linux"
 //    compileOnly "org.openjfx:javafx-web:${fxVersion}:linux"
 
-    //
-    // --- THIS IS THE FIX ---
-    //
-    // 1. Import the Bill of Materials
+    // The BOM only pins versions, it does not add the launcher. Without it on the test runtime classpath
+    // Gradle falls back to its own, older launcher and fails with NoSuchMethodError in junit-platform-commons.
     testImplementation platform(libs.junit6.bom)
-
-    // 2. Depend *only* on the API and Engine.
-    // The BOM will provide platform-commons and platform-launcher.
+    testRuntimeOnly platform(libs.junit6.bom)
     testImplementation libs.junit6.api
+    testImplementation libs.junit6.platform.commons
     testRuntimeOnly libs.junit6.engine
-    // --- END OF FIX ---
+    testRuntimeOnly libs.junit6.platform.launcher
 }
 
 test {

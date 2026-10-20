@@ -51,6 +51,10 @@ dependencies {
     testImplementation libs.junit6.api
     testRuntimeOnly libs.junit6.engine
     testFixturesImplementation libs.junit6.api
+
+    // Without the launcher Gradle falls back to its own, older one: NoSuchMethodError in junit-platform-commons
+    testImplementation libs.junit6.platform.commons
+    testRuntimeOnly libs.junit6.platform.launcher
 }
 
 // 6. Configure test tasks
