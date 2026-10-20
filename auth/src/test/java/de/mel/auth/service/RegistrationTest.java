@@ -50,6 +50,7 @@ public class RegistrationTest {
         final List<String> eventsWithoutCertificate = new CopyOnWriteArrayList<>();
         private final boolean accept;
         private final boolean instant;
+        private final long thinkingMillis;
 
         RecordingHandler(boolean accept) {
             this(accept, false);
@@ -59,8 +60,16 @@ public class RegistrationTest {
          * @param instant decide within the call, like a handler that needs no user does
          */
         RecordingHandler(boolean accept, boolean instant) {
+            this(accept, instant, USER_THINKING_MILLIS);
+        }
+
+        /**
+         * @param thinkingMillis how long the user takes to decide
+         */
+        RecordingHandler(boolean accept, boolean instant, long thinkingMillis) {
             this.accept = accept;
             this.instant = instant;
+            this.thinkingMillis = thinkingMillis;
         }
 
         private void record(String event, Certificate partnerCertificate) {
@@ -81,7 +90,7 @@ public class RegistrationTest {
             }
             Thread user = new Thread(() -> {
                 try {
-                    Thread.sleep(USER_THINKING_MILLIS);
+                    Thread.sleep(thinkingMillis);
                 } catch (InterruptedException e) {
                     return;
                 }
@@ -189,13 +198,15 @@ public class RegistrationTest {
     /**
      * Both instances also find each other by multicast and connect on their own. Now and then that automatic connection
      * swallows our pairing request, nobody is ever asked. Nothing has happened then, so ask again.
+     * The request has arrived when the server's user is asked. (The client's user is asked before that, so that is no sign.)
      */
     private void startPairing() throws Exception {
         // an earlier pairing may have left events behind: only new ones count
-        int eventsBefore = clientUser.events.size() + serverUser.events.size();
+        RecordingHandler asked = serverUser;
+        int eventsBefore = asked.events.size();
         for (int attempt = 0; attempt < 4; attempt++) {
             client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), true);
-            if (waitFor(() -> clientUser.events.size() + serverUser.events.size() > eventsBefore, 8))
+            if (waitFor(() -> asked.events.size() > eventsBefore, 8))
                 return;
         }
         fail("pairing did not even start");
@@ -220,6 +231,14 @@ public class RegistrationTest {
      */
     private static void settle() throws InterruptedException {
         Thread.sleep(1500);
+    }
+
+    private static boolean trustsSomebody(MelAuthService service) {
+        try {
+            return !service.getCertificateManager().getTrustedCertificates().isEmpty();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static void assertNoTrustedPartner(MelAuthService service, String who) throws Exception {
@@ -319,6 +338,7 @@ public class RegistrationTest {
         RecordingHandler accepting = new RecordingHandler(true);
         server.getRegisterHandlers().clear();
         server.addRegisterHandler(accepting);
+        serverUser = accepting;
         startPairing();
         assertTrue(waitFor(() -> accepting.events.contains("onRegistrationCompleted")
                         && clientUser.events.contains("onRegistrationCompleted")),
@@ -398,5 +418,68 @@ public class RegistrationTest {
 
         assertFalse(serverUser.events.contains("onLocallyRejected"), "the server's user accepted: " + serverUser.events);
         assertFalse(clientUser.events.contains("onRemoteRejected"), clientUser.events.toString());
+    }
+
+    /**
+     * The server trusts the client as soon as its own user accepts, without waiting for the client's confirmation.
+     * When the client says no first, the clean-up has nothing to delete yet, and the late accept of the server's user
+     * imports and trusts the certificate of somebody who rejected the pairing.
+     */
+    @Test
+    public void serverTrustsNobodyWhoRejectedBeforeItsUserAccepted() throws Exception {
+        startInstances(new RecordingHandler(true, false, 2500), new RecordingHandler(false, true));
+        startPairing();
+        assertTrue(waitFor(() -> clientUser.events.contains("onLocallyRejected")), clientUser.events.toString());
+        assertTrue(waitFor(() -> serverUser.events.contains("onRemoteRejected")), "the server never heard about the rejection: " + serverUser.events);
+        // the server's user finally accepts, too late
+        Thread.sleep(3500);
+
+        assertNoTrustedPartner(server, "server (events: " + serverUser.events + ")");
+        assertTrue(serverRegistered.isEmpty(), "the server reported a registration that was rejected: " + serverRegistered);
+        assertFalse(serverUser.events.contains("onLocallyAccepted"), "a late accept of a rejected pairing counted: " + serverUser.events);
+        assertTrue(server.getCertificateManager().getAllCertificateDetails().isEmpty(), "a certificate of a rejected pairing is left over");
+    }
+
+    /**
+     * the other order: the client says no after the server's user accepted. The clean-up deletes what was imported.
+     */
+    @Test
+    public void serverTrustsNobodyWhoRejectedAfterItsUserAccepted() throws Exception {
+        startInstances(new RecordingHandler(true, false, 100), new RecordingHandler(false, false, 2500));
+        startPairing();
+        assertTrue(waitFor(() -> clientUser.events.contains("onLocallyRejected")), clientUser.events.toString());
+        assertTrue(waitFor(() -> serverUser.events.contains("onRemoteRejected")), "the server never heard about the rejection: " + serverUser.events);
+        settle();
+
+        assertNoTrustedPartner(server, "server (events: " + serverUser.events + ")");
+    }
+
+    /**
+     * Once the client has completed the registration it connects to the server on a new socket, and the server has to know
+     * the client by then. The server trusts the client when the client's confirmation arrives, the client is done when the
+     * server's confirmation arrives. Both travel on the registration socket, but the later connection does not.
+     */
+    @Test
+    public void serverAlreadyTrustsTheClientWhenTheClientIsDone() throws Exception {
+        startInstances(new RecordingHandler(true, true), new RecordingHandler(true, true));
+        int notYet = 0;
+        int rounds = 10;
+        for (int round = 1; round <= rounds; round++) {
+            int completedBefore = (int) clientUser.events.stream().filter("onRegistrationCompleted"::equals).count();
+            startPairing();
+            assertTrue(waitFor(() -> clientUser.events.stream().filter("onRegistrationCompleted"::equals).count() > completedBefore),
+                    "round " + round + ": the client did not complete: " + clientUser.events);
+            // the very moment the client is done
+            if (!trustsSomebody(server))
+                notYet++;
+            assertTrue(waitFor(() -> trustsSomebody(server)),
+                    "round " + round + ": the server never trusted the client");
+            // start over
+            for (Certificate certificate : server.getCertificateManager().getAllCertificateDetails())
+                server.getCertificateManager().deleteCertificate(certificate);
+            for (Certificate certificate : client.getCertificateManager().getAllCertificateDetails())
+                client.getCertificateManager().deleteCertificate(certificate);
+        }
+        assertEquals(0, notYet, "in " + notYet + " of " + rounds + " rounds the client was done before the server trusted it");
     }
 }

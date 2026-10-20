@@ -163,18 +163,27 @@ public class MelRegisterProcess extends MelProcess {
                             @Override
                             public void onCertificateAccepted(MelRequest request, Certificate certificate) {
                                 runner.runTry(() -> {
-                                    // tell your partner that you appreciate her actions!
+                                    if (confirmedPromise.isRejected()) {
+                                        // the partner said no while the user was thinking, the registration is over
+                                        return;
+                                    }
+                                    // The certificate is imported but not trusted. That happens when the partner has confirmed, too (see constructor).
+                                    // Trusting it here would leave somebody trusted who rejected us in the meantime.
                                     X509Certificate x509Certificate = CertificateManager.loadX509CertificateFromBytes(certificate.getCertificate().v());
                                     String address = melAuthSocket.getAddress();
                                     int port = certificate.getPort().v();
                                     int portCert = certificate.getCertDeliveryPort().v();
                                     partnerCertificate = certificateManager.importCertificate(x509Certificate, certificate.getName().v(), address, port, portCert);
-                                    certificateManager.trustCertificate(partnerCertificate.getId().v(), true);
-                                    MelRegisterProcess.this.sendConfirmation(true);
-                                    for (IRegisteredHandler handler : melAuthSocket.getMelAuthService().getRegisteredHandlers()) {
-                                        handler.onCertificateRegistered(melAuthSocket.getMelAuthService(), partnerCertificate);
+                                    if (confirmedPromise.isRejected()) {
+                                        // rejected between the check and the import: nobody cleaned up the certificate, because it did not exist yet
+                                        certificateManager.deleteCertificate(partnerCertificate);
+                                        return;
                                     }
+                                    // If the partner confirmed already, this trusts it right here. Only then tell it, because
+                                    // it is done once it knows and connects (on another socket) at once.
                                     acceptedPromise.resolve(partnerCertificate);
+                                    // tell your partner that you appreciate her actions!
+                                    MelRegisterProcess.this.sendConfirmation(true);
                                 });
                             }
 
