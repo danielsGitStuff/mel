@@ -3,6 +3,7 @@
 Goal of this task, and nothing else: get sockets, the processes running on them, their states and the concurrency
 around them straight. Breaking changes are fine everywhere (wire format, database, API), there are no running instances.
 The JDeferred replacement (`fun.with.promise`) is a separate, later task, see "Order of work".
+How to implement it, class by class, and further findings (F1-F14): `SOCKET_REWORK_PLAN.md`.
 
 Everything below was found by reading the code and by tests on branch `registration-tests`
 (based on `gradle-fixes`, not merged yet). Nothing in this document is implemented.
@@ -88,8 +89,10 @@ Related: `ConnectedEnvironment` (one validation process per certificate: `regist
 - The persistence must never be cut off by a close: the side that persists last (C) closes, and a close by the peer is an event in
   the socket's queue behind the messages already received, never an immediate stop. Today it is: the reader thread calls
   `listener.onClose` directly on EOF and `MelSocket.stop()` shuts the worker down, so a message still queued may never be handled.
-  Persisting a registration is a single statement, no transaction: one INSERT of the already trusted row (new partner) or one
-  UPDATE (known partner), written only after the outcome is final, never during the wait for the users. Nothing is written before.
+  Persisting a registration is a single statement, no transaction: setting `trusted` (INSERT of a trusted row, or UPDATE of the
+  row the certificate retrieval imported / of a known partner), written only after the outcome is final, never during the wait
+  for the users. The untrusted import by the certificate retrieval before that stays as it is (decided 2026-10-21, see
+  `SOCKET_REWORK_PLAN.md`): trust is the flag, not the row.
   (`SQLQueries.beginTransaction` only switches autocommit off on the one shared connection, so it would not isolate anything from
   other threads.)
 - Register socket timeout: about 5 minutes waiting for the users, then `CLOSED(TIMEOUT)`, nothing persisted.
