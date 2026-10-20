@@ -76,7 +76,8 @@ Related: `ConnectedEnvironment` (one validation process per certificate: `regist
   know, e.g. the sha256 hash of the certificates: the connection initiated by the side with the lower hash wins.
 - Register socket: closing it after success is fine.
 - No "done" message. The mutual confirmation is the commit (a "done" round would only move the unavoidable window, two generals).
-  The server has the final say:
+  C and S are roles per connection (C opened it, S accepted it), not kinds of instances: every instance can be either,
+  a "server" also connects to its clients to push messages. S has the final say:
   1. C -> S `RegisterRequest` (name, ports; the certificate is the TLS client certificate)
   2. S -> C `Decision(accepted)`, only if S's user decides first (informational)
   3. C -> S `Decision(accepted)`
@@ -98,7 +99,8 @@ Related: `ConnectedEnvironment` (one validation process per certificate: `regist
 - Duplicate validation connections (isolated ones are exempt): exactly one survives, the same one on both sides. Rule, independent
   of the local state of either side: different initiators -> the connection initiated by the lower certificate hash wins; same
   initiator -> the newer one wins (the initiator gave up the old one, e.g. a half-open TCP connection; MQTT session takeover).
-  A side never opens a second outgoing connection to a partner it already has one to. Restricting the rule to pending
+  A side never opens a validation connection to a partner it already has one to, in either direction: a connection carries
+  messages both ways, whoever opened it. Restricting the rule to pending
   connections does not work: the two sides see "established" at different moments and could close both.
 - Registration of an already known certificate (two-generals leftover, partner deleted us, or a needless re-pairing): runs the
   normal flow, the user is told the partner is known already. Accept: keep the row (id and service approvals stay), refresh
@@ -107,9 +109,52 @@ Related: `ConnectedEnvironment` (one validation process per certificate: `regist
 - The registering certificate must be proven: the partner certificate is the TLS client certificate of the register socket,
   not a certificate carried in the request payload (otherwise anyone could re-register a known partner's public certificate
   and redirect its address).
-- Isolated connections: `ISOLATED` becomes a state of its own (the reader thread checks the state instead of casting the process).
+- Isolated connections: `ISOLATED` becomes a state of its own (see the state table below).
 - `MelCertRetriever` / `MelAuthCertDelivery`: left out of the model for now.
 - A full re-implementation of the socket/process part is allowed, including wire format and database.
+
+## Wire format and state table (decided)
+
+Typed frames replace `writeUTF` chunks and the `MODE_ISOLATE` mode switch: `type (1 byte) | length (4 bytes) | payload`.
+JSON frames for messages, binary frames for blocks. No mode switch in the reader thread, no reassembly buffer; `send` keeps a
+lock so whole frames do not interleave.
+
+Maximum frame size: a protocol constant, 1 MiB to start (measure later). A header announcing more is a protocol violation and
+closes the connection before anything is allocated (the receiver holds a whole frame in memory; phones, hostile peers).
+This limits frames, not files: a file is sent as many records, each with an 8 byte offset, so file size stays unlimited
+in practice (videos > 2 GB must work). The file process cuts its pieces to fit the maximum frame size.
+
+Blocks (today: `MelIsolatedFileProcess`, fixed `BLOCK_SIZE` = 4 MiB + 21, records `[T|t|E][stream id][offset][length][data]`
+packed into it, a 0 byte ends them, the rest is padding, so every block is sent full size): a binary frame carries exactly one
+record and has the size it needs. The record layout stays the file process's business, the socket only carries frames.
+(The javadoc of `transfer()` says the last record has an 8 byte length, the code writes 4.)
+
+States: `NEW -> REGISTERING | AUTHENTICATING -> ESTABLISHED | ISOLATED -> CLOSED(reason)`. C/S are roles per connection.
+
+| Role | State | Allowed | Effect |
+|---|---|---|---|
+| C | NEW | (C sends first) | `RegisterRequest` -> REGISTERING, `AuthRequest` -> AUTHENTICATING |
+| C | REGISTERING | `Decision(S)` | store, inform the user |
+| | | `Final(true)` | persist, close (`REGISTERED`) |
+| | | `Final(false)` | close (`REJECTED`) |
+| | | local user decides | send `Decision`; rejection: close (`REJECTED`) |
+| C | AUTHENTICATING | `AuthResponse(ok)` | validation: duplicate rule -> ESTABLISHED or close (`DUPLICATE`); isolation: -> ISOLATED |
+| | | `AuthResponse(refused)` | close (`REFUSED`) |
+| S | NEW | `RegisterRequest` | ask the user, start timeout -> REGISTERING |
+| | | `AuthRequest` | TLS certificate not trusted: `Error(UNTRUSTED)`, close. Validation: duplicate rule, `AuthResponse` -> ESTABLISHED. Isolation: check service access, `AuthResponse` -> ISOLATED |
+| S | REGISTERING | `Decision(C)` | S decided already: persist, `Final`; else store |
+| | | local user decides | C's decision known: persist, `Final`; else send `Decision`. Rejection: `Final(false)`, close |
+| both | ESTABLISHED | service traffic | handled; a service error is answered, the connection stays |
+| | | duplicate rule (other connection) | close (`DUPLICATE`) |
+| both | ISOLATED | block frames | to the isolated process |
+| both | any | `Error(reason)` | close (reason, remote) |
+| | | end of stream | close (`PEER_CLOSED`), after the messages already queued |
+| | | local shutdown | close (`SHUTDOWN`) |
+| | | anything else | `Error(PROTOCOL_VIOLATION)`, close |
+
+Timeouts: NEW 30 s (first message), AUTHENTICATING 30 s, REGISTERING 5 min. No keep-alive in ESTABLISHED for now.
+The duplicate rule runs where both the partner and the kind of connection are known: on C when `AuthResponse(ok)` arrives, on S
+when the `AuthRequest` arrives.
 
 ## Safety net that exists
 
