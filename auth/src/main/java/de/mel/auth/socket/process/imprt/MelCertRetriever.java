@@ -98,7 +98,7 @@ public class MelCertRetriever extends DeferredRunnable {
                         if (isItMe) {
                             deferred.reject(new ShamefulSelfConnectException());
                         } else {
-                            Certificate result = certificateManager.importCertificate(x509Certificate, certificate.getName().v(), null, address, port, portCert);
+                            Certificate result = certificateManager.importCertificate(x509Certificate, certificate.getName().v(), address, port, portCert);
                             deferred.resolve(result);
                             // lock.unlockWrite();
                         }

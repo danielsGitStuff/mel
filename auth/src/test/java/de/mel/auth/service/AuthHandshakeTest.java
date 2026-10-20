@@ -371,7 +371,7 @@ public class AuthHandshakeTest {
     public void isolatedConnectionWorksWithLargeCertificateIds() throws Exception {
         for (int i = 0; i < 130; i++) {
             Certificate filler = client.getCertificateManager().importCertificate(
-                    CertificateCreator.generateCertificate(strangersKeys(), "filler" + i), "filler" + i, UUID.randomUUID().toString(), "localhost", 1, 1);
+                    CertificateCreator.generateCertificate(strangersKeys(), "filler" + i), "filler" + i, "localhost", 1, 1);
             client.getCertificateManager().trustCertificate(filler.getId().v(), false);
         }
         Long serverCertId = pair();

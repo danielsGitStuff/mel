@@ -74,8 +74,7 @@ public class CertificateManagerTest {
     @Test
     public void registerCertificateFail() throws Exception, SqlQueriesException {
         X509Certificate x509Certificate = genCert();
-        UUID uuid = CertificateManager.randomUUID();
-        Certificate buildCertificate = certificateManager.importCertificate(x509Certificate, "testname", uuid.toString(), null, null, null);
+        Certificate buildCertificate = certificateManager.importCertificate(x509Certificate, "testname", null, null, null);
         assertNotNull(buildCertificate.getId().v());
         // the certificate was imported but never trusted, so it must not show up as trusted
         assertTrue(certificateManager.getTrustedCertificates().isEmpty());
@@ -85,8 +84,7 @@ public class CertificateManagerTest {
     public void registerCertificate() throws Exception, SqlQueriesException {
         X509Certificate x509Certificate = genCert();
         byte[] byteCert = x509Certificate.getEncoded();
-        UUID uuid = CertificateManager.randomUUID();
-        Certificate buildCertificate = certificateManager.importCertificate(x509Certificate, "testname", uuid.toString(), null, null, null);
+        Certificate buildCertificate = certificateManager.importCertificate(x509Certificate, "testname", null, null, null);
         certificateManager.trustCertificate(buildCertificate.getId().v(), true);
         Certificate dbCertificate = certificateManager.getTrustedCertificates().get(0);
         X509Certificate dbX509Certificate = CertificateManager.loadX509CertificateFromBytes(dbCertificate.getCertificate().v());
@@ -132,7 +130,6 @@ public class CertificateManagerTest {
         certificateManager.generateCertificate();
         Certificate certificate = new Certificate();
         certificate.setCertificate(certificateManager.getMyX509Certificate().getEncoded());
-        certificate.setAnswerUuid("some address");
         UUID uuid = CertificateManager.randomUUID();
         certificate.setUuid(uuid.toString());
         Lok.debug("CertificateManagerTest.storeCertificateDB");

@@ -20,7 +20,6 @@ import java.security.cert.X509Certificate;
 public class Certificate extends SQLTableObject implements SerializableEntity {
     private static final java.lang.String ID = "id";
     private static final java.lang.String UUID = "uuid";
-    private static final java.lang.String ANSWER_UUID = "answeruuid";
     private static final java.lang.String CERTIFICATE = "certificate";
     private static final java.lang.String ADDRESS = "address";
     private static final java.lang.String PORT = "port";
@@ -30,7 +29,6 @@ public class Certificate extends SQLTableObject implements SerializableEntity {
     private static final java.lang.String WIFI = "wifi";
     private Pair<Long> id = new Pair<>(Long.class, ID);
     private Pair<String> uuid = new Pair<>(String.class, UUID);
-    private Pair<String> answerUuid = new Pair<>(String.class, ANSWER_UUID);
     private Pair<byte[]> certificate = new Pair<>(byte[].class, CERTIFICATE);
     private Pair<String> address = new Pair<>(String.class, ADDRESS);
     private Pair<Integer> port = new Pair<>(Integer.class, PORT);
@@ -85,7 +83,7 @@ public class Certificate extends SQLTableObject implements SerializableEntity {
             }
             return value;
         });
-        populateInsert(uuid, answerUuid, name, certificate, address, port, certDeliveryPort, trusted, hash, wifi);
+        populateInsert(uuid, name, certificate, address, port, certDeliveryPort, trusted, hash, wifi);
         populateAll(id);
     }
 
@@ -116,15 +114,6 @@ public class Certificate extends SQLTableObject implements SerializableEntity {
 
     public Certificate setUuid(String uuid) {
         this.uuid.v(uuid);
-        return this;
-    }
-
-    public Pair<String> getAnswerUuid() {
-        return answerUuid;
-    }
-
-    public Certificate setAnswerUuid(String answerUuid) {
-        this.answerUuid.v(answerUuid);
         return this;
     }
 

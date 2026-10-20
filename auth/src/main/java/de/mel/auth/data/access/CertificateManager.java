@@ -149,19 +149,13 @@ public class CertificateManager extends FileRelatedManager {
         return publicKey;
     }
 
-    public synchronized Certificate importCertificate(X509Certificate x509Certificate, String name, String answerUuidString, String address, Integer port, Integer portCert) throws CertificateException, SqlQueriesException, KeyStoreException, NoSuchAlgorithmException, IOException {
+    public synchronized Certificate importCertificate(X509Certificate x509Certificate, String name, String address, Integer port, Integer portCert) throws CertificateException, SqlQueriesException, KeyStoreException, NoSuchAlgorithmException, IOException {
         AtomicReference<Certificate> certificate = new AtomicReference<>(new Certificate());
         String uuid = getNewUUID();
         BunchOfLocks bunchOfLocks = P.confine(certificateDao);
         bunchOfLocks.run(() -> {
-            UUID answerUuid = null;
-            //make sure answeruuid really is an uuid
-            if (answerUuidString != null) {
-                answerUuid = UUID.fromString(answerUuidString);
-            }
             certificate.get().setUuid(uuid)
                     .setCertificate(x509Certificate.getEncoded())
-                    .setAnswerUuid(answerUuid == null ? null : answerUuid.toString())
                     .setAddress(address)
                     .setName(name)
                     .setPort(port)
@@ -359,10 +353,6 @@ public class CertificateManager extends FileRelatedManager {
 
 
 
-    public Certificate getTrustedCertificateByUuid(String uuid) throws SqlQueriesException {
-        return certificateDao.getTrustedCertificateByUuid(uuid);
-    }
-
     public Certificate getTrustedCertificateById(Long id) throws SqlQueriesException {
         return certificateDao.getTrustedCertificateById(id);
     }
@@ -378,15 +368,6 @@ public class CertificateManager extends FileRelatedManager {
 
     public List<Certificate> getTrustedCertificates() throws SqlQueriesException {
         return certificateDao.getTrustedCertificates();
-    }
-
-    public Certificate addAnswerUuid(Long certId, String ownUuid) throws SqlQueriesException {
-        BunchOfLocks bunchOfLocks = P.confine(certificateDao);
-        Certificate partnerCertificate = certificateDao.getTrustedCertificateById(certId);
-        partnerCertificate.setAnswerUuid(ownUuid);
-        certificateDao.updateCertificate(partnerCertificate);
-        bunchOfLocks.end();
-        return partnerCertificate;
     }
 
     public void deleteCertificate(Certificate certificate) throws SqlQueriesException {

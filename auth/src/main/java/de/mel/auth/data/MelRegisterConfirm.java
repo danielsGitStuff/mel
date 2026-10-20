@@ -5,7 +5,6 @@ package de.mel.auth.data;
  */
 public class MelRegisterConfirm extends ServicePayload {
     private Boolean confirmed;
-    private String answerUuid;
 
     public boolean isConfirmed() {
         return confirmed;
@@ -16,12 +15,4 @@ public class MelRegisterConfirm extends ServicePayload {
         return this;
     }
 
-    public MelRegisterConfirm setAnswerUuid(String answerUuid) {
-        this.answerUuid = answerUuid;
-        return this;
-    }
-
-    public String getAnswerUuid() {
-        return answerUuid;
-    }
 }

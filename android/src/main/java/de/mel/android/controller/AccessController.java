@@ -66,7 +66,6 @@ public class AccessController extends GuiController {
             /*
             Certificate c = new Certificate()
                     .setAddress("c address")
-                    .setAnswerUuid("c answer uuid")
                     .setUuid("c uuid")
                     .setCertDeliveryPort(8889)
                     .setPort(8888)

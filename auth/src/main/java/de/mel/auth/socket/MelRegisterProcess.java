@@ -26,7 +26,6 @@ import java.net.URISyntaxException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.UUID;
 
 /**
  * handles registration of incoming and outgoing connections
@@ -58,11 +57,7 @@ public class MelRegisterProcess extends MelProcess {
         });
         new DefaultDeferredManager().when(confirmedPromise, acceptedPromise).done(results -> runner.runTry(() -> {
                     Lok.debug(melAuthSocket.getMelAuthService().getName() + ".MelRegisterProcess.MelRegisterProcess");
-                    MelRegisterConfirm confirm = (MelRegisterConfirm) results.get(0).getResult();
                     Certificate certificate = (Certificate) results.get(1).getResult();
-                    //check if is UUID
-                    UUID answerUuid = UUID.fromString(confirm.getAnswerUuid());
-                    certificate.getAnswerUuid().v(answerUuid.toString());
                     certificateManager.updateCertificate(certificate);
                     certificateManager.trustCertificate(certificate.getId().v(), true);
                     for (IRegisterHandler registerHandler : melAuthSocket.getMelAuthService().getRegisterHandlers())
@@ -99,7 +94,6 @@ public class MelRegisterProcess extends MelProcess {
         partnerCertificate = melAuthSocket.getMelAuthService().getCertificateManager().getCertificateById(id);
         Certificate myCert = new Certificate();
         myCert.setName(melAuthSocket.getMelAuthService().getName());
-        myCert.setAnswerUuid(partnerCertificate.getUuid().v());
         myCert.setCertificate(melAuthSocket.getMelAuthService().getCertificateManager().getMyX509Certificate().getEncoded());
         MelAuthSettings settings = melAuthSocket.getMelAuthService().getSettings();
         myCert.setPort(settings.getPort())
@@ -145,10 +139,7 @@ public class MelRegisterProcess extends MelProcess {
     public void sendConfirmation(boolean trusted) throws JsonSerializationException, IllegalAccessException {
         log("sending confirmation, trusted=" + trusted);
         MelMessage message = new MelMessage(MelStrings.SERVICE_NAME, null);
-        if (trusted)
-            message.setPayLoad(new MelRegisterConfirm().setConfirmed(trusted).setAnswerUuid(partnerCertificate.getUuid().v()));
-        else
-            message.setPayLoad(new MelRegisterConfirm().setConfirmed(false));
+        message.setPayLoad(new MelRegisterConfirm().setConfirmed(trusted));
         send(message);
     }
 
@@ -175,7 +166,7 @@ public class MelRegisterProcess extends MelProcess {
                                     String address = melAuthSocket.getAddress();
                                     int port = certificate.getPort().v();
                                     int portCert = certificate.getCertDeliveryPort().v();
-                                    partnerCertificate = certificateManager.importCertificate(x509Certificate, certificate.getName().v(), certificate.getAnswerUuid().v(), address, port, portCert);
+                                    partnerCertificate = certificateManager.importCertificate(x509Certificate, certificate.getName().v(), address, port, portCert);
                                     certificateManager.trustCertificate(partnerCertificate.getId().v(), true);
                                     MelRegisterProcess.this.sendConfirmation(true);
                                     for (IRegisteredHandler handler : melAuthSocket.getMelAuthService().getRegisteredHandlers()) {
