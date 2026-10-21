@@ -241,3 +241,16 @@ database after `PRAGMA synchronous=OFF` and a crash), tells the server where to 
 - The hash check reads every finished file once more.
 - A transfer that fails because the partner has no such file stays SUSPENDED until the next retry; the `available` flag logic of the sync is unchanged.
 
+### Live changes do not sync (found while writing the sync tests, not fixed)
+
+`FileSyncRoundTripTest` (4 tests, `@Disabled`, they describe what should work): after the first sync, a file created on the client, a file created, changed or deleted on the server does not reach the other side within 60 s.
+The first sync (everything the server has at the start) works and is covered by `FileSyncTransferTest`. All four fail on the code as it is; nothing in `index/` was changed by the rework except the promise port.
+What I found by reading the logs (the indexer/merge is half rewritten, `initStageOlde` is still there):
+1. `StageIndexerRunnable` (the file watcher's indexer) hands `initialStageSetId` to the "staging done" listener, but `examineStage()` deletes that stage set and continues in `examinedStageSetId` (as `IndexerRunnable` does). The server then
+   finds an empty stage set ("deleted stageset 3"), the client commit job finds no staged set. Nothing is ever committed, so nothing is propagated.
+2. With that fixed (experiment, reverted): `StageIndexerRunnable` does not call `hashFiles()` and `minimizeStageSet()` and does not set the status STAGED like `IndexerRunnable` does; the commit fails with
+   `NOT NULL constraint failed: fswrite.contenthash`.
+3. With those added (experiment, reverted): the next layer fails. The client stages the files the sync itself just wrote as its own changes (the watchdog sees the writes), commits them with an old base version (`TooOldVersionException`),
+   the merge ends in `lateinit property mergedStageSet has not been initialized`, `NOT NULL constraint failed: stage.path` and `SQL error ... incomplete input`, and in that experiment the client lost `first.bin` (the test expected both files).
+I did not keep the experiment: changing the indexer/merge pipeline on a guess is the wrong call without the author's intent; it needs its own session (idea: first make the watchdog ignore the sync's own writes, then 1 and 2).
+
