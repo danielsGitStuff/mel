@@ -18,6 +18,7 @@ import de.mel.filesync.sql.*;
 import de.mel.filesync.sql.dao.FsDao;
 import de.mel.filesync.sql.dao.StageDao;
 import de.mel.sql.Hash;
+import de.mel.sql.Pair;
 import de.mel.sql.RWLock;
 import de.mel.sql.SqlQueriesException;
 import fun.with.promise.Promise;
@@ -148,10 +149,20 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         return examinePath(trimmed.substring(0, slash + 1), trimmed.substring(slash + 1));
     }
 
-    private static boolean sameAsInFs(GenericFSEntry fsEntry, FsBashDetails details, long size) {
+    /**
+     * Platforms report file times with different precision (Android truncates, the fs table may hold what another platform reported).
+     * Times that are in the same second are the same time.
+     */
+    private static boolean sameTime(Pair<Long> inFs, Long onDisk) {
+        if (inFs.isNull() || onDisk == null)
+            return inFs.isNull() && onDisk == null;
+        return Math.floorDiv(inFs.v(), 1000L) == Math.floorDiv(onDisk, 1000L);
+    }
+
+    public static boolean sameAsInFs(GenericFSEntry fsEntry, FsBashDetails details, long size) {
         return !fsEntry.getIsDirectory().v()
-                && fsEntry.getCreated().equalsValue(details.getCreated())
-                && fsEntry.getModified().equalsValue(details.getModified())
+                && sameTime(fsEntry.getCreated(), details.getCreated())
+                && sameTime(fsEntry.getModified(), details.getModified())
                 && fsEntry.getiNode().equalsValue(details.getiNode())
                 && fsEntry.getSize().equalsValue(size);
     }
