@@ -113,6 +113,39 @@ public class SyncedStateTest {
         }
     }
 
+    /**
+     * The indexer reads a file again only if it does not look the same as in the fs table (modified time, inode, size). A file the client received must look the same,
+     * else every index of the client reads every file it ever received.
+     */
+    @Test
+    public void aFileTheClientReceivedLooksTheSameAsInItsFsTableSoNobodyReadsItAgain() throws Exception {
+        prepare(new File(dir, "serverRoot"));
+        try (FileSyncInstances instances = new FileSyncInstances(dir, 24530)) {
+            instances.createServer();
+            instances.createClient();
+            assertTrue(TwoInstances.waitFor(() -> synced(instances), 60), "the client did not get the files");
+            FileSyncDatabaseManager database = instances.clientService.getFileSyncDatabaseManager();
+            List<String> looksChanged = new ArrayList<>();
+            boolean same = TwoInstances.waitFor(() -> {
+                try {
+                    looksChanged.clear();
+                    for (String[] f : FILES) {
+                        File file = new File(instances.clientRoot, f[0] + f[1]);
+                        GenericFSEntry entry = database.getFsDao().getGenericByPathAndName("/" + f[0], f[1]);
+                        FsBashDetails disk = BashTools.Companion.getFsBashDetails(AbstractFile.instance(file));
+                        if (entry == null || !de.mel.filesync.index.AbstractIndexer.sameAsInFs(entry, disk, file.length()))
+                            looksChanged.add("/" + f[0] + f[1]);
+                    }
+                    return looksChanged.isEmpty();
+                } catch (Exception e) {
+                    looksChanged.add(e.toString());
+                    return false;
+                }
+            }, 30);
+            assertTrue(same, "the indexer would read these again, they look changed: " + looksChanged);
+        }
+    }
+
     @Test
     public void aClientThatJustSyncedHasNothingToCommitAndStaysQuiet() throws Exception {
         prepare(new File(dir, "serverRoot"));

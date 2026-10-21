@@ -159,9 +159,13 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         return Math.floorDiv(inFs.v(), 1000L) == Math.floorDiv(onDisk, 1000L);
     }
 
+    /**
+     * A hint, not a proof: if it says "same", the file is not read. Only what every platform has and keeps is compared: modified time, inode and size.
+     * The created time is not: Linux cannot set it (a transferred file has the time it was written, not the one of the sender) and Android has none.
+     * What the hint lets pass is decided by the content hash afterwards ({@link #minimizeStageSet()}).
+     */
     public static boolean sameAsInFs(GenericFSEntry fsEntry, FsBashDetails details, long size) {
         return !fsEntry.getIsDirectory().v()
-                && sameTime(fsEntry.getCreated(), details.getCreated())
                 && sameTime(fsEntry.getModified(), details.getModified())
                 && fsEntry.getiNode().equalsValue(details.getiNode())
                 && fsEntry.getSize().equalsValue(size);

@@ -41,7 +41,6 @@ public class SameAsInFsTest {
     @Test
     public void anotherSecondIsAnotherTime() {
         assertFalse(AbstractIndexer.sameAsInFs(entry(1_700_000_123_456L, 1_700_000_223_456L, 7, 10), disk(1_700_000_123_456L, 1_700_000_224_456L, 7), 10));
-        assertFalse(AbstractIndexer.sameAsInFs(entry(1_700_000_123_456L, 1_700_000_223_456L, 7, 10), disk(1_700_000_124_456L, 1_700_000_223_456L, 7), 10));
     }
 
     @Test
@@ -50,9 +49,13 @@ public class SameAsInFsTest {
         assertFalse(AbstractIndexer.sameAsInFs(entry(1L, 2L, 7, 10), disk(1L, 2L, 7), 11));
     }
 
+    /**
+     * Linux cannot set the creation time of a file it received, Android has none: the table may hold the one of the sender
+     */
     @Test
-    public void aMissingCreationTimeIsOnlyTheSameAsAMissingOne() {
-        assertTrue(AbstractIndexer.sameAsInFs(entry(null, 2_000L, 7, 10), disk(null, 2_000L, 7), 10));
-        assertFalse(AbstractIndexer.sameAsInFs(entry(null, 2_000L, 7, 10), disk(1_000L, 2_000L, 7), 10));
+    public void theCreationTimeIsNotCompared() {
+        assertTrue(AbstractIndexer.sameAsInFs(entry(1_000L, 2_000L, 7, 10), disk(1_600_000_000_000L, 2_000L, 7), 10));
+        assertTrue(AbstractIndexer.sameAsInFs(entry(null, 2_000L, 7, 10), disk(1_000L, 2_000L, 7), 10));
+        assertTrue(AbstractIndexer.sameAsInFs(entry(1_000L, 2_000L, 7, 10), disk(null, 2_000L, 7), 10));
     }
 }
