@@ -32,6 +32,25 @@ interface FsConvenience {
      */
     @Throws(IOException::class)
     fun copy(source: IFile, destination: IFile, physicalAllowed: Boolean = true): CopyResult
+
+    /**
+     * true if a place for a file that cannot be had without a physical copy is not wanted at all: the fs entry for it is dropped (see [ReferencesOnly]).
+     */
+    val copiesAreOptional: Boolean
+        get() = false
+}
+
+/**
+ * For a service that must never store content twice: copies are references or they are not made, and an entry whose copy was not made is dropped.
+ */
+class ReferencesOnly(private val delegate: FsConvenience) : FsConvenience {
+    override fun applyModified(file: IFile, fsFile: FsEntry?): Boolean = delegate.applyModified(file, fsFile)
+
+    @Throws(IOException::class)
+    override fun copy(source: IFile, destination: IFile, physicalAllowed: Boolean): CopyResult = delegate.copy(source, destination, false)
+
+    override val copiesAreOptional: Boolean
+        get() = true
 }
 
 enum class CopyResult {

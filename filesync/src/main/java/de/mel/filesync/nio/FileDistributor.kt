@@ -160,7 +160,7 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
             val fsId = targetIds.pop()
             val target = targetStack.pop()
             if (!target.exists()) {
-                copyFile(sourceFile, target, targetPathStack.pop(), fsId)
+                copyFile(sourceFile, target, targetPathStack.pop(), fsId, fileSyncService.fsConvenience.copiesAreOptional)
             }
         }
         if (!lastFile.exists()) {
@@ -208,12 +208,19 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
     }
 
     @Throws(IOException::class)
-    protected fun copyFile(source: T, target: T, targetPath: String, fsId: Long?) {
+    protected fun copyFile(source: T, target: T, targetPath: String, fsId: Long?, mayBeLeftOut: Boolean = false) {
         if (target.exists())
             throw  IOException("file already exists")
         val convenience = fileSyncService.fsConvenience
-        if (convenience.copy(source, target) == CopyResult.NOT_DONE)
-            throw IOException("could not copy ${source.absolutePath} to ${target.absolutePath}")
+        if (convenience.copy(source, target) == CopyResult.NOT_DONE) {
+            if (!mayBeLeftOut)
+                throw IOException("could not copy ${source.absolutePath} to ${target.absolutePath}")
+            // this place was only wanted if it costs nothing
+            Lok.debug("no copy for ${target.absolutePath}: left out")
+            if (fsId != null)
+                de.mel.auth.tools.lock2.P.confine(fsId).run { fsDao.deleteById(fsId) }.end()
+            return
+        }
         if (fsId != null) {
             de.mel.auth.tools.lock2.P.confine(fsId).run {
                 convenience.applyModified(target, fsDao.getFile(fsId))

@@ -21,7 +21,8 @@ import java.time.ZoneOffset
 /**
  * The target of a dump: takes what the sources offer and keeps all of it.
  * <ul>
- * <li>what counts is the content hash. A hash that is stored already is not stored again and not transferred, whatever its name is</li>
+ * <li>what counts is the content hash. Content that is stored already is neither transferred nor stored again. Another name for it is kept as a reference if the file system
+ * can have those, else it is left out ([TargetService.createFsConvenience])</li>
  * <li>the folder structure of the source is kept as far as it is free. A name that is taken by other content gets another name</li>
  * <li>nothing is ever deleted or overwritten: files deleted at the source stay, changed files are new content</li>
  * <li>the ids of the source's fs table mean nothing here, and the target does not tell the source its own. The commit is read by path and name</li>
@@ -101,11 +102,15 @@ class TargetSyncHandler(melAuthService: MelAuthService, targetService: TargetSer
             Lok.error("TargetSyncHandler: no hash for ${stage.path}${stage.name}, not taken")
             return
         }
-        if (fsDao.getFilesByHash(hash).isNotEmpty())
-            return
         var parent = fsDao.getGenericById(fsDao.rootDirectory.id.v())
         for (segment in stage.path.split("/").filter { it.isNotEmpty() })
             parent = directory(parent, segment, localVersion, rootPath)
+        // the same file again (the source sends what it did not send before, not what it did): nothing to do
+        val sameName = fsDao.getGenericChildByName(parent.id.v(), stage.name)
+        if (sameName != null && !sameName.isDirectory.v() && hash == sameName.contentHash.v())
+            return
+        // The content may be stored or on its way already. The entry is made anyway, and the file distribution decides: with the content at hand it makes a reference
+        // for this name (the service's FsConvenience does nothing else) or, if the file system cannot, drops the entry again. A physical copy is never made.
         val name = freeName(parent, stage.name, stage.created)
         val entry = GenericFSEntry()
         entry.isDirectory.v(false)

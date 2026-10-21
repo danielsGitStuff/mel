@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -14,6 +15,15 @@ import java.util.concurrent.atomic.AtomicReference;
 import de.mel.auth.data.db.ServiceJoinServiceType;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.IFile;
+import de.mel.auth.service.MelAuthServiceImpl;
+import de.mel.filesync.data.FileSyncSettings;
+import de.mel.filesync.nio.CopyResult;
+import de.mel.filesync.nio.DefaultFsConvenience;
+import de.mel.filesync.nio.FsConvenience;
+import de.mel.filesync.nio.ReferencesOnly;
+import de.mel.filesync.nio.UnixFsConvenience;
+import de.mel.filesync.service.MelFileSyncService;
+import de.mel.filesync.sql.FileSyncDatabaseManager;
 import de.mel.dump.DumpBootloader;
 import de.mel.dump.DumpCreateServiceHelper;
 import de.mel.dump.SourceService;
@@ -34,6 +44,57 @@ public class DumpFlowTest {
     @TempDir
     File dir;
 
+    /**
+     * A file system that makes references: here a physical copy that says it is none, so the bookkeeping can be tested on any file system.
+     */
+    public static class PretendsToReference extends DefaultFsConvenience {
+        @Override
+        public CopyResult copy(IFile source, IFile destination, boolean physicalAllowed) throws IOException {
+            super.copy(source, destination, true);
+            return CopyResult.REFERENCE;
+        }
+    }
+
+    public static class TargetWithReferences extends TargetService {
+        public TargetWithReferences(MelAuthServiceImpl melAuthService, File workingDirectory, Long serviceTypeId, String uuid, FileSyncSettings settings, FileSyncDatabaseManager databaseManager) {
+            super(melAuthService, workingDirectory, serviceTypeId, uuid, settings, databaseManager);
+        }
+
+        @Override
+        protected FsConvenience createFsConvenience() {
+            return new ReferencesOnly(new PretendsToReference());
+        }
+    }
+
+    public static class TargetWithoutReferences extends TargetService {
+        public TargetWithoutReferences(MelAuthServiceImpl melAuthService, File workingDirectory, Long serviceTypeId, String uuid, FileSyncSettings settings, FileSyncDatabaseManager databaseManager) {
+            super(melAuthService, workingDirectory, serviceTypeId, uuid, settings, databaseManager);
+        }
+
+        @Override
+        protected FsConvenience createFsConvenience() {
+            return new ReferencesOnly(new DefaultFsConvenience());
+        }
+    }
+
+    public static class WithReferencesBootloader extends DumpBootloader {
+        @Override
+        public MelFileSyncService<?> createInstance(FileSyncSettings settings, File workingDirectory, long serviceTypeId, String uuid, FileSyncDatabaseManager databaseManager) {
+            if (settings.isServer())
+                return new TargetWithReferences((MelAuthServiceImpl) melAuthService, workingDirectory, serviceTypeId, uuid, settings, databaseManager);
+            return super.createInstance(settings, workingDirectory, serviceTypeId, uuid, databaseManager);
+        }
+    }
+
+    public static class WithoutReferencesBootloader extends DumpBootloader {
+        @Override
+        public MelFileSyncService<?> createInstance(FileSyncSettings settings, File workingDirectory, long serviceTypeId, String uuid, FileSyncDatabaseManager databaseManager) {
+            if (settings.isServer())
+                return new TargetWithoutReferences((MelAuthServiceImpl) melAuthService, workingDirectory, serviceTypeId, uuid, settings, databaseManager);
+            return super.createInstance(settings, workingDirectory, serviceTypeId, uuid, databaseManager);
+        }
+    }
+
     private class Dump implements AutoCloseable {
         final TwoInstances two;
         final File targetRoot = new File(dir, "targetRoot");
@@ -42,7 +103,11 @@ public class DumpFlowTest {
         SourceService source;
 
         Dump(int portBase) throws Exception {
-            two = new TwoInstances(dir, portBase, TwoInstances.ACCEPT_ALL, TwoInstances.ACCEPT_ALL, DumpBootloader.class);
+            this(portBase, DumpBootloader.class);
+        }
+
+        Dump(int portBase, Class<? extends DumpBootloader> bootloader) throws Exception {
+            two = new TwoInstances(dir, portBase, TwoInstances.ACCEPT_ALL, TwoInstances.ACCEPT_ALL, bootloader);
             assertTrue(targetRoot.isDirectory() || targetRoot.mkdirs());
             assertTrue(sourceRoot.isDirectory() || sourceRoot.mkdirs());
             two.pair();
@@ -160,18 +225,113 @@ public class DumpFlowTest {
         }, seconds);
     }
 
+    private static String entriesOf(Dump dump, String sha) {
+        try {
+            StringBuilder b = new StringBuilder();
+            for (de.mel.filesync.sql.FsFile f : dump.target.getFileSyncDatabaseManager().getFsDao().getFilesByHash(sha))
+                b.append("[").append(f.getPath().v()).append(f.getName().v()).append(" synced=").append(f.getSynced().v()).append("] ");
+            b.append(" | all: ");
+            for (de.mel.filesync.sql.GenericFSEntry f : dump.target.getFileSyncDatabaseManager().getFsDao().getDelta(0L))
+                b.append("[").append(f.getPath().v()).append(f.getName().v()).append(" v").append(f.getVersion().v()).append(" synced=").append(f.getSynced().v()).append(" ").append(String.valueOf(f.getContentHash().v()).substring(0, 4)).append("] ");
+            return b.toString();
+        } catch (Exception e) {
+            return e.toString();
+        }
+    }
+
+    private static long countOf(File root, String sha) throws Exception {
+        return hashesOf(root).stream().filter(sha::equals).count();
+    }
+
+    private int namesExpectedFor(File nearTheTarget) throws Exception {
+        // what this file system does: a name is kept if it can be a reference
+        File probe = new File(nearTheTarget, "probe");
+        assertTrue(probe.isDirectory() || probe.mkdirs());
+        File source = new File(probe, "a");
+        java.nio.file.Files.write(source.toPath(), new byte[100_000]);
+        CopyResult result = new UnixFsConvenience().copy(AbstractFile.instance(source), AbstractFile.instance(new File(probe, "b")), false);
+        return result == CopyResult.REFERENCE ? 2 : 1;
+    }
+
+    /**
+     * On this file system a second name for stored content is a reference or it is left out. Never a copy of the content.
+     */
     @Test
-    public void theSameContentUnderAnotherNameIsStoredOnce() throws Exception {
+    public void theSameContentUnderAnotherNameIsAReferenceOrLeftOut() throws Exception {
         File source = new File(dir, "sourceRoot");
         String sha = FileSyncInstances.writeFile(source, "holiday/IMG_1.jpg", 50_000, 11);
         FileSyncInstances.writeFile(source, "backup/IMG_1_copy.jpg", 50_000, 11);
         String other = FileSyncInstances.writeFile(source, "other.bin", 5_000, 12);
+        long expected = namesExpectedFor(new File(dir, "targetRoot").getParentFile());
         try (Dump dump = new Dump(24830)) {
             dump.startTarget();
             dump.startSource();
-            assertTrue(waitForHash(dump.targetRoot, sha, 90), "the content did not arrive: " + FileSyncInstances.hashesBelow(dump.targetRoot));
             assertTrue(waitForHash(dump.targetRoot, other, 90), "the other file did not arrive: " + FileSyncInstances.hashesBelow(dump.targetRoot));
-            assertEquals(1, hashesOf(dump.targetRoot).stream().filter(sha::equals).count(), "the content should be there once: " + FileSyncInstances.hashesBelow(dump.targetRoot));
+            assertTrue(TwoInstances.waitFor(() -> {
+                try {
+                    return countOf(dump.targetRoot, sha) == expected;
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }, 90), "the content should have " + expected + " name(s): " + FileSyncInstances.hashesBelow(dump.targetRoot));
+            Thread.sleep(3_000);
+            assertEquals(expected, countOf(dump.targetRoot, sha), "later: " + FileSyncInstances.hashesBelow(dump.targetRoot));
+        }
+    }
+
+    @Test
+    public void whereReferencesAreHadEachNameIsKept() throws Exception {
+        File source = new File(dir, "sourceRoot");
+        String sha = FileSyncInstances.writeFile(source, "holiday/IMG_1.jpg", 150_000, 11);
+        FileSyncInstances.writeFile(source, "backup/IMG_1_copy.jpg", 150_000, 11);
+        FileSyncInstances.writeFile(source, "backup/IMG_1_again.jpg", 150_000, 11);
+        // the fs table knows files by md5
+        String md5 = FileSyncInstances.md5Of(new File(source, "holiday/IMG_1.jpg"));
+        try (Dump dump = new Dump(24870, WithReferencesBootloader.class)) {
+            dump.startTarget();
+            dump.startSource();
+            assertTrue(TwoInstances.waitFor(() -> {
+                try {
+                    return countOf(dump.targetRoot, sha) == 3;
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }, 90), "all three names should be there: " + FileSyncInstances.hashesBelow(dump.targetRoot));
+            assertEquals(java.util.Set.of("holiday/IMG_1.jpg", "backup/IMG_1_copy.jpg", "backup/IMG_1_again.jpg"), FileSyncInstances.hashesBelow(dump.targetRoot).keySet());
+            // and the database knows each of them as present
+            assertTrue(TwoInstances.waitFor(() -> {
+                try {
+                    return dump.target.getFileSyncDatabaseManager().getFsDao().getSyncedFilesByHash(md5).size() == 3;
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }, 30), "the fs table should hold three synced entries: " + entriesOf(dump, md5));
+        }
+    }
+
+    @Test
+    public void whereNoReferencesAreHadTheOtherNamesAreLeftOutAndNothingIsCopied() throws Exception {
+        File source = new File(dir, "sourceRoot");
+        String sha = FileSyncInstances.writeFile(source, "holiday/IMG_1.jpg", 150_000, 11);
+        FileSyncInstances.writeFile(source, "backup/IMG_1_copy.jpg", 150_000, 11);
+        FileSyncInstances.writeFile(source, "backup/IMG_1_again.jpg", 150_000, 11);
+        String other = FileSyncInstances.writeFile(source, "other.bin", 5_000, 12);
+        String md5 = FileSyncInstances.md5Of(new File(source, "holiday/IMG_1.jpg"));
+        try (Dump dump = new Dump(24880, WithoutReferencesBootloader.class)) {
+            dump.startTarget();
+            dump.startSource();
+            assertTrue(waitForHash(dump.targetRoot, other, 90), "the other file did not arrive");
+            assertTrue(waitForHash(dump.targetRoot, sha, 90), "the content did not arrive");
+            // the entries that were not wanted are dropped when the content is placed
+            assertTrue(TwoInstances.waitFor(() -> {
+                try {
+                    return dump.target.getFileSyncDatabaseManager().getFsDao().getFilesByHash(md5).size() == 1;
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }, 60), "one entry should remain: " + entriesOf(dump, md5));
+            Thread.sleep(2_000);
+            assertEquals(1, countOf(dump.targetRoot, sha), FileSyncInstances.hashesBelow(dump.targetRoot).toString());
         }
     }
 
