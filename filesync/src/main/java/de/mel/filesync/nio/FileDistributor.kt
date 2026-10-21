@@ -197,9 +197,13 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
     }
 
     protected fun updateFs(fsId: Long?, target: T): FsFile {
+        val fsTarget = fsDao.getFile(fsId)
+        // the file keeps the time of the sender, as rsync -t does. Best effort: not every platform allows it. What the disk says afterwards is what the fs table gets.
+        val senderModified = fsTarget.modified.v()
+        if (senderModified != null && !target.setLastModified(senderModified))
+            Lok.debug("could not set the modification time of ${target.absolutePath}")
         val fsBashDetails = BashTools.getFsBashDetails(target)
                 ?: throw IOException("could not read FsBashDetails from ${target.absolutePath}")
-        val fsTarget = fsDao.getFile(fsId)
         BashTools.setCreationDate(target, fsBashDetails.created)
         fsTarget.getiNode().v(fsBashDetails.getiNode())
         fsTarget.modified.v(fsBashDetails.modified)

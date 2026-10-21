@@ -36,7 +36,6 @@ public abstract class FsEntry extends SQLTableObject implements SerializableEnti
     protected Pair<Boolean> isDirectory = new Pair<>(Boolean.class, DIR, false);
     @JsonIgnore
     protected Pair<Long> iNode = new Pair<>(Long.class, INODE);
-    @JsonIgnore
     protected Pair<Long> modified = new Pair<>(Long.class, MODIFIED);
     protected Pair<Long> created = new Pair<>(Long.class, CREATED);
 

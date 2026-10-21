@@ -19,6 +19,8 @@ public class GenericFSEntry extends FsEntry {
                 .setSize(genericFSEntry.getSize().v())
                 .setVersion(genericFSEntry.getVersion().v())
                 .setCreated(genericFSEntry.getCreated().v())
+                // the receiver sets it on the file it writes. The inode is of the machine, not sent.
+                .setModified(genericFSEntry.getModified().v())
                 .setDeleted(false)
                 .setDepth(genericFSEntry.getDepth().v())
                 .setPath(genericFSEntry.getPath().v());

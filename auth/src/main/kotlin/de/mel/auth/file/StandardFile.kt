@@ -136,6 +136,8 @@ class StandardFile : AbstractFile<StandardFile> {
         return file.lastModified()
     }
 
+    override fun setLastModified(time: Long): Boolean = file.setLastModified(time)
+
     @Throws(IOException::class)
     override fun createNewFile(): Boolean {
         return file.createNewFile()

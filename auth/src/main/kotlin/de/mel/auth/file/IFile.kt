@@ -58,6 +58,12 @@ interface IFile : SerializableEntity {
 
     fun lastModified(): Long?
 
+    /**
+     * Tries to set the modification time (ms). Not every platform or storage allows it (android shared storage, SAF), then this returns false and the file keeps the time it has.
+     * Nothing may depend on it working.
+     */
+    fun setLastModified(time: Long): Boolean = false
+
     @Throws(IOException::class)
     fun createNewFile(): Boolean
 

@@ -146,6 +146,65 @@ public class SyncedStateTest {
         }
     }
 
+    /**
+     * As with rsync -t: a file keeps the modification time of the sender, it does not get the time it was downloaded.
+     * Best effort on platforms that cannot set it, but linux can.
+     */
+    @Test
+    public void aReceivedFileKeepsTheModificationTimeOfTheSender() throws Exception {
+        File serverRoot = new File(dir, "serverRoot");
+        prepare(serverRoot);
+        long old = 1_577_869_200_000L; // 2020-01-01
+        for (String[] f : FILES)
+            assertTrue(new File(serverRoot, f[0] + f[1]).setLastModified(old));
+        try (FileSyncInstances instances = new FileSyncInstances(dir, 24540)) {
+            instances.createServer();
+            instances.createClient();
+            assertTrue(TwoInstances.waitFor(() -> synced(instances), 60), "the client did not get the files");
+            FileSyncDatabaseManager database = instances.clientService.getFileSyncDatabaseManager();
+            List<String> wrong = new ArrayList<>();
+            boolean ok = TwoInstances.waitFor(() -> {
+                wrong.clear();
+                for (String[] f : FILES) {
+                    long onDisk = new File(instances.clientRoot, f[0] + f[1]).lastModified();
+                    if (onDisk != old)
+                        wrong.add("/" + f[0] + f[1] + " on the disk of the client: " + onDisk);
+                    try {
+                        GenericFSEntry entry = database.getFsDao().getGenericByPathAndName("/" + f[0], f[1]);
+                        if (entry == null || !java.util.Objects.equals(entry.getModified().v(), old))
+                            wrong.add("/" + f[0] + f[1] + " in the fs table of the client: " + (entry == null ? null : entry.getModified().v()));
+                    } catch (Exception e) {
+                        wrong.add(e.toString());
+                    }
+                }
+                return wrong.isEmpty();
+            }, 30);
+            assertTrue(ok, "the client's files should have the time of the server's (" + old + "): " + wrong);
+        }
+    }
+
+    @Test
+    public void aFileTheServerReceivedFromTheClientKeepsItsModificationTimeToo() throws Exception {
+        prepare(new File(dir, "serverRoot"));
+        long old = 1_577_869_200_000L; // 2020-01-01
+        try (FileSyncInstances instances = new FileSyncInstances(dir, 24550)) {
+            instances.createServer();
+            instances.createClient();
+            assertTrue(TwoInstances.waitFor(() -> synced(instances), 60), "the client did not get the files");
+            instances.restartClient(() -> {
+                try {
+                    FileSyncInstances.writeFile(instances.clientRoot, "from the client.bin", 9_000, 42);
+                    assertTrue(new File(instances.clientRoot, "from the client.bin").setLastModified(old));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            File onServer = new File(instances.serverRoot, "from the client.bin");
+            assertTrue(TwoInstances.waitFor(() -> synced(instances), 60), "the server did not get the file");
+            assertTrue(TwoInstances.waitFor(() -> onServer.lastModified() == old, 20), "the file has the time " + onServer.lastModified() + " on the server instead of " + old);
+        }
+    }
+
     @Test
     public void aClientThatJustSyncedHasNothingToCommitAndStaysQuiet() throws Exception {
         prepare(new File(dir, "serverRoot"));

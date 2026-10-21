@@ -47,7 +47,6 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     private Pair<Boolean> isDirectory = new Pair<>(Boolean.class, DIR);
     @JsonIgnore
     private Pair<Long> iNode = new Pair<>(Long.class, INODE);
-    @JsonIgnore
     private Pair<Long> modified = new Pair<>(Long.class, MODIFIED);
     private Pair<Long> created = new Pair<>(Long.class, CREATED);
     private Pair<Boolean> deleted = new Pair<>(Boolean.class, DELETED);

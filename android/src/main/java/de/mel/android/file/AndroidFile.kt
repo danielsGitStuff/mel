@@ -240,6 +240,8 @@ class AndroidFile : IFile {
         return file!!.lastModified()
     }
 
+    override fun setLastModified(time: Long): Boolean = file?.setLastModified(time) ?: false
+
     /**
      * Checks whether or not you have to employ the Storage Access Framework to write to that location.
      * Check only works until Android Pie.
