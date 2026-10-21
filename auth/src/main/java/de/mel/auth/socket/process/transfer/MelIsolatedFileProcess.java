@@ -93,18 +93,23 @@ public class MelIsolatedFileProcess extends MelIsolatedProcess implements MelRun
         super.onSocketClosed(reason, remote);
     }
 
+    /**
+     * One block frame is one record, see {@link #transfer()}.
+     */
     @Override
     public void onBlockReceived(BlockReceivedJob blockJob) {
         byte[] bytes = blockJob.getBlock();
-        assert bytes.length == BLOCK_SIZE;
+        if (bytes.length < 5) {
+            Lok.error("MelIsolatedFileProcess.onBlockReceived: record of " + bytes.length + " bytes is too short");
+            blockJob.resolve(null);
+            return;
+        }
         byte[] streamBytes = Arrays.copyOfRange(bytes, 1, 5);
         int streamId = ByteTools.bytesToInt(streamBytes);
         Block block = new Block(streamId).setBytes(bytes);
         try {
-            while (block.getFirstByteToProcessIndex() < block.getBytes().length && !(block.getBytes()[block.getFirstByteToProcessIndex()] == 0)) {
-                if (!handleTransfer(block)) {
-                    Lok.error("MelIsolatedFileProcess.onBlockReceived. did not know what to do :(");
-                }
+            if (!handleTransfer(block)) {
+                Lok.error("MelIsolatedFileProcess.onBlockReceived. did not know what to do :(");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -115,14 +120,17 @@ public class MelIsolatedFileProcess extends MelIsolatedProcess implements MelRun
 
 
     /**
-     * the size of one block frame, padded as long as the packing of records stays (step 8)
+     * [T/t][4 bytes stream id][8 bytes offset][4 bytes length]
      */
-    public static final int BLOCK_SIZE = FrameCodec.MAX_FRAME;
     private static final int META_LENGTH = 17;
+    /**
+     * the most file data one record (one block frame) carries
+     */
+    private static final int MAX_DATA = FrameCodec.MAX_FRAME - META_LENGTH;
 
     /**
-     * //[8 bytes, file size]<br>
-     * format first block: [T][4 bytes, stream id][8 bytes, offset of PAYLOAD][4 bytes, length of PAYLOAD][PAYLOAD]<br>
+     * format of a record: [T or t][4 bytes, stream id][8 bytes, offset of PAYLOAD][4 bytes, length of PAYLOAD][PAYLOAD]<br>
+     * [E][4 bytes, stream id] tells that the file cannot be sent<br>
      *
      * @param block
      * @return number of handled bytes
@@ -210,16 +218,14 @@ public class MelIsolatedFileProcess extends MelIsolatedProcess implements MelRun
     }
 
     /**
-     * sends one block of bytes over the socket. so it does not block until the file is transferred.<br>
-     * format first/standard block: [T][4 bytes, stream id][8 bytes, offset of PAYLOAD][4 bytes, length of PAYLOAD][PAYLOAD]<br>
-     * format last block: [t][4 bytes, stream id][8bytes, offset of PAYLOAD][8 bytes, length of PAYLOAD][PAYLOAD]
+     * Sends the files that are waiting, each piece in a block frame of its own (the frame has exactly the size it needs). So it does not block until the file is transferred.<br>
+     * format of a record: [T][4 bytes, stream id][8 bytes, offset of PAYLOAD][4 bytes, length of PAYLOAD][PAYLOAD]<br>
+     * the last record of a file starts with [t] instead of [T]<br>
+     * a file that cannot be sent: [E][4 bytes, stream id]
      *
      * @throws IOException
      */
     public void transfer() throws IOException, InterruptedException {
-        int blockOffset = 0;
-        int bytesLeft = BLOCK_SIZE;
-        byte[] block = new byte[BLOCK_SIZE];
         String hash = sendingDetails.peek();
         FileTransferDetail transferDetail = hashFTDSendingMap.get(hash);
         while (transferDetail != null) {
@@ -230,57 +236,40 @@ public class MelIsolatedFileProcess extends MelIsolatedProcess implements MelRun
                     melAuthSocket.getMelAuthService().onNotificationFromService(service, sendingNotification);
                 }
             }
-            // [T/t][streamId][offset]
-            Character charToSend = transferDetail.hasError() ? 'E' : 'T';
-            if (!transferDetail.hasError()) {
-                // already done, already done or it fits completely
-                if (transferDetail.transferred() || transferDetail.getPosition() == transferDetail.getEnd()
-                        || transferDetail.getEnd() - transferDetail.getPosition() <= bytesLeft - META_LENGTH)
-                    charToSend = 't';
-                blockOffset = ByteTools.fill(block, blockOffset,
-                        charToSend.toString().getBytes(),
-                        ByteTools.intToBytes(transferDetail.getStreamId()),
-                        ByteTools.longToBytes(transferDetail.getPosition())
-                );
-            } else {
-                blockOffset = ByteTools.fill(block, blockOffset,
-                        charToSend.toString().getBytes(),
-                        ByteTools.intToBytes(transferDetail.getStreamId()));
-            }
+            byte[] record;
             FileTransferDetail.FReadInfo readResult = null;
-            if (!transferDetail.hasError()) {
-                //keep in mind that 4 bytes still have to be added before the actual PAYLOAD
-                bytesLeft = BLOCK_SIZE - blockOffset - 4;
-                readResult = transferDetail.readFile(transferDetail.getPosition(), bytesLeft);
-                // [length of PAYLOAD]
-                blockOffset = ByteTools.fill(block, blockOffset, ByteTools.intToBytes(readResult.getBytes().length), readResult.getBytes());
+            if (transferDetail.hasError()) {
+                record = new byte[5];
+                ByteTools.fill(record, 0, "E".getBytes(), ByteTools.intToBytes(transferDetail.getStreamId()));
+            } else {
+                boolean last = transferDetail.transferred() || transferDetail.getPosition() == transferDetail.getEnd()
+                        || transferDetail.getEnd() - transferDetail.getPosition() <= MAX_DATA;
+                long position = transferDetail.getPosition();
+                readResult = transferDetail.readFile(position, MAX_DATA);
+                byte[] data = readResult.getBytes();
+                record = new byte[META_LENGTH + data.length];
+                ByteTools.fill(record, 0,
+                        (last ? "t" : "T").getBytes(),
+                        ByteTools.intToBytes(transferDetail.getStreamId()),
+                        ByteTools.longToBytes(position),
+                        ByteTools.intToBytes(data.length),
+                        data);
             }
-            bytesLeft = BLOCK_SIZE - blockOffset;
             // if file is processed
-            if (transferDetail.transferred() || transferDetail.hasError() || readResult == null || (readResult != null && readResult.getNotFilledBytes() > 0)) {
+            if (transferDetail.transferred() || transferDetail.hasError() || readResult == null || readResult.getNotFilledBytes() > 0) {
                 sendingSemaphore.acquire();
                 sendingDetails.poll();
                 hashFTDSendingMap.remove(hash);
                 sendingSemaphore.release();
             }
-            if (bytesLeft > 0) {
-                if (bytesLeft > META_LENGTH) {
-                    sendingSemaphore.acquire();
-                    hash = sendingDetails.peek();
-                    transferDetail = hashFTDSendingMap.get(hash);
-                    sendingSemaphore.release();
-                    if (transferDetail == null)
-                        melAuthSocket.sendBlock(block);
-                } else {
-                    transferDetail = null;
-                    melAuthSocket.sendBlock(block);
-                }
-            } else {
-                melAuthSocket.sendBlock(block);
-                transferDetail = null;
-            }
+            melAuthSocket.sendBlock(record);
+            sendingSemaphore.acquire();
+            hash = sendingDetails.peek();
+            transferDetail = hashFTDSendingMap.get(hash);
+            sendingSemaphore.release();
         }
-        sendingNotification.cancel();
+        if (sendingNotification != null)
+            sendingNotification.cancel();
         sendingNotification = null;
     }
 

@@ -100,7 +100,9 @@ class TManager(
         val transaction = de.mel.auth.tools.lock2.P.confine(isolatedProcessesMap, activeTFSRunnables)
         try {
             // keep the house clean
-            isolatedProcessesMap.remove(isolatedProcess.partnerCertificateId)
+            // several isolated connections to the same partner may exist: only forget this one
+            if (isolatedProcessesMap[isolatedProcess.partnerCertificateId] === isolatedProcess)
+                isolatedProcessesMap.remove(isolatedProcess.partnerCertificateId)
             // also stop the retriever - if present
             activeTFSRunnables.remove(isolatedProcess)?.stop()
         } finally {

@@ -44,7 +44,7 @@ public class TransitionsTest {
             case ESTABLISHED:
                 return message == SERVICE || message == RESPONSE ? DELIVER : VIOLATION;
             case ISOLATED:
-                return message == BLOCK || message == ISOLATE_HANDSHAKE ? DELIVER : VIOLATION;
+                return message == BLOCK ? DELIVER : VIOLATION;
             default:
                 throw new IllegalStateException();
         }
@@ -59,7 +59,7 @@ public class TransitionsTest {
                     assertEquals(expected(state, role, message), Transitions.onMessage(state, role, message), state + "/" + role + "/" + message);
                     checked++;
                 }
-        assertEquals(6 * 2 * 10, checked);
+        assertEquals(6 * 2 * 9, checked);
     }
 
     @Test

@@ -1,8 +1,10 @@
 package de.mel.auth.service;
 
 import de.mel.auth.MelNotification;
+import de.mel.auth.data.IsolationDetails;
 import de.mel.auth.data.ServicePayload;
 import de.mel.auth.data.db.Certificate;
+import de.mel.auth.socket.MelAuthSocket;
 import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
 import de.mel.auth.socket.process.val.Request;
 
@@ -37,6 +39,12 @@ public interface IMelService {
     void handleCertificateSpotted(Certificate partnerCertificate);
 
     String getUuid();
+
+    /**
+     * A partner opened an isolated connection to this service. The service decides which process runs on it:
+     * return null to refuse. The name of the process class in the details comes from the partner, it is only to be looked up, never to be instantiated.
+     */
+    MelIsolatedProcess createIsolatedProcess(IsolationDetails details, MelAuthSocket melAuthSocket, Long partnerCertificateId) throws Exception;
 
     /**
      * Isolated connections are used to transfer files

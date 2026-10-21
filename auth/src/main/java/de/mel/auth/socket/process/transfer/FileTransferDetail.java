@@ -176,29 +176,40 @@ public class FileTransferDetail implements SerializableEntity {
     }
 
     /**
-     * tries to read 'length' bytes.
-     * if file ends before this will return a shorter byte array,
-     * set transferred to true.
+     * Where the input stream is, in bytes from the start of the file. The stream is read front to back, an offset is only a position in the file.
+     */
+    @JsonIgnore
+    private long streamPosition = 0;
+
+    /**
+     * Reads up to 'length' bytes at 'offset', never beyond the end of this detail (the end of its range).
+     * If the file or the range ends before, the result is shorter and the not filled bytes are counted; when the end is reached
+     * the detail is transferred.
      *
-     * @param offset
-     * @param length
-     * @return the number of actual read bytes
+     * @param offset where in the file to read. The stream continues where it was, so offsets have to increase.
+     * @param length the most to read
+     * @return the bytes that were read
      * @throws IOException
      */
     public FReadInfo readFile(long offset, int length) throws IOException {
-        byte[] bytes = new byte[length];
-//        FileChannel ch = in.getChannel();
-        while (offset != 0) {
-            offset -= in.skip(offset);
+        while (streamPosition < offset) {
+            long skipped = in.skip(offset - streamPosition);
+            if (skipped <= 0)
+                break;
+            streamPosition += skipped;
         }
-//        ch.position(offset);
-//        int readBytes = ch.read(ByteBuffer.wrap(bytes));
-        int readBytes = in.read(bytes);
-        if (readBytes == -1) {
-            bytes = new byte[0];
-        } else if (readBytes < length) {
+        int wanted = (int) Math.max(0, Math.min(length, end - position));
+        byte[] bytes = new byte[wanted];
+        int readBytes = 0;
+        while (readBytes < wanted) {
+            int read = in.read(bytes, readBytes, wanted - readBytes);
+            if (read == -1)
+                break;
+            readBytes += read;
+        }
+        streamPosition += readBytes;
+        if (readBytes < wanted)
             bytes = Arrays.copyOf(bytes, readBytes);
-        }
         position += readBytes;
         if (position == end) {
             in.close();

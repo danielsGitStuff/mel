@@ -32,7 +32,9 @@ import de.mel.auth.data.ServicePayload;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.IFile;
+import de.mel.auth.data.IsolationDetails;
 import de.mel.auth.service.IMelService;
+import de.mel.auth.socket.MelAuthSocket;
 import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
@@ -199,6 +201,11 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
 
         @Override
         public String getUuid() {
+            return null;
+        }
+
+        @Override
+        public MelIsolatedProcess createIsolatedProcess(IsolationDetails details, MelAuthSocket melAuthSocket, Long partnerCertificateId) {
             return null;
         }
 

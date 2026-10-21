@@ -24,6 +24,7 @@ public class MelTestService extends MelServiceWorker {
 
     public MelTestService(MelAuthService melAuthService, File workingDirectory, Long serviceTypeId, String uuid, Bootloader.BootLevel bootLevel) {
         super(melAuthService, workingDirectory, serviceTypeId, uuid, bootLevel);
+        allowIsolatedProcess(TestIsolatedProcess.class);
     }
 
     @Override

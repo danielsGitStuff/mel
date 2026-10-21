@@ -49,10 +49,6 @@ public class MelAuthCertDelivery extends DeferredRunnable {
         this.serverSocketFactory = ServerSocketFactory.getDefault();
 
         this.listener = new MelSocket.MelSocketListener() {
-            @Override
-            public void onIsolated() {
-
-            }
 
             @Override
             public void onMessage(MelSocket melSocket, String messageString) {

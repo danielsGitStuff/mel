@@ -17,7 +17,7 @@ import de.mel.core.serialize.SerializableEntity;
  * REGISTERING    | decision, final        | decision
  * AUTHENTICATING | response               | nothing (decides at once)
  * ESTABLISHED    | service traffic        | service traffic
- * ISOLATED       | blocks, isolate hello  | blocks, isolate hello
+ * ISOLATED       | blocks                 | blocks
  * any            | error (closes)         | error (closes)
  * anything else is a protocol violation
  * </pre>
@@ -38,7 +38,7 @@ public final class Transitions {
          * everything else that is meant for a service
          */
         SERVICE,
-        ISOLATE_HANDSHAKE, BLOCK, ERROR, UNPARSABLE
+        BLOCK, ERROR, UNPARSABLE
     }
 
     public enum Verdict {
@@ -111,7 +111,7 @@ public final class Transitions {
             case ESTABLISHED:
                 return message == MessageKind.SERVICE || message == MessageKind.RESPONSE ? Verdict.DELIVER : Verdict.VIOLATION;
             case ISOLATED:
-                return message == MessageKind.BLOCK || message == MessageKind.ISOLATE_HANDSHAKE ? Verdict.DELIVER : Verdict.VIOLATION;
+                return message == MessageKind.BLOCK ? Verdict.DELIVER : Verdict.VIOLATION;
             default:
                 return Verdict.VIOLATION;
         }

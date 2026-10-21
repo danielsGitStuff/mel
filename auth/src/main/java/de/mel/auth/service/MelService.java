@@ -7,6 +7,9 @@ import org.jdeferred.impl.DeferredObject;
 import de.mel.Lok;
 import de.mel.MelRunnable;
 import de.mel.MelThread;
+import de.mel.auth.data.IsolationDetails;
+import de.mel.auth.socket.MelAuthSocket;
+import de.mel.auth.socket.process.transfer.MelIsolatedFileProcess;
 import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
 import de.mel.sql.SqlQueriesException;
 
@@ -14,6 +17,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
@@ -67,40 +71,98 @@ public abstract class MelService extends MelWorker implements IMelService {
         cacheDirectory.mkdirs();
     }
 
+    /**
+     * the isolated process classes a partner may ask this service for, by name
+     */
+    private final Map<String, Class<? extends MelIsolatedProcess>> allowedIsolatedProcesses = new ConcurrentHashMap<>();
+
+    /**
+     * Partners may open isolated connections to this service that run this process. {@link MelIsolatedFileProcess} is always allowed.
+     */
+    protected void allowIsolatedProcess(Class<? extends MelIsolatedProcess> processClass) {
+        allowedIsolatedProcesses.put(processClass.getCanonicalName(), processClass);
+    }
+
     @Override
-    public synchronized void onIsolatedConnectionEstablished(MelIsolatedProcess isolatedProcess) {
-        final String key = isolatedProcess.getPartnerCertificateId() + "." + isolatedProcess.getPartnerServiceUuid() + "." + isolatedProcess.getClass().getSimpleName();
+    public MelIsolatedProcess createIsolatedProcess(IsolationDetails details, MelAuthSocket melAuthSocket, Long partnerCertificateId) throws Exception {
+        Class<? extends MelIsolatedProcess> processClass = allowedIsolatedProcesses.get(details.getProcessClass());
+        if (processClass == null && MelIsolatedFileProcess.class.getCanonicalName().equals(details.getProcessClass()))
+            processClass = MelIsolatedFileProcess.class;
+        if (processClass == null)
+            return null;
+        return MelIsolatedProcess.instance(processClass, melAuthSocket, this, partnerCertificateId, details.getSourceService(), details.getIsolationUuid());
+    }
+
+    private static String isolatedKey(MelIsolatedProcess process) {
+        return isolatedKey(process.getPartnerCertificateId(), process.getPartnerServiceUuid(), process.getClass());
+    }
+
+    private static String isolatedKey(Long partnerCertId, String partnerServiceUuid, Class<?> processClass) {
+        return partnerCertId + "." + partnerServiceUuid + "." + processClass.getSimpleName();
+    }
+
+    /**
+     * Isolated connections that are up, by their uuid. There may be several to the same partner service.
+     */
+    private final Map<String, MelIsolatedProcess> establishedIsolated = new HashMap<>();
+
+    @Override
+    public void onIsolatedConnectionEstablished(MelIsolatedProcess isolatedProcess) {
         isolatedLock.lock();
-        DeferredObject<MelIsolatedProcess, Exception, Void> deferredObject = new DeferredObject<>();
-        deferredObject.resolve(isolatedProcess);
-        isolatedDeferredMap.put(key, deferredObject);
-        isolatedLock.unlock();
+        try {
+            establishedIsolated.put(isolatedProcess.getIsolatedUuid(), isolatedProcess);
+        } finally {
+            isolatedLock.unlock();
+        }
     }
 
     @Override
     public void onIsolatedConnectionClosed(MelIsolatedProcess isolatedProcess) {
         Lok.debug("isolated connection closed");
-        final String key = isolatedProcess.getPartnerCertificateId() + "." + isolatedProcess.getPartnerServiceUuid() + "." + isolatedProcess.getClass().getSimpleName();
         isolatedLock.lock();
-        isolatedDeferredMap.remove(key);
-        isolatedLock.unlock();
+        try {
+            // only this one, others to the same partner service stay
+            establishedIsolated.remove(isolatedProcess.getIsolatedUuid(), isolatedProcess);
+        } finally {
+            isolatedLock.unlock();
+        }
     }
 
+    /**
+     * An open isolated connection to that partner service, if there is one: one that the partner opened or one that we opened. Otherwise one is opened.
+     * Several isolated connections to the same partner service may exist, closing one does not affect the others.
+     */
+    @SuppressWarnings("unchecked")
     public synchronized <T extends MelIsolatedProcess> Promise<T, Exception, Void> getIsolatedProcess(Class<T> processClass, Long partnerCertId, String partnerServiceUuid) throws InterruptedException, SqlQueriesException {
-        final String key = partnerCertId + "." + partnerServiceUuid + "." + processClass.getSimpleName();
+        final String key = isolatedKey(partnerCertId, partnerServiceUuid, processClass);
         isolatedLock.lock();
-        DeferredObject<T, Exception, Void> alreadyDeferred = (DeferredObject<T, Exception, Void>) isolatedDeferredMap.get(key);
-        if (alreadyDeferred != null && (alreadyDeferred.isResolved() || alreadyDeferred.isPending())) {
+        try {
+            for (MelIsolatedProcess established : establishedIsolated.values()) {
+                if (processClass.isInstance(established) && key.equals(isolatedKey(established)) && established.isOpen()) {
+                    DeferredObject<T, Exception, Void> reuse = new DeferredObject<>();
+                    reuse.resolve((T) established);
+                    return reuse;
+                }
+            }
+            DeferredObject<T, Exception, Void> alreadyDeferred = (DeferredObject<T, Exception, Void>) isolatedDeferredMap.get(key);
+            if (alreadyDeferred != null && (alreadyDeferred.isPending())) {
+                return alreadyDeferred;
+            }
+            DeferredObject<T, Exception, Void> deferred = melAuthService.connectToService(processClass, partnerCertId, partnerServiceUuid, uuid, null, null, null);
+            isolatedDeferredMap.put(key, deferred);
+            deferred.always((state, resolved, rejected) -> {
+                // from here on the established isolated connections are looked at, a failed attempt must not be handed out again
+                isolatedLock.lock();
+                try {
+                    isolatedDeferredMap.remove(key, deferred);
+                } finally {
+                    isolatedLock.unlock();
+                }
+            });
+            return deferred;
+        } finally {
             isolatedLock.unlock();
-            return alreadyDeferred;
         }
-        DeferredObject<T, Exception, Void> deferred = melAuthService.connectToService(processClass, partnerCertId, partnerServiceUuid, uuid, null, null, null);
-        isolatedDeferredMap.put(key, deferred);
-        deferred.done(result -> {
-            Lok.debug("am i first?");
-        });
-        isolatedLock.unlock();
-        return deferred;
     }
 
     public synchronized <T extends MelIsolatedProcess> Promise<T, Exception, Void> getIsolatedProcess2(Class<T> processClass, Long partnerCertId, String partnerServiceUuid) throws InterruptedException, SqlQueriesException {

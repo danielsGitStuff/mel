@@ -93,3 +93,17 @@ Bug found by `PartnerIdentityTest` (hung once in about 8 runs): `MelAuthProcess.
 `connection closed` to the same job first, so the second `reject` threw. Jobs are now settled first and only once (`reject` helper). 25 runs green after that.
 5 full runs of `:auth:test :auth:integrationTest` green.
 Not done yet from the plan text for this step: "the caller learns 'already paired with X'" (step 9).
+
+## Step 8: isolated connections
+ISOLATED is reached by the auth answer on both sides (server: state set, answer sent, then `onIsolatedConnectionEstablished`; client: state set on the answer,
+service told, job resolved). `sendIsolate`, `onIsolated`, `isolatedPromise`, `MODE_ISOLATE`, the isolate hello and `ISOLATE_HANDSHAKE` are gone; only block frames
+fit ISOLATED. The service creates the process: `IMelService.createIsolatedProcess(details, socket, partnerId)` (null = refuse); `MelService` implements it with an
+allow-list (`allowIsolatedProcess(Class)`, `MelIsolatedFileProcess` always allowed, `MelTestService` allows `TestIsolatedProcess`); the class name from the partner is a
+lookup key only. `MelService` tracks established isolated processes by `isolatedUuid`, `getIsolatedProcess` reuses an open one for the same partner service and class
+(also one the partner opened) or connects; closing one removes only that one. `TManager.onIsolatedProcessEnds` forgets only its own process.
+`MelIsolatedFileProcess.transfer()` sends one record per block frame (size as needed, no padding, no 0 terminator, no packing), `onBlockReceived` reads one record.
+Bug found while testing (nothing in the build tested file transfers): `FileTransferDetail.readFile` skipped `offset` bytes from the current stream position on every
+call, so every record after the first lost data (files above one block were corrupt, ranges too); it now tracks the stream position, limits reads to the end of the range
+and fills the buffer completely. `sendingNotification.cancel()` no longer throws when the service has no notification.
+Tests: `SeveralIsolatedConnectionsTest` (two connections both usable, closing one leaves the other and `getIsolatedProcess` hands it out),
+`FileTransferTest` (empty, small, exactly one record, 5 MiB + 123, both directions, several files). 5 full runs green; filesync tests green (they have no transfer tests).

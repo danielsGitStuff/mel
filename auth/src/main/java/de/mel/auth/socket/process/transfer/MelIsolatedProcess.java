@@ -47,8 +47,6 @@ public abstract class MelIsolatedProcess extends MelProcess {
 
     private final Long partnerCertificateId;
     private final String partnerServiceUuid;
-    private DeferredObject isolatedPromise = new DeferredObject();
-    private volatile boolean isolateSent = false;
 
 
     public Long getPartnerCertificateId() {
@@ -76,32 +74,11 @@ public abstract class MelIsolatedProcess extends MelProcess {
     }
 
 
-    public void onIsolated() {
-        isolatedPromise.resolve(null);
-    }
-
-    /**
-     * The other side sent the isolate handshake. If we asked for it, it is the answer, otherwise it is the question.
-     */
-    public void onIsolateMessage() {
-        if (isolateSent)
-            onIsolated();
-        else
-            melAuthSocket.send(MelStrings.msg.MODE_ISOLATE);
-    }
-
     @Override
     public void onMessageReceived(SerializableEntity deserialized, MelAuthSocket webSocket) {
+        // only blocks are allowed on an isolated connection, see Transitions
         Lok.debug("MelIsolatedProcess.onMessageReceived");
     }
-
-    public Promise<Void, Exception, Void> sendIsolate() {
-        Lok.debug("MelIsolatedProcess.sendIsolate");
-        isolateSent = true;
-        melAuthSocket.send(MelStrings.msg.MODE_ISOLATE);
-        return isolatedPromise;
-    }
-
 
     public abstract void onBlockReceived(BlockReceivedJob bytes);
 

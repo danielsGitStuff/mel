@@ -82,10 +82,6 @@ public class MelCertRetriever extends DeferredRunnable {
             Socket socket = new Socket();
             certDeliveryClient = new MelSocket(melAuthService, socket);
             certDeliveryClient.setListener(new MelSocket.MelSocketListener() {
-                @Override
-                public void onIsolated() {
-
-                }
 
                 @Override
                 public void onMessage(MelSocket melSocket, String messageString) {

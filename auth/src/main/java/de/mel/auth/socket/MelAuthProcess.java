@@ -102,12 +102,18 @@ public class MelAuthProcess extends MelProcess {
                                 return;
                             }
                             IMelService service = melAuthSocket.getMelAuthService().getMelService(isolationDetails.getTargetService());
-                            Class<? extends MelIsolatedProcess> isolatedClass = (Class<? extends MelIsolatedProcess>) getClass().forName(isolationDetails.getProcessClass());
-                            MelIsolatedProcess isolatedProcess = MelIsolatedProcess.instance(isolatedClass, melAuthSocket, service, partnerCertificate.getId().v(), isolationDetails.getSourceService(), isolationDetails.getIsolationUuid());
+                            // the service decides which isolated processes it runs, the name from the partner is only a key
+                            MelIsolatedProcess isolatedProcess = service.createIsolatedProcess(isolationDetails, melAuthSocket, partnerCertificate.getId().v());
+                            if (isolatedProcess == null) {
+                                Lok.debug("the service does not run an isolated process called " + isolationDetails.getProcessClass());
+                                refuse(request, socket, CloseReason.NO_ACCESS);
+                                return;
+                            }
                             isolatedProcess.setService(service);
                             socket.setState(new SocketState.Isolated(isolatedProcess, partnerCertificate));
-                            service.onIsolatedConnectionEstablished(isolatedProcess);
                             send(response);
+                            // after the answer: the service may use the process at once, the partner has to know the connection is isolated by then
+                            service.onIsolatedConnectionEstablished(isolatedProcess);
                         }
                     } catch (Exception e) {
                         Lok.error("leaving socket, because of EXCEPTION: " + e.toString());
@@ -224,12 +230,9 @@ public class MelAuthProcess extends MelProcess {
                         Class isolatedProcessClass = isolatedConnectJob.getProcessClass();
                         MelIsolatedProcess melIsolatedProcess = MelIsolatedProcess.instance(isolatedProcessClass, melAuthSocket, service, partnerCertificate.getId().v(), isolatedConnectJob.getRemoteServiceUuid(), isolatedConnectJob.getIsolatedUuid());
                         melAuthSocket.setState(new SocketState.Isolated(melIsolatedProcess, partnerCertificate));
-                        Promise<Void, Exception, Void> isolated = melIsolatedProcess.sendIsolate();
-                        isolated.done(nil -> {
-                            service.onIsolatedConnectionEstablished(melIsolatedProcess);
-                            melIsolatedProcess.setService(service);
-                            job.resolve(melIsolatedProcess);
-                        }).fail(excc -> reject(job, excc));
+                        melIsolatedProcess.setService(service);
+                        service.onIsolatedConnectionEstablished(melIsolatedProcess);
+                        job.resolve(melIsolatedProcess);
                     }
                 });
             }).fail(e -> {

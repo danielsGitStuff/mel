@@ -92,10 +92,6 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
         return MelAuthSocket.getAddressString(socket.getInetAddress(), port);
     }
 
-    @Override
-    public void onIsolated() {
-    }
-
     public SocketState getState() {
         return state.get();
     }
@@ -147,25 +143,17 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
             melAuthService.getPowerManager().wakeLock(this);
             SerializableEntity deserialized = null;
             Transitions.MessageKind kind;
-            if (MelStrings.msg.MODE_ISOLATE.equals(msg)) {
-                // handshake of the isolated connection, to go in step 8
-                kind = Transitions.MessageKind.ISOLATE_HANDSHAKE;
-            } else {
-                try {
-                    deserialized = SerializableEntityDeserializer.deserialize(msg);
-                    kind = deserialized == null ? Transitions.MessageKind.UNPARSABLE : Transitions.classify(deserialized);
-                } catch (Exception e) {
-                    kind = Transitions.MessageKind.UNPARSABLE;
-                }
+            try {
+                deserialized = SerializableEntityDeserializer.deserialize(msg);
+                kind = deserialized == null ? Transitions.MessageKind.UNPARSABLE : Transitions.classify(deserialized);
+            } catch (Exception e) {
+                kind = Transitions.MessageKind.UNPARSABLE;
             }
             SocketState current = state.get();
             Transitions.Verdict verdict = Transitions.onMessage(current.kind(), role, kind);
             switch (verdict) {
                 case DELIVER:
-                    if (kind == Transitions.MessageKind.ISOLATE_HANDSHAKE)
-                        ((MelIsolatedProcess) current.process()).onIsolateMessage();
-                    else
-                        current.process().onMessageReceived(deserialized, this);
+                    current.process().onMessageReceived(deserialized, this);
                     break;
                 case START_REGISTERING: {
                     MelRegisterProcess melRegisterProcess = new MelRegisterProcess(this);

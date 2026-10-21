@@ -346,15 +346,15 @@ For the session that does the work. Steps in this order; each one is a commit (o
 
 ### Step 8: isolated connections (F9)
 
-- [ ] ISOLATED is reached by the auth answer: S switches after sending `AuthResponse(ok)`, C on receiving it. Remove
+- [x] ISOLATED is reached by the auth answer: S switches after sending `AuthResponse(ok)`, C on receiving it. Remove
       `sendIsolate`, `onIsolated`, `isolatedPromise`, `MODE_ISOLATE` (and `MelStrings.msg.MODE_ISOLATE`).
-- [ ] In ISOLATED only BLOCK frames are allowed; anything else -> `PROTOCOL_VIOLATION`.
-- [ ] `MelIsolatedFileProcess.transfer()`: one record per BLOCK frame, sized as needed (no padding, no 0 terminator, no packing);
+- [x] In ISOLATED only BLOCK frames are allowed; anything else -> `PROTOCOL_VIOLATION`.
+- [x] `MelIsolatedFileProcess.transfer()`: one record per BLOCK frame, sized as needed (no padding, no 0 terminator, no packing);
       `onBlockReceived` reads exactly one record. Fix the javadoc (8 vs 4 byte length).
-- [ ] The service creates the isolated process: `IMelService.createIsolatedProcess(IsolationDetails, MelAuthSocket, partnerId)`
+- [x] The service creates the isolated process: `IMelService.createIsolatedProcess(IsolationDetails, MelAuthSocket, partnerId)`
       or a factory registered per process class; no `Class.forName` on a name from the peer. Adapt `filesync`, `contacts`,
       `android` (`DirectoryChooserDialog`), `TestIsolatedProcess`/`IsolationRecordingService`.
-- [ ] `MelService`: track established isolated processes by `isolatedUuid`; closing one removes only that one;
+- [x] `MelService`: track established isolated processes by `isolatedUuid`; closing one removes only that one;
       `getIsolatedProcess` may reuse an open one.
 - New test: two isolated connections between the same two services at once, both usable; closing one leaves the other.
 - Done also: `filesync` transfer tests pass.

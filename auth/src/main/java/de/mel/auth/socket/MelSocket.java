@@ -153,8 +153,6 @@ public class MelSocket extends DeferredRunnable {
     }
 
     public interface MelSocketListener {
-        void onIsolated();
-
         void onMessage(MelSocket melSocket, String msg);
 
         void onOpen();
