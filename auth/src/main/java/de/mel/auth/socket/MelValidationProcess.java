@@ -50,6 +50,19 @@ public class MelValidationProcess extends MelProcess {
         return super.toString();
     }
 
+    private volatile boolean alreadyPaired = false;
+
+    /**
+     * @return whether this connection was made by a pairing request to a partner that both sides trusted already (nobody was asked, nothing was registered)
+     */
+    public boolean isAlreadyPaired() {
+        return alreadyPaired;
+    }
+
+    void setAlreadyPaired(boolean alreadyPaired) {
+        this.alreadyPaired = alreadyPaired;
+    }
+
     public boolean isClosed() {
         return melAuthSocket.isStopped();
     }

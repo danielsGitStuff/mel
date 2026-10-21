@@ -166,19 +166,7 @@ public class RegistrationCommitTest {
     }
 
     private void closeNormalConnections() throws Exception {
-        MelAuthService server = instances.server;
-        MelAuthService client = instances.client;
-        for (de.mel.auth.socket.MelAuthSocket socket : openNormalConnections(client, server))
-            socket.close(de.mel.auth.socket.CloseReason.SHUTDOWN);
-        for (de.mel.auth.socket.MelAuthSocket socket : openNormalConnections(server, client))
-            socket.close(de.mel.auth.socket.CloseReason.SHUTDOWN);
-        assertTrue(waitFor(() -> {
-            try {
-                return openNormalConnections(client, server).isEmpty() && openNormalConnections(server, client).isEmpty();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }, 10), "test setup: connections did not go away");
+        TwoInstances.closeNormalConnections(instances.server, instances.client);
     }
 
     /**
@@ -224,8 +212,13 @@ public class RegistrationCommitTest {
         Certificate before = client.getCertificateManager().getCertificateById(serverIdAtClient);
 
         java.util.concurrent.CountDownLatch connected = new java.util.concurrent.CountDownLatch(1);
-        client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), true).done(p -> connected.countDown());
+        java.util.concurrent.atomic.AtomicReference<de.mel.auth.socket.MelValidationProcess> made = new java.util.concurrent.atomic.AtomicReference<>();
+        client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), true).done(p -> {
+            made.set(p);
+            connected.countDown();
+        });
         assertTrue(connected.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), "the connection was not made");
+        assertTrue(made.get().isAlreadyPaired(), "the caller is not told that the partner was paired already");
         assertEquals(serverAsked, serverUser.asked.get(), "the server's user was asked although the client is a trusted partner");
         assertEquals(clientAsked, clientUser.asked.get(), "the client's user was asked although the server is a trusted partner");
         assertEquals(1, entriesOf(server, client).size());

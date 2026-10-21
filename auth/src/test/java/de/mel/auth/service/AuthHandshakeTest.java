@@ -146,8 +146,14 @@ public class AuthHandshakeTest {
     private Long pair() throws Exception {
         CountDownLatch registered = new CountDownLatch(1);
         client.addRegisteredHandler((service, cert) -> registered.countDown());
-        client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), true);
+        CountDownLatch connected = new CountDownLatch(1);
+        client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), true)
+                .always((state, resolved, rejected) -> connected.countDown());
         assertTrue(registered.await(15, TimeUnit.SECONDS), "pairing did not complete");
+        // the connection that the client makes after the registration belongs to pairing
+        assertTrue(connected.await(15, TimeUnit.SECONDS), "the client did not connect after the registration");
+        // the tests want to see what a connection attempt does, not the one that pairing left
+        TwoInstances.closeNormalConnections(server, client);
         List<Certificate> trusted = client.getCertificateManager().getTrustedCertificates();
         assertEquals(1, trusted.size());
         return trusted.get(0).getId().v();

@@ -128,10 +128,8 @@ public class ConnectedEnvironment {
                     removeCurrentlyConnecting(address, port, portCert);
                     deferred.reject(result);
                 });
-                MelAuthSocket melAuthSocket = new MelAuthSocket(melAuthService, job);
                 currentlyConnecting(address, port, portCert, job);
-
-                melAuthService.execute(new ConnectWorker(melAuthService, melAuthSocket));
+                melAuthService.execute(new ConnectWorker(melAuthService, job));
             }
         } finally {
             bunchOfLocks.end();
@@ -256,7 +254,9 @@ public class ConnectedEnvironment {
     }
 
     public MelValidationProcess getValidationProcess(Long certificateId) {
-        return idValidateProcessMap.get(certificateId);
+        MelValidationProcess process = idValidateProcessMap.get(certificateId);
+        // one that is closed is gone, whether or not the bookkeeping caught up already
+        return process == null || process.isClosed() ? null : process;
     }
 
     /**

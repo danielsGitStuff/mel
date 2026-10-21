@@ -49,15 +49,7 @@ public class PartnerIdentityTest {
         instances.pair();
         serverIdAtClient = idOf(server, client);
         // pairing also left a normal connection behind: get rid of it, we want to connect on purpose
-        for (MelAuthSocket socket : openNormalConnections(client, server))
-            socket.close(de.mel.auth.socket.CloseReason.SHUTDOWN);
-        assertTrue(waitFor(() -> {
-            try {
-                return openNormalConnections(client, server).isEmpty() && openNormalConnections(server, client).isEmpty() && !client.isConnectedTo(serverIdAtClient);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }, 10), "test setup: the connections made by the pairing did not go away");
+        closeNormalConnections(client, server);
     }
 
     @AfterEach

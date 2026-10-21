@@ -126,9 +126,15 @@ class TwoInstances implements AutoCloseable {
      */
     boolean pairAgain() throws Exception {
         CountDownLatch registered = new CountDownLatch(1);
+        CountDownLatch connected = new CountDownLatch(1);
         client.addRegisteredHandler((service, cert) -> registered.countDown());
-        client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), true);
-        return registered.await(10, TimeUnit.SECONDS);
+        // the connect promise is settled when the whole job is over: after a registration the client also connects, and that connection is part of pairing
+        client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), true)
+                .always((state, resolved, rejected) -> connected.countDown());
+        if (!registered.await(10, TimeUnit.SECONDS))
+            return false;
+        assertTrue(connected.await(10, TimeUnit.SECONDS), "the client did not connect after the registration");
+        return true;
     }
 
     /**
@@ -250,6 +256,25 @@ class TwoInstances implements AutoCloseable {
             result.add(authSocket);
         }
         return result;
+    }
+
+    /**
+     * Pairing leaves a normal connection behind (the client connects after the registration). For tests that want to start without one.
+     */
+    static void closeNormalConnections(MelAuthService a, MelAuthService b) throws Exception {
+        Long bAtA = idOf(b, a);
+        Long aAtB = idOf(a, b);
+        for (MelAuthSocket socket : openNormalConnections(a, b))
+            socket.close(de.mel.auth.socket.CloseReason.SHUTDOWN);
+        for (MelAuthSocket socket : openNormalConnections(b, a))
+            socket.close(de.mel.auth.socket.CloseReason.SHUTDOWN);
+        assertTrue(waitFor(() -> {
+            try {
+                return openNormalConnections(a, b).isEmpty() && openNormalConnections(b, a).isEmpty() && !a.isConnectedTo(bAtA) && !b.isConnectedTo(aAtB);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }, 10), "the connections made by the pairing did not go away");
     }
 
     /**

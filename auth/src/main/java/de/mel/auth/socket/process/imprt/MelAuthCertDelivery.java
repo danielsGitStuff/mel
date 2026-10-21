@@ -110,9 +110,6 @@ public class MelAuthCertDelivery extends DeferredRunnable {
 
     @Override
     public DeferredObject<Void, Void, Void> onShutDown() {
-        //todo debug
-        N.s(() -> in.close());
-        N.s(() -> out.close());
         N.r(() -> {
             Lok.debug("unbinding " + port);
             serverSocket.close();
@@ -130,16 +127,10 @@ public class MelAuthCertDelivery extends DeferredRunnable {
             startedPromise.resolve(null);
             while (!Thread.currentThread().isInterrupted()) {
                 Socket socket = serverSocket.accept();
-                in = new DataInputStream(socket.getInputStream());
-                out = new DataOutputStream(socket.getOutputStream());
-                String s = new String(FrameCodec.read(in).payload, java.nio.charset.StandardCharsets.UTF_8);
-                Lok.debug(melAuthService.getName() + ".MelAuthCertDelivery.runTry.got: " + s);
-                MelSocket melSocket = new MelSocket(melAuthService, socket);
-                this.listener.onMessage(melSocket, s);
-                melSocket.close(CloseReason.FINISHED);
-                /*for (MelSocketListener listener : listeners) {
-                    listener.onMessage(this, s);
-                }*/
+                // every client has its own thread: one that says nothing must not hold up the others
+                Thread client = new Thread(() -> serve(socket), "MelAuthCertDelivery client of " + melAuthService.getName());
+                client.setDaemon(true);
+                client.start();
             }
 
         } catch (Exception e) {
@@ -149,11 +140,33 @@ public class MelAuthCertDelivery extends DeferredRunnable {
                 Lok.debug("MelAuthCertDelivery.runImpl.interrupted");
         } finally {
             try {
-                N.s(() -> serverSocket.close(), () -> in.close(), () -> out.close());
+                N.s(() -> serverSocket.close());
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
+        }
+    }
+
+    /**
+     * Reads the request of one client, answers, hangs up. A client that does not send its request in time is dropped.
+     */
+    private void serve(Socket socket) {
+        MelSocket melSocket = null;
+        try {
+            socket.setSoTimeout((int) melAuthService.getStateTimeoutMs());
+            DataInputStream clientIn = new DataInputStream(socket.getInputStream());
+            String s = new String(FrameCodec.read(clientIn).payload, java.nio.charset.StandardCharsets.UTF_8);
+            Lok.debug(melAuthService.getName() + ".MelAuthCertDelivery.runTry.got: " + s);
+            melSocket = new MelSocket(melAuthService, socket);
+            this.listener.onMessage(melSocket, s);
+            melSocket.close(CloseReason.FINISHED);
+        } catch (Exception e) {
+            Lok.debug("MelAuthCertDelivery: dropping a client: " + e);
+            if (melSocket != null)
+                melSocket.close(CloseReason.IO_ERROR);
+            else
+                N.s(socket::close);
         }
     }
 

@@ -27,6 +27,9 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -105,6 +108,42 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
             return;
         Lok.debug(melAuthService.getName() + ".MelAuthSocket(v=" + getV() + "): " + old + " -> " + next);
         state.set(next);
+        if (next.kind() == SocketState.Kind.AUTHENTICATING)
+            startStateTimeout(next.kind());
+        else
+            cancelStateTimeout();
+    }
+
+    private volatile ScheduledFuture<?> stateTimeout;
+
+    /**
+     * A connection must not stay in NEW (the first message of a connection we accepted) or AUTHENTICATING forever.
+     */
+    private void startStateTimeout(SocketState.Kind kind) {
+        cancelStateTimeout();
+        try {
+            stateTimeout = melAuthService.getTimeoutScheduler().schedule(() -> {
+                if (state.get().kind() == kind) {
+                    Lok.debug(melAuthService.getName() + ".MelAuthSocket(v=" + getV() + "): timeout in state " + kind);
+                    close(CloseReason.TIMEOUT);
+                }
+            }, melAuthService.getStateTimeoutMs(), TimeUnit.MILLISECONDS);
+        } catch (RejectedExecutionException e) {
+            // the instance is shut down
+        }
+    }
+
+    private void cancelStateTimeout() {
+        ScheduledFuture<?> timeout = stateTimeout;
+        if (timeout != null)
+            timeout.cancel(false);
+    }
+
+    @Override
+    public void start() {
+        if (role == Transitions.Role.SERVER && state.get().kind() == SocketState.Kind.NEW)
+            startStateTimeout(SocketState.Kind.NEW);
+        super.start();
     }
 
     private final CompletableFuture<SocketState.Closed> closedFuture = new CompletableFuture<>();
@@ -205,16 +244,17 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
     @Override
     public void onClose(CloseReason reason, boolean remote) {
         MelProcess process = state.get().process();
-        // the state is left only after the process has seen the end, so it can still ask the socket what it was
+        cancelStateTimeout();
+        // the state is left only after the process and the instance have seen the end: they ask the socket what it was
         try {
             if (process != null)
                 process.onSocketClosed(reason, remote);
+            melAuthService.onSocketClosed(this);
         } finally {
             SocketState.Closed closed = new SocketState.Closed(reason, remote);
             state.set(closed);
             closedFuture.complete(closed);
         }
-        melAuthService.onSocketClosed(this);
     }
 
     @Override
@@ -230,8 +270,17 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
     void connectSSL(Long certId, String address, int port) throws SqlQueriesException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
         Socket socket = melAuthService.getCertificateManager().createSocket();
         Lok.debug("MelAuthSocket.connectSSL: " + address + ":" + port);
-        socket.connect(new InetSocketAddress(address, port));
-        //stop();
+        int timeout = (int) melAuthService.getConnectTimeoutMs();
+        try {
+            socket.connect(new InetSocketAddress(address, port), timeout);
+            // the handshake is part of connecting: a partner that accepts and then says nothing must not hold us up
+            socket.setSoTimeout(timeout);
+            ((SSLSocket) socket).startHandshake();
+            socket.setSoTimeout(0);
+        } catch (IOException e) {
+            N.s(socket::close);
+            throw e;
+        }
         setSocket(socket);
         start();
     }
@@ -277,11 +326,6 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
         return null;
     }
 
-
-    @Override
-    public void start() {
-        super.start();
-    }
 
     @Override
     public void stop() {

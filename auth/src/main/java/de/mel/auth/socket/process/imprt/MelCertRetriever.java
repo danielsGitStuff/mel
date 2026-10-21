@@ -77,8 +77,6 @@ public class MelCertRetriever extends DeferredRunnable {
             // RWLock lock = new RWLock();
             //lock.lockWrite();
             Lok.error("MelCertRetriever.retrieveCertificate.ALPHONSO");
-            URI uri = new URI(address);
-
             Socket socket = new Socket();
             certDeliveryClient = new MelSocket(melAuthService, socket);
             certDeliveryClient.setListener(new MelSocket.MelSocketListener() {
@@ -123,6 +121,8 @@ public class MelCertRetriever extends DeferredRunnable {
                 @Override
                 public void onClose(CloseReason reason, boolean remote) {
                     clientSockets.remove(certDeliveryClient);
+                    if (deferred.isPending())
+                        deferred.reject(new Exception("the certificate delivery closed the connection without an answer: " + reason));
                     stop();
                 }
 
@@ -132,19 +132,29 @@ public class MelCertRetriever extends DeferredRunnable {
                 }
             });
 
-            socket.connect(new InetSocketAddress(address, portCert));
+            socket.connect(new InetSocketAddress(address, portCert), (int) melAuthService.getConnectTimeoutMs());
             certDeliveryClient.setSocket(socket);
             certDeliveryClient.start();
 
             clientSockets.put(certDeliveryClient, 1);
             MelMessage melMessage = MelAuthCertDelivery.createCertDeliveryGet();
             String json = SerializableEntitySerializer.serialize(melMessage);
+            // the delivery answers at once. If it does not, nobody waits forever.
+            MelSocket waitingSocket = certDeliveryClient;
+            melAuthService.getTimeoutScheduler().schedule(() -> {
+                if (deferred.isPending()) {
+                    deferred.reject(new Exception("the certificate delivery at " + address + ":" + portCert + " did not answer"));
+                    waitingSocket.close(CloseReason.TIMEOUT);
+                }
+            }, melAuthService.getStateTimeoutMs(), java.util.concurrent.TimeUnit.MILLISECONDS);
             certDeliveryClient.send(json);
             // lock.lockWrite();
         } catch (Exception e) {
             e.printStackTrace();
-            if (!deferred.isRejected())
+            if (deferred.isPending())
                 deferred.reject(e);
+            if (certDeliveryClient != null)
+                certDeliveryClient.close(CloseReason.IO_ERROR);
         }
     }
 }

@@ -361,14 +361,14 @@ For the session that does the work. Steps in this order; each one is a commit (o
 
 ### Step 9: connecting (F7, F8)
 
-- [ ] `ConnectWorker` rewritten as a straight sequence per job with one local variable per socket: auth first; if the partner
+- [x] `ConnectWorker` rewritten as a straight sequence per job with one local variable per socket: auth first; if the partner
       is unknown and registration is allowed: retrieve certificate (reuse an existing row) -> register socket -> wait for its
       CLOSED(`REGISTERED`) -> auth socket. Pairing by mistake with an already trusted partner: the first auth succeeds, report
       "already paired".
-- [ ] Timeouts: connect 10 s (`connectSSL`, `MelCertRetriever`), TLS handshake, NEW 30 s, AUTHENTICATING 30 s (settings, short
+- [x] Timeouts: connect 10 s (`connectSSL`, `MelCertRetriever`), TLS handshake, NEW 30 s, AUTHENTICATING 30 s (settings, short
       in tests).
-- [ ] `MelAuthCertDelivery`: no reading in the accept thread; one short task per client with a read timeout.
-- [ ] `shutDownCommunications` closes all connections with `SHUTDOWN` (decided).
+- [x] `MelAuthCertDelivery`: no reading in the accept thread; one short task per client with a read timeout.
+- [x] `shutDownCommunications` closes all connections with `SHUTDOWN` (decided).
 - New tests: a silent TCP client on the delivery port does not stop a pairing; connecting to an unroutable address fails within
   the connect timeout (use a non-routable address such as `10.255.255.1`; skip if the CI network behaves differently).
 

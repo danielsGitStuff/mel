@@ -23,6 +23,7 @@ import de.mel.auth.jobs.IsolatedConnectJob;
 import de.mel.auth.jobs.NetworkEnvDiscoveryJob;
 import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.socket.ConnectWorker;
+import de.mel.auth.socket.CloseReason;
 import de.mel.auth.socket.MelAuthSocket;
 import de.mel.auth.socket.MelSocket;
 import de.mel.auth.socket.ShamefulSelfConnectException;
@@ -657,6 +658,9 @@ public class MelAuthServiceImpl extends MelAuthService {
     @Override
     public void shutDownCommunications() {
         this.melAuthWorker.shutDown();
+        // communications off means no connections either: established, isolated and the ones still being set up
+        for (MelSocket socket : new ArrayList<>(sockets))
+            socket.close(CloseReason.SHUTDOWN);
     }
 
     @Override

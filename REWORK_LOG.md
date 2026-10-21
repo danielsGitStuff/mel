@@ -107,3 +107,18 @@ call, so every record after the first lost data (files above one block were corr
 and fills the buffer completely. `sendingNotification.cancel()` no longer throws when the service has no notification.
 Tests: `SeveralIsolatedConnectionsTest` (two connections both usable, closing one leaves the other and `getIsolatedProcess` hands it out),
 `FileTransferTest` (empty, small, exactly one record, 5 MiB + 123, both directions, several files). 5 full runs green; filesync tests green (they have no transfer tests).
+
+## Step 9: connecting
+`ConnectWorker` rewritten as a straight sequence per job (plain `DeferredRunnable`, one local variable per socket, no shared field, no `shutDown()` that stops a handed-over
+socket): authenticate first (also for "pair with this address": a partner both sides trust just connects, `MelValidationProcess.isAlreadyPaired()` tells the caller),
+and only if that fails, nobody was named and registration is allowed: fetch the certificate (existing entries are reused), register on a socket of its own, wait for its
+close, authenticate on a new one. Exceptions that say something (`WrongPartner`, `Untrusted` when a partner was named, `Duplicate`, `ConnectException`) reach the caller unchanged.
+Timeouts (all settings on `MelAuthService` with short values in tests): connect and TLS handshake 10 s (`connectSSL`, `MelCertRetriever`), NEW (accepted socket
+says nothing) and AUTHENTICATING 30 s, certificate retrieval answer 30 s. `MelAuthCertDelivery` serves every client in a thread of its own with a read timeout
+(a silent client no longer stops the others). `shutDownCommunications` also closes every socket (`SHUTDOWN`). Retriever closes its socket after the answer.
+Found by the tests: since step 5 a closed socket was never removed from the registry of normal connections (the state was already CLOSED when `ConnectedEnvironment.onSocketClosed`
+looked at it, so `isConnectedTo` stayed true and a stale entry was only replaced by the next connection). `onClose` now tells the instance before the state becomes CLOSED, and
+`getValidationProcess` ignores closed processes. Test helpers: `pair()` now waits for the connection the client makes after the registration (it belongs to pairing, and a
+raw test peer that authenticated before it used to lose against it by the "same initiator: the newer wins" rule), `closeNormalConnections` for tests that want to start without one.
+Tests: `ConnectingTest` (silent client on the delivery port, unroutable address within the connect timeout, mute connection closed by the NEW timeout, communications off
+closes connections), `isAlreadyPaired` in `RegistrationCommitTest`. 5 full runs green.

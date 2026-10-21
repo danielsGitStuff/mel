@@ -72,6 +72,33 @@ public abstract class MelAuthService {
         return timeoutScheduler;
     }
 
+    /**
+     * How long connecting a socket and the TLS handshake may take each.
+     */
+    public static final long DEFAULT_CONNECT_TIMEOUT_MS = 10_000L;
+    private volatile long connectTimeoutMs = DEFAULT_CONNECT_TIMEOUT_MS;
+    /**
+     * How long a connection may stay NEW (the first message of a connection we accepted) or AUTHENTICATING.
+     */
+    public static final long DEFAULT_STATE_TIMEOUT_MS = 30_000L;
+    private volatile long stateTimeoutMs = DEFAULT_STATE_TIMEOUT_MS;
+
+    public long getConnectTimeoutMs() {
+        return connectTimeoutMs;
+    }
+
+    public void setConnectTimeoutMs(long connectTimeoutMs) {
+        this.connectTimeoutMs = connectTimeoutMs;
+    }
+
+    public long getStateTimeoutMs() {
+        return stateTimeoutMs;
+    }
+
+    public void setStateTimeoutMs(long stateTimeoutMs) {
+        this.stateTimeoutMs = stateTimeoutMs;
+    }
+
     public long getRegisterTimeoutMs() {
         return registerTimeoutMs;
     }
