@@ -1,5 +1,6 @@
 package de.mel.auth.socket.process.transfer;
 
+import de.mel.Lok;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.AbstractFileWriter;
 import de.mel.auth.file.IFile;
@@ -23,8 +24,8 @@ public class FileTransferDetail implements SerializableEntity {
     private long position;
     private IFile file;
     private int streamId;
-    private InputStream in;
-    private AbstractFileWriter writer;
+    private volatile InputStream in;
+    private volatile AbstractFileWriter writer;
     private String hash;
     @JsonIgnore
     private boolean transferred = false;
@@ -44,10 +45,20 @@ public class FileTransferDetail implements SerializableEntity {
         return this;
     }
 
+    /**
+     * The transfer cannot be completed. Tells the listener, once.
+     */
     public void onFailed() {
+        abort();
+        if (failed)
+            return;
+        failed = true;
         if (transferFailedListener != null)
             transferFailedListener.onFileTransferFailed(this);
     }
+
+    @JsonIgnore
+    private boolean failed = false;
 
     public interface FileTransferDoneListener {
         void onFileTransferDone(FileTransferDetail fileTransferDetail);
@@ -129,22 +140,62 @@ public class FileTransferDetail implements SerializableEntity {
         return streamId;
     }
 
+    /**
+     * Opens the file for the data that is going to arrive: a new one for a transfer from the start, otherwise the existing one, continued where this detail starts.
+     * Is done on the first {@link #onReceived(long, byte[])} if you did not do it before. Doing it before tells you early that the file cannot be written.
+     *
+     * @throws IOException if the file cannot be written from {@link #getStart()} on. The caller can start over from 0.
+     */
+    public void openWrite() throws IOException {
+        if (writer != null)
+            return;
+        AbstractFileWriter opened = start == 0L ? file.writer() : file.writer(start);
+        if (opened == null)
+            throw new IOException("cannot write " + file.getName() + " from " + start);
+        writer = opened;
+    }
+
+    /**
+     * Closes the file if it is open. Whatever was written stays.
+     */
+    public void abort() {
+        AbstractFileWriter toClose = writer;
+        writer = null;
+        if (toClose != null) {
+            try {
+                toClose.close();
+            } catch (Exception e) {
+                Lok.error("could not close " + file.getName() + ": " + e);
+            }
+        }
+    }
+
+    /**
+     * Takes a piece of the file. The pieces have to come in order, one after the other, from {@link #getStart()} on, and not go beyond {@link #getEnd()}.
+     * Whatever is sent otherwise is not the file we asked for.
+     *
+     * @throws IOException if the piece does not belong here or cannot be written. The detail is not usable afterwards, abort it.
+     */
     public void onReceived(long offset, byte[] data) throws IOException {
-        if (writer == null)
-            writer = file.writer();
-
+        if (transferred)
+            throw new IOException("already got all of " + file.getName());
+        if (offset != position)
+            throw new IOException("expected " + file.getName() + " at " + position + " but got a piece at " + offset);
+        if (data.length > end - position)
+            throw new IOException("got " + data.length + " bytes at " + offset + " but " + file.getName() + " ends at " + end);
+        openWrite();
         writer.append(data, offset);
-
-        /*
-         * TODO there is some kind of misinformation here.
-         * You could possibly receive random blocks from all over the file
-         * and this wouldn't notice.
-         * Solving this is quite fiddly.
-         */
         position = offset + data.length;
-        if (position >= end) {
-            assert position == end;
-            N.r(() -> writer.close());
+        if (position == end) {
+            AbstractFileWriter toClose = writer;
+            writer = null;
+            try {
+                toClose.close();
+            } catch (IOException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new IOException(e);
+            }
             transferred = true;
             if (transferDoneListener != null)
                 transferDoneListener.onFileTransferDone(this);
@@ -183,7 +234,7 @@ public class FileTransferDetail implements SerializableEntity {
 
     /**
      * Reads up to 'length' bytes at 'offset', never beyond the end of this detail (the end of its range).
-     * If the file or the range ends before, the result is shorter and the not filled bytes are counted; when the end is reached
+     * If the file ends before the range does, the result is shorter and the bytes that are missing are counted as not filled; when the end of the range is reached
      * the detail is transferred.
      *
      * @param offset where in the file to read. The stream continues where it was, so offsets have to increase.
@@ -192,10 +243,13 @@ public class FileTransferDetail implements SerializableEntity {
      * @throws IOException
      */
     public FReadInfo readFile(long offset, int length) throws IOException {
+        InputStream in = this.in;
+        if (in == null)
+            throw new IOException("not open for reading: " + file.getName());
         while (streamPosition < offset) {
             long skipped = in.skip(offset - streamPosition);
             if (skipped <= 0)
-                break;
+                throw new IOException("cannot get to " + offset + " in " + file.getName() + ", got to " + streamPosition);
             streamPosition += skipped;
         }
         int wanted = (int) Math.max(0, Math.min(length, end - position));
@@ -215,7 +269,22 @@ public class FileTransferDetail implements SerializableEntity {
             in.close();
             transferred = true;
         }
-        return new FReadInfo(bytes, length - readBytes);
+        return new FReadInfo(bytes, wanted - readBytes);
+    }
+
+    /**
+     * Lets go of the file that is read, after the last piece was sent or when it will not be sent any more.
+     */
+    public void abortRead() {
+        InputStream toClose = in;
+        in = null;
+        if (toClose != null) {
+            try {
+                toClose.close();
+            } catch (IOException e) {
+                Lok.error("could not close " + file.getName() + ": " + e);
+            }
+        }
     }
 
     public boolean hasError() {

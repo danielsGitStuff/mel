@@ -5,9 +5,12 @@ import de.mel.auth.file.AbstractFile
 import de.mel.auth.file.AbstractFileWriter
 import java.io.OutputStream
 
-class AndroidFileWriter(androidFile: AndroidFile) : AbstractFileWriter() {
+/**
+ * @param append continue the file instead of replacing it
+ */
+class AndroidFileWriter(androidFile: AndroidFile, append: Boolean = false) : AbstractFileWriter() {
     override fun append(data: ByteArray, offset: Long, length: Int) {
-        out?.write(data)
+        out?.write(data, 0, length)
     }
 
     override fun close() {
@@ -21,6 +24,6 @@ class AndroidFileWriter(androidFile: AndroidFile) : AbstractFileWriter() {
         if (!androidFile.exists())
             androidFile.createNewFile()
         val uri = androidFile.getDocFile()!!.uri
-        out = contentResolver.openOutputStream(uri, "wa")
+        out = contentResolver.openOutputStream(uri, if (append) "wa" else "wt")
     }
 }

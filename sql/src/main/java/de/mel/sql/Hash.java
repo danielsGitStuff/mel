@@ -17,7 +17,7 @@ public class Hash {
         try {
             messageDigest = MessageDigest.getInstance("MD5");
 
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[64 * 1024];
             int numRead;
             do {
                 numRead = inputStream.read(buffer);
@@ -91,7 +91,7 @@ public class Hash {
         MessageDigest messageDigest;
         try {
             messageDigest = createSHA256MessageDigest();
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[64 * 1024];
             int numRead;
             do {
                 numRead = inputStream.read(buffer);

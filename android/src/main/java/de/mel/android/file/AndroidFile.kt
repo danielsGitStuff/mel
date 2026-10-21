@@ -212,6 +212,30 @@ class AndroidFile : IFile {
         return null
     }
 
+    /**
+     * The streams the storage access framework gives us can only append, so this works if the file is exactly [position] bytes long.
+     */
+    @Throws(IOException::class)
+    override fun writer(position: Long): AbstractFileWriter? {
+        if (position == 0L)
+            return writer()
+        if (position < 0L || !exists() || length() != position)
+            return null
+        try {
+            return if (requiresSAF()) {
+                val documentFile = getDocFile() ?: return null
+                StandardFileWriter(Tools.getApplicationContext().contentResolver.openOutputStream(documentFile.uri, "wa") as FileOutputStream)
+            } else if (VERSION.SDK_INT > VERSION_CODES.P) {
+                AndroidFileWriter(this, true)
+            } else {
+                StandardFileWriter(RandomAccessFile(file, "rw"))
+            }
+        } catch (e: SAFException) {
+            e.printStackTrace()
+        }
+        return null
+    }
+
     override fun lastModified(): Long? {
         return file!!.lastModified()
     }

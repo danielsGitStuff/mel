@@ -290,6 +290,15 @@ class SAFFile : AbstractFile<SAFFile> {
 
     override fun writer(): AbstractFileWriter? = SAFFileWriter(this)
 
+    /**
+     * The streams of the storage access framework can only append, so this works if the file is exactly [position] bytes long.
+     */
+    override fun writer(position: Long): AbstractFileWriter? = when {
+        position == 0L -> writer()
+        position < 0L || !exists() || length() != position -> null
+        else -> SAFFileWriter(this, true)
+    }
+
     override fun lastModified(): Long? {
         if (!exists())
             return null

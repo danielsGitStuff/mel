@@ -9,7 +9,10 @@ import java.io.OutputStream
 
 
 @RequiresApi(Build.VERSION_CODES.Q)
-class SAFFileWriter(val file: SAFFile) : AbstractFileWriter() {
+/**
+ * @param append continue the file instead of replacing it
+ */
+class SAFFileWriter(val file: SAFFile, append: Boolean = false) : AbstractFileWriter() {
     val out: OutputStream?
 
     init {
@@ -17,14 +20,14 @@ class SAFFileWriter(val file: SAFFile) : AbstractFileWriter() {
         if (!file.exists())
             file.createNewFile()
         val uri = file.getDocFile()!!.uri
-        out = contentResolver.openOutputStream(uri, "w")
+        out = contentResolver.openOutputStream(uri, if (append) "wa" else "w")
     }
 
     override fun append(data: ByteArray, offset: Long, length: Int) {
         /**
          * Though there is a way to append to files I choose not to use that method because the offset is provided by an Int which limits the maximum offset you can address to 2GB
          */
-        out!!.write(data)
+        out!!.write(data, 0, length)
     }
 
     override fun close() {

@@ -86,7 +86,11 @@ public class TwoInstances implements AutoCloseable {
     }
 
     final MelAuthService server;
-    final MelAuthService client;
+    /**
+     * Changes when the client is restarted, see {@link #restartClient()}
+     */
+    volatile MelAuthService client;
+    private final Class<? extends Bootloader<? extends MelService>>[] bootloaders;
 
     /**
      * @param portBase takes 10 ports from here on
@@ -101,6 +105,7 @@ public class TwoInstances implements AutoCloseable {
     @SafeVarargs
     TwoInstances(File dir, int portBase, IRegisterHandler serverUser, IRegisterHandler clientUser, Class<? extends Bootloader<? extends MelService>>... bootloaders) throws Exception {
         AbstractFile.configure(new DefaultFileConfiguration());
+        this.bootloaders = bootloaders;
         server = boot(dir, "SERVER", portBase, portBase + 1, portBase + 4, portBase + 6, bootloaders);
         client = boot(dir, "CLIENT", portBase + 2, portBase + 3, portBase + 5, portBase + 7, bootloaders);
         server.addRegisterHandler(serverUser);
@@ -114,6 +119,10 @@ public class TwoInstances implements AutoCloseable {
                 .setBrotcastListenerPort(brotcastListenerPort).setBrotcastPort(brotcastPort)
                 .setWorkingDirectory(dir).setName(name).setVariant(MelStrings.update.VARIANT_JAR);
         settings.setJsonFile(new File(dir, MelBoot.Companion.getDEFAULT_SETTINGS_FILE_NAME()));
+        return boot(settings, name, bootloaders);
+    }
+
+    private static MelAuthService boot(MelAuthSettings settings, String name, Class<? extends Bootloader<? extends MelService>>[] bootloaders) throws Exception {
         AtomicReference<MelAuthService> booted = new AtomicReference<>();
         AtomicReference<Exception> failure = new AtomicReference<>();
         CountDownLatch latch = new CountDownLatch(1);
@@ -127,6 +136,29 @@ public class TwoInstances implements AutoCloseable {
         assertTrue(latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), name + " did not boot in time");
         assertNull(failure.get(), name + " failed to boot");
         return booted.get();
+    }
+
+    /**
+     * Shuts the client down and starts it again, from what it left on disk: same settings, same ports, same pairing, same services.
+     * What the app does when it is closed and opened again, or when it dies and is started again.
+     */
+    void restartClient() throws Exception {
+        restartClient(() -> {
+        });
+    }
+
+    /**
+     * @param whileDown is run when the client is shut down and not started again yet
+     */
+    void restartClient(Runnable whileDown) throws Exception {
+        MelAuthService old = client;
+        MelAuthSettings settings = old.getSettings();
+        CountLock lock = new CountLock().lock();
+        Promises.allSettled(old.shutDown()).onDone(r -> lock.unlock());
+        lock.lock();
+        whileDown.run();
+        client = boot(settings, "CLIENT", bootloaders);
+        client.addRegisterHandler(ACCEPT_ALL);
     }
 
     /**

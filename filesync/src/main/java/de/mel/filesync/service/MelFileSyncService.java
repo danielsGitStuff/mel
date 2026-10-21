@@ -9,6 +9,7 @@ import fun.with.promise.PromiseImpl;
 import fun.with.promise.Promise;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -156,12 +157,11 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
                         handleDirectoryContentsRequest(request);
                     } else if (request.hasIntent(FileSyncStrings.INTENT_SYNC)) {
                         onSyncReceived(request);
-                    }
-                } else if (job.isMessage()) {
-                    Lok.debug(melAuthService.getName() + ".MelDriveService.workWork.msg");
-                    if (job.getIntent() != null && job.getIntent().equals(FileSyncStrings.INTENT_PLEASE_TRANSFER)) {
+                    } else if (request.hasIntent(FileSyncStrings.INTENT_PLEASE_TRANSFER)) {
                         Lok.debug("MelDriveService.workWorkWork: transfer please");
-                        handleSending(job.getPartnerCertificate().getId().v(), (FileTransferDetailsPayload) job.getPayLoad());
+                        handleSending(request.getPartnerCertificate().getId().v(), (FileTransferDetailsPayload) request.getPayload())
+                                .onDone(queued -> request.resolveOk(null))
+                                .onError(request::resolveError);
                     }
                 }
             }
@@ -209,71 +209,80 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
      */
     public abstract void onIndexerDone();
 
-    protected void handleSending(Long partnerCertId, FileTransferDetailsPayload payload) {
-        //todo synced nicht richtig, wenn hier haltepunkt nach der konfliktlösung
-        FsDao fsDao = databaseManager.getFsDao();
-        BunchOfLocks bunchOfLocks = P.confine(P.read(fsDao));
+    /**
+     * The partner wants files. They are sent over an isolated connection (the one the partner has opened, otherwise one is opened),
+     * a file that cannot be sent is announced there as well.
+     *
+     * @return settled when all files are queued for sending, failed if they cannot be sent at all. The partner is told.
+     */
+    protected Promise<Void, Exception> handleSending(Long partnerCertId, FileTransferDetailsPayload payload) {
+        PromiseImpl<Void, Exception> queued = PromiseImpl.withoutThrowingOnException();
+        FileTransferDetailSet detailSet = payload.getFileTransferDetailSet();
         try {
-
-            FileTransferDetailSet detailSet = payload.getFileTransferDetailSet();
-            for (FileTransferDetail detail : detailSet.getDetails()) {
-                IFile wasteFile = wastebin.getByHash(detail.getHash());
-                Promise<MelIsolatedFileProcess, Exception> promise = getIsolatedProcess(MelIsolatedFileProcess.class, partnerCertId, detailSet.getServiceUuid());
-                promise.onDone(fileProcess -> runner.runTry(() -> {
-                    List<FsFile> fsFiles = databaseManager.getFsDao().getFilesByHash(detail.getHash());
-                    if (wasteFile != null) {
-                        FileTransferDetail mDetail = new FileTransferDetail(wasteFile, detail.getStreamId(), detail.getStart(), detail.getEnd());
-                        mDetail.openRead();
-                        fileProcess.sendFile(mDetail);
-                    } else if (fsFiles.size() > 0) {
-                        FsFile fsFile = fsFiles.get(0);
-                        IFile file = fsDao.getFileByFsFile(databaseManager.getFileSyncSettings().getRootDirectory(), fsFile);
-                        if (!file.exists()) {
-                            file = wastebin.getByHash(detail.getHash());
+            getIsolatedProcess(MelIsolatedFileProcess.class, partnerCertId, detailSet.getServiceUuid())
+                    .onDone(fileProcess -> {
+                        try {
+                            for (FileTransferDetail detail : detailSet.getDetails())
+                                sendRequested(fileProcess, detail);
+                            queued.resolveOk(null);
+                        } catch (Exception e) {
+                            Lok.error("cannot send files to " + partnerCertId + ": " + e);
+                            queued.resolveError(e);
                         }
-                        if (file == null) {
-                            fileProcess.sendError(detail);
-                        }
-                        FileTransferDetail mDetail = new FileTransferDetail(file, detail.getStreamId(), detail.getStart(), detail.getEnd());
-                        mDetail.setHash(detail.getHash());
-                        mDetail.openRead();
-                        fileProcess.sendFile(mDetail);
-                    } else {
-                        //send 404. did not find
-                        fileProcess.sendError(detail);
-                    }
-                }));
-//                if (fileProcess == null) {
-//                    Lok.error("file transfer process is NULL");
-//                }
-//                List<FsFile> fsFiles = driveDatabaseManager.getFsDao().getFilesByHash(detail.getHash());
-//                if (wasteFile != null) {
-//                    FileTransferDetail mDetail = new FileTransferDetail(wasteFile, detail.getStreamId(), detail.getStart(), detail.getEnd());
-//                    mDetail.openRead();
-//                    fileProcess.sendFile(mDetail);
-//                } else if (fsFiles.size() > 0) {
-//                    FsFile fsFile = fsFiles.get(0);
-//                    AFile file = fsDao.getFileByFsFile(driveDatabaseManager.getDriveSettings().getRootDirectory(), fsFile);
-//                    if (!file.exists()) {
-//                        file = wastebin.getByHash(detail.getHash());
-//                    }
-//                    if (file == null) {
-//                        fileProcess.sendError(detail);
-//                    }
-//                    FileTransferDetail mDetail = new FileTransferDetail(file, detail.getStreamId(), detail.getStart(), detail.getEnd());
-//                    mDetail.setHash(detail.getHash());
-//                    mDetail.openRead();
-//                    fileProcess.sendFile(mDetail);
-//                } else {
-//                    //send 404. did not find
-//                    fileProcess.sendError(detail);
-//                }
-            }
+                    })
+                    .onError(e -> {
+                        Lok.error("cannot send files to " + partnerCertId + ": " + e);
+                        queued.resolveError(e);
+                    });
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            queued.resolveError(e);
         } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            bunchOfLocks.end();
+            Lok.error("cannot send files to " + partnerCertId + ": " + e);
+            queued.resolveError(e);
         }
+        return queued;
+    }
+
+    /**
+     * Sends the part of the file with that hash that the partner asked for, or tells the partner that this is not possible.
+     * The partner says where it wants to start, so it can continue a download.
+     */
+    private void sendRequested(MelIsolatedFileProcess fileProcess, FileTransferDetail detail) throws Exception {
+        IFile file = findFileByHash(detail.getHash());
+        long start = detail.getStart();
+        long end = detail.getEnd();
+        if (file == null || start < 0 || start > end || end > file.length()) {
+            // we do not have it or not what the partner expects
+            fileProcess.sendError(detail);
+            return;
+        }
+        FileTransferDetail mDetail = new FileTransferDetail(file, detail.getStreamId(), start, end);
+        mDetail.setHash(detail.getHash());
+        try {
+            mDetail.openRead();
+        } catch (IOException e) {
+            Lok.error("cannot read " + file.getAbsolutePath() + ": " + e);
+            fileProcess.sendError(detail);
+            return;
+        }
+        fileProcess.sendFile(mDetail);
+    }
+
+    /**
+     * @return a file with that content: from the wastebin or one of the files in the directory. null if there is none.
+     */
+    protected IFile findFileByHash(String hash) throws Exception {
+        IFile wasteFile = wastebin.getByHash(hash);
+        if (wasteFile != null && wasteFile.exists())
+            return wasteFile;
+        FsDao fsDao = databaseManager.getFsDao();
+        for (FsFile fsFile : fsDao.getFilesByHash(hash)) {
+            IFile file = fsDao.getFileByFsFile(databaseManager.getFileSyncSettings().getRootDirectory(), fsFile);
+            if (file.exists())
+                return file;
+        }
+        return null;
     }
 
     public Indexer getIndexer() {

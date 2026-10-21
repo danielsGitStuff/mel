@@ -5,6 +5,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.io.RandomAccessFile
 
 /**
  * this is the default [File] wrapper for everything that is not recent android
@@ -98,6 +99,20 @@ class StandardFile : AbstractFile<StandardFile> {
     @Throws(FileNotFoundException::class)
     override fun writer(): AbstractFileWriter? {
         return StandardFileWriter(file)
+    }
+
+    @Throws(IOException::class)
+    override fun writer(position: Long): AbstractFileWriter? {
+        if (position < 0L || !file.exists() || file.length() < position)
+            return null
+        val randomAccessFile = RandomAccessFile(file, "rw")
+        try {
+            randomAccessFile.setLength(position)
+        } catch (e: IOException) {
+            randomAccessFile.close()
+            throw e
+        }
+        return StandardFileWriter(randomAccessFile)
     }
 
     override val separator: String

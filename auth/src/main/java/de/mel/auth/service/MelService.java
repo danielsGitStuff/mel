@@ -14,7 +14,9 @@ import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
 import de.mel.sql.SqlQueriesException;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -111,6 +113,18 @@ public abstract class MelService extends MelWorker implements IMelService {
         isolatedLock.lock();
         try {
             establishedIsolated.put(isolatedProcess.getIsolatedUuid(), isolatedProcess);
+        } finally {
+            isolatedLock.unlock();
+        }
+    }
+
+    /**
+     * @return the isolated connections of this service that are up right now, whoever opened them
+     */
+    public List<MelIsolatedProcess> getEstablishedIsolatedProcesses() {
+        isolatedLock.lock();
+        try {
+            return new ArrayList<>(establishedIsolated.values());
         } finally {
             isolatedLock.unlock();
         }

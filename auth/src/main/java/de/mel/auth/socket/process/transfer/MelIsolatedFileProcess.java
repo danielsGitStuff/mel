@@ -1,14 +1,14 @@
 package de.mel.auth.socket.process.transfer;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
-import java.util.Queue;
-import java.util.TreeMap;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import de.mel.Lok;
 import de.mel.MelRunnable;
@@ -20,62 +20,54 @@ import de.mel.auth.socket.MelAuthSocket;
 import de.mel.auth.socket.FrameCodec;
 import de.mel.auth.tools.ByteTools;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
-import de.mel.sql.RWLock;
 
 /**
  * Transfers files.<br>
  * see {@link MelIsolatedProcess}
  */
 public class MelIsolatedFileProcess extends MelIsolatedProcess implements MelRunnable {
-    private Map<String, FileTransferDetail> hashFTDSendingMap = new HashMap<>();
-    private Map<String, FileTransferDetail> hashFTDReceivingMap = new HashMap<>();
+    private Map<String, FileTransferDetail> hashFTDReceivingMap = new ConcurrentHashMap<>();
+    private Map<Integer, FileTransferDetail> streamIdFileMapReceiving = new ConcurrentHashMap<>();
 
-    private Queue<String> sendingDetails = new LinkedList();
-    private Map<Integer, FileTransferDetail> streamIdFileMapReceiving = new TreeMap<>();
-
-    private Semaphore sendingSemaphore = new Semaphore(1, true);
-    private Semaphore receivingSemaphore = new Semaphore(1, true);
-    private RWLock sendWaitLock = new RWLock();
+    /**
+     * The files that are being sent. The sender takes the first one, sends a piece of it and puts it at the end, so all of them make progress
+     * and a huge file does not keep the small ones waiting.
+     */
+    private final LinkedBlockingDeque<FileTransferDetail> sendingQueue = new LinkedBlockingDeque<>();
     private MelNotification sendingNotification;
+    private final AtomicLong sentFileBytes = new AtomicLong();
 
-    public void cancelByHash(String hash) throws InterruptedException {
-        try {
-            sendingSemaphore.acquire();
-            sendingDetails.remove(hash);
-            FileTransferDetail detail = hashFTDSendingMap.remove(hash);
-            if (detail != null) {
-            }
-        } finally {
-            sendingSemaphore.release();
-        }
-        try {
-            receivingSemaphore.acquire();
-            FileTransferDetail detail = hashFTDReceivingMap.remove(hash);
-            if (detail != null)
-                streamIdFileMapReceiving.remove(detail.getStreamId());
-        } finally {
-            receivingSemaphore.release();
+    /**
+     * @return how many bytes of file content this process has sent so far
+     */
+    public long getSentFileBytes() {
+        return sentFileBytes.get();
+    }
+
+    public void cancelByHash(String hash) {
+        sendingQueue.removeIf(sending -> {
+            if (!hash.equals(sending.getHash()))
+                return false;
+            sending.abortRead();
+            return true;
+        });
+        FileTransferDetail detail = hashFTDReceivingMap.remove(hash);
+        if (detail != null) {
+            streamIdFileMapReceiving.remove(detail.getStreamId());
+            detail.abort();
         }
 
     }
 
 
-    public void addFilesReceiving(Collection<FileTransferDetail> fileTransferDetails) throws InterruptedException {
-        receivingSemaphore.acquire();
-        for (FileTransferDetail fileTransferDetail : fileTransferDetails) {
-            hashFTDReceivingMap.put(fileTransferDetail.getHash(), fileTransferDetail);
-            streamIdFileMapReceiving.put(fileTransferDetail.getStreamId(), fileTransferDetail);
-        }
-        receivingSemaphore.release();
+    public void addFilesReceiving(Collection<FileTransferDetail> fileTransferDetails) {
+        for (FileTransferDetail fileTransferDetail : fileTransferDetails)
+            addFilesReceiving(fileTransferDetail);
     }
 
-    public void addFilesReceiving(FileTransferDetail fileTransferDetail) throws InterruptedException {
-//        Lok.debug("MelIsolatedFileProcess.addFilesReceiving.ID: " + fileTransferDetail.getStreamId());
-        receivingSemaphore.acquire();
+    public void addFilesReceiving(FileTransferDetail fileTransferDetail) {
         hashFTDReceivingMap.put(fileTransferDetail.getHash(), fileTransferDetail);
         streamIdFileMapReceiving.put(fileTransferDetail.getStreamId(), fileTransferDetail);
-//        Lok.debug("MelIsolatedFileProcess.addFilesReceiving.stored.hash: " + streamIdFileMapReceiving.get(fileTransferDetail.getStreamId()).getHash());
-        receivingSemaphore.release();
     }
 
     public MelIsolatedFileProcess(MelAuthSocket melAuthSocket, IMelService melService, Long partnerCertificateId, String partnerServiceUuid, String isolatedUuid) {
@@ -90,11 +82,18 @@ public class MelIsolatedFileProcess extends MelIsolatedProcess implements MelRun
 
     @Override
     public void onSocketClosed(CloseReason reason, boolean remote) {
+        // what is still on its way will not arrive here. Let go of the files, what was written stays so it can be continued.
+        for (FileTransferDetail detail : new ArrayList<>(streamIdFileMapReceiving.values()))
+            detail.abort();
+        // and nothing more can be sent
+        FileTransferDetail sending;
+        while ((sending = sendingQueue.poll()) != null)
+            sending.abortRead();
         super.onSocketClosed(reason, remote);
     }
 
     /**
-     * One block frame is one record, see {@link #transfer()}.
+     * One block frame is one record, see {@link #sendPiece}.
      */
     @Override
     public void onBlockReceived(BlockReceivedJob blockJob) {
@@ -143,39 +142,60 @@ public class MelIsolatedFileProcess extends MelIsolatedProcess implements MelRun
             int streamId = ByteTools.bytesToInt(bytes, firstByteToProcess + 1);
             long offset = ByteTools.bytesToLong(bytes, firstByteToProcess + 5);
             int length = ByteTools.bytesToInt(bytes, firstByteToProcess + 13);
-            byte[] data = Arrays.copyOfRange(bytes, firstByteToProcess + META_LENGTH, firstByteToProcess + META_LENGTH + length);
-            assert length == data.length;
-            FileTransferDetail transferDetail = streamIdFileMapReceiving.get(streamId);
-            if (transferDetail == null) {
-                Lok.debug("MelIsolatedFileProcess.handleTransfer.NULL, id was: " + block.getStreamId());
-                block.setFirstByteToProcessIndex(block.getBytes().length);
+            block.setFirstByteToProcessIndex(firstByteToProcess + length + META_LENGTH);
+            if (length < 0 || firstByteToProcess + META_LENGTH + length > bytes.length) {
+                Lok.error("MelIsolatedFileProcess.handleTransfer: record says " + length + " bytes but has " + (bytes.length - firstByteToProcess - META_LENGTH));
+                failReceiving(streamId);
                 return true;
             }
-            transferDetail.onReceived(offset, data);
-            if (transferDetail.transferred() || c.equals('t')) {
-                receivingSemaphore.acquire();
-                Lok.debug("MelIsolatedFileProcess.handleTransfer.remove.receiving.id: " + transferDetail.getStreamId());
-                streamIdFileMapReceiving.remove(streamId);
-                receivingSemaphore.release();
+            byte[] data = Arrays.copyOfRange(bytes, firstByteToProcess + META_LENGTH, firstByteToProcess + META_LENGTH + length);
+            FileTransferDetail transferDetail = streamIdFileMapReceiving.get(streamId);
+            if (transferDetail == null) {
+                Lok.debug("MelIsolatedFileProcess.handleTransfer.NULL, id was: " + streamId);
+                return true;
             }
-            block.setFirstByteToProcessIndex(firstByteToProcess + length + META_LENGTH);
+            try {
+                transferDetail.onReceived(offset, data);
+            } catch (IOException e) {
+                Lok.error("MelIsolatedFileProcess.handleTransfer: transfer " + streamId + " fails: " + e.getMessage());
+                failReceiving(streamId);
+                return true;
+            }
+            if (transferDetail.transferred()) {
+                streamIdFileMapReceiving.remove(streamId);
+                hashFTDReceivingMap.remove(transferDetail.getHash(), transferDetail);
+            } else if (c.equals('t')) {
+                // the sender says that was the last piece but the file is not complete
+                Lok.error("MelIsolatedFileProcess.handleTransfer: transfer " + streamId + " ended at " + transferDetail.getPosition() + " but should end at " + transferDetail.getEnd());
+                failReceiving(streamId);
+            }
             return true;
         } else if (c.equals('E')) {
             byte[] bytes = block.getBytes();
             int firstByteToProcess = block.getFirstByteToProcessIndex();
             int streamId = ByteTools.bytesToInt(bytes, firstByteToProcess + 1);
+            block.setFirstByteToProcessIndex(firstByteToProcess + 5);
             FileTransferDetail transferDetail = streamIdFileMapReceiving.get(streamId);
             if (transferDetail == null) {
-                Lok.debug("MelIsolatedFileProcess.handleTransfer.NULL, id was: " + block.getStreamId());
+                Lok.debug("MelIsolatedFileProcess.handleTransfer.NULL, id was: " + streamId);
             } else {
                 transferDetail.setError(true);
-                transferDetail.onFailed();
             }
-            block.setFirstByteToProcessIndex(firstByteToProcess + 5);
-            streamIdFileMapReceiving.remove(streamId);
+            failReceiving(streamId);
             return true;
         }
         return false;
+    }
+
+    /**
+     * Gives up on a file we are receiving: nothing more is expected for it, the file is closed and the one who wanted it is told.
+     */
+    private void failReceiving(int streamId) {
+        FileTransferDetail transferDetail = streamIdFileMapReceiving.remove(streamId);
+        if (transferDetail == null)
+            return;
+        hashFTDReceivingMap.remove(transferDetail.getHash(), transferDetail);
+        transferDetail.onFailed();
     }
 
     /**
@@ -188,89 +208,86 @@ public class MelIsolatedFileProcess extends MelIsolatedProcess implements MelRun
         return (Character) (char) block.getBytes()[block.getFirstByteToProcessIndex()];
     }
 
-    public void sendFile(FileTransferDetail transferDetail) throws IOException, JsonSerializationException, IllegalAccessException, InterruptedException {
-        sendingSemaphore.acquire();
-        sendingDetails.add(transferDetail.getHash());
-        hashFTDSendingMap.put(transferDetail.getHash(), transferDetail);
-        sendingSemaphore.release();
-        sendWaitLock.unlockWrite();
+    /**
+     * Queues the file for sending, from {@link FileTransferDetail#getStart()} to {@link FileTransferDetail#getEnd()}. Returns right away.
+     */
+    public void sendFile(FileTransferDetail transferDetail) {
+        sendingQueue.add(transferDetail);
     }
 
     @Override
     public void run() {
         try {
-            while (!Thread.currentThread().isInterrupted()) {
-                sendingSemaphore.acquire();
-                String hash = sendingDetails.peek();
-                FileTransferDetail details = hashFTDSendingMap.get(hash);
-                sendingSemaphore.release();
-                if (details != null && !Thread.currentThread().isInterrupted()) {
-                    transfer();
-                } else {
-                    // wait
-                    sendWaitLock.lockWrite();
+            while (!Thread.currentThread().isInterrupted() && isOpen()) {
+                FileTransferDetail detail = sendingQueue.poll(200, TimeUnit.MILLISECONDS);
+                if (detail != null) {
+                    sendPiece(detail);
+                } else if (sendingNotification != null) {
+                    // nothing left to send
+                    sendingNotification.cancel();
+                    sendingNotification = null;
                 }
             }
+        } catch (InterruptedException e) {
+            // end
         } catch (Exception e) {
             e.printStackTrace();
         }
+        if (sendingNotification != null)
+            sendingNotification.cancel();
         stop();
     }
 
     /**
-     * Sends the files that are waiting, each piece in a block frame of its own (the frame has exactly the size it needs). So it does not block until the file is transferred.<br>
+     * Sends the next piece of the file in a block frame of its own (the frame has exactly the size it needs). So a file does not block the others until it is transferred.<br>
      * format of a record: [T][4 bytes, stream id][8 bytes, offset of PAYLOAD][4 bytes, length of PAYLOAD][PAYLOAD]<br>
      * the last record of a file starts with [t] instead of [T]<br>
-     * a file that cannot be sent: [E][4 bytes, stream id]
-     *
-     * @throws IOException
+     * a file that cannot be sent: [E][4 bytes, stream id]<br>
+     * If the file is not completely sent it is put at the end of the queue.
      */
-    public void transfer() throws IOException, InterruptedException {
-        String hash = sendingDetails.peek();
-        FileTransferDetail transferDetail = hashFTDSendingMap.get(hash);
-        while (transferDetail != null) {
-            //notification first
-            if (sendingNotification == null) {
-                sendingNotification = service.createSendingNotification();
-                if (sendingNotification != null) {
-                    melAuthSocket.getMelAuthService().onNotificationFromService(service, sendingNotification);
-                }
+    private void sendPiece(FileTransferDetail transferDetail) {
+        //notification first
+        if (sendingNotification == null) {
+            sendingNotification = service.createSendingNotification();
+            if (sendingNotification != null) {
+                melAuthSocket.getMelAuthService().onNotificationFromService(service, sendingNotification);
             }
-            byte[] record;
-            FileTransferDetail.FReadInfo readResult = null;
-            if (transferDetail.hasError()) {
-                record = new byte[5];
-                ByteTools.fill(record, 0, "E".getBytes(), ByteTools.intToBytes(transferDetail.getStreamId()));
-            } else {
-                boolean last = transferDetail.transferred() || transferDetail.getPosition() == transferDetail.getEnd()
-                        || transferDetail.getEnd() - transferDetail.getPosition() <= MAX_DATA;
-                long position = transferDetail.getPosition();
-                readResult = transferDetail.readFile(position, MAX_DATA);
-                byte[] data = readResult.getBytes();
-                record = new byte[META_LENGTH + data.length];
-                ByteTools.fill(record, 0,
-                        (last ? "t" : "T").getBytes(),
-                        ByteTools.intToBytes(transferDetail.getStreamId()),
-                        ByteTools.longToBytes(position),
-                        ByteTools.intToBytes(data.length),
-                        data);
-            }
-            // if file is processed
-            if (transferDetail.transferred() || transferDetail.hasError() || readResult == null || readResult.getNotFilledBytes() > 0) {
-                sendingSemaphore.acquire();
-                sendingDetails.poll();
-                hashFTDSendingMap.remove(hash);
-                sendingSemaphore.release();
-            }
-            melAuthSocket.sendBlock(record);
-            sendingSemaphore.acquire();
-            hash = sendingDetails.peek();
-            transferDetail = hashFTDSendingMap.get(hash);
-            sendingSemaphore.release();
         }
-        if (sendingNotification != null)
-            sendingNotification.cancel();
-        sendingNotification = null;
+        byte[] record;
+        FileTransferDetail.FReadInfo readResult = null;
+        long position = transferDetail.getPosition();
+        if (!transferDetail.hasError()) {
+            try {
+                readResult = transferDetail.readFile(position, MAX_DATA);
+            } catch (IOException e) {
+                Lok.error("could not read " + transferDetail.getFile().getName() + ": " + e);
+                transferDetail.setError(true);
+            }
+        }
+        boolean processed;
+        if (transferDetail.hasError()) {
+            record = new byte[5];
+            ByteTools.fill(record, 0, "E".getBytes(), ByteTools.intToBytes(transferDetail.getStreamId()));
+            processed = true;
+        } else {
+            byte[] data = readResult.getBytes();
+            // the file ends before the range we were asked for? Then this is the last we can tell
+            boolean last = transferDetail.transferred() || readResult.getNotFilledBytes() > 0;
+            record = new byte[META_LENGTH + data.length];
+            ByteTools.fill(record, 0,
+                    (last ? "t" : "T").getBytes(),
+                    ByteTools.intToBytes(transferDetail.getStreamId()),
+                    ByteTools.longToBytes(position),
+                    ByteTools.intToBytes(data.length),
+                    data);
+            sentFileBytes.addAndGet(data.length);
+            processed = last;
+        }
+        if (processed)
+            transferDetail.abortRead();
+        else
+            sendingQueue.addLast(transferDetail);
+        melAuthSocket.sendBlock(record);
     }
 
     @Override
@@ -278,12 +295,11 @@ public class MelIsolatedFileProcess extends MelIsolatedProcess implements MelRun
         return getClass().getSimpleName();
     }
 
-    public void sendError(FileTransferDetail detail) throws InterruptedException {
+    /**
+     * Tells the partner that we cannot send that file.
+     */
+    public void sendError(FileTransferDetail detail) {
         detail.setError(true);
-        sendingSemaphore.acquire();
-        hashFTDSendingMap.put(detail.getHash(), detail);
-        sendingDetails.add(detail.getHash());
-        sendingSemaphore.release();
-        sendWaitLock.unlockWrite();
+        sendingQueue.add(detail);
     }
 }

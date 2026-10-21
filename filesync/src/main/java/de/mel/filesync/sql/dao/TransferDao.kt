@@ -167,6 +167,22 @@ class TransferDao : Dao {
         return sqlQueries.queryValue(query, SqlResultTransformer.CLASS_LONG, ISQLQueries.args(certId, serviceUuid, TransferState.NOT_STARTED, TransferState.RUNNING))
     }
 
+    /**
+     * @return every transfer there is, whatever state it is in
+     */
+    @get:Throws(SqlQueriesException::class)
+    val all: MutableList<DbTransferDetails>
+        get() = sqlQueries.load(dummy.allAttributes, dummy, null, null)
+
+    /**
+     * @return whether transfers from that service were given up on for now, see [TransferState.SUSPENDED]
+     */
+    @Throws(SqlQueriesException::class)
+    fun hasSuspended(certId: Long?, serviceUuid: String): Boolean {
+        val query = "select count(*) from ${dummy.tableName} where ${dummy.certId.k()}=? and ${dummy.serviceUuid.k()}=? and ${dummy.state.k()}=?"
+        return sqlQueries.queryValue(query, SqlResultTransformer.CLASS_LONG, ISQLQueries.args(certId, serviceUuid, TransferState.SUSPENDED)) > 0L
+    }
+
     @Throws(SqlQueriesException::class)
     fun countStarted(certId: Long?, serviceUuid: String): Int {
         val query = ("select count (*) from " + dummy.tableName + " where " + dummy.state.k() + "=? and "

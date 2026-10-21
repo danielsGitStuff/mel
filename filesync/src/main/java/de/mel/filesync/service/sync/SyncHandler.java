@@ -547,6 +547,10 @@ public abstract class SyncHandler {
         transferManager.onShutDown();
     }
 
+    public TManager getTransferManager() {
+        return transferManager;
+    }
+
     public boolean onFileTransferred(IFile file, String hash, BunchOfLocks bunchOfLocks) throws IOException, SqlQueriesException {
         return this.onFileTransferred(file, hash, bunchOfLocks, null);
     }

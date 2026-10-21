@@ -26,6 +26,8 @@
 - No keep-alive in ESTABLISHED (decided): a half open connection is only noticed when the next send fails or the partner reconnects (the "same initiator, newer wins" rule then replaces it).
 - Timing: the integration tests were run 5 times in a row after steps 2/3, 6, 7, 8, 9 and after P4; earlier flaky tests were test races, each explained in its step.
 
+**Follow-up after the run (2026-10-21): file transfer, resume, tests** - see the last section of this file.
+
 **Verify:**
 ```
 . ~/tools/env.sh
@@ -194,3 +196,48 @@ Removed `api libs.jdeferred` from `auth/build.gradle` and `jdeferred` from `libs
 `fun.with` itself was not changed.
 Test race found on the way (not a code bug): `AuthHandshakeTest...SuspendedAndResumed` probed the port right after `suspend()`, while the old listener was still open; it now waits for the port to close, resumes, then waits for it to open.
 The 96 tests of `:auth:test :auth:integrationTest` and `:filesync:test` green, full `./gradlew build` green.
+
+## Follow-up: file transfer, resume, tests (2026-10-21, after the unattended run)
+
+Asked by the user: tests for file sync/transfer, a sound resume logic, and a test that transfers several files at the same time without mixing them up.
+
+**What was there:** no running test for sync or transfer in `filesync` (every `@Test` of `DriveTest`/`FileSyncTest`/`TransferTest` is commented out), only the record level `FileTransferTest` in auth.
+Resume was not implemented (`// todo resume downloads` three times): `transferred` was written to the database but every attempt asked for byte 0.
+
+**Bugs found on the way (all fixed):**
+- `TManager` "locked" with `P.confine(x)` and never took the lock (`confine` only creates the lock object, `run`/`access` takes it), and its loop did not wait for the connections it started.
+  Several `TransferFromServiceRunnable`s ran for one connection, asked for the same files, finished them twice, the second finish found the file already moved away and started the file over: a file with the
+  wrong content was found in the client directory (`manyFilesAtOnceDoNotMixUp` failed with `big/b2.bin(wrong content)`). `TManager` is rewritten: real synchronization, the connect phase blocks, the loop waits for `research()`
+  (a flag) when every partner with work has a retriever, at most one retriever per partner service, a failed or lost attempt is retried with backoff (`retryBaseDelayMs` 2 s doubling up to `retryMaxDelayMs` 5 min).
+- `StandardFileWriter` opened a `FileOutputStream` (truncates) and ignored the `length` argument; so a resumed write would have destroyed the beginning. New `IFile.writer(position)`: continues a file, cuts what is behind `position`,
+  null if the file is too short (or, on Android, not exactly `position` long: SAF/`AndroidFileWriter` can only append; they now use "wa" for a continued file and "wt" for a new one).
+- `FileTransferDetail.onReceived` took any offset and checked the size with `assert`. Now the pieces have to follow each other from `start` to `end`, otherwise the transfer fails (`IOException`, reported once to the failed listener, file closed, what came stays).
+  A last piece (`t`) before the end, an `E` record, a record longer than its frame also fail the transfer. `readFile` throws if it cannot get to the offset instead of reading from the wrong place; missing bytes are counted against the range, not the buffer.
+- The sender sent one file at a time (head of the queue, keyed by hash: two requests for one hash overwrote each other). Now keyed by stream, the pieces of all queued files take turns (a small file does not wait for a huge one).
+- `MelFileSyncService.handleSending`: files from the wastebin were sent without hash, a missing file was announced as error and then used anyway (NPE), the requested range was not checked. Now `sendRequested` checks `0 <= start <= end <= file length` and announces what it cannot send.
+- The request for files was a fire-and-forget message. When the connection that carried it was the loser of the duplicate rule (it happens right after the client restarts) the request was lost and the client waited for ever. It is a request now (answered when
+  the files are queued, rejected when the connection is closed or after the request timeout), and the retriever has a stall watchdog (`TManager.stallTimeoutMs`, 120 s without any piece: the connection is closed, the files are suspended and retried).
+- A file was handed to the `SyncHandler` without looking at its content. Now size and md5 (the hash it is stored under) are checked first; a file that does not match is deleted and fetched again from 0 (3 attempts per run, then suspended and retried with the backoff).
+
+**Resume (how it works):** the retriever writes to `<transfer dir>/<hash>`. While pieces arrive `transferred` is updated after each piece (after it was written). When the connection breaks, `suspendUnfinished` stores the position and sets SUSPENDED; at boot
+`FileSyncDatabaseManager` resets every state to NOT_STARTED and keeps `transferred`. The next attempt starts at `min(bytes on disk, transferred)` (the database is behind the disk when the app dies between writing and noting down, the disk is behind the
+database after `PRAGMA synchronous=OFF` and a crash), tells the server where to start (`FileTransferDetail.start`), opens the file with `writer(start)` (cuts the rest) and asks for `start..size`. A file that cannot be continued (writer says no) starts at 0. All bytes there
+-> only the hash is checked. The database or the files can be wrong or missing in any combination, the final hash check is what guarantees the content.
+
+**Tests added:**
+- auth unit: `FileTransferDetailTest` (13: order, gaps, overlaps, beyond the end, continue/cut/hole, sender range and start, short files, writer length).
+- auth integration, `FileTransferTest` (5 -> 17): many files in both directions at once (same size/different content, empty, 1-byte, around the record size), several connections at once with the same stream ids, a small file passes a huge one,
+  the transfer starts where asked (only the rest is sent), every kind of broken transfer fails only that transfer (gap, twice, beyond the end, early last piece, record longer than it says, error record, short file) and the connection and others go on.
+- filesync integration, new `FileSyncTransferTest` (12) on top of a new harness (`FileSyncInstances` on `TwoInstances`; `auth` exposes its test classes as `authTestOutput`): files arrive (also empty, twins), 122 files in more batches than fit one request,
+  connection cut at 6 MiB of 24 MiB -> retried by itself and continued (sent 6341364, continued at 6291354), continue exactly where the file ends, the client is restarted half way (continues), rubbish behind the noted position (cut off), file shorter than
+  the database says, file gone (starts over), wrong beginning (detected by the hash, started over), a server that sends other content (never delivered, 3 attempts, delivered when fixed), a server that does not answer, a server that sends nothing.
+- Mutation checked (change the code, the test must fail): sender ignores start, no hash check (2 tests), resume trusts only the database / only the disk, never resumes, resume does not cut the rubbish, no order check, demux ignores the stream id, sequential sender, no truncate in `writer(position)`.
+  Survivors that are equivalent: the two guards against a second retriever on one connection (either one is enough now that the loop is sequential).
+
+**Not done / risks:**
+- The old `DriveTest`/`FileSyncTest`/`TransferTest` (conflicts, merge, restart scenarios) are still disabled; they use fixed ports and directories and `sleep`. They are not about the transfer and were not touched.
+- Android was only compiled (`AndroidFile.writer(position)`, `SAFFile`), not run. Android can only continue a file that is exactly as long as the noted position; otherwise the file starts over (correct, slower).
+- Retrying forever (every <= 5 min) for a file the server cannot send (E record) is deliberate: the next reconnect would do that anyway.
+- The hash check reads every finished file once more.
+- A transfer that fails because the partner has no such file stays SUSPENDED until the next retry; the `available` flag logic of the sync is unchanged.
+

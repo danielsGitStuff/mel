@@ -5,7 +5,6 @@ import de.mel.Lok
 import de.mel.auth.service.MelAuthService
 import de.mel.auth.socket.process.transfer.MelIsolatedFileProcess
 import de.mel.auth.socket.process.transfer.MelIsolatedProcess
-import de.mel.auth.tools.CountLock
 import de.mel.auth.tools.N
 import de.mel.filesync.data.FileSyncStrings
 import de.mel.filesync.nio.FileDistributionTask
@@ -19,10 +18,14 @@ import de.mel.filesync.sql.dao.TransferDao
 import kotlinx.coroutines.runBlocking
 import `fun`.with.promise.Promise
 import java.io.File
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.TimeUnit
 
 /**
- * Creates a TransferFromServiceRunnable per partner that you want to receive files from and manages them.
+ * Creates a TransferFromServiceRunnable per partner that you want to receive files from and manages them.<br>
+ * A partner is a service of another instance. There is at most one [TransferFromServiceRunnable] per partner service at any time.
  */
 class TManager(
     val melAuthService: MelAuthService,
@@ -33,31 +36,57 @@ class TManager(
     val fsDao: FsDao
 ) : DeferredRunnable(), MelIsolatedProcess.IsolatedProcessListener {
 
-    override fun onShutDown(): Promise<Void, Void> = ResolvedDeferredObject()
-
-    companion object {
-        private val FILE_REQUEST_LIMIT_PER_CONNECTION: Int = 30
-
+    override fun onShutDown(): Promise<Void, Void> {
+        stopRetrieving()
+        wakeUp()
+        return ResolvedDeferredObject()
     }
 
+    /**
+     * Guards [isolatedProcessesMap], [activeTFSRunnables] and [researchRequested]
+     */
+    private val lock = Object()
+
+    /**
+     * The isolated connections we know, by the certificate of the partner
+     */
     val isolatedProcessesMap = mutableMapOf<Long, MelIsolatedFileProcess>()
+
+    /**
+     * The runnables that are retrieving files right now, by the connection they use
+     */
     val activeTFSRunnables = mutableMapOf<MelIsolatedFileProcess, TransferFromServiceRunnable>()
 
-    val waitLock = CountLock()
+    private var researchRequested = false
 
     init {
-        if (melAuthService.name == "MAClient")
-            Lok.debug("debug tm")
         maintenance()
     }
 
     /**
-     * dig the database for stuff we have to retrieve.
-     * connect to every drive service that has files that we want,
-     * then feed the MelIsolatedFileProcesses
+     * Something changed, dig the database for stuff we have to retrieve.
+     * Connects to every service that has files that we want and feeds a [TransferFromServiceRunnable] for each.
      */
     fun research() {
-        waitLock.unlock()
+        wakeUp()
+        synchronized(lock) {
+            researchRequested = true
+            lock.notifyAll()
+        }
+    }
+
+    private fun wakeUp() {
+        synchronized(lock) {
+            lock.notifyAll()
+        }
+    }
+
+    private fun awaitResearch() {
+        synchronized(lock) {
+            while (!researchRequested && !isStopped)
+                lock.wait()
+            researchRequested = false
+        }
     }
 
     fun removeUnnecessaryTransfers() {
@@ -91,70 +120,152 @@ class TManager(
         removeUnnecessaryTransfers()
         // clean all copy jobs
         melFileSyncService.fileSyncDatabaseManager.fileDistTaskDao.deleteAll()
-        // todo resume downloads
-        // open hash objects here and check whether the size on disk matches the files size
+        // files that are half way there stay in the transfer directory, see TransferFromServiceRunnable.resumePosition
     }
 
+    private val retryAttempts = ConcurrentHashMap<String, Int>()
+    private val retryScheduled: MutableSet<String> = ConcurrentHashMap.newKeySet()
+
+    /**
+     * How long to wait before trying again to get files that could not be transferred. Doubles with every attempt that got nothing.
+     */
+    var retryBaseDelayMs = 2_000L
+    var retryMaxDelayMs = 5 * 60_000L
+
+    /**
+     * A partner that says nothing for this long, while we wait for files, is given up on. The files continue on the next attempt, see [retryBaseDelayMs].
+     */
+    @Volatile
+    var stallTimeoutMs = 120_000L
+
+    /**
+     * Gets the transfers from that service that were given up on going again, now. They continue where they stopped.
+     */
+    fun resumeSuspended(certId: Long, serviceUuid: String) {
+        try {
+            de.mel.auth.tools.lock2.P.confine(transferDao).run {
+                transferDao.flagStateForRemainingTransfers(certId, serviceUuid, TransferState.NOT_STARTED)
+            }.end()
+            research()
+        } catch (e: Exception) {
+            Lok.error(e)
+        }
+    }
+
+    private fun retryKey(certId: Long, serviceUuid: String) = "$certId/$serviceUuid"
+
+    /**
+     * A file arrived, so whatever was wrong is over.
+     */
+    fun onFileTransferred(certId: Long, serviceUuid: String) {
+        retryAttempts.remove(retryKey(certId, serviceUuid))
+    }
+
+    /**
+     * Transfers that were given up on (connection lost, partner gone...) are tried again after a while. Nobody else would: the partner does
+     * not have to be spotted again for that.
+     */
+    private fun retryLater(certId: Long, serviceUuid: String) {
+        if (isStopped)
+            return
+        val key = retryKey(certId, serviceUuid)
+        if (!retryScheduled.add(key))
+            return
+        val attempt = retryAttempts.merge(key, 1, Int::plus) ?: 1
+        val delay = minOf(retryMaxDelayMs, retryBaseDelayMs shl minOf(attempt - 1, 20))
+        try {
+            melAuthService.timeoutScheduler.schedule({
+                retryScheduled.remove(key)
+                if (!isStopped)
+                    resumeSuspended(certId, serviceUuid)
+            }, delay, TimeUnit.MILLISECONDS)
+        } catch (e: RejectedExecutionException) {
+            // the instance is shutting down
+            retryScheduled.remove(key)
+        }
+    }
 
     override fun onIsolatedProcessEnds(isolatedProcess: MelIsolatedProcess) {
-        val transaction = de.mel.auth.tools.lock2.P.confine(isolatedProcessesMap, activeTFSRunnables)
-        try {
+        var runnable: TransferFromServiceRunnable? = null
+        synchronized(lock) {
             // keep the house clean
             // several isolated connections to the same partner may exist: only forget this one
             if (isolatedProcessesMap[isolatedProcess.partnerCertificateId] === isolatedProcess)
                 isolatedProcessesMap.remove(isolatedProcess.partnerCertificateId)
-            // also stop the retriever - if present
-            activeTFSRunnables.remove(isolatedProcess)?.stop()
-        } finally {
-            transaction.end()
+            runnable = activeTFSRunnables[isolatedProcess]
         }
+        // also stop the retriever - if present. It tells us when it is done.
+        runnable?.stop()
     }
 
     override fun getRunnableName(): String = "TransferManager for ${melAuthService.name}"
 
+    private fun hasActiveRunnable(certId: Long, serviceUuid: String): Boolean = synchronized(lock) {
+        activeTFSRunnables.keys.any { it.partnerCertificateId == certId && it.partnerServiceUuid == serviceUuid }
+    }
 
     /**
-     * dig the database for stuff we have to retrieve.
-     * connect to every drive service that has files that we want,
-     * then feed the MelIsolatedFileProcesses.
-     * THIS METHOD BLOCKS!
+     * Files that arrived in the transfer directory but were not placed yet, and files we have in the directory that were transferred as well.
      */
-    private fun connect2RemainingInstances(dbTransferSets: MutableList<DbTransferDetails>) {
-        val transaction = de.mel.auth.tools.lock2.P.confine(isolatedProcessesMap)
-        val atomicInt = AtomicInteger(dbTransferSets.size)
-        fun checkAtom() {
-            // check if all connections hve been established or failed.
-            if (atomicInt.decrementAndGet() == 0) {
-                transaction.end();
-                waitLock.unlock()
-            }
-        }
-        if (atomicInt.get() > 0) {
-            val transferSets = transferDao.twoTransferSets
-            if (transferSets.size > 0) {
-                transferSets.forEach { transferDetails ->
-                    val isolatedPromise = melFileSyncService.getIsolatedProcess(MelIsolatedFileProcess::class.java, transferDetails.certId.v(), transferDetails.serviceUuid.v())
-                    isolatedPromise.onDone { isolatedFileProcess ->
-                        isolatedProcessesMap[isolatedFileProcess.partnerCertificateId] = isolatedFileProcess
-                        checkAtom()
-                        isolatedFileProcess.addIsolatedProcessListener(this)
-                        startTransfersForIsoProcess(isolatedFileProcess)
-                    }.onError {
-                        val c = transferDetails
-                        de.mel.auth.tools.lock2.P.confine(transferDao).run {
-                            transferDao.flagStateForRemainingTransfers(transferDetails.certId.v(), transferDetails.serviceUuid.v(), TransferState.SUSPENDED)
-                        }.end()
-                        checkAtom()
-                    }
+    private fun placeKnownFiles() {
+        wastebin.restoreFsFiles()
+        val fsTransaction = de.mel.auth.tools.lock2.P.confine(fsDao)
+        try {
+            fsDao.searchFsForTransfers().forEach { hash ->
+                val fsFiles = fsDao.getSyncedFilesByHash(hash)
+                if (fsFiles?.size!! > 0) {
+                    val fsFile = fsFiles[0]
+                    val aFile = fsDao.getFileByFsFile(melFileSyncService.fileSyncSettings.rootDirectory, fsFile)
+                    // the syncHandler moves the file into its places if required.
+                    // if not, the transfer entry is obsolete and can be deleted
+                    if (!syncHandler.onFileTransferred(aFile, hash, fsTransaction, fsFile))
+                        transferDao.flagForDeletionByHash(hash)
                 }
-            } else {
-                transaction.end()
             }
-        } else {
-            transaction.end()
+        } finally {
+            fsTransaction.end()
         }
     }
 
+    /**
+     * Connects to the services that have files for us and sets a [TransferFromServiceRunnable] on each.
+     * THIS METHOD BLOCKS until every connection is either established or failed.
+     */
+    private fun connectAndStart(dbTransferSets: List<DbTransferDetails>) {
+        val connections = CountDownLatch(dbTransferSets.size)
+        dbTransferSets.forEach { transferDetails ->
+            val certId = transferDetails.certId.v()
+            val serviceUuid = transferDetails.serviceUuid.v()
+            try {
+                melFileSyncService.getIsolatedProcess(MelIsolatedFileProcess::class.java, certId, serviceUuid)
+                    .onDone { isolatedFileProcess ->
+                        try {
+                            synchronized(lock) {
+                                isolatedProcessesMap[isolatedFileProcess.partnerCertificateId] = isolatedFileProcess
+                            }
+                            isolatedFileProcess.addIsolatedProcessListener(this)
+                            startTransfersForIsoProcess(isolatedFileProcess)
+                        } finally {
+                            connections.countDown()
+                        }
+                    }.onError {
+                        try {
+                            Lok.error("cannot get files from $certId/$serviceUuid: $it")
+                            de.mel.auth.tools.lock2.P.confine(transferDao).run {
+                                transferDao.flagStateForRemainingTransfers(certId, serviceUuid, TransferState.SUSPENDED)
+                            }.end()
+                            retryLater(certId, serviceUuid)
+                        } finally {
+                            connections.countDown()
+                        }
+                    }
+            } catch (e: Exception) {
+                Lok.error(e)
+                connections.countDown()
+            }
+        }
+        connections.await(60, TimeUnit.SECONDS)
+    }
 
     override fun runImpl() {
         val transferDirPath = melFileSyncService.fileSyncSettings.rootDirectory.path + File.separator + FileSyncStrings.TRANSFER_DIR
@@ -162,48 +273,29 @@ class TManager(
         transferDir.mkdirs()
 
         while (!Thread.currentThread().isInterrupted && !isStopped) {
-            val groupedTransferSets = transferDao.twoTransferSets
-            if (groupedTransferSets.size == 0) {
-                Lok.debug("waiting until there is stuff to transfer...")
-                waitLock.lock()
-            } else {
-
-                wastebin.restoreFsFiles()
-                val fsTransaction = de.mel.auth.tools.lock2.P.confine(fsDao)
-                try {
-                    fsDao.searchFsForTransfers().forEach { hash ->
-                        val fsFiles = fsDao.getSyncedFilesByHash(hash)
-                        if (fsFiles?.size!! > 0) {
-                            val fsFile = fsFiles[0]
-                            val aFile = fsDao.getFileByFsFile(melFileSyncService.fileSyncSettings.rootDirectory, fsFile)
-                            // the syncHandler moves the file into its places if required.
-                            // if not, the transfer entry is obsolete and can be deleted
-                            if (!syncHandler.onFileTransferred(aFile, hash, fsTransaction, fsFile))
-                                transferDao.flagForDeletionByHash(hash)
-//                                transferDao.deleteByHash(hash)
-                        }
-                    }
-                } finally {
-                    fsTransaction.end()
+            try {
+                // the partners that have files for us and that nobody retrieves them from yet
+                val toServe = transferDao.twoTransferSets.filter { !hasActiveRunnable(it.certId.v(), it.serviceUuid.v()) }
+                if (toServe.isEmpty()) {
+                    Lok.debug("waiting until there is stuff to transfer...")
+                    awaitResearch()
+                    continue
                 }
-                connect2RemainingInstances(groupedTransferSets)
-                val isoTransaction = de.mel.auth.tools.lock2.P.confine(isolatedProcessesMap)
-                try {
-                    val values = mutableListOf<MelIsolatedFileProcess>()
-                    values.addAll(isolatedProcessesMap.values)
-                    values.forEach { fileProcess ->
-                        startTransfersForIsoProcess(fileProcess)
-                    }
-                } finally {
-                    isoTransaction.end()
-                }
+                placeKnownFiles()
+                connectAndStart(toServe)
+            } catch (e: InterruptedException) {
+                break
+            } catch (e: Exception) {
+                Lok.error(e)
+                // do not spin if this keeps going wrong
+                Thread.sleep(1000)
             }
         }
         Lok.debug("TManager has done its job!")
     }
 
     private fun startTransfersForIsoProcess(isolatedProcess: MelIsolatedProcess) {
-        val transfersRemain = transferDao.hasNotStartedTransfers(isolatedProcess.partnerCertificateId, isolatedProcess.partnerServiceUuid)
+        val transfersRemain = transferDao.getNotStartedTransfers(isolatedProcess.partnerCertificateId, isolatedProcess.partnerServiceUuid, 1).isNotEmpty()
         if (transfersRemain) {
             retrieveFromService(isolatedProcess as MelIsolatedFileProcess)
         } else {
@@ -213,16 +305,14 @@ class TManager(
 
 
     private fun retrieveFromService(fileProcess: MelIsolatedFileProcess) {
-        val transaction = de.mel.auth.tools.lock2.P.confine(activeTFSRunnables)
-        try {
-            if (!activeTFSRunnables.containsKey(fileProcess)) {
-                val retrieveRunnable = TransferFromServiceRunnable(this, fileProcess)
-                activeTFSRunnables[fileProcess] = retrieveRunnable
-                melFileSyncService.execute(retrieveRunnable)
-            }
-        } finally {
-            transaction.end()
+        val retrieveRunnable: TransferFromServiceRunnable
+        synchronized(lock) {
+            if (activeTFSRunnables.containsKey(fileProcess))
+                return
+            retrieveRunnable = TransferFromServiceRunnable(this, fileProcess)
+            activeTFSRunnables[fileProcess] = retrieveRunnable
         }
+        melFileSyncService.execute(retrieveRunnable)
     }
 
     fun createTransfer(detailsDb: DbTransferDetails) {
@@ -235,26 +325,33 @@ class TManager(
         syncHandler.fileDistributor.createJob(distributionTask)
     }
 
+    /**
+     * Ends everything that is going on: the retrievers and the connections they use.
+     */
+    private fun stopRetrieving() {
+        val runnables: List<TransferFromServiceRunnable>
+        val processes: List<MelIsolatedFileProcess>
+        synchronized(lock) {
+            runnables = activeTFSRunnables.values.toList()
+            processes = (activeTFSRunnables.keys + isolatedProcessesMap.values).toList()
+        }
+        runnables.forEach { it.stop() }
+        processes.forEach { it.stop() }
+    }
+
     override fun stop() {
-        de.mel.auth.tools.lock2.P.confine(this).run {
-            super.stop()
-            stopped = true
-            N.r {
-                activeTFSRunnables.forEach {
-                    it.value.stop()
-                    it.key.stop()
-                }
-                isolatedProcessesMap.values.forEach { it.stop() }
-            }
-        }.end()
+        super.stop()
+        stopped = true
+        stopRetrieving()
+        wakeUp()
     }
 
     fun start() {
-        de.mel.auth.tools.lock2.P.confine(this).run {
-            stopped = false
+        synchronized(this) {
+            restart()
             melFileSyncService.execute(this)
-            waitLock.unlock()
-        }.end()
+            research()
+        }
     }
 
 
@@ -263,21 +360,17 @@ class TManager(
     }
 
     fun onTransferFromServiceFinished(retrieveRunnable: TransferFromServiceRunnable) {
-        val transaction = de.mel.auth.tools.lock2.P.confine(activeTFSRunnables)
-        try {
-            with(retrieveRunnable.fileProcess) {
-                activeTFSRunnables.remove(this)
-//                transferDao.deleteDone(partnerCertificateId, partnerServiceUuid)
-//                val count = transferDao.count(partnerCertificateId, partnerServiceUuid)
-//                val done = transferDao.countRemaining(partnerCertificateId, partnerServiceUuid)
-//                if (count == done)
-                // this does not have to be precise cause it is for dev purposes only
-                melFileSyncService.onTransfersDone()
-            }
-        } finally {
-            transaction.end()
+        val fileProcess = retrieveRunnable.fileProcess
+        synchronized(lock) {
+            activeTFSRunnables.remove(fileProcess, retrieveRunnable)
         }
-        retrieveRunnable.fileProcess.stop()
+        // this does not have to be precise cause it is for dev purposes only
+        melFileSyncService.onTransfersDone()
+        fileProcess.stop()
+        if (transferDao.hasSuspended(fileProcess.partnerCertificateId, fileProcess.partnerServiceUuid))
+            retryLater(fileProcess.partnerCertificateId, fileProcess.partnerServiceUuid)
+        // whatever is left (or arrived meanwhile) is looked at
+        research()
     }
 
 }
