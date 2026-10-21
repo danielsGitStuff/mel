@@ -221,36 +221,36 @@ For the session that does the work. Steps in this order; each one is a commit (o
 
 ### Step 1: independent bugs (small)
 
-- [ ] F15: `DeferredRunnable.stopped` -> `volatile`; `run()` must not resurrect a runnable that was stopped before it started
+- [x] F15: `DeferredRunnable.stopped` -> `volatile`; `run()` must not resurrect a runnable that was stopped before it started
       (today such a worker or socket runs until somebody stops it again, possibly forever).
       Keep restartability explicit (`startUpCommunications` restarts the worker): e.g. a `restart()` that resets, used there.
       Test (unit): `stop()` before `run()` -> `runImpl` is not entered.
-- [ ] F12: `update/BinarySocket` and `miniserver/.../SendBinarySocket` get their own buffer constant (same value as today).
-- [ ] F10: one `ScheduledExecutorService` per `MelAuthService` (daemon threads) for request timeouts; `MelRequest` creates its
+- [x] F12: `update/BinarySocket` and `miniserver/.../SendBinarySocket` get their own buffer constant (same value as today).
+- [x] F10: one `ScheduledExecutorService` per `MelAuthService` (daemon threads) for request timeouts; `MelRequest` creates its
       timeout only when it is sent (`MelProcess.send`), not in the constructor; restart = cancel + schedule. Remove
       `WatchDogTimer` from `MelRequest` (other users of `WatchDogTimer` stay). Test (unit): constructing/deserializing 1000
       requests starts no threads (compare `Thread.activeCount()` or a thread name prefix).
-- [ ] F13: `getAllowedServices(certId)` without a connection -> rejected promise, not an NPE.
-- [ ] F5 (part): `MelAuthServiceImpl.sockets` -> `ConcurrentHashMap.newKeySet()`; every `MelSocket` removes itself on close (not
+- [x] F13: `getAllowedServices(certId)` without a connection -> rejected promise, not an NPE.
+- [x] F5 (part): `MelAuthServiceImpl.sockets` -> `ConcurrentHashMap.newKeySet()`; every `MelSocket` removes itself on close (not
       only `MelAuthSocket`); `ConnectedEnvironment.connect(Certificate)` keeps the connect job without a placeholder socket.
       `TwoInstances.openNormalConnections` loses its CME retry loop.
-- [ ] F6 (part): fix the two no-op removals in `ConnectedEnvironment.removeValidationProcess`.
+- [x] F6 (part): fix the two no-op removals in `ConnectedEnvironment.removeValidationProcess`.
 
 ### Step 2: close is an event, exactly once (F4, F16)
 
-- [ ] Replace `SocketWorker extends MelWorker` with a socket-owned loop on a `BlockingQueue<SocketEvent>`:
+- [x] Replace `SocketWorker extends MelWorker` with a socket-owned loop on a `BlockingQueue<SocketEvent>`:
       `MessageReceived(String)`, `BlockReceived(byte[])` (until step 4), `PeerClosed(Exception cause)`, `CloseRequested(CloseReason)`.
       The worker drains events in order; a close event ends the loop **after** the events before it are handled.
       Bounded queue (e.g. 64) so the reader blocks when the worker lags (replaces `queueLock` for blocks).
-- [ ] New `enum CloseReason { PEER_CLOSED, SHUTDOWN, PROTOCOL_VIOLATION, DUPLICATE, UNTRUSTED, WRONG_PARTNER, REFUSED,
+- [x] New `enum CloseReason { PEER_CLOSED, SHUTDOWN, PROTOCOL_VIOLATION, DUPLICATE, UNTRUSTED, WRONG_PARTNER, REFUSED,
       NO_ACCESS, REJECTED, REGISTERED, TIMEOUT, IO_ERROR }` (extend as needed).
-- [ ] The reader thread never calls listeners; on EOF/error it enqueues `PeerClosed` and ends.
-- [ ] `stop()`, `disconnect()`, `removeThyself()`, `ConnectWorker.shutDown`, `refuse` -> `close(reason)` = enqueue
+- [x] The reader thread never calls listeners; on EOF/error it enqueues `PeerClosed` and ends.
+- [x] `stop()`, `disconnect()`, `removeThyself()`, `ConnectWorker.shutDown`, `refuse` -> `close(reason)` = enqueue
       `CloseRequested`. Only the worker closes the Java socket.
-- [ ] Exactly one close callback: `MelSocketListener.onClose(reason, remote)` once, from the worker. Remove the
+- [x] Exactly one close callback: `MelSocketListener.onClose(reason, remote)` once, from the worker. Remove the
       `onClose(42, ...)`/`onClose(100, ...)` paths and the duplicate `melAuthService.onSocketClosed` call.
-- [ ] `MelProcess.onSocketClosed`: reject every pending request (`requestMap`) at once with the close reason.
-- [ ] `MelCertRetriever` and `MelAuthCertDelivery` use the same `MelSocket`, so they get the fix too.
+- [x] `MelProcess.onSocketClosed`: reject every pending request (`requestMap`) at once with the close reason.
+- [x] `MelCertRetriever` and `MelAuthCertDelivery` use the same `MelSocket`, so they get the fix too.
 - Enable: `RegistrationCommitTest.theLastDecisionCountsAlthoughThePartnerHangsUpRightBehindIt`.
 - New tests: a pending request fails right after the partner closes (not after 30 s); `onIsolatedConnectionClosed` called
   exactly once.
@@ -259,7 +259,7 @@ For the session that does the work. Steps in this order; each one is a commit (o
 
 ### Step 3: send lock (problem 4)
 
-- [ ] One lock around everything that writes to the stream (`send`, `sendBlock`), e.g. `synchronized (out)` or a
+- [x] One lock around everything that writes to the stream (`send`, `sendBlock`), e.g. `synchronized (out)` or a
       `ReentrantLock` field. Still the old chunking; frames come next.
 - Enable: `ConcurrentSendTest.longMessagesFromSeveralThreadsArriveWhole`.
 

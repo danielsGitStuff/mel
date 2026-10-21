@@ -4,12 +4,14 @@ import de.mel.Lok
 import de.mel.auth.MelStrings.msg
 import de.mel.auth.data.db.Certificate
 import de.mel.auth.socket.MelSocket
-import de.mel.auth.tools.N
-import de.mel.auth.tools.WatchDogTimer
+import de.mel.auth.service.MelAuthService
 import de.mel.core.serialize.JsonIgnore
 import de.mel.core.serialize.SerializableEntity
 import org.jdeferred.impl.DeferredObject
 import java.security.SecureRandom
+import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
 
 /**
  * Created by xor on 4/28/16.
@@ -26,9 +28,9 @@ class MelRequest() : MelMessage() {
     var certificate: Certificate? = null
         private set
 
-    val timer = WatchDogTimer("request killer", {
-        N.r { answerDeferred.reject(ResponseException("request timed out")) }
-    }, 30, 100, 1000)
+    @JsonIgnore
+    @Volatile
+    private var timeoutTask: ScheduledFuture<*>? = null
     /**
      * see @[MelSocket]
      */
@@ -94,12 +96,31 @@ class MelRequest() : MelMessage() {
         this.mode = mode
     }
 
-    fun startTimeout() {
-        timer.start();
+    /**
+     * Starts the countdown after which the request is rejected, or restarts it. Only requests that were sent have one.
+     */
+    @Synchronized
+    fun startTimeout(melAuthService: MelAuthService) {
+        stopTimeout()
+        try {
+            timeoutTask = melAuthService.timeoutScheduler.schedule({
+                if (answerDeferred.isPending) {
+                    try {
+                        answerDeferred.reject(ResponseException("request timed out"))
+                    } catch (e: IllegalStateException) {
+                        // answered at the very same moment
+                    }
+                }
+            }, melAuthService.requestTimeoutMs, TimeUnit.MILLISECONDS)
+        } catch (e: RejectedExecutionException) {
+            // the instance is shut down
+        }
     }
 
+    @Synchronized
     fun stopTimeout() {
-        timer.stop();
+        timeoutTask?.cancel(false)
+        timeoutTask = null
     }
 
 }

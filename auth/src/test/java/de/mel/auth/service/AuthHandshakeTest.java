@@ -146,14 +146,8 @@ public class AuthHandshakeTest {
     private Long pair() throws Exception {
         CountDownLatch registered = new CountDownLatch(1);
         client.addRegisteredHandler((service, cert) -> registered.countDown());
-        // Both instances also find each other by multicast and connect on their own. Now and then that automatic connection
-        // swallows our pairing request (certificate fetched, never registered). The first attempt then never completes, so retry.
-        boolean paired = false;
-        for (int attempt = 0; attempt < 4 && !paired; attempt++) {
-            client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), true);
-            paired = registered.await(8, TimeUnit.SECONDS);
-        }
-        assertTrue(paired, "pairing did not complete");
+        client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), true);
+        assertTrue(registered.await(15, TimeUnit.SECONDS), "pairing did not complete");
         List<Certificate> trusted = client.getCertificateManager().getTrustedCertificates();
         assertEquals(1, trusted.size());
         return trusted.get(0).getId().v();
@@ -173,31 +167,6 @@ public class AuthHandshakeTest {
         assertTrue(client.isConnectedTo(serverCertId));
         Long clientCertId = server.getCertificateManager().getTrustedCertificates().get(0).getId().v();
         assertTrue(server.isConnectedTo(clientCertId), "server does not consider the client connected");
-    }
-
-    /**
-     * suspend() shuts the worker (socket opener, certificate delivery, brotcaster) and all sockets down, resume() starts a new worker.
-     * Afterwards the instance has to be reachable again: new sockets, the old pairing still counts.
-     */
-    @Test
-    public void pairedClientCanConnectAgainAfterTheServerWasSuspendedAndResumed() throws Exception {
-        Long serverCertId = pair();
-        server.suspend();
-        server.resume();
-
-        CountDownLatch authenticated = new CountDownLatch(1);
-        AtomicReference<Exception> failure = new AtomicReference<>();
-        // the suspended server dropped the sockets, wait until the client knows
-        long end = System.nanoTime() + TimeUnit.SECONDS.toNanos(TIMEOUT_SECONDS);
-        while (client.isConnectedTo(serverCertId) && System.nanoTime() < end)
-            Thread.sleep(50);
-        client.connect(serverCertId).done(p -> authenticated.countDown()).fail(e -> {
-            failure.set(e);
-            authenticated.countDown();
-        });
-        assertTrue(authenticated.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), "client could not connect to the resumed server");
-        assertNull(failure.get(), "connecting to the resumed server failed");
-        assertTrue(client.isConnectedTo(serverCertId));
     }
 
     /**

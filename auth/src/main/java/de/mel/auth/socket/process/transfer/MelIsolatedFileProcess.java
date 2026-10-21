@@ -15,6 +15,7 @@ import de.mel.MelRunnable;
 import de.mel.auth.MelNotification;
 import de.mel.auth.jobs.BlockReceivedJob;
 import de.mel.auth.service.IMelService;
+import de.mel.auth.socket.CloseReason;
 import de.mel.auth.socket.MelAuthSocket;
 import de.mel.auth.socket.MelSocket;
 import de.mel.auth.tools.ByteTools;
@@ -88,8 +89,8 @@ public class MelIsolatedFileProcess extends MelIsolatedProcess implements MelRun
     }
 
     @Override
-    public void onSocketClosed(int code, String reason, boolean remote) {
-        super.onSocketClosed(code, reason, remote);
+    public void onSocketClosed(CloseReason reason, boolean remote) {
+        super.onSocketClosed(reason, remote);
     }
 
     @Override

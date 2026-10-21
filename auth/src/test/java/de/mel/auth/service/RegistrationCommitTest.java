@@ -123,7 +123,6 @@ public class RegistrationCommitTest {
      * A partner sends its last registration message and hangs up right away. The message arrived, so it counts:
      * a close by the partner must not cut off what was received before it.
      */
-    @Disabled("fails on the old code (10 of 10): a close by the peer shuts the socket worker down before the queued decision is handled, see SOCKET_PROCESS_REWORK.md")
     @Test
     public void theLastDecisionCountsAlthoughThePartnerHangsUpRightBehindIt() throws Exception {
         instances = new TwoInstances(tempDir, nextPortBase.getAndAdd(10), ACCEPT_ALL, ACCEPT_ALL);

@@ -114,12 +114,8 @@ public class MelAuthProcess extends MelProcess {
                 } else
                     Lok.debug("MelAuthProcess.onMessageReceived.ELSE1");
         } catch (Exception e) {
-            try {
-                Lok.debug("leaving, because of exception: " + e.toString());
-                socket.disconnect();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
+            Lok.debug("leaving, because of exception: " + e.toString());
+            socket.close(CloseReason.INTERNAL_ERROR);
         }
     }
 
@@ -128,7 +124,7 @@ public class MelAuthProcess extends MelProcess {
      */
     private void refuse(MelRequest request, MelAuthSocket socket) {
         N.r(() -> send(request.respondError(null)));
-        N.s(() -> socket.disconnect());
+        socket.close(CloseReason.REFUSED);
     }
 
 

@@ -178,7 +178,7 @@ public class MelValidationProcess extends MelProcess {
                         // reset the request timeout
                         if (stateMsg instanceof MelRequest) {
                             MelRequest request = (MelRequest) stateMsg;
-                            request.startTimeout();
+                            request.startTimeout(melAuthSocket.getMelAuthService());
                         }
                         // ask for another part
                         send(new CachedRequest().setCacheId(cacheId).setPartNumber(initializer.getNextPartNumber()));

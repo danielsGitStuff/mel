@@ -9,6 +9,7 @@ import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.jobs.BlockReceivedJob;
 import de.mel.auth.service.MelAuthServiceImpl;
+import de.mel.auth.socket.CloseReason;
 import de.mel.auth.socket.MelSocket;
 import de.mel.auth.tools.N;
 import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer;
@@ -88,7 +89,7 @@ public class MelAuthCertDelivery extends DeferredRunnable {
             }
 
             @Override
-            public void onClose(int code, String reason, boolean remote) {
+            public void onClose(CloseReason reason, boolean remote) {
                 Lok.debug("MelAuthCertDelivery.onClose");
             }
 
@@ -138,12 +139,11 @@ public class MelAuthCertDelivery extends DeferredRunnable {
                 Lok.debug(melAuthService.getName() + ".MelAuthCertDelivery.runTry.got: " + s);
                 MelSocket melSocket = new MelSocket(melAuthService, socket);
                 this.listener.onMessage(melSocket, s);
-                melSocket.shutDown();
+                melSocket.close(CloseReason.FINISHED);
                 /*for (MelSocketListener listener : listeners) {
                     listener.onMessage(this, s);
                 }*/
             }
-            listener.onClose(42, "don't know shit...", true);
 
         } catch (Exception e) {
             if (!isStopped()) {

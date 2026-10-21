@@ -138,10 +138,10 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
     }
 
     @Override
-    public void onClose(int code, String reason, boolean remote) {
-//        Lok.debug(melAuthService.getName() + "." + getClass().getSimpleName() + ".onClose");
+    public void onClose(CloseReason reason, boolean remote) {
+        MelProcess process = this.process;
         if (process != null)
-            process.onSocketClosed(code, reason, remote);
+            process.onSocketClosed(reason, remote);
         melAuthService.onSocketClosed(this);
     }
 
@@ -180,21 +180,15 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
 
     public void sendBlock(byte[] block) throws IOException {
         assert block.length == MelSocket.BLOCK_SIZE;
-        out.write(block);
-        out.flush();
+        synchronized (sendLock) {
+            out.write(block);
+            out.flush();
+        }
     }
 
-    public void disconnect() throws IOException {
-        socket.close();
-    }
 
     public boolean isValidated() {
         return (process != null && process instanceof MelValidationProcess);
-    }
-
-    @Override
-    protected void onSocketClosed() {
-        melAuthService.onSocketClosed(this);
     }
 
     public MelProcess getProcess() {

@@ -12,7 +12,7 @@ import org.jdeferred.impl.DeferredObject;
 public abstract class DeferredRunnable implements MelRunnable {
     protected DeferredObject<DeferredRunnable, Exception, Void> startedPromise = new DeferredObject<>();
     protected Thread thread;
-    protected boolean stopped = false;
+    protected volatile boolean stopped = false;
 
     public static DeferredObject<Void, Void, Void> ResolvedDeferredObject(){
       DeferredObject<Void,Void,Void> deferredObject = new DeferredObject<>();
@@ -39,7 +39,9 @@ public abstract class DeferredRunnable implements MelRunnable {
 
     @Override
     public void run() {
-        stopped = false;
+        // a stop() that came before the thread started must not be lost, see restart()
+        if (stopped)
+            return;
         thread = Thread.currentThread();
         thread.setName(getRunnableName());
         runImpl();
@@ -62,6 +64,14 @@ public abstract class DeferredRunnable implements MelRunnable {
 
     public DeferredObject<DeferredRunnable, Exception, Void> getStartedDeferred() {
         return startedPromise;
+    }
+
+    /**
+     * Makes a stopped runnable runnable again. Call this before executing it a second time.
+     * run() does not do this by itself, otherwise a stop() that comes before the thread has started would be lost.
+     */
+    public void restart() {
+        stopped = false;
     }
 
     public void stop() {

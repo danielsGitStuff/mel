@@ -84,7 +84,7 @@ public class MelRegisterProcess extends MelProcess {
                 certificateManager.deleteCertificate(partnerCertificate);
             }
 
-            stop();
+            melAuthSocket.close(CloseReason.REJECTED);
         }));
     }
 

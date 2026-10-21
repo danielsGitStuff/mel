@@ -20,7 +20,6 @@ import de.mel.sql.Hash;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -133,15 +132,9 @@ class TwoInstances implements AutoCloseable {
 
     /**
      * Pairs and waits until both sides trust each other.
-     * Retries: the certificate delivery answers and hangs up at once, and on the old code that close now and then cuts off
-     * the answer before the client handled it (a close by the peer cuts off queued messages, see SOCKET_PROCESS_REWORK.md).
-     * The pairing then silently never starts. Remove the retry once closing is an event in the queue.
      */
     void pair() throws Exception {
-        boolean paired = false;
-        for (int attempt = 0; attempt < 4 && !paired; attempt++)
-            paired = pairAgain();
-        assertTrue(paired, "pairing did not complete");
+        assertTrue(pairAgain(), "pairing did not complete");
         assertTrue(waitFor(() -> trusts(server, client) && trusts(client, server)), "the two do not trust each other after pairing");
     }
 
@@ -232,14 +225,7 @@ class TwoInstances implements AutoCloseable {
         field.setAccessible(true);
         @SuppressWarnings("unchecked")
         Set<MelSocket> sockets = (Set<MelSocket>) field.get(instance);
-        List<MelSocket> copy = null;
-        while (copy == null) {
-            try {
-                copy = new ArrayList<>(sockets);
-            } catch (ConcurrentModificationException e) {
-                // the set is not thread safe, try again
-            }
-        }
+        List<MelSocket> copy = new ArrayList<>(sockets);
         List<MelAuthSocket> result = new ArrayList<>();
         for (MelSocket socket : copy) {
             if (!(socket instanceof MelAuthSocket authSocket))

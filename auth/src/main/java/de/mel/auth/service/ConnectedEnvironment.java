@@ -29,8 +29,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ConnectedEnvironment {
     private Map<Long, MelValidationProcess> idValidateProcessMap = new HashMap<>();
     private Map<String, MelValidationProcess> addressValidateProcessMap = new HashMap<>();
-    private Map<Long, MelAuthSocket> currentlyConnectingCertIds = new HashMap<>();
-    private Map<String, MelAuthSocket> currentlyConnectingAddresses = new HashMap<>();
+    private Map<Long, AConnectJob> currentlyConnectingCertIds = new HashMap<>();
+    private Map<String, AConnectJob> currentlyConnectingAddresses = new HashMap<>();
 
     private final MelAuthService melAuthService;
 
@@ -47,9 +47,9 @@ public class ConnectedEnvironment {
         BunchOfLocks bunchOfLocks = null;
         try {
             bunchOfLocks = P.confine(P.read(this));
-            MelAuthSocket def = isCurrentlyConnecting(certificateId);
+            AConnectJob def = isCurrentlyConnecting(certificateId);
             if (def != null) {
-                return def.getConnectJob();
+                return def;
             }
             {
                 MelValidationProcess mvp = getValidationProcess(certificateId);
@@ -79,9 +79,8 @@ public class ConnectedEnvironment {
                             .end();
                     deferred.reject(result);
                 });
-                MelAuthSocket melAuthSocket = new MelAuthSocket(melAuthService, job);
-                currentlyConnecting(certificateId, melAuthSocket);
-                currentlyConnecting(certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), melAuthSocket);
+                currentlyConnecting(certificateId, job);
+                currentlyConnecting(certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), job);
                 melAuthService.execute(new ConnectWorker(melAuthService, job));
             }
         } catch (Exception e) {
@@ -105,9 +104,9 @@ public class ConnectedEnvironment {
         try {
             bunchOfLocks = P.confine(this);
             Lok.debug("connect to: " + address + "," + port + "," + portCert + ",reg=" + regOnUnkown);
-            MelAuthSocket def = isCurrentlyConnecting(address, port, portCert);
+            AConnectJob def = isCurrentlyConnecting(address, port, portCert);
             if (def != null) {
-                return def.getConnectJob();
+                return def;
             }
             if ((mvp = getValidationProcess(address, port)) != null) {
                 deferred.resolve(mvp);
@@ -122,7 +121,7 @@ public class ConnectedEnvironment {
                     deferred.reject(result);
                 });
                 MelAuthSocket melAuthSocket = new MelAuthSocket(melAuthService, job);
-                currentlyConnecting(address, port, portCert, melAuthSocket);
+                currentlyConnecting(address, port, portCert, job);
 
                 melAuthService.execute(new ConnectWorker(melAuthService, melAuthSocket));
             }
@@ -187,12 +186,11 @@ public class ConnectedEnvironment {
             addressValidateProcessMap.remove(process.getAddressString());
         if (idValidateProcessMap.get(process.getConnectedId()) == process)
             idValidateProcessMap.remove(process.getConnectedId());
-        if (currentlyConnectingAddresses.containsKey(process.getAddressString())
-                && currentlyConnectingAddresses.get(process.getAddressString()) == melAuthSocket)
-            currentlyConnectingAddresses.remove(melAuthSocket);
-        if (currentlyConnectingCertIds.containsKey(process.getConnectedId())
-                && currentlyConnectingCertIds.get(melAuthSocket) == melAuthSocket)
-            currentlyConnectingCertIds.remove(process.getConnectedId());
+        AConnectJob connectJob = melAuthSocket.getConnectJob();
+        if (connectJob != null) {
+            currentlyConnectingAddresses.values().removeIf(job -> job == connectJob);
+            currentlyConnectingCertIds.values().removeIf(job -> job == connectJob);
+        }
     }
 
     /**
@@ -201,7 +199,7 @@ public class ConnectedEnvironment {
      * @param certificateId
      * @return null if you don't
      */
-    public MelAuthSocket isCurrentlyConnecting(Long certificateId) {
+    public AConnectJob isCurrentlyConnecting(Long certificateId) {
         return currentlyConnectingCertIds.get(certificateId);
     }
 
@@ -217,7 +215,7 @@ public class ConnectedEnvironment {
      * @param portCert
      * @return
      */
-    public MelAuthSocket isCurrentlyConnecting(String address, int port, int portCert) {
+    public AConnectJob isCurrentlyConnecting(String address, int port, int portCert) {
         String id = uniqueAddress(address, port, portCert);
         return currentlyConnectingAddresses.get(id);
     }
@@ -234,10 +232,10 @@ public class ConnectedEnvironment {
      * remembers that you are currently connecting to certificate
      *
      * @param certificateId
-     * @param melAuthSocket
+     * @param connectJob
      */
-    public void currentlyConnecting(Long certificateId, MelAuthSocket melAuthSocket) {
-        currentlyConnectingCertIds.put(certificateId, melAuthSocket);
+    public void currentlyConnecting(Long certificateId, AConnectJob connectJob) {
+        currentlyConnectingCertIds.put(certificateId, connectJob);
     }
 
     /**
@@ -248,20 +246,18 @@ public class ConnectedEnvironment {
      * @param portCert
      * @return
      */
-    private void currentlyConnecting(String address, int port, int portCert, MelAuthSocket melAuthSocket) {
-        currentlyConnectingAddresses.put(uniqueAddress(address, port, portCert), melAuthSocket);
+    private void currentlyConnecting(String address, int port, int portCert, AConnectJob connectJob) {
+        currentlyConnectingAddresses.put(uniqueAddress(address, port, portCert), connectJob);
     }
 
     public void shutDown() {
         Lok.debug("attempting shutdown");
         BunchOfLocks bunchOfLocks = P.confine(this);
-        N.forEachAdvIgnorantly(currentlyConnectingAddresses, (stoppable, index, s, melAuthSocket) -> {
-            if (melAuthSocket.getConnectJob() != null)
-                melAuthSocket.getConnectJob().reject(new Exception("shutting down"));
+        N.forEachAdvIgnorantly(currentlyConnectingAddresses, (stoppable, index, s, connectJob) -> {
+            connectJob.reject(new Exception("shutting down"));
         });
-        N.forEachAdvIgnorantly(currentlyConnectingCertIds, (stoppable, index, aLong, melAuthSocket) -> {
-            if (melAuthSocket.getConnectJob() != null)
-                melAuthSocket.getConnectJob().reject(new Exception("shutting down"));
+        N.forEachAdvIgnorantly(currentlyConnectingCertIds, (stoppable, index, aLong, connectJob) -> {
+            connectJob.reject(new Exception("shutting down"));
         });
         currentlyConnectingAddresses.clear();
         currentlyConnectingCertIds.clear();

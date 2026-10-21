@@ -5,7 +5,6 @@ import de.mel.auth.data.db.Certificate;
 import de.mel.auth.socket.MelValidationProcess;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -84,7 +83,6 @@ public class ConcurrentSendTest {
     /**
      * Long messages are written in several pieces. The pieces of two messages must not end up mixed on the wire.
      */
-    @Disabled("fails on the old code: problem 4, MelSocket.send has no lock and the pieces of long messages interleave, see SOCKET_PROCESS_REWORK.md")
     @Test
     public void longMessagesFromSeveralThreadsArriveWhole() throws Exception {
         sendAndCheck(4, 5);

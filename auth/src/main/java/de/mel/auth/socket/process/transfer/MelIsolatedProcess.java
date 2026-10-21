@@ -5,6 +5,7 @@ import de.mel.auth.MelStrings;
 import de.mel.auth.jobs.BlockReceivedJob;
 import de.mel.auth.service.IMelService;
 import de.mel.auth.service.MelAuthServiceImpl;
+import de.mel.auth.socket.CloseReason;
 import de.mel.auth.socket.MelAuthSocket;
 import de.mel.auth.socket.MelProcess;
 import de.mel.auth.tools.ByteTools;
@@ -112,8 +113,8 @@ public abstract class MelIsolatedProcess extends MelProcess {
     }
 
     @Override
-    public void onSocketClosed(int code, String reason, boolean remote) {
-        super.onSocketClosed(code, reason, remote);
+    public void onSocketClosed(CloseReason reason, boolean remote) {
+        super.onSocketClosed(reason, remote);
         // remove thyself from service
         service.onIsolatedConnectionClosed(this);
         // tell everyone else who is interested that we're closed

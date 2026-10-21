@@ -4,19 +4,19 @@ import de.mel.DeferredRunnable;
 import de.mel.Lok;
 import de.mel.auth.MelStrings;
 import de.mel.auth.jobs.BlockReceivedJob;
-import de.mel.auth.jobs.ReceivedJob;
 import de.mel.auth.service.MelAuthService;
-import de.mel.auth.tools.CountWaitLock;
 import de.mel.auth.tools.N;
 import org.jdeferred.impl.DeferredObject;
 
 import javax.net.SocketFactory;
-import javax.net.ssl.SSLException;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -32,9 +32,8 @@ public class MelSocket extends DeferredRunnable {
 //    }
 
 
-    protected boolean allowIsolation = false;
-    protected boolean isIsolated = false;
-    private SocketWorker socketWorker;
+    protected volatile boolean allowIsolation = false;
+    protected volatile boolean isIsolated = false;
     protected String runnableName = null;
 
     public MelSocket setIsolated(boolean isolated) {
@@ -46,15 +45,31 @@ public class MelSocket extends DeferredRunnable {
 //    public static final int BLOCK_SIZE = 32 * 4096 + 21;
     public static final int BLOCK_SIZE = 1024 * 4096 + 21; // performance increase with bigger blocks?
 
+    /**
+     * The reader blocks when the worker has this many messages (or, weighted, blocks) to handle.
+     */
+    private static final int QUEUE_PERMITS = 64;
+    private static final int BLOCK_PERMITS = QUEUE_PERMITS / 2;
+
     protected MelAuthService melAuthService;
     private MelThread thread;
     protected DataOutputStream out;
     protected DataInputStream in;
     protected SocketFactory socketFactory;
     protected Socket socket;
-    private MelSocketListener listener;
+    private volatile MelSocketListener listener;
     private final int v;
     private static AtomicInteger vv = new AtomicInteger(0);
+
+    /**
+     * Everything the worker has to do, in the order it happened. Close requests are never held back, only what the reader puts in is limited.
+     */
+    private final LinkedBlockingQueue<SocketEvent> events = new LinkedBlockingQueue<>();
+    private final Semaphore queueSpace = new Semaphore(QUEUE_PERMITS, true);
+    private final AtomicBoolean started = new AtomicBoolean(false);
+    private final AtomicBoolean closed = new AtomicBoolean(false);
+    private volatile CloseReason closeReason;
+    private volatile boolean closedByPeer;
 
     public MelAuthService getMelAuthService() {
         return melAuthService;
@@ -99,7 +114,15 @@ public class MelSocket extends DeferredRunnable {
         return this;
     }
 
+    /**
+     * Starts the worker that handles what is received and the reader that receives it.
+     */
     public void start() {
+        started.set(true);
+        if (closed.get())
+            return;
+        SocketWorker socketWorker = new SocketWorker(this);
+        melAuthService.execute(socketWorker);
         this.thread = new MelThread(this);
         String name = "THREAD." + (melAuthService == null ? "no service" : melAuthService.getName()) + "." + "id=" + v + "." + getClass().getSimpleName();
         this.thread.setName(name);
@@ -109,12 +132,23 @@ public class MelSocket extends DeferredRunnable {
     private static String TOO_LONG_APPENDIX = "?";
     private static int MAX_CHARS = 63 * 1024 - 2 - TOO_LONG_APPENDIX.length();
 
+    /**
+     * Everything that writes to the stream holds this, so frames of different threads do not interleave.
+     */
+    protected final Object sendLock = new Object();
+
     public void send(String json) {
+        synchronized (sendLock) {
+            sendUnlocked(json);
+        }
+    }
+
+    private void sendUnlocked(String json) {
         try {
             Lok.debug("   " + (melAuthService == null ? "no service" : melAuthService.getName()) + ".MelSocket(v=" + v + ").send to " + socket.getInetAddress().toString() + ": " + json);
             if (socket.isClosed()) {
                 Lok.error(getClass().getSimpleName() + ".send(): Socket closed!");
-                this.stop();
+                return;
             }
 //            Lok.debug("send(v=" + v + "): " + json);
             while (json.length() > MAX_CHARS) {
@@ -140,7 +174,12 @@ public class MelSocket extends DeferredRunnable {
 
         void onError(Exception ex);
 
-        void onClose(int code, String reason, boolean remote);
+        /**
+         * Called once per socket, by its worker, after everything that was received before the end has been handled.
+         *
+         * @param remote whether the partner ended the connection
+         */
+        void onClose(CloseReason reason, boolean remote);
 
         void onBlockReceived(BlockReceivedJob block);
     }
@@ -176,40 +215,100 @@ public class MelSocket extends DeferredRunnable {
 
     @Override
     public DeferredObject<Void, Void, Void> onShutDown() {
-        N.r(() -> {
-            if (socketWorker != null)
-                socketWorker.shutDown();
-        });
-        N.s(() -> socket.close());
+        close(CloseReason.SHUTDOWN);
         return DeferredRunnable.ResolvedDeferredObject();
     }
 
-    StringBuffer msgBuffer = new StringBuffer();
+    /**
+     * Closes the socket after everything that was received before is handled. The listener is told once, by the worker.
+     * Nothing is sent or received on a socket that is closing. This is also how a socket that was never started is closed.
+     */
+    public void close(CloseReason reason) {
+        events.add(new SocketEvent.CloseRequested(reason));
+        stopped = true;
+        if (!started.get())
+            finishClose(reason, false);
+    }
 
-    private CountWaitLock queueLock = new CountWaitLock();
+    /**
+     * @return why the socket was closed, null while it is open
+     */
+    public CloseReason getCloseReason() {
+        return closeReason;
+    }
 
+    /**
+     * @return whether the partner ended the connection. Only valid once {@link #getCloseReason()} is not null.
+     */
+    public boolean isClosedByPeer() {
+        return closedByPeer;
+    }
 
+    MelSocketListener getListener() {
+        return listener;
+    }
+
+    SocketEvent takeEvent() throws InterruptedException {
+        return events.take();
+    }
+
+    void eventHandled(SocketEvent event) {
+        if (event instanceof SocketEvent.MessageReceived)
+            queueSpace.release();
+        else if (event instanceof SocketEvent.BlockReceived)
+            queueSpace.release(BLOCK_PERMITS);
+    }
+
+    /**
+     * Closes the java socket and tells the listener, exactly once, no matter how often or from where it is called.
+     * Called by the worker, or by {@link #close(CloseReason)} when there is no worker.
+     */
+    void finishClose(CloseReason reason, boolean remote) {
+        if (!closed.compareAndSet(false, true))
+            return;
+        Lok.debug("closing v=" + v + " reason=" + reason + (remote ? " (by the partner)" : ""));
+        closeReason = reason;
+        closedByPeer = remote;
+        stopped = true;
+        N.s(() -> in.close());
+        N.s(() -> out.close());
+        N.s(() -> socket.close());
+        try {
+            MelSocketListener listener = this.listener;
+            if (listener != null)
+                listener.onClose(reason, remote);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (melAuthService != null)
+                melAuthService.removeMelSocket(this);
+        }
+    }
+
+    private void enqueue(SocketEvent event, int permits) throws InterruptedException {
+        queueSpace.acquire(permits);
+        events.add(event);
+    }
+
+    /**
+     * The reader. It only reads and puts what it reads into the queue of the worker, it never calls anybody.
+     */
     @Override
     public void runImpl() {
         Thread thread = Thread.currentThread();
         if (socket == null)
             Lok.error(getClass().getSimpleName() + " running without underlying socket!!!");
+        StringBuilder msgBuffer = new StringBuilder();
         try {
             if (in == null || out == null)
                 streams();
-            socketWorker = new SocketWorker(this, listener);
-            melAuthService.execute(socketWorker);
             while (!isStopped()) {
                 if (isIsolated && allowIsolation) {
                     byte[] bytes = new byte[BLOCK_SIZE];
                     in.readFully(bytes);
-                    BlockReceivedJob blockReceivedJob = new BlockReceivedJob().setBlock(bytes);
-                    blockReceivedJob.done(result -> queueLock.unlock());
-                    socketWorker.addJob(blockReceivedJob);
-                    queueLock.lock();
+                    enqueue(new SocketEvent.BlockReceived(bytes), BLOCK_PERMITS);
                 } else {
                     String s = in.readUTF();
-                    int l = s.length();
                     if (s.length() > MAX_CHARS) {
                         if (s.endsWith(TOO_LONG_APPENDIX)) {
                             msgBuffer.append(s.substring(0, MAX_CHARS));
@@ -221,8 +320,8 @@ public class MelSocket extends DeferredRunnable {
                     } else {
                         if (msgBuffer.length() > 0) {
                             msgBuffer.append(s);
-                            socketWorker.addJob(new ReceivedJob().setMessage(msgBuffer.toString()));
-                            msgBuffer = new StringBuffer();
+                            enqueue(new SocketEvent.MessageReceived(msgBuffer.toString()), 1);
+                            msgBuffer = new StringBuilder();
                             continue;
                         }
                     }
@@ -231,28 +330,19 @@ public class MelSocket extends DeferredRunnable {
                         if (!isIsolated)
                             send(MelStrings.msg.MODE_ISOLATE);
                         else
-                            listener.onIsolated();
+                            enqueue(new SocketEvent.IsolateConfirmed(), 1);
                         isIsolated = true;
                     } else
-                        socketWorker.addJob(new ReceivedJob().setMessage(s));
+                        enqueue(new SocketEvent.MessageReceived(s), 1);
                 }
             }
-//            Lok.debug("MelSocket.runTry.CLOSING");
-            listener.onClose(42, "don't know shit", true);
-        } catch (SSLException e) {
-            String line = (melAuthService == null ? "no service" : melAuthService.getName()) + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")";
-            Lok.error(line);
-            Lok.error("SSLException: " + e.toString() + " v=" + v);
         } catch (Exception e) {
             if (!isStopped()) {
                 String line = (melAuthService == null ? "no service" : melAuthService.getName()) + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")";
                 Lok.error(line);
-                Lok.error("Exception: " + e.toString() + " v=" + v);
+                Lok.error(e.getClass().getSimpleName() + ": " + e.toString() + " v=" + v);
             }
-        } finally {
-//            Lok.debug(getClass().getSimpleName() + " closing everything on " + Thread.currentThread().getName());
-            N.r(this::onSocketClosed);
-            shutDown();
+            events.add(new SocketEvent.PeerClosed(e));
         }
     }
 
@@ -260,30 +350,15 @@ public class MelSocket extends DeferredRunnable {
         return v;
     }
 
-    protected void onSocketClosed() {
-        Lok.debug("closing v=" + v);
-        shutDown();
-    }
-
     public MelSocket setListener(MelSocketListener listener) {
         this.listener = listener;
         return this;
     }
 
+    /**
+     * Same as {@code close(CloseReason.SHUTDOWN)}.
+     */
     public void stop() {
-        try {
-            super.stop();
-            stopped = true;
-            N.s(() -> in.close());
-            N.s(() -> out.close());
-            N.s(() -> socket.close());
-            if (socketWorker != null) {
-                socketWorker.shutDown();
-            }
-            shutDown();
-//            N.s(() -> this.thread.interrupt());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        close(CloseReason.SHUTDOWN);
     }
 }

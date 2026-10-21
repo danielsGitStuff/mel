@@ -198,20 +198,14 @@ public class RegistrationTest {
     }
 
     /**
-     * Both instances also find each other by multicast and connect on their own. Now and then that automatic connection
-     * swallows our pairing request, nobody is ever asked. Nothing has happened then, so ask again.
      * The request has arrived when the server's user is asked. (The client's user is asked before that, so that is no sign.)
      */
     private void startPairing() throws Exception {
         // an earlier pairing may have left events behind: only new ones count
         RecordingHandler asked = serverUser;
         int eventsBefore = asked.events.size();
-        for (int attempt = 0; attempt < 4; attempt++) {
-            client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), true);
-            if (waitFor(() -> asked.events.size() > eventsBefore, 8))
-                return;
-        }
-        fail("pairing did not even start");
+        client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), true);
+        assertTrue(waitFor(() -> asked.events.size() > eventsBefore, 15), "pairing did not even start");
     }
 
     private static boolean waitFor(BooleanSupplier condition) throws InterruptedException {

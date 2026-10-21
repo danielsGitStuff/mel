@@ -255,17 +255,12 @@ public class DummyMelAuthService extends MelAuthService {
     }
 
     @Override
-    public void suspend() {
-
-    }
-
-    @Override
-    public void resume() {
-
-    }
-
-    @Override
     public void addMelSocket(MelSocket melSocket) {
+
+    }
+
+    @Override
+    public void removeMelSocket(MelSocket melSocket) {
 
     }
 

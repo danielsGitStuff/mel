@@ -79,6 +79,7 @@ public class Indexer {
 //        if (indexerRunnable.getStartedDeferred().isResolved())
 //            indexerRunnable.setStartedPromise(new DeferredObject<>());
 //        indexerRunnable.getStartedDeferred().done(result -> N.r(melDriveService::onIndexerDone));
+        indexerRunnable.restart();
         melFileSyncService.execute(indexerRunnable);
     }
 

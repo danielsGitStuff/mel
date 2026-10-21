@@ -2,8 +2,8 @@ package de.mel.web.miniserver.socket
 
 import de.mel.Lok
 import de.mel.auth.MelStrings
-import de.mel.auth.socket.MelSocket
 import de.mel.auth.tools.N
+import de.mel.update.BinarySocket
 import de.mel.update.SimpleSocket
 import de.mel.web.miniserver.data.FileRepository
 import java.io.FileInputStream
@@ -25,7 +25,7 @@ constructor(socket: Socket, private val fileRepository: FileRepository) : Simple
                 val f = fileRepository[hash].file
                 Lok.info("reading file: " + f.absolutePath)
                 fin = FileInputStream(f)
-                val bytes = ByteArray(MelSocket.BLOCK_SIZE)
+                val bytes = ByteArray(BinarySocket.BUFFER_SIZE)
                 var read: Int
                 do {
                     read = fin.read(bytes)

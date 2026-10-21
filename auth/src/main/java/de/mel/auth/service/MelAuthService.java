@@ -38,15 +38,42 @@ import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public abstract class MelAuthService {
+    /**
+     * How long a request waits for its answer. Every answer part that arrives restarts the wait.
+     */
+    public static final long DEFAULT_REQUEST_TIMEOUT_MS = 30_000L;
     protected final MelAuthSettings settings;
+    private volatile long requestTimeoutMs = DEFAULT_REQUEST_TIMEOUT_MS;
+    /**
+     * One thread for the timeouts of all requests of this instance. The thread starts with the first timeout.
+     */
+    private final ScheduledExecutorService timeoutScheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
+        Thread thread = new Thread(runnable, "request timeouts");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     public MelAuthService(MelAuthSettings melAuthSettings) {
         this.settings = melAuthSettings;
     }
 
     public abstract MelAuthSettings getSettings();
+
+    public ScheduledExecutorService getTimeoutScheduler() {
+        return timeoutScheduler;
+    }
+
+    public long getRequestTimeoutMs() {
+        return requestTimeoutMs;
+    }
+
+    public void setRequestTimeoutMs(long requestTimeoutMs) {
+        this.requestTimeoutMs = requestTimeoutMs;
+    }
 
     public abstract List<Long> getConnectedUserIds();
 
@@ -147,11 +174,9 @@ public abstract class MelAuthService {
      */
     public abstract Promise<Void, Void, Void> shutDown();
 
-    public abstract void suspend();
-
-    public abstract void resume();
-
     public abstract void addMelSocket(MelSocket melSocket);
+
+    public abstract void removeMelSocket(MelSocket melSocket);
 
     public abstract MelBoot getMelBoot();
 

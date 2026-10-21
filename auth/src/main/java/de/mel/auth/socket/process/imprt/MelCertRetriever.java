@@ -8,6 +8,7 @@ import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.jobs.BlockReceivedJob;
 import de.mel.auth.service.MelAuthService;
+import de.mel.auth.socket.CloseReason;
 import de.mel.auth.socket.MelSocket;
 import de.mel.auth.socket.ShamefulSelfConnectException;
 import de.mel.auth.tools.ShutDownDeferredManager;
@@ -107,6 +108,7 @@ public class MelCertRetriever extends DeferredRunnable {
                         deferred.reject(e);
                     } finally {
                         stop();
+                        melSocket.close(CloseReason.FINISHED);
                     }
                 }
 
@@ -123,8 +125,8 @@ public class MelCertRetriever extends DeferredRunnable {
                 }
 
                 @Override
-                public void onClose(int code, String reason, boolean remote) {
-                    clientSockets.remove(this);
+                public void onClose(CloseReason reason, boolean remote) {
+                    clientSockets.remove(certDeliveryClient);
                     stop();
                 }
 

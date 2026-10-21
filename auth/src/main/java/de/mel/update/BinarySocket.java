@@ -2,7 +2,6 @@ package de.mel.update;
 
 import de.mel.Lok;
 import de.mel.auth.MelStrings;
-import de.mel.auth.socket.MelSocket;
 import de.mel.sql.Hash;
 
 import java.io.*;
@@ -11,6 +10,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class BinarySocket extends SimpleSocket {
+    /**
+     * Size of the buffer that update files are copied with. Independent of the block size of the Mel sockets.
+     */
+    public static final int BUFFER_SIZE = 1024 * 4096 + 21;
+
     private final VersionAnswerEntry versionEntry;
     private final File target;
     private final Updater updater;
@@ -42,7 +46,7 @@ public class BinarySocket extends SimpleSocket {
     public static boolean transferToOutputStream(Updater updater, FileOutputStream fos, InputStream input, String expectedHash, Long expecedSize) throws IOException, NoSuchAlgorithmException {
         MessageDigest messageDigest = Hash.createSHA256MessageDigest();
         byte[] bytes;
-        bytes = new byte[MelSocket.BLOCK_SIZE];
+        bytes = new byte[BUFFER_SIZE];
         int read;
         Long sum = 0L;
         updater.onSocketProgress(sum, expecedSize);

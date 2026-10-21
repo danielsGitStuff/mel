@@ -11,6 +11,7 @@ import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntity
 import org.jdeferred.impl.DeferredObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,7 +35,7 @@ public abstract class MelProcess implements IRequestHandler {
     protected void send(SerializableEntity melMessage) throws JsonSerializationException {
         if(melMessage instanceof MelRequest){
             MelRequest request = (MelRequest) melMessage;
-            request.startTimeout();
+            request.startTimeout(melAuthSocket.getMelAuthService());
         }
         String json = SerializableEntitySerializer.serialize(melMessage);
 //       Lok.debug(melAuthSocket.getMelAuthService().getName() + ".send: " + json);
@@ -44,7 +45,7 @@ public abstract class MelProcess implements IRequestHandler {
 
     public void removeThyself() {
         //melAuthService.onProcessDone(this);
-        melAuthSocket.stop();
+        melAuthSocket.close(CloseReason.SHUTDOWN);
     }
 
     protected synchronized boolean handleAnswer(SerializableEntity deserialized) {
@@ -84,13 +85,23 @@ public abstract class MelProcess implements IRequestHandler {
     }
 
     public void stop() {
-        melAuthSocket.stop();
+        melAuthSocket.close(CloseReason.SHUTDOWN);
         melAuthSocket.getMelAuthService().getPowerManager().releaseWakeLock(this);
     }
 
     public abstract void onMessageReceived(SerializableEntity deserialized, MelAuthSocket webSocket) throws IOException, MelJsonException;
 
-    public void onSocketClosed(int code, String reason, boolean remote) {
-        // nothing here yet
+    /**
+     * Called once, when the socket is closed, after everything that was received before the end has been handled.
+     * Requests that wait for an answer will not get one any more.
+     */
+    public void onSocketClosed(CloseReason reason, boolean remote) {
+        for (MelRequest request : new ArrayList<>(requestMap.values())) {
+            if (requestMap.remove(request.getRequestId(), request)) {
+                request.stopTimeout();
+                if (request.getAnswerDeferred().isPending())
+                    request.getAnswerDeferred().reject(new ResponseException("connection closed: " + reason));
+            }
+        }
     }
 }

@@ -12,6 +12,7 @@ import de.mel.auth.data.ApprovalMatrix;
 import de.mel.auth.data.EmptyPayload;
 import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.data.NetworkEnvironment;
+import de.mel.auth.data.ResponseException;
 import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.data.access.DatabaseManager;
 import de.mel.auth.data.db.Certificate;
@@ -79,7 +80,7 @@ public class MelAuthServiceImpl extends MelAuthService {
     protected List<IRegisterHandler> registerHandlers = new ArrayList<>();
     private List<IRegisteredHandler> registeredHandlers = new ArrayList<>();
     private NetworkEnvironment networkEnvironment = new NetworkEnvironment();
-    private Set<MelSocket> sockets = new HashSet<>();
+    private final Set<MelSocket> sockets = ConcurrentHashMap.newKeySet();
     private ConnectedEnvironment connectedEnvironment;
     private WaitLock uuidServiceMapSemaphore = new WaitLock();
     private Map<String, MelService> uuidServiceMap = new HashMap<>();
@@ -240,6 +241,11 @@ public class MelAuthServiceImpl extends MelAuthService {
     @Override
     public Request<MelServicesPayload> getAllowedServices(Long certificateId) throws JsonSerializationException, IllegalAccessException {
         MelValidationProcess validationProcess = connectedEnvironment.getValidationProcess(certificateId);
+        if (validationProcess == null) {
+            Request<MelServicesPayload> notConnected = new Request<>();
+            notConnected.reject(new ResponseException("not connected to certificate " + certificateId));
+            return notConnected;
+        }
         Request<MelServicesPayload> promise = validationProcess.request(MelStrings.SERVICE_NAME, new EmptyPayload(MelStrings.msg.INTENT_GET_SERVICES));
         return promise;
     }
@@ -504,59 +510,18 @@ public class MelAuthServiceImpl extends MelAuthService {
         shutdownManager.when(melAuthWorker.shutDown());
         N.r(melBoot::shutDown);
         databaseManager.shutDown();
+        getTimeoutScheduler().shutdownNow();
         return shutdownManager.digest();
-    }
-
-    @Override
-    public void suspend() {
-        uuidServiceMapSemaphore.lock();
-        for (IMelService service : uuidServiceMap.values()) {
-            if (service instanceof MelService) {
-                N.r(((MelService) service)::stop);
-            }
-        }
-        uuidServiceMapSemaphore.unlock();
-//        connectedEnvironment.shutDown();
-        Set<MelSocket> socks = new HashSet<>(sockets);
-        Lok.debug("closing no of sockets: " + socks.size());
-        for (MelSocket socket : socks) {
-            socket.shutDown();
-        }
-        melAuthWorker.shutDown();
-
-    }
-
-    @Override
-    public void resume() {
-        Lok.debug("resume");
-        melBoot.onHeavyWorkAllowed();
-        uuidServiceMapSemaphore.lock();
-        List<DeferredObject> servicesStarted = new ArrayList<>();
-        for (IMelService service : uuidServiceMap.values()) {
-            if (service instanceof MelService) {
-                MelService melService = (MelService) service;
-                DeferredObject<DeferredRunnable, Exception, Void> startedPromise = new DeferredObject<>();
-                melService.setStartedPromise(startedPromise);
-//                servicesStarted.add(startedPromise);
-                melService.resume();
-                execute(melService);
-            }
-        }
-        uuidServiceMapSemaphore.unlock();
-        // reconnect everything after resume
-        melAuthWorker.addJob(new NetworkEnvDiscoveryJob());
-        DeferredObject[] arr = N.arr.fromCollection(servicesStarted, N.converter(DeferredObject.class, element -> element));
-        if (arr.length > 0) {
-            new DefaultDeferredManager().when(arr).done(result -> execute(melAuthWorker))
-                    .fail(result -> Lok.error("could not resume!"));
-        } else {
-            execute(melAuthWorker);
-        }
     }
 
     @Override
     public void addMelSocket(MelSocket melSocket) {
         sockets.add(melSocket);
+    }
+
+    @Override
+    public void removeMelSocket(MelSocket melSocket) {
+        sockets.remove(melSocket);
     }
 
     @Override
@@ -646,6 +611,7 @@ public class MelAuthServiceImpl extends MelAuthService {
         if (melAuthWorker.isStopped()) {
             // restart
             melAuthWorker.setStartedPromise(deferred);
+            melAuthWorker.restart();
             this.execute(melAuthWorker);
         } else {
             // it is still running
