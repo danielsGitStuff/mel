@@ -6,7 +6,22 @@ The JDeferred replacement (`fun.with.promise`) is a separate, later task, see "O
 How to implement it, class by class, and further findings (F1-F14): `SOCKET_REWORK_PLAN.md`.
 
 Everything below was found by reading the code and by tests on branch `registration-tests`
-(based on `gradle-fixes`, not merged yet). Nothing in this document is implemented.
+(based on `gradle-fixes`, not merged yet). It is implemented now, see the status section.
+
+## Status (2026-10-21, end of the unattended run): implemented
+
+Steps 1-10 of `SOCKET_REWORK_PLAN.md` are done, details and decisions in `REWORK_LOG.md`. What happened to the problems below:
+
+1. process field races: fixed, `SocketState` in an `AtomicReference`, only the socket's worker changes it (step 5).
+2. transition before its guard: fixed, `Transitions` + the duplicate decision before the state changes (steps 5, 6).
+3. messages without a process dropped: fixed, every message either fits the state or is a protocol violation (step 5).
+4. `send` without a lock / `writeUTF` chunks: fixed, one lock, typed frames (steps 3, 4).
+5. `synchronized` handlers: fixed (step 5).
+6. register socket not closed, missing commit: fixed, S persists before `Final`, C persists and closes (step 7).
+7. start failures never reach the caller of `MelBoot.boot()`: NOT part of this rework, still pinned by `BootFailureTest`.
+8. `suspend()`/`resume()` "without callers": wrong, `AndroidPowerManager` calls them. They stay (with `restart()` of the services and the worker).
+
+Open: the JDeferred replacement (`REWORK_RUNBOOK.md`, P3/P4). The sections below describe the problems and decisions as they were before the work.
 
 ## How it works today
 

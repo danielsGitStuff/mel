@@ -122,3 +122,8 @@ looked at it, so `isConnectedTo` stayed true and a stale entry was only replaced
 raw test peer that authenticated before it used to lose against it by the "same initiator: the newer wins" rule), `closeNormalConnections` for tests that want to start without one.
 Tests: `ConnectingTest` (silent client on the delivery port, unroutable address within the connect timeout, mute connection closed by the NEW timeout, communications off
 closes connections), `isAlreadyPaired` in `RegistrationCommitTest`. 5 full runs green.
+
+## Step 10: cleanup
+Deleted `LargeJson`, `LotsOfTests` (nothing but comments), `SocketTest` (step 2), `ReceivedJob`, `RequestTimer.kt`/`RequestTimerMain` (dead prototype of a request timer).
+`BLOCK_SIZE`, `MODE_ISOLATE`, `MelRegisterConfirm` were removed with their steps. `suspend()`/`resume()` stay (see step 2). The brief has a status section.
+P2 (socket rework) is complete: full `./gradlew build` to be run at the start of P3.

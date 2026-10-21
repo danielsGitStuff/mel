@@ -1,6 +1,6 @@
 # Socket/process rework: implementation plan
 
-Companion to `SOCKET_PROCESS_REWORK.md` (the brief: problems, decisions, wire format, state table, tests). The brief says
+Companion to `SOCKET_PROCESS_REWORK.md` (the brief: problems, decisions, wire format, state table, tests). **Implemented (steps 1-10 ticked), see `REWORK_LOG.md`.** The brief says
 **what** we want; this file says **where and how**, class by class, plus what a code analysis on 2026-10-21 found on top.
 Read the brief first. Nothing in here is implemented.
 
@@ -375,9 +375,9 @@ For the session that does the work. Steps in this order; each one is a commit (o
 ### Step 10: cleanup
 
 - [x] NOT done on purpose: `suspend()`/`resume()` have a caller (`AndroidPowerManager`), they and their test stay.
-- [ ] Delete `auth/src/test/.../socket/SocketTest.java`, `LargeJson.java`; `LotsOfTests` if it only holds commented tests.
-- [ ] Remove leftovers: `MelSocket.BLOCK_SIZE`, `MelStrings.msg.MODE_ISOLATE`, `MelRegisterConfirm`, unused exceptions.
-- [ ] Brief: mark the problems fixed, move the open items to the JDeferred task; memory: mark the rework done.
+- [x] Delete `auth/src/test/.../socket/SocketTest.java`, `LargeJson.java`; `LotsOfTests` if it only holds commented tests.
+- [x] Remove leftovers: `MelSocket.BLOCK_SIZE`, `MelStrings.msg.MODE_ISOLATE`, `MelRegisterConfirm`, unused exceptions.
+- [x] Brief: mark the problems fixed, move the open items to the JDeferred task; memory: mark the rework done.
 
 Then P3/P4 of `REWORK_RUNBOOK.md` (JDeferred tests and port), in the same unattended run. During these steps: new code uses
 `fun.with.promise`, the public API stays JDeferred behind `PromiseAdapters` until P4 (runbook).
