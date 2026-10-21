@@ -39,6 +39,9 @@ import de.mel.filesync.index.IndexListener;
 import de.mel.filesync.index.Indexer;
 import de.mel.filesync.index.watchdog.StageIndexer;
 import de.mel.filesync.service.sync.SyncHandler;
+import de.mel.filesync.nio.DefaultFsConvenience;
+import de.mel.filesync.nio.FsConvenience;
+import de.mel.filesync.nio.UnixFsConvenience;
 import de.mel.filesync.sql.FileSyncDatabaseManager;
 import de.mel.filesync.sql.FsDirectory;
 import de.mel.filesync.sql.FsFile;
@@ -64,6 +67,8 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
     protected InitialIndexConflictHelper conflictHelper;
     private Wastebin wastebin;
     private FileSyncSyncListener syncListener;
+    private volatile FsConvenience fsConvenience;
+    private final Object fsConvenienceLock = new Object();
 
 
     public MelFileSyncService(MelAuthService melAuthService, File workingDirectory, Long serviceTypeId, String uuid, FileSyncSettings fileSyncSettings, FileSyncDatabaseManager databaseManager) {
@@ -74,6 +79,29 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
 
     public S getSyncHandler() {
         return syncHandler;
+    }
+
+    /**
+     * What the file system of this service's root can do for us, see {@link FsConvenience}.
+     */
+    public FsConvenience getFsConvenience() {
+        FsConvenience result = fsConvenience;
+        if (result == null) {
+            // not the lock of the service: others hold that while they wait for connections
+            synchronized (fsConvenienceLock) {
+                if (fsConvenience == null)
+                    fsConvenience = createFsConvenience();
+                result = fsConvenience;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Platforms that know more override this.
+     */
+    protected FsConvenience createFsConvenience() {
+        return System.getProperty("os.name", "").toLowerCase().contains("win") ? new DefaultFsConvenience() : new UnixFsConvenience();
     }
 
     private FileSyncSyncListener getSyncListener() {

@@ -205,6 +205,29 @@ public class SyncedStateTest {
         }
     }
 
+    /**
+     * one download goes to several places: every one of them has its own time, a copy of it is no reason to forget that
+     */
+    @Test
+    public void sameContentInTwoPlacesGetsEachItsOwnModificationTime() throws Exception {
+        File serverRoot = new File(dir, "serverRoot");
+        FileSyncInstances.writeFile(serverRoot, "a/one.bin", 400_000, 77);
+        FileSyncInstances.writeFile(serverRoot, "b/two.bin", 400_000, 77);
+        long first = 1_577_869_200_000L;
+        long second = 1_483_228_800_000L;
+        assertTrue(new File(serverRoot, "a/one.bin").setLastModified(first));
+        assertTrue(new File(serverRoot, "b/two.bin").setLastModified(second));
+        try (FileSyncInstances instances = new FileSyncInstances(dir, 24560)) {
+            instances.createServer();
+            instances.createClient();
+            assertTrue(TwoInstances.waitFor(() -> synced(instances), 60), "the client did not get the files");
+            File one = new File(instances.clientRoot, "a/one.bin");
+            File two = new File(instances.clientRoot, "b/two.bin");
+            assertTrue(TwoInstances.waitFor(() -> one.lastModified() == first && two.lastModified() == second, 30),
+                    "one " + one.lastModified() + " (should be " + first + "), two " + two.lastModified() + " (should be " + second + ")");
+        }
+    }
+
     @Test
     public void aClientThatJustSyncedHasNothingToCommitAndStaysQuiet() throws Exception {
         prepare(new File(dir, "serverRoot"));

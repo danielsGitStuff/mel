@@ -37,39 +37,6 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
         fun createInstance(fileSyncService: MelFileSyncService<*>): FileDistributor<*> = factory!!.createInstance(fileSyncService)
     }
 
-    /**
-     * this overwrites files and does not update databases!
-     */
-    @Throws(IOException::class)
-    fun rawCopyFile(srcFile: IFile, targetFile: IFile) {
-        var read: Int
-        val out = targetFile.writer() ?: throw IOException("could not write to ${targetFile.absolutePath}")
-        val ins = srcFile.inputStream() ?: throw IOException("could not read from ${srcFile.absolutePath}")
-        try {
-            do {
-                if (stopped || Thread.currentThread().isInterrupted) {
-                    throw InterruptedException()
-                }
-                val bytes = ByteArray(BUFFER_SIZE)
-                read = ins.read(bytes)
-                if (read > 0) {
-                    out.append(bytes, 0, read)
-                }
-            } while (read > 0)
-        } catch (e: Exception) {
-            N.r {
-                out.close()
-                ins.close()
-            }
-            targetFile.delete()
-        } finally {
-            out.close()
-            ins.close()
-        }
-
-    }
-
-
     fun isRunning() = running
 
     override fun getRunnableName(): String {
@@ -181,6 +148,8 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
         if (!lastFile.exists()) {
             if (distributionTask.deleteSource) {
 
+                // the file keeps its time when it is moved: give it the one of the fs entry first
+                fileSyncService.fsConvenience.applyModified(sourceFile, lastId?.let { fsDao.getFile(it) })
                 // move file
                 moveFile(sourceFile, lastFile, lastPath, lastId)
                 // update synced flag
@@ -198,10 +167,7 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
 
     protected fun updateFs(fsId: Long?, target: T): FsFile {
         val fsTarget = fsDao.getFile(fsId)
-        // the file keeps the time of the sender, as rsync -t does. Best effort: not every platform allows it. What the disk says afterwards is what the fs table gets.
-        val senderModified = fsTarget.modified.v()
-        if (senderModified != null && !target.setLastModified(senderModified))
-            Lok.debug("could not set the modification time of ${target.absolutePath}")
+        // the time of the sender was applied to the file (FsConvenience), if the file system took it. What the disk says is what the fs table gets.
         val fsBashDetails = BashTools.getFsBashDetails(target)
                 ?: throw IOException("could not read FsBashDetails from ${target.absolutePath}")
         BashTools.setCreationDate(target, fsBashDetails.created)
@@ -227,9 +193,12 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
     protected fun copyFile(source: T, target: T, targetPath: String, fsId: Long?) {
         if (target.exists())
             throw  IOException("file already exists")
-        rawCopyFile(source, target)
+        val convenience = fileSyncService.fsConvenience
+        if (convenience.copy(source, target) == CopyResult.NOT_DONE)
+            throw IOException("could not copy ${source.absolutePath} to ${target.absolutePath}")
         if (fsId != null) {
             de.mel.auth.tools.lock2.P.confine(fsId).run {
+                convenience.applyModified(target, fsDao.getFile(fsId))
                 val fsFile = updateFs(fsId, target)
                 setCreationDate(target, fsFile.created.v())
             }.end()
