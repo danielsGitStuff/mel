@@ -4,7 +4,6 @@ import de.mel.auth.socket.MelAuthSocket;
 import de.mel.auth.socket.MelValidationProcess;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -82,7 +81,6 @@ public class DuplicateConnectionTest {
     /**
      * Both want to talk to each other at the same moment, e.g. both have something to push.
      */
-    @Disabled("fails on the old code now and then (1 of 5): problem 2, each side keeps the connection it registered first, see SOCKET_PROCESS_REWORK.md")
     @RepeatedTest(5)
     public void bothSidesConnectAtTheSameMoment() throws Exception {
         CountDownLatch start = new CountDownLatch(1);
@@ -118,7 +116,6 @@ public class DuplicateConnectionTest {
      * The client gave up its connection (as after a network change), the server has not noticed yet (TCP may take minutes).
      * The client connects again: the new connection has to win, otherwise the client is locked out until the server notices.
      */
-    @Disabled("fails on the old code: the server keeps the old connection and never answers the new one, see SOCKET_PROCESS_REWORK.md")
     @Test
     public void reconnectWhileThePartnerStillHoldsTheOldConnection() throws Exception {
         MelValidationProcess old = connect(client, server);

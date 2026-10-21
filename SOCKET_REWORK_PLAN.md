@@ -306,19 +306,19 @@ For the session that does the work. Steps in this order; each one is a commit (o
 
 ### Step 6: authentication and duplicates (F1, problem 2, F14)
 
-- [ ] Both sides: partner = certificate from the TLS session, looked up by sha256 among **trusted** rows
+- [x] Both sides: partner = certificate from the TLS session, looked up by sha256 among **trusted** rows
       (`getTrustedCertificateByHash`). Not trusted -> `UNTRUSTED`. Client: if it is trusted but not the expected one ->
       connection kept as one to that partner, the original connect job rejected with `WRONG_PARTNER`. Database: only the
       partner's address/port (`propagateAuthentication`), nothing else.
-- [ ] `MelAuthSocket.connectSSL` no longer sets `partnerCertificate` from the id; `getTrustedPartnerCertificate` is the only
+- [x] `MelAuthSocket.connectSSL` no longer sets `partnerCertificate` from the id; `getTrustedPartnerCertificate` is the only
       source, on both sides.
-- [ ] `ConnectedEnvironment`: one `Map<Long, MelAuthSocket>` of established normal connections by partner id plus
+- [x] `ConnectedEnvironment`: one `Map<Long, MelAuthSocket>` of established normal connections by partner id plus
       "connecting" by partner id; `decideDuplicate(socket)` under one lock: different initiators -> the connection initiated by
       the side with the lower certificate hash wins; same initiator -> the newer wins; the loser gets
       `CloseRequested(DUPLICATE)`. Called on S when the `AuthRequest` arrives, on C when `AuthResponse(ok)` arrives (brief).
       Drop `addressValidateProcessMap` as identity (F6); `connect(address, ...)` checks "connected to the certificate at this
       address" via the certificate row, not via the map.
-- [ ] `MelAuthProcess`: no `new MelValidationProcess(...)` before the decision. Client side `if (job instanceof ConnectJob)`
+- [x] `MelAuthProcess`: no `new MelValidationProcess(...)` before the decision. Client side `if (job instanceof ConnectJob)`
       branch: register only after `decideDuplicate` said "keep".
 - New tests first (section 5): untrusted certificate answers -> closed, nothing stored; a different trusted partner answers ->
   counts as that partner, `WRONG_PARTNER`, only its address changed (compare all certificate rows).

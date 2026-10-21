@@ -178,6 +178,16 @@ public class AuthHandshakeTest {
         Long serverCertId = pair();
         server.suspend();
         server.resume();
+        // resume() starts the sockets in the background: connecting before the server listens again is refused, and nobody retries
+        int serverPort = server.getSettings().getPort();
+        assertTrue(TwoInstances.waitFor(() -> {
+            try (java.net.Socket probe = new java.net.Socket()) {
+                probe.connect(new java.net.InetSocketAddress("localhost", serverPort), 500);
+                return true;
+            } catch (java.io.IOException e) {
+                return false;
+            }
+        }, TIMEOUT_SECONDS), "the resumed server does not listen again");
 
         CountDownLatch authenticated = new CountDownLatch(1);
         AtomicReference<Exception> failure = new AtomicReference<>();

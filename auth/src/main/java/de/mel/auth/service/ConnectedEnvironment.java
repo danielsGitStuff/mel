@@ -10,7 +10,10 @@ import de.mel.auth.jobs.AConnectJob;
 import de.mel.auth.jobs.ConnectJob;
 import de.mel.auth.socket.ConnectWorker;
 import de.mel.auth.socket.MelAuthSocket;
+import de.mel.auth.socket.DuplicateConnectionException;
 import de.mel.auth.socket.MelValidationProcess;
+import de.mel.auth.socket.Transitions;
+import de.mel.sql.Hash;
 import de.mel.auth.socket.process.transfer.MelIsolatedFileProcess;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.lock2.P;
@@ -21,6 +24,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -28,7 +32,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ConnectedEnvironment {
     private Map<Long, MelValidationProcess> idValidateProcessMap = new HashMap<>();
-    private Map<String, MelValidationProcess> addressValidateProcessMap = new HashMap<>();
+    private final Map<Long, List<DeferredObject<MelValidationProcess, Exception, Void>>> waitingForConnection = new HashMap<>();
+    private String myHash;
     private Map<Long, AConnectJob> currentlyConnectingCertIds = new HashMap<>();
     private Map<String, AConnectJob> currentlyConnectingAddresses = new HashMap<>();
 
@@ -77,7 +82,10 @@ public class ConnectedEnvironment {
                                 removeCurrentlyConnecting(certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v());
                             })
                             .end();
-                    deferred.reject(result);
+                    if (result instanceof DuplicateConnectionException)
+                        whenConnected(certificateId, deferred, result);
+                    else
+                        deferred.reject(result);
                 });
                 currentlyConnecting(certificateId, job);
                 currentlyConnecting(certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), job);
@@ -131,31 +139,116 @@ public class ConnectedEnvironment {
         return deferred;
     }
 
+    private String myHash() throws Exception {
+        if (myHash == null)
+            myHash = Hash.sha256(melAuthService.getCertificateManager().getMyX509Certificate().getEncoded());
+        return myHash;
+    }
+
+    private String hashOf(Certificate certificate) throws Exception {
+        if (certificate.getHash().v() != null)
+            return certificate.getHash().v();
+        return Hash.sha256(certificate.getCertificate().v());
+    }
+
     /**
-     * @param validationProcess
-     * @return true if {@link MelValidationProcess} has been registered as the only one connected with its {@link Certificate}
+     * The hash of the certificate of the side that opened the connection. Both sides compute the same.
+     */
+    private String initiatorHash(MelValidationProcess process) throws Exception {
+        if (process.getMelAuthSocket().getRole() == Transitions.Role.CLIENT)
+            return myHash();
+        return hashOf(process.getPartnerCertificate());
+    }
+
+    /**
+     * Two normal connections to the same partner: exactly one survives, the same one on both sides.
+     * Different initiators: the connection opened by the side with the lower certificate hash wins. Same initiator: the newer one wins
+     * (the initiator gave the old one up, e.g. a half open TCP connection).
+     */
+    private boolean newConnectionWins(MelValidationProcess existing, MelValidationProcess fresh) throws Exception {
+        String existingInitiator = initiatorHash(existing);
+        String freshInitiator = initiatorHash(fresh);
+        if (existingInitiator.equals(freshInitiator))
+            return true;
+        return freshInitiator.compareTo(existingInitiator) < 0;
+    }
+
+    /**
+     * Decides, atomically, whether the connection is the one to keep for its partner. Has to be called when both the partner and the kind of
+     * connection are known, before anything is answered. The loser (the new one or an existing one) is not closed here.
+     *
+     * @return true if {@link MelValidationProcess} has been registered as the only one connected with its {@link Certificate}.
+     * If an existing connection lost, it is told so (and closes).
      */
     boolean registerValidationProcess(MelValidationProcess validationProcess) {
         if (validationProcess.isClosed())
             return false;
+        MelValidationProcess loser = null;
+        List<DeferredObject<MelValidationProcess, Exception, Void>> waiting = null;
         BunchOfLocks bunchOfLocks = P.confine(this);
         try {
             MelValidationProcess existingProcess = idValidateProcessMap.get(validationProcess.getConnectedId());
-            if (existingProcess != null) {
-                if (existingProcess.isClosed())
-                    Lok.error("an old socket was closed and somehow was not thrown away!");
-                else
-                    Lok.error("an old socket is already present for id: " + validationProcess.getConnectedId());
-                return false;
+            if (existingProcess == validationProcess)
+                return true;
+            if (existingProcess != null && !existingProcess.isClosed()) {
+                if (!newConnectionWins(existingProcess, validationProcess)) {
+                    Lok.debug("an old connection is present for id " + validationProcess.getConnectedId() + " and wins");
+                    return false;
+                }
+                loser = existingProcess;
             }
             idValidateProcessMap.put(validationProcess.getConnectedId(), validationProcess);
-            addressValidateProcessMap.put(validationProcess.getAddressString(), validationProcess);
-            return true;
+            waiting = waitingForConnection.remove(validationProcess.getConnectedId());
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         } finally {
             bunchOfLocks.end();
         }
+        if (loser != null) {
+            Lok.debug("the new connection to id " + validationProcess.getConnectedId() + " wins, closing the old one");
+            loser.getMelAuthSocket().duplicateLost();
+        }
+        if (waiting != null)
+            for (DeferredObject<MelValidationProcess, Exception, Void> deferred : waiting)
+                if (deferred.isPending())
+                    deferred.resolve(validationProcess);
+        return true;
+    }
+
+    /**
+     * Passes on the connection to that partner as soon as there is one (a connect attempt lost against another connection that is about to be registered).
+     * Fails if there is none after a while.
+     */
+    void whenConnected(Long certificateId, DeferredObject<MelValidationProcess, Exception, Void> deferred, Exception failure) {
+        MelValidationProcess existing;
+        BunchOfLocks bunchOfLocks = P.confine(this);
+        try {
+            existing = idValidateProcessMap.get(certificateId);
+            if (existing == null || existing.isClosed()) {
+                waitingForConnection.computeIfAbsent(certificateId, k -> new ArrayList<>()).add(deferred);
+                try {
+                    melAuthService.getTimeoutScheduler().schedule(() -> {
+                        BunchOfLocks locks = P.confine(this);
+                        try {
+                            List<DeferredObject<MelValidationProcess, Exception, Void>> list = waitingForConnection.get(certificateId);
+                            if (list != null)
+                                list.remove(deferred);
+                        } finally {
+                            locks.end();
+                        }
+                        if (deferred.isPending())
+                            deferred.reject(failure);
+                    }, 10, TimeUnit.SECONDS);
+                } catch (RuntimeException e) {
+                    deferred.reject(failure);
+                }
+                return;
+            }
+        } finally {
+            bunchOfLocks.end();
+        }
+        deferred.resolve(existing);
     }
 
     public Collection<MelValidationProcess> getValidationProcesses() {
@@ -166,9 +259,23 @@ public class ConnectedEnvironment {
         return idValidateProcessMap.get(certificateId);
     }
 
+    /**
+     * The connection to the trusted partner that is known to live at that address, if there is one. The address is only a hint where to find
+     * the partner, who it is is decided by its certificate.
+     */
     public MelValidationProcess getValidationProcess(String address, int port) {
-        String completeAddress = address + ":" + port;
-        return addressValidateProcessMap.get(completeAddress);
+        try {
+            for (Certificate certificate : melAuthService.getTrustedCertificates()) {
+                if (address.equals(certificate.getAddress().v()) && certificate.getPort().v() != null && certificate.getPort().v() == port) {
+                    MelValidationProcess process = idValidateProcessMap.get(certificate.getId().v());
+                    if (process != null && !process.isClosed())
+                        return process;
+                }
+            }
+        } catch (SqlQueriesException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public List<Long> getConnectedIds() {
@@ -182,8 +289,6 @@ public class ConnectedEnvironment {
         if (melAuthSocket.getProcess() == null || !(melAuthSocket.getProcess() instanceof MelValidationProcess))
             return;
         MelValidationProcess process = (MelValidationProcess) melAuthSocket.getProcess();
-        if (addressValidateProcessMap.get(process.getAddressString()) == process)
-            addressValidateProcessMap.remove(process.getAddressString());
         if (idValidateProcessMap.get(process.getConnectedId()) == process)
             idValidateProcessMap.remove(process.getConnectedId());
         AConnectJob connectJob = melAuthSocket.getConnectJob();

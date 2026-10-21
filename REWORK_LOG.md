@@ -37,7 +37,7 @@ Tests: `CloseEventTest` (pending request fails at once, `onIsolatedConnectionClo
 ## Step 3: send lock
 `MelSocket.send` and `MelAuthSocket.sendBlock` hold `sendLock`. Enabled `ConcurrentSendTest.longMessagesFromSeveralThreadsArriveWhole`.
 
-Known until step 6: `AuthHandshakeTest.pairedClientCanConnectAgainAfterTheServerWasSuspendedAndResumed` fails in about 2 of 8 class runs
+(Resolved in step 6, see there.) `AuthHandshakeTest.pairedClientCanConnectAgainAfterTheServerWasSuspendedAndResumed` failed in about 2 of 8 class runs
 since step 2 (passes alone). Cause (from the log): after `resume()` the discovery makes both instances connect to each other, and
 the test's own `client.connect(...)` is the third connection: the server drops it as a duplicate without answering (problem 2),
 the client's connect job stays pending. Same cause as the disabled `DuplicateConnectionTest`s; step 6 must make it stable
@@ -61,3 +61,18 @@ Violation = `ProtocolError` message then close `PROTOCOL_VIOLATION`; unparsable 
 (was: silent, client hung); on the client the connect job gets the existing process. All 7 `ProtocolViolationTest`s enabled and also check the reason.
 Isolated: `Isolated` state is entered by the auth answer on both sides already (the MODE_ISOLATE hello stays a message until step 8).
 Timeouts per state are step 9 (NEW/AUTHENTICATING) and step 7 (REGISTERING). `:auth:test` + `:auth:integrationTest` green.
+
+## Step 6: authentication and duplicates
+Both sides take the partner from the TLS session (trusted row by hash), `connectSSL` no longer sets it from the id. Client: untrusted -> close `UNTRUSTED`,
+job fails with `UntrustedPartnerException` (the ConnectWorker then still tries a registration when allowed and no id was given); another trusted
+partner -> the connection is kept as one to that partner, only its address/port are updated (`propagateAuthentication`), the job fails with
+`WrongPartnerException` (isolated jobs: close `WRONG_PARTNER` at once). `ConnectedEnvironment.registerValidationProcess` is the atomic duplicate decision
+(different initiators: lower initiator certificate hash wins; same initiator: newer wins); the loser gets `ProtocolError(DUPLICATE)` and closes
+(`MelAuthSocket.duplicateLost`); a connect job that lost with `DuplicateConnectionException` is resolved with the winner as soon as it is registered
+(`whenConnected`, 10 s). The address map is gone; `getValidationProcess(address, port)` looks the address up in the certificate rows.
+Tests: `PartnerIdentityTest` (untrusted at the address: refused, nothing stored, all rows compared; other trusted partner: `WRONG_PARTNER`, only its
+address/port changed; uses `FakePartner`), `DuplicateConnectionTest` x2 enabled (5 repetitions). Loop of 5 full `:auth:test :auth:integrationTest` runs:
+4 of 5 green, the failing one was `AuthHandshakeTest...SuspendedAndResumed`: the test connected before the resumed server listened again (connection
+refused, nobody retries). That is a race in the test, not in the code (found in the log); the test now waits until the server accepts connections again.
+That test then ran 12 times in a row green.
+Decision taken alone: a duplicate loser on the server side is told `DUPLICATE` and closed (before: silently left open, the client hung).

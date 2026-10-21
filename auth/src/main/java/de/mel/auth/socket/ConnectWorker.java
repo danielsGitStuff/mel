@@ -179,7 +179,8 @@ public class ConnectWorker extends MelWorker {
                         stopConnecting();
                     });
                 } else {
-                    if (!(except instanceof ShamefulSelfConnectException)) {
+                    if (!(except instanceof ShamefulSelfConnectException || except instanceof WrongPartnerException
+                            || except instanceof UntrustedPartnerException || except instanceof DuplicateConnectionException)) {
                         result.reject(new CannotConnectException(except, address, port));
                     } else {
                         result.reject(except);

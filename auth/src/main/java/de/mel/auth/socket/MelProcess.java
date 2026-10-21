@@ -25,6 +25,10 @@ public abstract class MelProcess implements IRequestHandler {
     protected MelAuthSocket melAuthSocket;
     protected Certificate partnerCertificate;
     protected Map<Long,MelRequest> requestMap = new ConcurrentHashMap<>();
+    /**
+     * why the socket was closed, null while it is open. Set before the pending requests are rejected.
+     */
+    protected volatile CloseReason closeReason;
 
     public MelProcess(MelAuthSocket melAuthSocket) {
         this.melAuthSocket = melAuthSocket;
@@ -95,6 +99,7 @@ public abstract class MelProcess implements IRequestHandler {
      * Requests that wait for an answer will not get one any more.
      */
     public void onSocketClosed(CloseReason reason, boolean remote) {
+        closeReason = reason;
         for (MelRequest request : new ArrayList<>(requestMap.values())) {
             if (requestMap.remove(request.getRequestId(), request)) {
                 request.stopTimeout();

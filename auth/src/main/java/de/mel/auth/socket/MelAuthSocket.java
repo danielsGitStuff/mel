@@ -124,6 +124,14 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
     }
 
     /**
+     * This connection lost against another one to the same partner: tell it, then close.
+     */
+    public void duplicateLost() {
+        N.s(() -> send(SerializableEntitySerializer.serialize(new ProtocolError(CloseReason.DUPLICATE.name(), "there is another connection to you that wins"))));
+        close(CloseReason.DUPLICATE);
+    }
+
+    /**
      * The partner broke the rules: tell it why, then close.
      */
     void protocolViolation(String description) {
@@ -231,8 +239,6 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
     }
 
     void connectSSL(Long certId, String address, int port) throws SqlQueriesException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
-        if (certId != null)
-            partnerCertificate = melAuthService.getCertificateManager().getTrustedCertificateById(certId);
         Socket socket = melAuthService.getCertificateManager().createSocket();
         Lok.debug("MelAuthSocket.connectSSL: " + address + ":" + port);
         socket.connect(new InetSocketAddress(address, port));
