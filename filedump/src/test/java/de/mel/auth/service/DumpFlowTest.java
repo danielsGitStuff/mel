@@ -1,6 +1,5 @@
 package de.mel.auth.service;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -31,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @Timeout(value = 5, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
-@Disabled("the dump does not work: nothing arrives at the target, see REWORK_LOG.md, section 'File dump'. Enable when TargetSyncHandler is repaired.")
 public class DumpFlowTest {
     @TempDir
     File dir;
@@ -145,6 +143,79 @@ public class DumpFlowTest {
             }, 90);
             assertTrue(both, "the target should hold both versions: " + FileSyncInstances.hashesBelow(dump.targetRoot));
             assertEquals(mineSha, FileSyncInstances.hashesBelow(dump.targetRoot).get("same name.bin"), "the file that was there first keeps its name");
+        }
+    }
+
+    private static java.util.List<String> hashesOf(File root) throws Exception {
+        return new java.util.ArrayList<>(FileSyncInstances.hashesBelow(root).values());
+    }
+
+    private static boolean waitForHash(File root, String hash, int seconds) throws Exception {
+        return TwoInstances.waitFor(() -> {
+            try {
+                return hashesOf(root).contains(hash);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }, seconds);
+    }
+
+    @Test
+    public void theSameContentUnderAnotherNameIsStoredOnce() throws Exception {
+        File source = new File(dir, "sourceRoot");
+        String sha = FileSyncInstances.writeFile(source, "holiday/IMG_1.jpg", 50_000, 11);
+        FileSyncInstances.writeFile(source, "backup/IMG_1_copy.jpg", 50_000, 11);
+        String other = FileSyncInstances.writeFile(source, "other.bin", 5_000, 12);
+        try (Dump dump = new Dump(24830)) {
+            dump.startTarget();
+            dump.startSource();
+            assertTrue(waitForHash(dump.targetRoot, sha, 90), "the content did not arrive: " + FileSyncInstances.hashesBelow(dump.targetRoot));
+            assertTrue(waitForHash(dump.targetRoot, other, 90), "the other file did not arrive: " + FileSyncInstances.hashesBelow(dump.targetRoot));
+            assertEquals(1, hashesOf(dump.targetRoot).stream().filter(sha::equals).count(), "the content should be there once: " + FileSyncInstances.hashesBelow(dump.targetRoot));
+        }
+    }
+
+    @Test
+    public void whatIsDeletedAtTheSourceStaysAtTheTarget() throws Exception {
+        String sha = FileSyncInstances.writeFile(new File(dir, "sourceRoot"), "goes.bin", 20_000, 1);
+        try (Dump dump = new Dump(24840)) {
+            dump.startTarget();
+            dump.startSource();
+            assertTrue(waitForHash(dump.targetRoot, sha, 90), "the file did not arrive");
+            java.nio.file.Files.delete(new File(dump.sourceRoot, "goes.bin").toPath());
+            // what the source does after that arrives at the target after the deletion
+            String marker = FileSyncInstances.writeFile(dump.sourceRoot, "marker.bin", 3_000, 2);
+            assertTrue(waitForHash(dump.targetRoot, marker, 90), "the marker did not arrive");
+            Thread.sleep(3_000);
+            assertTrue(hashesOf(dump.targetRoot).contains(sha), "the deleted file is gone from the target: " + FileSyncInstances.hashesBelow(dump.targetRoot));
+        }
+    }
+
+    @Test
+    public void aChangedFileLeavesBothVersionsAtTheTarget() throws Exception {
+        String before = FileSyncInstances.writeFile(new File(dir, "sourceRoot"), "changes.bin", 20_000, 1);
+        try (Dump dump = new Dump(24850)) {
+            dump.startTarget();
+            dump.startSource();
+            assertTrue(waitForHash(dump.targetRoot, before, 90), "the file did not arrive");
+            String after = FileSyncInstances.writeFile(dump.sourceRoot, "changes.bin", 25_000, 2);
+            assertTrue(waitForHash(dump.targetRoot, after, 90), "the new version did not arrive: " + FileSyncInstances.hashesBelow(dump.targetRoot));
+            assertTrue(hashesOf(dump.targetRoot).contains(before), "the old version is gone: " + FileSyncInstances.hashesBelow(dump.targetRoot));
+        }
+    }
+
+    @Test
+    public void nothingOfTheTargetComesBackToTheSource() throws Exception {
+        String mine = FileSyncInstances.writeFile(new File(dir, "targetRoot"), "only at the target.bin", 8_000, 21);
+        try (Dump dump = new Dump(24860)) {
+            dump.startTarget();
+            // a source with nothing to give asks the target for its changes, a file sync client would get the file now
+            dump.startSource();
+            Thread.sleep(10_000);
+            String theirs = FileSyncInstances.writeFile(dump.sourceRoot, "from the source.bin", 9_000, 22);
+            assertTrue(waitForHash(dump.targetRoot, theirs, 90), "the file did not arrive");
+            Thread.sleep(10_000);
+            assertTrue(!hashesOf(dump.sourceRoot).contains(mine), "the source got a file of the target: " + FileSyncInstances.hashesBelow(dump.sourceRoot));
         }
     }
 }

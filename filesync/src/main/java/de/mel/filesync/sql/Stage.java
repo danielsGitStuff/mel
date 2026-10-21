@@ -62,7 +62,6 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     private Pair<String> symLink = new Pair<>(String.class, SYMLINK);
     @JsonIgnore
     protected Pair<Integer> depth = new Pair<>(Integer.class, DEPTH);
-    @JsonIgnore
     protected Pair<String> path = new Pair<>(String.class, REL_PATH);
 
 //    @JsonIgnore

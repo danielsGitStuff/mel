@@ -33,11 +33,10 @@ All services come with a client/server role. By design all server services do no
   - comes with conflict solution (if files have been altered differently across devices)
   - supports symlinks on Linux (sort of for Windows too)
 - File Dump
-  - think of it as a one way file synchronization service
-  - client sends all files of a folder to the server
-  - files deleted on the client are not deleted on the server
-  - folder structure remains
-  - server aitomatically resolves conflicts by adding dates and IDs to duplicate file names
+  - a one way backup: clients send their files to a server, nothing comes back
+  - keeps everything: files deleted or changed on the client stay on the server
+  - the content hash counts: content that the server has already is neither transferred nor stored again, whatever its name
+  - the folder structure of the client is kept as far as it is free; a file name that is taken by other content gets the date of creation added
   
 Syncing can be delayed (and it is by default) until certain conditions hold:
 - you have WiFi
