@@ -36,7 +36,7 @@ All services come with a client/server role. By design all server services do no
   - a one way backup: clients send their files to a server, nothing comes back
   - keeps everything: files deleted or changed on the client stay on the server
   - the content hash counts: content that the server has already is neither transferred nor stored again, whatever its name
-  - the folder structure of the client is kept as far as it is free; a file name that is taken by other content gets the date of creation added
+  - the folder structure of the client is kept as far as it is free; a file name that is taken by other content gets the date of its last modification added
   
 Syncing can be delayed (and it is by default) until certain conditions hold:
 - you have WiFi

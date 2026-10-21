@@ -111,7 +111,7 @@ class TargetSyncHandler(melAuthService: MelAuthService, targetService: TargetSer
             return
         // The content may be stored or on its way already. The entry is made anyway, and the file distribution decides: with the content at hand it makes a reference
         // for this name (the service's FsConvenience does nothing else) or, if the file system cannot, drops the entry again. A physical copy is never made.
-        val name = freeName(parent, stage.name, stage.created)
+        val name = freeName(parent, stage.name, stage.modified)
         val entry = GenericFSEntry()
         entry.isDirectory.v(false)
         entry.name.v(name)
@@ -119,7 +119,6 @@ class TargetSyncHandler(melAuthService: MelAuthService, targetService: TargetSer
         entry.parentId.v(parent.id.v())
         entry.path.v(childPath(parent))
         entry.depth.v(childPath(parent).count { it == '/' })
-        entry.created.v(stage.created)
         entry.modified.v(stage.modified)
         entry.version.v(localVersion)
         entry.size.v(stage.size)
@@ -172,15 +171,15 @@ class TargetSyncHandler(melAuthService: MelAuthService, targetService: TargetSer
     }
 
     /**
-     * The name the file has in [parent]: its own if that is free, else with the date it was created and, if need be, a number.
+     * The name the file has in [parent]: its own if that is free, else with the date it was last modified and, if need be, a number.
      */
-    private fun freeName(parent: GenericFSEntry, name: String, created: Long?): String {
+    private fun freeName(parent: GenericFSEntry, name: String, modified: Long?): String {
         if (fsDao.getGenericChildByName(parent.id.v(), name) == null)
             return name
         val dot = name.lastIndexOf('.')
         val extension = if (dot < 1) "" else name.substring(dot)
         val base = name.dropLast(extension.length)
-        val time = LocalDateTime.ofEpochSecond((created ?: 0L) / 1000, 0, ZoneOffset.UTC)
+        val time = LocalDateTime.ofEpochSecond((modified ?: 0L) / 1000, 0, ZoneOffset.UTC)
         val date = "${time.year}.${time.monthValue}.${time.dayOfMonth}.${time.hour}.${time.minute}.${time.second}"
         var candidate = "${base}_$date$extension"
         var number = 1

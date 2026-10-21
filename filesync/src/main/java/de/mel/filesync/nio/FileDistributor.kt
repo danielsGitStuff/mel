@@ -173,8 +173,7 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
                 // update synced flag
                 if (lastId != null)
                     de.mel.auth.tools.lock2.P.confine(fsDao).run {
-                        val fsFile = updateFs(lastId, lastFile)
-                        setCreationDate(lastFile, fsFile.created.v())
+                        updateFs(lastId, lastFile)
                     }.end()
 
             } else {
@@ -188,17 +187,14 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
         // the time of the sender was applied to the file (FsConvenience), if the file system took it. What the disk says is what the fs table gets.
         val fsBashDetails = BashTools.getFsBashDetails(target)
                 ?: throw IOException("could not read FsBashDetails from ${target.absolutePath}")
-        BashTools.setCreationDate(target, fsBashDetails.created)
+        // what the disk says: the creation time is not sent, every device has its own
+        fsTarget.created.v(fsBashDetails.created)
         fsTarget.getiNode().v(fsBashDetails.getiNode())
         fsTarget.modified.v(fsBashDetails.modified)
         fsTarget.size.v(target.length())
         fsTarget.synced.v(true)
         fsDao.update(fsTarget)
         return fsTarget
-    }
-
-    protected fun setCreationDate(file: T, timestamp: Long) {
-        BashTools.Companion.setCreationDate(file, timestamp)
     }
 
     open protected fun moveFile(sourceFile: T, lastFile: T, lastPath: String, lastId: Long?) {
@@ -224,8 +220,7 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
         if (fsId != null) {
             de.mel.auth.tools.lock2.P.confine(fsId).run {
                 convenience.applyModified(target, fsDao.getFile(fsId))
-                val fsFile = updateFs(fsId, target)
-                setCreationDate(target, fsFile.created.v())
+                updateFs(fsId, target)
             }.end()
         }
     }

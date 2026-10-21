@@ -70,6 +70,9 @@ public class SyncedStateTest {
                 differences.add(path + f[1] + ": hash " + entry.getContentHash().v() + " but the file has " + FileSyncInstances.md5Of(file));
             if (!java.util.Objects.equals(entry.getiNode().v(), disk.getiNode()))
                 differences.add(path + f[1] + ": inode " + entry.getiNode().v() + " but the file has " + disk.getiNode());
+            // the creation time is not sent: the receiver's table has the one of its own disk (linux cannot set it)
+            if (!java.util.Objects.equals(entry.getCreated().v(), disk.getCreated()))
+                differences.add(path + f[1] + ": created " + entry.getCreated().v() + " but the file has " + disk.getCreated());
             if (!java.util.Objects.equals(entry.getModified().v(), disk.getModified()))
                 differences.add(path + f[1] + ": modified " + entry.getModified().v() + " but the file has " + disk.getModified());
         }

@@ -48,6 +48,8 @@ public class Stage extends SQLTableObject implements SerializableEntity {
     @JsonIgnore
     private Pair<Long> iNode = new Pair<>(Long.class, INODE);
     private Pair<Long> modified = new Pair<>(Long.class, MODIFIED);
+    // the creation time cannot be set on every platform: it stays where it is, the receiver stores its own
+    @JsonIgnore
     private Pair<Long> created = new Pair<>(Long.class, CREATED);
     private Pair<Boolean> deleted = new Pair<>(Boolean.class, DELETED);
     @JsonIgnore
