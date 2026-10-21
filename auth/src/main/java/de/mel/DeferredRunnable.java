@@ -1,7 +1,7 @@
 package de.mel;
 
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 /**
  * A Runnable that comes with a Deferred object, that is resolved when the Thread has started.
@@ -10,14 +10,12 @@ import org.jdeferred.impl.DeferredObject;
  * Created by xor on 04.09.2016.
  */
 public abstract class DeferredRunnable implements MelRunnable {
-    protected DeferredObject<DeferredRunnable, Exception, Void> startedPromise = new DeferredObject<>();
+    protected PromiseImpl<DeferredRunnable, Exception> startedPromise = PromiseImpl.withoutThrowingOnException();
     protected Thread thread;
     protected volatile boolean stopped = false;
 
-    public static DeferredObject<Void, Void, Void> ResolvedDeferredObject(){
-      DeferredObject<Void,Void,Void> deferredObject = new DeferredObject<>();
-      deferredObject.resolve(null);
-      return deferredObject;
+    public static Promise<Void, Void> ResolvedDeferredObject() {
+        return Promise.resolvedOk();
     }
 
     /**
@@ -25,7 +23,7 @@ public abstract class DeferredRunnable implements MelRunnable {
      *
      * @return
      */
-    public Promise<Void, Void, Void> shutDown() {
+    public Promise<Void, Void> shutDown() {
         stopped = true;
         return onShutDown();
     }
@@ -35,7 +33,7 @@ public abstract class DeferredRunnable implements MelRunnable {
      * You may want to shut down other components as well. They should be stopped but might block somewhere.
      * Unblock them here.
      */
-    public abstract Promise<Void, Void, Void> onShutDown();
+    public abstract Promise<Void, Void> onShutDown();
 
     @Override
     public void run() {
@@ -72,7 +70,7 @@ public abstract class DeferredRunnable implements MelRunnable {
         synchronized (this) {
             if (!startedPromise.isPending())
                 return false;
-            startedPromise.resolve(this);
+            startedPromise.resolveOk(this);
             return true;
         }
     }
@@ -86,12 +84,12 @@ public abstract class DeferredRunnable implements MelRunnable {
         synchronized (this) {
             if (!startedPromise.isPending())
                 return false;
-            startedPromise.reject(reason);
+            startedPromise.resolveError(reason);
             return true;
         }
     }
 
-    public DeferredObject<DeferredRunnable, Exception, Void> getStartedDeferred() {
+    public PromiseImpl<DeferredRunnable, Exception> getStartedDeferred() {
         return startedPromise;
     }
 
@@ -109,7 +107,7 @@ public abstract class DeferredRunnable implements MelRunnable {
 //            thread.interrupt();
     }
 
-    public DeferredRunnable setStartedPromise(DeferredObject<DeferredRunnable, Exception, Void> startedPromise) {
+    public DeferredRunnable setStartedPromise(PromiseImpl<DeferredRunnable, Exception> startedPromise) {
         this.startedPromise = startedPromise;
         return this;
     }

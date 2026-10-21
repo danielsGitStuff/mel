@@ -9,8 +9,10 @@ import de.mel.auth.jobs.IsolatedConnectJob;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.socket.process.imprt.MelCertRetriever;
 import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.AlreadyResolvedErrorException;
+import fun.with.promise.AlreadyResolvedOkException;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 import java.net.ConnectException;
 import java.util.Objects;
@@ -58,7 +60,7 @@ public class ConnectWorker extends DeferredRunnable {
     }
 
     @Override
-    public DeferredObject<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         settle(new Exception("shutting down"));
         return DeferredRunnable.ResolvedDeferredObject();
     }
@@ -67,8 +69,8 @@ public class ConnectWorker extends DeferredRunnable {
     private void settle(Exception reason) {
         if (connectJob.isPending()) {
             try {
-                connectJob.reject(reason);
-            } catch (IllegalStateException e) {
+                connectJob.resolveError(reason);
+            } catch (AlreadyResolvedOkException | AlreadyResolvedErrorException e) {
                 // settled in the meantime
             }
         }
@@ -79,14 +81,14 @@ public class ConnectWorker extends DeferredRunnable {
      *
      * @throws Exception the reason if it was rejected
      */
-    private <T> T await(Promise<T, ? extends Exception, ?> promise) throws Exception {
+    private <T> T await(Promise<T, ? extends Exception> promise) throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<T> result = new AtomicReference<>();
         AtomicReference<Exception> failure = new AtomicReference<>();
-        promise.done(value -> {
+        promise.onDone(value -> {
             result.set(value);
             latch.countDown();
-        }).fail(reason -> {
+        }).onError(reason -> {
             failure.set(reason);
             latch.countDown();
         });
@@ -107,7 +109,7 @@ public class ConnectWorker extends DeferredRunnable {
     /**
      * one attempt to authenticate on a socket of its own
      */
-    private DeferredObject<MelValidationProcess, Exception, Void> authenticate(Long certificateId) {
+    private PromiseImpl<MelValidationProcess, Exception> authenticate(Long certificateId) {
         ConnectJob attempt = new ConnectJob(certificateId, connectJob.getAddress(), connectJob.getPort(), connectJob.getPortCert(), false);
         MelAuthSocket socket = new MelAuthSocket(melAuthService, attempt);
         socket.setRunnableName("-> " + attempt.getAddress() + ":" + attempt.getPort());
@@ -146,22 +148,22 @@ public class ConnectWorker extends DeferredRunnable {
             }
         }
         try {
-            job.resolve(process);
-        } catch (IllegalStateException e) {
+            job.resolveOk(process);
+        } catch (AlreadyResolvedOkException | AlreadyResolvedErrorException e) {
             // settled in the meantime, e.g. by a shutdown
         }
     }
 
     private MelValidationProcess registerAndAuthenticate(ConnectJob job) throws Exception {
         // 1. the certificate
-        DeferredObject<Certificate, Exception, Object> fetched = new DeferredObject<>();
+        PromiseImpl<Certificate, Exception> fetched = PromiseImpl.withoutThrowingOnException();
         new MelCertRetriever(melAuthService).retrieveCertificate(fetched, job.getAddress(), job.getPort(), job.getPortCert());
         Certificate certificate = await(fetched);
         job.setCertificateId(certificate.getId().v());
         // 2. register. The socket is closed by the registration, whatever its outcome.
         MelAuthSocket registerSocket = new MelAuthSocket(melAuthService);
         registerSocket.setRunnableName("register -> " + job.getAddress() + ":" + job.getPort());
-        DeferredObject<Certificate, Exception, Void> registered = new DeferredObject<>();
+        PromiseImpl<Certificate, Exception> registered = PromiseImpl.withoutThrowingOnException();
         new MelRegisterProcess(registerSocket).register(registered, certificate.getId().v(), job.getAddress(), job.getPort());
         await(registered);
         // 3. wait until that socket is gone, then the partner is trusted on both sides and a new socket authenticates

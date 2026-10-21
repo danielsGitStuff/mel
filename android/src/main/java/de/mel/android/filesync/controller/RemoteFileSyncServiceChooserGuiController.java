@@ -19,7 +19,7 @@ import android.widget.TextView;
 import de.mel.auth.file.IFile;
 import de.mel.auth.service.Bootloader;
 
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 
 import java.io.File;
 import java.util.Arrays;
@@ -119,8 +119,8 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
          */
 
         IFile[] rootDirs = StoragesManager.getStorageFiles(Tools.getApplicationContext());// N.arr.fromCollection(paths, N.converter(AFile.class, element -> AFile.instance(AFile.instance(element))));
-        Promise<IFile, Void, Void> result = DirectoryChooserDialog.showDialog(activity, rootDirs);
-        result.done(chosenDir -> {
+        Promise<IFile, Void> result = DirectoryChooserDialog.showDialog(activity, rootDirs);
+        result.onDone(chosenDir -> {
 //            activity.runOnUiThread(() -> setPath(chosenDir.getAbsolutePath()));
             setPath(chosenDir.getAbsolutePath());
         });
@@ -150,7 +150,7 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
 //                    , getPermissionsText()
 //                    , () -> {
 //                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//                            SAFAccessor.setupAllStorages(activity).done(result -> launchDirChooser());
+//                            SAFAccessor.setupAllStorages(activity).onDone(result -> launchDirChooser());
 //                        } else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT) {
 //                            launchDirChooser();
 //                        }

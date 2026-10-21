@@ -91,7 +91,7 @@ public class DuplicateConnectionTest {
                 () -> {
                     try {
                         start.await();
-                        client.connect(serverIdAtClient).always((state, resolved, rejected) -> done.countDown());
+                        client.connect(serverIdAtClient).onDone(a -> done.countDown()).onError(e -> done.countDown());
                     } catch (Exception e) {
                         done.countDown();
                     }
@@ -99,7 +99,7 @@ public class DuplicateConnectionTest {
                 () -> {
                     try {
                         start.await();
-                        server.connect(clientIdAtServer).always((state, resolved, rejected) -> done.countDown());
+                        server.connect(clientIdAtServer).onDone(a -> done.countDown()).onError(e -> done.countDown());
                     } catch (Exception e) {
                         done.countDown();
                     }

@@ -21,7 +21,7 @@ import de.mel.filesync.data.RootDirectory;
 import de.mel.filesync.serialization.TestDirCreator;
 import de.mel.filesync.service.MelFileSyncServerService;
 import de.mel.filesync.service.MelFileSyncService;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -61,8 +61,8 @@ public class IndexTest {
             MelAuthSettings settings = MelAuthSettings.createDefaultSettings().setWorkingDirectory(wd).setName("First");
             CountWaitLock lock = new CountWaitLock();
             MelBoot melBoot = new MelBoot(settings, new PowerManager(settings), FileSyncBootloader.class);
-            Promise<MelAuthService, Exception, Void> promise = melBoot.boot();
-            promise.done(result -> N.r(() -> {
+            Promise<MelAuthService, Exception> promise = melBoot.boot();
+            promise.onDone(result -> N.r(() -> {
                 mas = result;
                 RootDirectory rootDirectory = RootDirectory.buildRootDirectory(testRoot);
                 IFile transferDir = AbstractFile.instance(rootDirectory.getOriginalFile(), FileSyncStrings.TRANSFER_DIR);
@@ -77,7 +77,7 @@ public class IndexTest {
                 FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> {
                     mds = driveService;
                     mds.start();
-                    mds.getStartedDeferred().done(result1 -> lock.unlock());
+                    mds.getStartedDeferred().onDone(result1 -> lock.unlock());
                 };
                 new FileSyncCreateServiceHelper(mas).createService(fileSyncSettings, "server");
                 lock.unlock();
@@ -97,20 +97,20 @@ public class IndexTest {
     public void reindex() throws Exception {
         Eva.enable();
         index = false;
-        mas.shutDown().done(nil -> N.r(() -> {
+        mas.shutDown().onDone(nil -> N.r(() -> {
             //re index
             CountWaitLock lock = new CountWaitLock();
             MelAuthSettings settings = mas.getSettings();
             MelBoot melBoot = new MelBoot(settings, new PowerManager(settings), FileSyncBootloader.class);
-            melBoot.boot().done(result -> N.r(() -> {
+            melBoot.boot().onDone(result -> N.r(() -> {
                 mas = result;
                 MelFileSyncServerService driveService = (MelFileSyncServerService) mas.getMelServices().stream().findFirst().get();
-                driveService.startedPromise.done(result1 -> {
+                driveService.startedPromise.onDone(result1 -> {
                     Lok.debug("reindex done");
                     assertTrue(true);
                     //todo refine
                     Lok.debug("shutting down...");
-                    mas.shutDown().done(result2 -> {
+                    mas.shutDown().onDone(result2 -> {
                         Lok.debug("done, shutting down");
                         lock.unlock();
                     });

@@ -10,7 +10,7 @@ import java.net.UnknownHostException;
 import de.mel.DeferredRunnable;
 import de.mel.Lok;
 import de.mel.auth.tools.N;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 
 /**
  * Sends and retrieves small messages from the broadcast network address
@@ -32,7 +32,7 @@ public abstract class BrotCaster extends DeferredRunnable {
     }
 
     @Override
-    public Promise<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         N.s(() -> socket.close());
         socket = null;
         return null;

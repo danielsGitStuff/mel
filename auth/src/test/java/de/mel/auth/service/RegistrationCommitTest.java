@@ -213,7 +213,7 @@ public class RegistrationCommitTest {
 
         java.util.concurrent.CountDownLatch connected = new java.util.concurrent.CountDownLatch(1);
         java.util.concurrent.atomic.AtomicReference<de.mel.auth.socket.MelValidationProcess> made = new java.util.concurrent.atomic.AtomicReference<>();
-        client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), true).done(p -> {
+        client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), true).onDone(p -> {
             made.set(p);
             connected.countDown();
         });

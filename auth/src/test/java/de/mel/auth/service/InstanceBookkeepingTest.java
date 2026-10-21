@@ -62,7 +62,7 @@ public class InstanceBookkeepingTest {
         MelRequest request = new MelRequest("service", "intent");
         AtomicReference<Exception> failure = new AtomicReference<>();
         CountDownLatch rejected = new CountDownLatch(1);
-        request.getAnswerDeferred().fail(e -> {
+        request.getAnswerDeferred().onError(e -> {
             failure.set(e);
             rejected.countDown();
         });
@@ -85,14 +85,14 @@ public class InstanceBookkeepingTest {
         Thread.sleep(400);
         // 700 ms since the first start: the restarted one would have been rejected without the restart
         assertTrue(restarted.getAnswerDeferred().isPending(), "restart did not postpone the timeout");
-        assertTrue(waitFor(() -> restarted.getAnswerDeferred().isRejected(), 5), "restarted request was never rejected");
+        assertTrue(waitFor(() -> restarted.getAnswerDeferred().hasError(), 5), "restarted request was never rejected");
         assertTrue(stopped.getAnswerDeferred().isPending(), "a stopped timeout must not reject");
     }
 
     @Test
     public void allowedServicesOfAPartnerWithoutConnectionIsRejectedNotAnException() throws Exception {
         Request<MelServicesPayload> request = instances.server.getAllowedServices(4711L);
-        assertTrue(request.isRejected());
+        assertTrue(request.hasError());
     }
 
     @Test

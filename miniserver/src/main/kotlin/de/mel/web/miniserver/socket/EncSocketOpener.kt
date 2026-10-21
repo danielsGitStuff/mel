@@ -6,7 +6,7 @@ import de.mel.auth.data.access.CertificateManager
 import de.mel.auth.tools.N
 import de.mel.update.VersionAnswer
 import de.mel.web.miniserver.MiniServer
-import org.jdeferred.Promise
+import `fun`.with.promise.Promise
 
 import java.net.InetSocketAddress
 import java.net.ServerSocket
@@ -18,7 +18,7 @@ class EncSocketOpener(private val certificateManager: CertificateManager, privat
         return javaClass.simpleName
     }
 
-    override fun onShutDown(): Promise<Void, Void, Void>? {
+    override fun onShutDown(): Promise<Void, Void>? {
         N.s { serverSocket?.close() }
         return null
     }

@@ -11,8 +11,8 @@ import android.provider.DocumentsContract;
 
 import de.mel.auth.file.IFile;
 
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 import java.io.File;
 
@@ -66,13 +66,13 @@ public class SAFAccessor {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public static Promise<Void, Exception, Void> setupAllStorages(MelActivity activity) {
-        DeferredObject<Void, Exception, Void> deferredObject = new DeferredObject<>();
+    public static Promise<Void, Exception> setupAllStorages(MelActivity activity) {
+        PromiseImpl<Void, Exception> deferredObject = PromiseImpl.withoutThrowingOnException();
         askForInternalRootDirectory(activity)
-                .done(result -> askForExternalRootDirectory(activity)
-                        .done(result1 -> deferredObject.resolve(null))
-                        .fail(deferredObject::reject))
-                .fail(deferredObject::reject);
+                .onDone(result -> askForExternalRootDirectory(activity)
+                        .onDone(result1 -> deferredObject.resolveOk(null))
+                        .onError(deferredObject::resolveError))
+                .onError(deferredObject::resolveError);
         return deferredObject;
 
     }
@@ -170,11 +170,11 @@ public class SAFAccessor {
         return rootPath != null;
     }
 
-    public static Promise<Void, Exception, Void> askForEverything(MelActivity activity) {
+    public static Promise<Void, Exception> askForEverything(MelActivity activity) {
         activity.showMessage(R.string.permissionsExplainAllTitle, R.string.permissionExplainAllText, () -> {
-            activity.annoyWithPermissions(Manifest.permission.MANAGE_EXTERNAL_STORAGE).done(result -> {
+            activity.annoyWithPermissions(Manifest.permission.MANAGE_EXTERNAL_STORAGE).onDone(result -> {
                 System.out.println("SAFAccessor.askForEverything1");
-            }).fail(result -> {
+            }).onError(result -> {
                 System.out.println("SAFAccessor.askForEverything2");
             });
         });
@@ -183,12 +183,12 @@ public class SAFAccessor {
 
     @androidx.annotation.RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @SuppressLint("WrongConstant") // flags are masked to the grant flags, as documented for takePersistableUriPermission
-    public static Promise<Void, Exception, Void> askForExternalRootDirectory(MelActivity activity) {
-        DeferredObject<Void, Exception, Void> deferred = new DeferredObject<>();
+    public static Promise<Void, Exception> askForExternalRootDirectory(MelActivity activity) {
+        PromiseImpl<Void, Exception> deferred = PromiseImpl.withoutThrowingOnException();
         if (!hasExternalSdCard())
-            return deferred.resolve(null);
+            return deferred.resolveOk(null);
         if (canWriteExternal())
-            return deferred.resolve(null);
+            return deferred.resolveOk(null);
         activity.showMessage(R.string.permissionExplainExternalTitle, R.string.permissionExplainExternalText, () -> {
             Intent docIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
             docIntent.addCategory(Intent.CATEGORY_DEFAULT);
@@ -204,7 +204,7 @@ public class SAFAccessor {
                             .commit();
                 }
                 if (SAFAccessor.canWriteExternal()) {
-                    deferred.resolve(null);
+                    deferred.resolveOk(null);
                     return;
                 }
                 SAFAccessor.askForExternalRootDirectory(activity);
@@ -216,10 +216,10 @@ public class SAFAccessor {
 
     @androidx.annotation.RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @SuppressLint("WrongConstant") // flags are masked to the grant flags, as documented for takePersistableUriPermission
-    public static Promise<Void, Exception, Void> askForInternalRootDirectory(MelActivity activity) {
-        DeferredObject<Void, Exception, Void> deferred = new DeferredObject<>();
+    public static Promise<Void, Exception> askForInternalRootDirectory(MelActivity activity) {
+        PromiseImpl<Void, Exception> deferred = PromiseImpl.withoutThrowingOnException();
         if (Tools.getSharedPreferences().getString(INT_STORAGE_URI, null) != null) {
-            return deferred.resolve(null);
+            return deferred.resolveOk(null);
         }
 
         activity.showMessage(R.string.permissionExplainInternalTitle, R.string.permissionExplainInternalText, () -> {
@@ -232,7 +232,7 @@ public class SAFAccessor {
                     // this is a fools solution but should work. fuck that stupid SAF shit.
                     boolean isRoot = DocumentsContract.getTreeDocumentId(rootTreeUri).equals("primary:");
                     if (!isRoot) {
-                        deferred.reject(new Exception("directory chosen was not the root directory"));
+                        deferred.resolveError(new Exception("directory chosen was not the root directory"));
                         return;
                     }
                     final int takeFlags = result.getFlags()
@@ -241,9 +241,9 @@ public class SAFAccessor {
                     Tools.getSharedPreferences().edit()
                             .putString(SAFAccessor.INT_STORAGE_URI, rootTreeUri.toString())
                             .commit();
-                    deferred.resolve(null);
+                    deferred.resolveOk(null);
                 } else
-                    deferred.reject(new Exception("something went wrong"));
+                    deferred.resolveError(new Exception("something went wrong"));
             });
         });
         return deferred;

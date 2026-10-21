@@ -23,8 +23,8 @@ import de.mel.auth.socket.process.val.Request;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
 import de.mel.sql.SqlQueriesException;
 import de.mel.update.Updater;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -85,7 +85,7 @@ public class DummyMelAuthService extends MelAuthService {
     }
 
     @Override
-    public DeferredObject<DeferredRunnable, Exception, Void> prepareStart() {
+    public PromiseImpl<DeferredRunnable, Exception> prepareStart() {
         return null;
     }
 
@@ -165,7 +165,7 @@ public class DummyMelAuthService extends MelAuthService {
     }
 
     @Override
-    public Promise<MelAuthService, Exception, Void> boot() {
+    public Promise<MelAuthService, Exception> boot() {
         return null;
     }
 
@@ -175,17 +175,17 @@ public class DummyMelAuthService extends MelAuthService {
     }
 
     @Override
-    <T extends MelIsolatedProcess> DeferredObject<T, Exception, Void> connectToService(Class<T> isolatedServiceClass, Long certId, String remoteServiceUuid, String ownServiceUuid, String address, Integer port, Integer portCert) throws SqlQueriesException, InterruptedException {
+    <T extends MelIsolatedProcess> PromiseImpl<T, Exception> connectToService(Class<T> isolatedServiceClass, Long certId, String remoteServiceUuid, String ownServiceUuid, String address, Integer port, Integer portCert) throws SqlQueriesException, InterruptedException {
         return null;
     }
 
     @Override
-    public Promise<MelValidationProcess, Exception, Void> connect(Long certificateId) throws SqlQueriesException, InterruptedException {
-        return new DeferredObject<MelValidationProcess, Exception, Void>().reject(new Exception("this is a test"));
+    public Promise<MelValidationProcess, Exception> connect(Long certificateId) throws SqlQueriesException, InterruptedException {
+        return PromiseImpl.<MelValidationProcess, Exception>withoutThrowingOnException().resolveError(new Exception("this is a test"));
     }
 
     @Override
-    Promise<MelValidationProcess, Exception, Void> connect(String address, int port, int portCert, boolean regOnUnkown) throws InterruptedException {
+    Promise<MelValidationProcess, Exception> connect(String address, int port, int portCert, boolean regOnUnkown) throws InterruptedException {
         return null;
     }
 
@@ -250,7 +250,7 @@ public class DummyMelAuthService extends MelAuthService {
     }
 
     @Override
-    public Promise<Void, Void, Void> shutDown() {
+    public Promise<Void, Void> shutDown() {
         return null;
     }
 
@@ -330,7 +330,7 @@ public class DummyMelAuthService extends MelAuthService {
     }
 
     @Override
-    public DeferredObject<DeferredRunnable, Exception, Void> startUpCommunications() {
+    public PromiseImpl<DeferredRunnable, Exception> startUpCommunications() {
         return null;
     }
 

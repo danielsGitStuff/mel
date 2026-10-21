@@ -34,7 +34,7 @@ import de.mel.auth.socket.process.val.MelServicesPayload;
 import de.mel.auth.socket.MelValidationProcess;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
-import de.mel.auth.tools.ShutDownDeferredManager;
+import de.mel.auth.tools.Promises;
 import de.mel.auth.tools.WaitLock;
 import de.mel.auth.tools.lock2.BunchOfLocks;
 import de.mel.auth.tools.lock2.P;
@@ -47,9 +47,8 @@ import de.mel.sql.serialize.PairCollectionSerializerFactory;
 import de.mel.sql.serialize.PairSerializerFactory;
 import de.mel.update.Updater;
 
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DefaultDeferredManager;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -87,7 +86,7 @@ public class MelAuthServiceImpl extends MelAuthService {
     private Map<String, MelService> uuidServiceMap = new HashMap<>();
     private MelAuthBrotCaster brotCaster;
     private MelBoot melBoot;
-    private DeferredObject<DeferredRunnable, Exception, Void> startedPromise;
+    private PromiseImpl<DeferredRunnable, Exception> startedPromise;
     private PowerManager powerManager;
     private File cacheDir;
 
@@ -173,7 +172,7 @@ public class MelAuthServiceImpl extends MelAuthService {
     }
 
     @Override
-    public DeferredObject<DeferredRunnable, Exception, Void> prepareStart() {
+    public PromiseImpl<DeferredRunnable, Exception> prepareStart() {
         N.r(() -> this.melAuthWorker = new MelAuthWorker(this, settings));
         startedPromise = melAuthWorker.getStartedDeferred();
         return startedPromise;
@@ -244,7 +243,7 @@ public class MelAuthServiceImpl extends MelAuthService {
         MelValidationProcess validationProcess = connectedEnvironment.getValidationProcess(certificateId);
         if (validationProcess == null) {
             Request<MelServicesPayload> notConnected = new Request<>();
-            notConnected.reject(new ResponseException("not connected to certificate " + certificateId));
+            notConnected.resolveError(new ResponseException("not connected to certificate " + certificateId));
             return notConnected;
         }
         Request<MelServicesPayload> promise = validationProcess.request(MelStrings.SERVICE_NAME, new EmptyPayload(MelStrings.msg.INTENT_GET_SERVICES));
@@ -267,7 +266,7 @@ public class MelAuthServiceImpl extends MelAuthService {
             Lok.error("MelAuthService.registerMelService: MelService.UUID was NULL");
         uuidServiceMapSemaphore.lock();
         uuidServiceMap.put(melService.getUuid(), melService);
-        if (melAuthWorker.getStartedDeferred().isResolved()) {
+        if (melAuthWorker.getStartedDeferred().hasResult()) {
             melService.onServiceRegistered();
         }
         uuidServiceMapSemaphore.unlock();
@@ -300,20 +299,20 @@ public class MelAuthServiceImpl extends MelAuthService {
 
 
     @Override
-    public Promise<MelAuthService, Exception, Void> boot() {
-        DeferredObject<MelAuthService, Exception, Void> bootedPromise = new DeferredObject<>();
-        DeferredObject<DeferredRunnable, Exception, Void> startedPromise = this.prepareStart();
+    public Promise<MelAuthService, Exception> boot() {
+        PromiseImpl<MelAuthService, Exception> bootedPromise = PromiseImpl.withoutThrowingOnException();
+        PromiseImpl<DeferredRunnable, Exception> startedPromise = this.prepareStart();
         start();
         Lok.debug("MelAuthService.boot.trying to connect to everybody");
-        startedPromise.done(result -> N.r(() -> {
+        startedPromise.onDone(result -> N.r(() -> {
             for (Certificate certificate : certificateManager.getTrustedCertificates()) {
-                Promise<MelValidationProcess, Exception, Void> connected = connect(certificate.getId().v());
-                connected.done(mvp -> N.r(() -> {
+                Promise<MelValidationProcess, Exception> connected = connect(certificate.getId().v());
+                connected.onDone(mvp -> N.r(() -> {
 
-                })).fail(result1 -> Lok.error("MelAuthServive.boot.could not connect to: '" + certificate.getName().v() + "' address: " + certificate.getAddress().v()));
+                })).onError(result1 -> Lok.error("MelAuthServive.boot.could not connect to: '" + certificate.getName().v() + "' address: " + certificate.getAddress().v()));
             }
         }));
-        bootedPromise.resolve(this);
+        bootedPromise.resolveOk(this);
         return bootedPromise;
     }
 
@@ -324,7 +323,7 @@ public class MelAuthServiceImpl extends MelAuthService {
     }
 
     @Override
-    <T extends MelIsolatedProcess> DeferredObject<T, Exception, Void> connectToService(Class<T> isolatedServiceClass, Long certId, String remoteServiceUuid, String ownServiceUuid, String address, Integer port, Integer portCert) throws SqlQueriesException, InterruptedException {
+    <T extends MelIsolatedProcess> PromiseImpl<T, Exception> connectToService(Class<T> isolatedServiceClass, Long certId, String remoteServiceUuid, String ownServiceUuid, String address, Integer port, Integer portCert) throws SqlQueriesException, InterruptedException {
         Certificate certificate = certificateManager.getTrustedCertificateById(certId);
         if (address == null)
             address = certificate.getAddress().v();
@@ -338,21 +337,21 @@ public class MelAuthServiceImpl extends MelAuthService {
     }
 
     @Override
-    public synchronized Promise<MelValidationProcess, Exception, Void> connect(Long certificateId) throws SqlQueriesException, InterruptedException {
-        DeferredObject<MelValidationProcess, Exception, Void> deferred = new DeferredObject<>();
+    public synchronized Promise<MelValidationProcess, Exception> connect(Long certificateId) throws SqlQueriesException, InterruptedException {
+        PromiseImpl<MelValidationProcess, Exception> deferred = PromiseImpl.withoutThrowingOnException();
         if (certificateId == null) {
-            return deferred.reject(new Exception("certificateid was null"));
+            return deferred.resolveError(new Exception("certificateid was null"));
         }
         Certificate certificate = certificateManager.getTrustedCertificateById(certificateId);
         if (certificate == null) {
-            return deferred.reject(new Exception("no certificate found for id: " + certificate));
+            return deferred.resolveError(new Exception("no certificate found for id: " + certificate));
         }
         return connectedEnvironment.connect(certificate);
     }
 
 
     @Override
-    Promise<MelValidationProcess, Exception, Void> connect(String address, int port, int portCert, boolean regOnUnkown) throws InterruptedException {
+    Promise<MelValidationProcess, Exception> connect(String address, int port, int portCert, boolean regOnUnkown) throws InterruptedException {
         return connectedEnvironment.connect(address, port, portCert, regOnUnkown);
     }
 
@@ -388,16 +387,16 @@ public class MelAuthServiceImpl extends MelAuthService {
         N runner = new N(e -> e.printStackTrace());
         if (!checkedAddresses.containsKey(address)) {
             checkedAddresses.put(address, true);
-            Promise<MelValidationProcess, Exception, Void> authenticatedPromise = this.connect(intendedCertificate.getAddress().v(), intendedCertificate.getPort().v(), intendedCertificate.getCertDeliveryPort().v(), false);
-            authenticatedPromise.done(melValidationProcess -> {
+            Promise<MelValidationProcess, Exception> authenticatedPromise = this.connect(intendedCertificate.getAddress().v(), intendedCertificate.getPort().v(), intendedCertificate.getCertDeliveryPort().v(), false);
+            authenticatedPromise.onDone(melValidationProcess -> {
                 runner.runTry(() -> {
                     Request<MelServicesPayload> servicesPromise = this.getAllowedServices(melValidationProcess.getPartnerCertificate().getId().v());
-                    servicesPromise.done(melServicesPayload -> {
+                    servicesPromise.onDone(melServicesPayload -> {
                         runner.runTry(() -> this.addToNetworkEnvironment(melValidationProcess.getPartnerCertificate().getId().v(), melServicesPayload));
                     });
                 });
-            }).fail(result -> {
-                Lok.error("MelAuthService.connectAndCollect.fail() for: " + address + "");
+            }).onError(result -> {
+                Lok.error("MelAuthService.connectAndCollect.onError() for: " + address + "");
             });
         }
     }
@@ -415,7 +414,7 @@ public class MelAuthServiceImpl extends MelAuthService {
                 networkEnvironment.add(certId, null);
                 checkedAddresses.put(validationProcess.getAddressString(), true);
                 Request<MelServicesPayload> gotServicesPromise = this.getAllowedServices(certId);
-                gotServicesPromise.done(melServicesPayload -> {
+                gotServicesPromise.onDone(melServicesPayload -> {
                     addToNetworkEnvironment(certId, melServicesPayload);
                 });
             }
@@ -428,11 +427,11 @@ public class MelAuthServiceImpl extends MelAuthService {
                 runner.runTry(() -> {
                     String address = MelAuthSocket.getAddressString(inetAddress, port);
                     checkedAddresses.put(address, true);
-                    Promise<MelValidationProcess, Exception, Void> promise = this.connect(inetAddress.getHostAddress(), port, portCert, false);
-                    promise.done(melValidationProcess -> {
+                    Promise<MelValidationProcess, Exception> promise = this.connect(inetAddress.getHostAddress(), port, portCert, false);
+                    promise.onDone(melValidationProcess -> {
                         runner.runTry(() -> {
                             networkEnvironment.add(melValidationProcess.getPartnerCertificate().getId().v(), null);
-                            getAllowedServices(melValidationProcess.getPartnerCertificate().getId().v()).done(melServicesPayload -> {
+                            getAllowedServices(melValidationProcess.getPartnerCertificate().getId().v()).onDone(melServicesPayload -> {
                                 runner.runTry(() -> {
                                             for (ServiceJoinServiceType service : melServicesPayload.getServices()) {
                                                 networkEnvironment.add(melValidationProcess.getPartnerCertificate().getId().v(), service);
@@ -441,7 +440,7 @@ public class MelAuthServiceImpl extends MelAuthService {
                                 );
                             });
                         });
-                    }).fail(result -> {
+                    }).onError(result -> {
                         if (!(result instanceof ShamefulSelfConnectException))
                             networkEnvironment.addUnkown(inetAddress.getHostAddress(), port, portCert);
                     });
@@ -489,30 +488,30 @@ public class MelAuthServiceImpl extends MelAuthService {
     }
 
     @Override
-    public Promise<Void, Void, Void> shutDown() {
-        ShutDownDeferredManager shutdownManager = new ShutDownDeferredManager();
+    public Promise<Void, Void> shutDown() {
+        List<Promise<?, ?>> shutdownManager = new ArrayList<>();
         uuidServiceMapSemaphore.lock();
         for (IMelService service : uuidServiceMap.values()) {
             if (service instanceof MelService) {
                 N.r(() -> {
                     MelService melService = (MelService) service;
-                    shutdownManager.when(melService.shutDown());
+                    shutdownManager.add(melService.shutDown());
                 });
             }
         }
         uuidServiceMapSemaphore.unlock();
         Set<MelSocket> socks = new HashSet<>(sockets);
         for (MelSocket socket : socks) {
-            shutdownManager.when(socket.shutDown());
+            shutdownManager.add(socket.shutDown());
         }
         for (MelAuthAdmin admin : melAuthAdmins) {
             admin.shutDown();
         }
-        shutdownManager.when(melAuthWorker.shutDown());
+        shutdownManager.add(melAuthWorker.shutDown());
         N.r(melBoot::shutDown);
         databaseManager.shutDown();
         getTimeoutScheduler().shutdownNow();
-        return shutdownManager.digest();
+        return Promises.allSettled(shutdownManager.toArray(new Promise[0]));
     }
 
     @Override
@@ -539,11 +538,10 @@ public class MelAuthServiceImpl extends MelAuthService {
         Lok.debug("resume");
         melBoot.onHeavyWorkAllowed();
         uuidServiceMapSemaphore.lock();
-        List<DeferredObject> servicesStarted = new ArrayList<>();
         for (IMelService service : uuidServiceMap.values()) {
             if (service instanceof MelService) {
                 MelService melService = (MelService) service;
-                DeferredObject<DeferredRunnable, Exception, Void> startedPromise = new DeferredObject<>();
+                PromiseImpl<DeferredRunnable, Exception> startedPromise = PromiseImpl.withoutThrowingOnException();
                 melService.setStartedPromise(startedPromise);
 //                servicesStarted.add(startedPromise);
                 melService.restart();
@@ -555,13 +553,7 @@ public class MelAuthServiceImpl extends MelAuthService {
         // reconnect everything after resume
         melAuthWorker.restart();
         melAuthWorker.addJob(new NetworkEnvDiscoveryJob());
-        DeferredObject[] arr = N.arr.fromCollection(servicesStarted, N.converter(DeferredObject.class, element -> element));
-        if (arr.length > 0) {
-            new DefaultDeferredManager().when(arr).done(result -> execute(melAuthWorker))
-                    .fail(result -> Lok.error("could not resume!"));
-        } else {
-            execute(melAuthWorker);
-        }
+        execute(melAuthWorker);
     }
 
     @Override
@@ -664,8 +656,8 @@ public class MelAuthServiceImpl extends MelAuthService {
     }
 
     @Override
-    public DeferredObject<DeferredRunnable, Exception, Void> startUpCommunications() {
-        DeferredObject<DeferredRunnable, Exception, Void> deferred = new DeferredObject<>();
+    public PromiseImpl<DeferredRunnable, Exception> startUpCommunications() {
+        PromiseImpl<DeferredRunnable, Exception> deferred = PromiseImpl.withoutThrowingOnException();
         if (melAuthWorker.isStopped()) {
             // restart
             melAuthWorker.setStartedPromise(deferred);
@@ -673,7 +665,7 @@ public class MelAuthServiceImpl extends MelAuthService {
             this.execute(melAuthWorker);
         } else {
             // it is still running
-            deferred.resolve(melAuthWorker);
+            deferred.resolveOk(melAuthWorker);
         }
         return deferred;
     }

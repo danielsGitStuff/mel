@@ -25,7 +25,7 @@ import de.mel.filesync.sql.StageSet;
 import de.mel.filesync.sql.TransferState;
 import de.mel.sql.SqlQueriesException;
 
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.PromiseImpl;
 
 import java.io.File;
 import java.util.Map;
@@ -156,7 +156,7 @@ public class MelFileSyncClientService extends MelFileSyncService<ClientSyncHandl
     }
 
     @Override
-    public DeferredObject<DeferredRunnable, Exception, Void> startIndexer() throws SqlQueriesException {
+    public PromiseImpl<DeferredRunnable, Exception> startIndexer() throws SqlQueriesException {
         super.startIndexer();
         stageIndexer.setStagingDoneListener(stageSetId -> {
             Lok.debug("committed stageset " + stageSetId);
@@ -222,7 +222,7 @@ public class MelFileSyncClientService extends MelFileSyncService<ClientSyncHandl
         N.r(() -> {
             Long serverId = fileSyncSettings.getClientSettings().getServerCertId();
             if (serverId != null) {
-                melAuthService.connect(serverId).done(result1 -> addJob(new CommitJob(true)));
+                melAuthService.connect(serverId).onDone(result1 -> addJob(new CommitJob(true)));
             }
         });
         N.r(() -> resolveStarted());

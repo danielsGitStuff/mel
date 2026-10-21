@@ -38,7 +38,7 @@ import de.mel.core.serialize.exceptions.JsonSerializationException;
 import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mel.sql.ISQLResource;
 import de.mel.sql.SqlQueriesException;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 
 
 /**
@@ -159,10 +159,10 @@ public class AndroidContactsServerService extends ContactsServerService {
         } else if (job instanceof AnswerQueryJob) {
             super.workWork(job);
         } else if (job instanceof UpdatePhoneBookJob) {
-            job.done(result -> N.r(() -> {
+            job.onDone(result -> N.r(() -> {
                 UpdatePhoneBookJob updatePhoneBookJob = (UpdatePhoneBookJob) job;
                 contactsToAndroidExporter.export(updatePhoneBookJob.getPhoneBook().getId().v());
-            })).fail(result -> N.r(() -> {
+            })).onError(result -> N.r(() -> {
                 Lok.debug("AndroidContactsServerService.workWork.update failed :(");
             }));
             super.workWork(job);
@@ -230,7 +230,7 @@ public class AndroidContactsServerService extends ContactsServerService {
     }
 
     @Override
-    public Promise<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         super.onShutDown();
         serviceMethods.onShutDown();
         return null;

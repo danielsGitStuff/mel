@@ -42,7 +42,7 @@ public class NotificationFXTest {
         MelAuthSettings settings = MelAuthSettings.createDefaultSettings();
         MelBoot melBoot = new MelBoot(settings, new PowerManager(settings), FileSyncFXBootloader.class, ContactsFXBootloader.class);
         melBoot.addMelAuthAdmin(new MelAuthFxLoader());
-        melBoot.boot().done(mas -> N.r(() -> {
+        melBoot.boot().onDone(mas -> N.r(() -> {
             System.out.println("NotificationFXTest.notification");
             ServiceType type = mas.getDatabaseManager().getServiceTypeByName(new ContactsFXBootloader().getName());
             ContactsFXBootloader fxBootloader = (ContactsFXBootloader) melBoot.createBootLoader(mas, ContactsFXBootloader.class);

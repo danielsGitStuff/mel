@@ -4,7 +4,7 @@ import de.mel.DeferredRunnable;
 import de.mel.Lok;
 import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.tools.N;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -25,7 +25,7 @@ public class MelAuthSocketOpener extends DeferredRunnable {
     }
 
     @Override
-    public Promise<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         N.r(() -> serverSocket.close());
         return DeferredRunnable.ResolvedDeferredObject();
     }

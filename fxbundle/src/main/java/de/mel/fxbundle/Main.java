@@ -70,21 +70,21 @@ public class Main {
 
         if (melAuthSettings.isHeadless() || !canDisplay) {
             MelBoot melBoot = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncBootloader.class, ContactsBootloader.class, DumpBootloader.class);
-            melBoot.boot().done(melAuthService -> {
+            melBoot.boot().onDone(melAuthService -> {
                 Lok.debug("Main.main.booted (headless)");
                 lock.unlockWrite();
-            }).fail(Throwable::printStackTrace);
+            }).onError(Throwable::printStackTrace);
         } else {
             MelBoot melBoot = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncFXBootloader.class, ContactsFXBootloader.class, DumpFxBootloader.class);
             MelAuthFxLoader fxLoader = new MelAuthFxLoader();
             melBoot.addMelAuthAdmin(fxLoader);
-            melBoot.boot().done(melAuthService -> {
+            melBoot.boot().onDone(melAuthService -> {
                 RegisterHandlerFX registerHandlerFX = new RegisterHandlerFX();
                 registerHandlerFX.setup(fxLoader.getMelAuthAdminFX());
                 melAuthService.addRegisterHandler(registerHandlerFX);
                 Lok.debug("Main.main.booted");
                 lock.unlockWrite();
-            }).fail(Throwable::printStackTrace);
+            }).onError(Throwable::printStackTrace);
         }
         lock.lockWrite();
         Lok.debug("Main.main.end");

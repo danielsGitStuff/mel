@@ -17,7 +17,7 @@ import de.mel.filesync.sql.TransferState
 import de.mel.filesync.sql.dao.FsDao
 import de.mel.filesync.sql.dao.TransferDao
 import kotlinx.coroutines.runBlocking
-import org.jdeferred.Promise
+import `fun`.with.promise.Promise
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -33,7 +33,7 @@ class TManager(
     val fsDao: FsDao
 ) : DeferredRunnable(), MelIsolatedProcess.IsolatedProcessListener {
 
-    override fun onShutDown(): Promise<Void, Void, Void> = ResolvedDeferredObject()
+    override fun onShutDown(): Promise<Void, Void> = ResolvedDeferredObject()
 
     companion object {
         private val FILE_REQUEST_LIMIT_PER_CONNECTION: Int = 30
@@ -134,12 +134,12 @@ class TManager(
             if (transferSets.size > 0) {
                 transferSets.forEach { transferDetails ->
                     val isolatedPromise = melFileSyncService.getIsolatedProcess(MelIsolatedFileProcess::class.java, transferDetails.certId.v(), transferDetails.serviceUuid.v())
-                    isolatedPromise.done { isolatedFileProcess ->
+                    isolatedPromise.onDone { isolatedFileProcess ->
                         isolatedProcessesMap[isolatedFileProcess.partnerCertificateId] = isolatedFileProcess
                         checkAtom()
                         isolatedFileProcess.addIsolatedProcessListener(this)
                         startTransfersForIsoProcess(isolatedFileProcess)
-                    }.fail {
+                    }.onError {
                         val c = transferDetails
                         de.mel.auth.tools.lock2.P.confine(transferDao).run {
                             transferDao.flagStateForRemainingTransfers(transferDetails.certId.v(), transferDetails.serviceUuid.v(), TransferState.SUSPENDED)

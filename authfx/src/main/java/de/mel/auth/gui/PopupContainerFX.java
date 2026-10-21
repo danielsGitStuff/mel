@@ -8,8 +8,8 @@ import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 /**
  * Created by xor on 5/30/17.
@@ -21,8 +21,8 @@ public class PopupContainerFX {
     @FXML
     private Button btnOk;
 
-    public Promise<PopupContentFX, Void, Void> load(String containingPath) {
-        DeferredObject<PopupContentFX, Void, Void> deferred = new DeferredObject<>();
+    public Promise<PopupContentFX, Void> load(String containingPath) {
+        PromiseImpl<PopupContentFX, Void> deferred = PromiseImpl.withoutThrowingOnException();
         XCBFix.runLater(() -> N.r(() -> {
             FXMLLoader contentLoader = new FXMLLoader(PopupContainerFX.class.getClassLoader().getResource(containingPath));
 
@@ -42,7 +42,7 @@ public class PopupContainerFX {
                     alert.showAndWait();
                 }
             });
-            deferred.resolve(contentController);
+            deferred.resolveOk(contentController);
         }));
         return deferred;
     }

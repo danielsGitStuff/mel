@@ -1,8 +1,8 @@
 package de.mel.auth.service;
 
 import de.mel.core.serialize.SerializableEntity;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 import de.mel.Lok;
 import de.mel.MelRunnable;
@@ -55,7 +55,7 @@ public abstract class MelService extends MelWorker implements IMelService {
     };
     protected MelAuthService melAuthService;
     private ReentrantLock isolatedLock = new ReentrantLock();
-    private Map<String, DeferredObject<? extends MelIsolatedProcess, Exception, Void>> isolatedDeferredMap = new HashMap<>();
+    private Map<String, PromiseImpl<? extends MelIsolatedProcess, Exception>> isolatedDeferredMap = new HashMap<>();
     private Bootloader.BootLevel reachedBootLevel;
     private ExecutorService executorService;
 
@@ -133,52 +133,53 @@ public abstract class MelService extends MelWorker implements IMelService {
      * Several isolated connections to the same partner service may exist, closing one does not affect the others.
      */
     @SuppressWarnings("unchecked")
-    public synchronized <T extends MelIsolatedProcess> Promise<T, Exception, Void> getIsolatedProcess(Class<T> processClass, Long partnerCertId, String partnerServiceUuid) throws InterruptedException, SqlQueriesException {
+    public synchronized <T extends MelIsolatedProcess> Promise<T, Exception> getIsolatedProcess(Class<T> processClass, Long partnerCertId, String partnerServiceUuid) throws InterruptedException, SqlQueriesException {
         final String key = isolatedKey(partnerCertId, partnerServiceUuid, processClass);
         isolatedLock.lock();
         try {
             for (MelIsolatedProcess established : establishedIsolated.values()) {
                 if (processClass.isInstance(established) && key.equals(isolatedKey(established)) && established.isOpen()) {
-                    DeferredObject<T, Exception, Void> reuse = new DeferredObject<>();
-                    reuse.resolve((T) established);
+                    PromiseImpl<T, Exception> reuse = PromiseImpl.withoutThrowingOnException();
+                    reuse.resolveOk((T) established);
                     return reuse;
                 }
             }
-            DeferredObject<T, Exception, Void> alreadyDeferred = (DeferredObject<T, Exception, Void>) isolatedDeferredMap.get(key);
+            PromiseImpl<T, Exception> alreadyDeferred = (PromiseImpl<T, Exception>) isolatedDeferredMap.get(key);
             if (alreadyDeferred != null && (alreadyDeferred.isPending())) {
                 return alreadyDeferred;
             }
-            DeferredObject<T, Exception, Void> deferred = melAuthService.connectToService(processClass, partnerCertId, partnerServiceUuid, uuid, null, null, null);
+            PromiseImpl<T, Exception> deferred = melAuthService.connectToService(processClass, partnerCertId, partnerServiceUuid, uuid, null, null, null);
             isolatedDeferredMap.put(key, deferred);
-            deferred.always((state, resolved, rejected) -> {
-                // from here on the established isolated connections are looked at, a failed attempt must not be handed out again
+            // from here on the established isolated connections are looked at, a failed attempt must not be handed out again
+            Runnable forget = () -> {
                 isolatedLock.lock();
                 try {
                     isolatedDeferredMap.remove(key, deferred);
                 } finally {
                     isolatedLock.unlock();
                 }
-            });
+            };
+            deferred.onDone(result -> forget.run()).onError(reason -> forget.run());
             return deferred;
         } finally {
             isolatedLock.unlock();
         }
     }
 
-    public synchronized <T extends MelIsolatedProcess> Promise<T, Exception, Void> getIsolatedProcess2(Class<T> processClass, Long partnerCertId, String partnerServiceUuid) throws InterruptedException, SqlQueriesException {
-        DeferredObject<T,Exception,Void> deferred = new DeferredObject<>();
-        deferred.reject(new Exception("DEBUG exception. Isolated connection always fails!"));
+    public synchronized <T extends MelIsolatedProcess> Promise<T, Exception> getIsolatedProcess2(Class<T> processClass, Long partnerCertId, String partnerServiceUuid) throws InterruptedException, SqlQueriesException {
+        PromiseImpl<T, Exception> deferred = PromiseImpl.withoutThrowingOnException();
+        deferred.resolveError(new Exception("DEBUG exception. Isolated connection always fails!"));
         return deferred;
 //        final String key = partnerCertId + "." + partnerServiceUuid + "." + processClass.getSimpleName();
 //        isolatedLock.lock();
-//        DeferredObject<T, Exception, Void> alreadyDeferred = (DeferredObject<T, Exception, Void>) isolatedDeferredMap.get(key);
-//        if (alreadyDeferred != null && (alreadyDeferred.isResolved() || alreadyDeferred.isPending())) {
+//        PromiseImpl<T, Exception> alreadyDeferred = (PromiseImpl<T, Exception>) isolatedDeferredMap.get(key);
+//        if (alreadyDeferred != null && (alreadyDeferred.hasResult() || alreadyDeferred.isPending())) {
 //            isolatedLock.unlock();
 //            return alreadyDeferred;
 //        }
-//        DeferredObject<T, Exception, Void> deferred = melAuthService.connectToService(processClass, partnerCertId, partnerServiceUuid, uuid, null, null, null);
+//        PromiseImpl<T, Exception> deferred = melAuthService.connectToService(processClass, partnerCertId, partnerServiceUuid, uuid, null, null, null);
 //        isolatedDeferredMap.put(key, deferred);
-//        deferred.done(result -> {
+//        deferred.onDone(result -> {
 //            Lok.debug("am i first?");
 //        });
 //        isolatedLock.unlock();
@@ -243,7 +244,7 @@ public abstract class MelService extends MelWorker implements IMelService {
     }
 
     @Override
-    public Promise<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         if (executorService != null) {
             executorService.shutdown();
             executorService = null;

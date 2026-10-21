@@ -1,6 +1,6 @@
 package de.mel;
 
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -12,7 +12,7 @@ public class DeferredRunnableTest {
         final AtomicInteger entered = new AtomicInteger();
 
         @Override
-        public Promise<Void, Void, Void> onShutDown() {
+        public Promise<Void, Void> onShutDown() {
             return DeferredRunnable.ResolvedDeferredObject();
         }
 
@@ -65,7 +65,7 @@ public class DeferredRunnableTest {
     public void stoppedIsVisibleToAnotherThread() throws Exception {
         DeferredRunnable waiting = new DeferredRunnable() {
             @Override
-            public Promise<Void, Void, Void> onShutDown() {
+            public Promise<Void, Void> onShutDown() {
                 return DeferredRunnable.ResolvedDeferredObject();
             }
 
@@ -94,7 +94,7 @@ public class DeferredRunnableTest {
     public void theStartedPromiseResolvesWhenTheRunnableSaysSo() {
         DeferredRunnable runnable = new DeferredRunnable() {
             @Override
-            public Promise<Void, Void, Void> onShutDown() {
+            public Promise<Void, Void> onShutDown() {
                 return DeferredRunnable.ResolvedDeferredObject();
             }
 
@@ -110,7 +110,7 @@ public class DeferredRunnableTest {
         };
         assertTrue(runnable.getStartedDeferred().isPending());
         runnable.run();
-        assertTrue(runnable.getStartedDeferred().isResolved());
+        assertTrue(runnable.getStartedDeferred().hasResult());
     }
 
     @Test
@@ -119,20 +119,20 @@ public class DeferredRunnableTest {
         assertTrue(runnable.resolveStarted());
         assertFalse(runnable.resolveStarted(), "a second resolve is ignored, it must not throw");
         assertFalse(runnable.rejectStarted(new Exception("too late")));
-        assertTrue(runnable.getStartedDeferred().isResolved());
+        assertTrue(runnable.getStartedDeferred().hasResult());
 
         Counting failing = new Counting();
         assertTrue(failing.rejectStarted(new Exception("no")));
         assertFalse(failing.resolveStarted());
         assertFalse(failing.rejectStarted(new Exception("again")));
-        assertTrue(failing.getStartedDeferred().isRejected());
+        assertTrue(failing.getStartedDeferred().hasError());
     }
 
     @Test
     public void shuttingDownARunnableWhoseOnShutDownReturnsNullStillCompletes() {
         DeferredRunnable nullReturning = new DeferredRunnable() {
             @Override
-            public Promise<Void, Void, Void> onShutDown() {
+            public Promise<Void, Void> onShutDown() {
                 return null;
             }
 
@@ -146,9 +146,8 @@ public class DeferredRunnableTest {
             }
         };
         Counting fine = new Counting();
-        org.jdeferred.impl.DeferredObject<Void, Void, Void> done = new de.mel.auth.tools.ShutDownDeferredManager()
-                .when(nullReturning.shutDown(), fine.shutDown()).digest();
-        assertTrue(done.isResolved());
+        Promise<Void, Void> done = de.mel.auth.tools.Promises.allSettled(nullReturning.shutDown(), fine.shutDown());
+        assertTrue(done.hasResult());
         assertTrue(nullReturning.isStopped());
     }
 }

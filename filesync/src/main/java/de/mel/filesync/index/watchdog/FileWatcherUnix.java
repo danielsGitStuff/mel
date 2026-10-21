@@ -5,7 +5,7 @@ import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.IFile;
 import de.mel.filesync.data.PathCollection;
 import de.mel.filesync.service.MelFileSyncService;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 
 import java.io.File;
 import java.io.IOException;
@@ -99,7 +99,7 @@ class FileWatcherUnix extends FileWatcherPC {
     }
 
     @Override
-    public Promise<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         super.onShutDown();
         return null;
     }

@@ -6,7 +6,7 @@ import de.mel.auth.data.ServicePayload;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.jobs.Job;
 import de.mel.auth.socket.process.val.Request;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 
 import java.io.File;
 import java.util.concurrent.ExecutorService;
@@ -89,7 +89,7 @@ public class MelTestService extends MelServiceWorker {
     }
 
     @Override
-    public Promise<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         Lok.debug("MelTestService.onShutDown");
         return null;
     }

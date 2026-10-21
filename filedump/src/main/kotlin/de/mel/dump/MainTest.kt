@@ -37,7 +37,7 @@ class MainTest {
             rootFile.mkdir()
             val root = AbstractFile.instance(rootFile)
             val boot = MelBoot(settings, PowerManager(settings), DumpBootloader::class.java)
-            boot.boot().done { mas ->
+            boot.boot().onDone { mas ->
                 mas.addRegisterHandler(object : IRegisterHandler {
                     override fun onRegistrationCompleted(partnerCertificate: Certificate?) {
 

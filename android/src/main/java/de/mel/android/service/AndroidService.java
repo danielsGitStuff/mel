@@ -14,8 +14,8 @@ import android.os.IBinder;
 
 import androidx.core.app.NotificationCompat;
 
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,7 +65,7 @@ public class AndroidService extends Service {
         return instance;
     }
 
-    private DeferredObject<MelAuthService, Exception, Void> startedDeferred = new DeferredObject<>();
+    private PromiseImpl<MelAuthService, Exception> startedDeferred = PromiseImpl.withoutThrowingOnException();
     private static final int PERMANENT_REQUEST_CODE = 876;
     private final IBinder localBinder = new LocalBinder();
     private MelAuthService melAuthService;
@@ -77,7 +77,7 @@ public class AndroidService extends Service {
         @Override
         public void onCommunicationsEnabled() {
             Lok.debug("restarting communications");
-            melAuthService.startUpCommunications().done(result -> {
+            melAuthService.startUpCommunications().onDone(result -> {
                 try {
                     for (Certificate certificate : melAuthService.getCertificateManager().getAllCertificateDetails()) {
                         melAuthService.connect(certificate.getId().v());
@@ -86,7 +86,7 @@ public class AndroidService extends Service {
                 } catch (SqlQueriesException | InterruptedException e) {
                     e.printStackTrace();
                 }
-            }).fail(result -> Lok.error("failed to restart MelAuthWorker."));
+            }).onError(result -> Lok.error("failed to restart MelAuthWorker."));
         }
 
         @Override
@@ -97,7 +97,7 @@ public class AndroidService extends Service {
     };
     private Intent permanentNotificationIntent;
 
-    public Promise<MelAuthService, Exception, Void> getStartedPromise() {
+    public Promise<MelAuthService, Exception> getStartedPromise() {
         return startedDeferred;
     }
 
@@ -132,8 +132,8 @@ public class AndroidService extends Service {
             Notifier.toast(getApplicationContext(), "booting auth service");
             RWLock lock = new RWLock();
             try {
-                Promise<MelAuthService, Exception, Void> bootedPromise = setup(null);
-                bootedPromise.done(result -> {
+                Promise<MelAuthService, Exception> bootedPromise = setup(null);
+                bootedPromise.onDone(result -> {
                     N.r(() -> {
                         InputStream in = getAssets().open("de/mel/auth/update.server.cert");
                         CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
@@ -152,13 +152,13 @@ public class AndroidService extends Service {
                     IntentFilter powIntentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
                     powerChangeReceiver = new PowerChangeReceiver(this);
                     this.registerReceiver(powerChangeReceiver, powIntentFilter);
-                    startedDeferred.resolve(melAuthService);
+                    startedDeferred.resolveOk(melAuthService);
                 });
                 lock.lockWrite();
 
             } catch (Exception e) {
                 e.printStackTrace();
-                startedDeferred.reject(e);
+                startedDeferred.resolveError(e);
             }
             lock.unlockWrite();
         }
@@ -298,7 +298,7 @@ public class AndroidService extends Service {
         super.onTrimMemory(level);
     }
 
-    public Promise<MelAuthService, Exception, Void> setup(FileSyncSyncListener clientSyncListener) throws Exception {
+    public Promise<MelAuthService, Exception> setup(FileSyncSyncListener clientSyncListener) throws Exception {
         android();
 
         //setup working directories & directories with test data
@@ -355,7 +355,7 @@ public class AndroidService extends Service {
 //        melBoot = new MelBoot(melAuthSettings, powerManager, AndroidFileSyncBootloader.class, AndroidContactsBootloader.class, AndroidDumpBootloader.class);
         melBoot = new MelBoot(melAuthSettings, powerManager, AndroidFileSyncBootloader.class);
         melBoot.addMelAuthAdmin(admin);
-        Promise<MelAuthService, Exception, Void> promise = melBoot.boot().done(melAuthService -> {
+        Promise<MelAuthService, Exception> promise = melBoot.boot().onDone(melAuthService -> {
             N.r(() -> {
                 Lok.debug("AndroidService.booted");
                 powerManager.setMelAuthService(melAuthService);

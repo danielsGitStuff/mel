@@ -11,7 +11,6 @@ dependencies {
     implementation libs.bouncycastle.jdk18.pkix
     implementation libs.bouncycastle.jdk18.prov
     implementation libs.sqlite.jdbc
-    api libs.jdeferred
 //    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 //    implementation 'org.bouncycastle:bcprov-jdk18on:1.82'
 //    implementation 'org.xerial:sqlite-jdbc:3.50.3.0'
@@ -23,7 +22,6 @@ dependencies {
 
 //    api rootProject.dep_k_std
 //    api rootProject.dep_k_cor
-//    api rootProject.dep_jdeferred
 //    api rootProject.dep_bc_prov
 //    api rootProject.dep_bc_pkix
 }

@@ -19,7 +19,7 @@ import de.mel.filesync.data.PathCollection;
 import de.mel.filesync.index.watchdog.FileWatcher;
 import de.mel.filesync.index.watchdog.UnixReferenceFileHandler;
 import de.mel.filesync.service.MelFileSyncService;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 
 /**
  * Watches directories on Android. {@link Watcher} is the Android component that delivers events for one folder but not its subfolders.
@@ -53,7 +53,7 @@ public class RecursiveWatcher extends FileWatcher {
     }
 
     @Override
-    public Promise<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         for (Watcher watcher : watchers.values())
             watcher.stopWatching();
         return null;

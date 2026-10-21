@@ -58,7 +58,7 @@ public class IndexerTest {
         TestDirCreator.createTestDirSimple(rootFile);
         MelAuthSettings melAuthSettings = MelAuthSettings.createDefaultSettings();
         MelBoot melBoot = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncBootloader.class);
-        melBoot.boot().done(mas -> N.r(() -> {
+        melBoot.boot().onDone(mas -> N.r(() -> {
             IndexerTest.mas = mas;
             FileSyncSettings fileSyncSettings = new FileSyncSettings()
                     .setRole(FileSyncStrings.ROLE_SERVER)
@@ -98,7 +98,7 @@ public class IndexerTest {
         AtomicReference<MelAuthService> melAuthServiceAtomicReference = new AtomicReference<>();
         MelBoot melBoot = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncBootloader.class);
         final FsDirectory[] subDir = new FsDirectory[1];
-        melBoot.boot().done(mas -> N.r(() -> {
+        melBoot.boot().onDone(mas -> N.r(() -> {
             melAuthServiceAtomicReference.set(mas);
             Thread.sleep(2000);
             mds = (MelFileSyncServerService) mas.getMelServices().iterator().next();
@@ -109,7 +109,7 @@ public class IndexerTest {
         lock.lock();
         final String expectedHash = "680c63798b5a1295b1317dab64523c64";
         assertEquals(expectedHash, subDir[0].getContentHash().v());
-        melAuthServiceAtomicReference.get().shutDown().done(result -> {
+        melAuthServiceAtomicReference.get().shutDown().onDone(result -> {
             Lok.debug("done here");
             lock.unlock();
         });

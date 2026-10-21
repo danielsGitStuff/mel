@@ -163,11 +163,11 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MelIs
                             fileProcess.addFilesReceiving(transferDetail)
                         }
                         val connected = fileSyncService.melAuthService.connect(partnerCertId)
-                        connected.done {
+                        connected.onDone {
                             payload.intent = FileSyncStrings.INTENT_PLEASE_TRANSFER
                             it.message(partnerServiceUuid, payload)
                             waitLock.lockWrite()
-                        }.fail {
+                        }.onError {
                             stopped = true
                             waitLock.unlockWrite()
                         }

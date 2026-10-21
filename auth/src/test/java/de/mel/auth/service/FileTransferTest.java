@@ -54,7 +54,7 @@ public class FileTransferTest {
         CountDownLatch opened = new CountDownLatch(1);
         AtomicReference<MelIsolatedProcess> process = new AtomicReference<>();
         client.connectToService(MelIsolatedFileProcess.class, idOf(server, client), serverService.getUuid(), clientService.getUuid(), null, null, null)
-                .done(p -> {
+                .onDone(p -> {
                     process.set(p);
                     opened.countDown();
                 });

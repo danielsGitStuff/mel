@@ -5,8 +5,8 @@ import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.service.power.PowerManager;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 import de.mel.DeferredRunnable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +57,7 @@ public class BootFailureTest {
             blocker.close();
         if (directService != null) {
             CountDownLatch latch = new CountDownLatch(1);
-            directService.shutDown().done(r -> latch.countDown()).fail(r -> latch.countDown());
+            directService.shutDown().onDone(r -> latch.countDown()).onError(r -> latch.countDown());
             latch.await(30, TimeUnit.SECONDS);
         }
         if (melBoot != null) {
@@ -67,7 +67,7 @@ public class BootFailureTest {
             MelAuthService service = (MelAuthService) field.get(melBoot);
             if (service != null) {
                 CountDownLatch latch = new CountDownLatch(1);
-                service.shutDown().done(r -> latch.countDown()).fail(r -> latch.countDown());
+                service.shutDown().onDone(r -> latch.countDown()).onError(r -> latch.countDown());
                 latch.await(30, TimeUnit.SECONDS);
             }
         }
@@ -88,11 +88,11 @@ public class BootFailureTest {
         settings.setJsonFile(new File(dir, MelBoot.Companion.getDEFAULT_SETTINGS_FILE_NAME()));
         melBoot = new MelBoot(settings, new PowerManager(settings));
         Outcome outcome = new Outcome();
-        Promise<MelAuthService, Exception, Void> promise = melBoot.boot();
-        promise.done(service -> {
+        Promise<MelAuthService, Exception> promise = melBoot.boot();
+        promise.onDone(service -> {
             outcome.booted.set(service);
             outcome.settled.countDown();
-        }).fail(e -> {
+        }).onError(e -> {
             outcome.failure.set(e);
             outcome.settled.countDown();
         });
@@ -164,14 +164,14 @@ public class BootFailureTest {
         melBoot = new MelBoot(settings, powerManager);
         directService = new MelAuthServiceImpl(settings, powerManager);
         directService.setMelBoot(melBoot);
-        DeferredObject<DeferredRunnable, Exception, Void> started = directService.prepareStart();
+        PromiseImpl<DeferredRunnable, Exception> started = directService.prepareStart();
         ThrowsWhenToldAuthIsUp service = new ThrowsWhenToldAuthIsUp(directService, new File(dir, "service"));
         directService.registerMelService(service);
         assertEquals(0, service.told.get(), "registered before the start, nobody tells it yet");
 
         CountDownLatch done = new CountDownLatch(1);
         AtomicReference<Boolean> rejected = new AtomicReference<>(false);
-        started.done(r -> done.countDown()).fail(e -> {
+        started.onDone(r -> done.countDown()).onError(e -> {
             rejected.set(true);
             done.countDown();
         });
@@ -179,7 +179,7 @@ public class BootFailureTest {
 
         assertTrue(done.await(WAIT_FOR_BOOT_MILLIS * 5L, TimeUnit.MILLISECONDS), "start never settled");
         assertFalse(rejected.get(), "start was rejected");
-        assertTrue(started.isResolved());
+        assertTrue(started.hasResult());
         assertEquals(1, service.told.get());
     }
 }

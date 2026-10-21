@@ -45,7 +45,7 @@ import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntity
 import de.mel.sql.ISQLResource;
 import de.mel.sql.Pair;
 import de.mel.sql.SqlQueriesException;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 
 
 /**
@@ -83,7 +83,7 @@ public class AndroidContactsClientService extends ContactsClientService {
                 if (master == null
                         || master.getVersion().notEqualsValue(newVersionDetails.getVersion())) {
                     QueryJob queryJob = new QueryJob();
-                    queryJob.done(receivedPhoneBookId -> N.r(() -> {
+                    queryJob.onDone(receivedPhoneBookId -> N.r(() -> {
                         AndroidContactSettings androidContactSettings = (AndroidContactSettings) settings.getPlatformContactSettings();
                         if (androidContactSettings.getPersistToPhoneBook()) {
                             contactsToAndroidExporter.export(receivedPhoneBookId);
@@ -137,9 +137,9 @@ public class AndroidContactsClientService extends ContactsClientService {
         final String serviceUuid = databaseManager.getSettings().getClientSettings().getServiceUuid();
         PhoneBookDao phonebookDao = databaseManager.getPhoneBookDao();
         BunchOfLocks bunchOfLocks = P.confine(phonebookDao);
-        melAuthService.connect(serverCertId).done(mvp -> bunchOfLocks.run(() ->
+        melAuthService.connect(serverCertId).onDone(mvp -> bunchOfLocks.run(() ->
                 mvp.request(serviceUuid, new EmptyPayload(ContactStrings.INTENT_QUERY))
-                        .done(result -> bunchOfLocks.run(() -> {
+                        .onDone(result -> bunchOfLocks.run(() -> {
                             Lok.debug("ContactsClientService.workWork.query.success");
                             PhoneBookWrapper wrapper = (PhoneBookWrapper) result;
                             PhoneBook receivedPhoneBook = wrapper.getPhoneBook();
@@ -157,12 +157,12 @@ public class AndroidContactsClientService extends ContactsClientService {
                             }
                             bunchOfLocks.end();
                         }))
-                        .fail(result -> bunchOfLocks.run(() -> {
+                        .onError(result -> bunchOfLocks.run(() -> {
                             System.err.println("ContactsClientService.workWork");
-                            queryJob.reject(null);
+                            queryJob.resolveError(null);
                             bunchOfLocks.end();
                         }))))
-                .fail(result -> bunchOfLocks.end());
+                .onError(result -> bunchOfLocks.end());
 
     }
 
@@ -175,22 +175,22 @@ public class AndroidContactsClientService extends ContactsClientService {
         PhoneBookWrapper phoneBookWrapper = new PhoneBookWrapper(deepPhoneBook);
         phoneBookWrapper.setIntent(ContactStrings.INTENT_UPDATE);
         bunchOfLocks.run(() -> melAuthService.connect(clientSettings.getServerCertId())
-                .done(mvp -> bunchOfLocks.run(() -> mvp.request(clientSettings.getServiceUuid(), phoneBookWrapper)
-                        .done(result -> bunchOfLocks.run(() -> {
+                .onDone(mvp -> bunchOfLocks.run(() -> mvp.request(clientSettings.getServiceUuid(), phoneBookWrapper)
+                        .onDone(result -> bunchOfLocks.run(() -> {
                             Lok.debug("AndroidContactsClientService.workWork. update succeeded");
                             updateLocalPhoneBook(bunchOfLocks, deepPhoneBook.getId().v());
                             bunchOfLocks.end();
-                        })).fail(result -> bunchOfLocks.run(() -> {
+                        })).onError(result -> bunchOfLocks.run(() -> {
                             Lok.debug("updating server failed.");
                             QueryJob queryJob = new QueryJob();
                             addJob(queryJob);
                             bunchOfLocks.end();
                         }))))
-                .fail(result -> bunchOfLocks.end()));
+                .onError(result -> bunchOfLocks.end()));
     }
 
     @Override
-    public Promise<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         serviceMethods.onShutDown();
         super.onShutDown();
         return null;

@@ -1,5 +1,9 @@
 package de.mel.auth.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import fun.with.promise.Promise;
+
 import de.mel.Lok;
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.MelAuthSettings;
@@ -9,7 +13,7 @@ import de.mel.auth.file.IFile;
 import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.tools.CountLock;
 import de.mel.auth.tools.N;
-import de.mel.auth.tools.ShutDownDeferredManager;
+import de.mel.auth.tools.Promises;
 import de.mel.filesync.FileSyncBootloader;
 import de.mel.filesync.FileSyncCreateServiceHelper;
 import de.mel.filesync.FileSyncSyncListener;
@@ -73,10 +77,10 @@ public class FileSyncTest {
     @AfterEach
     public void after() throws IOException {
         CountLock shutdownLock = new CountLock().lock();
-        ShutDownDeferredManager shut = new ShutDownDeferredManager();
-        N.r(() -> shut.when(maServiceServer.shutDown()));
-        N.r(() -> shut.when(maServiceClient.shutDown()));
-        shut.digest().done(result -> shutdownLock.unlock());
+        List<Promise<?, ?>> shut = new ArrayList<>();
+        N.r(() -> shut.add(maServiceServer.shutDown()));
+        N.r(() -> shut.add(maServiceClient.shutDown()));
+        Promises.allSettled(shut.toArray(new Promise[0])).onDone(result -> shutdownLock.unlock());
         shutdownLock.lock();
         maServiceServer = maServiceClient = null;
         lock = null;
@@ -141,7 +145,7 @@ public class FileSyncTest {
         final MelBoot bootClient = nullableBootClient;
 
         // boot server
-        bootServer.boot().done(maServiceServer -> {
+        bootServer.boot().onDone(maServiceServer -> {
             N.r(() -> {
                 // make server accept everything
                 Lok.debug("setupConflict() server booted");
@@ -152,7 +156,7 @@ public class FileSyncTest {
                 FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = fsServiceServer -> N.r(() -> {
                     FileSyncTest.fsServiceServer = (MelFileSyncServerService) fsServiceServer;
                     // boot client
-                    bootClient.boot().done(maServiceClient -> N.r(() -> {
+                    bootClient.boot().onDone(maServiceClient -> N.r(() -> {
                         // make client accept everything
                         FileSyncTest.maServiceClient = maServiceClient;
                         FileSyncTest.maServiceClient.addRegisterHandler(FileSyncTestBoilerplate.registerHandlerAlwaysAccepts);
@@ -162,7 +166,7 @@ public class FileSyncTest {
                             FileSyncTest.maServiceClient.connect("localhost", FileSyncTest.maServiceServer.getSettings().getPort(),
                                             FileSyncTest.maServiceServer.getSettings().getDeliveryPort(),
                                             false)
-                                    .done(mvp -> new Thread(() -> N.r(() -> {
+                                    .onDone(mvp -> new Thread(() -> N.r(() -> {
                                         FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = fsServiceClient -> N.r(() -> {
                                             FileSyncTest.fsServiceClient = (MelFileSyncClientService) fsServiceClient;
                                             // setup test structure that allows analysis of what happened

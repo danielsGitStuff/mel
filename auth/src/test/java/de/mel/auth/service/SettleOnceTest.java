@@ -54,14 +54,14 @@ public class SettleOnceTest {
             Long clientIdAtServer = idOf(instances.client, instances.server);
             new Thread(() -> {
                 try {
-                    instances.client.connect(serverIdAtClient).always((s, r, e) -> bothDone.countDown());
+                    instances.client.connect(serverIdAtClient).onDone(a -> bothDone.countDown()).onError(e -> bothDone.countDown());
                 } catch (Exception e) {
                     bothDone.countDown();
                 }
             }).start();
             new Thread(() -> {
                 try {
-                    instances.server.connect(clientIdAtServer).always((s, r, e) -> bothDone.countDown());
+                    instances.server.connect(clientIdAtServer).onDone(a -> bothDone.countDown()).onError(e -> bothDone.countDown());
                 } catch (Exception e) {
                     bothDone.countDown();
                 }
@@ -70,12 +70,12 @@ public class SettleOnceTest {
             // a connection to nowhere
             instances.client.setConnectTimeoutMs(500);
             CountDownLatch nowhere = new CountDownLatch(1);
-            instances.client.connect("10.255.255.1", 18999, 18998, false).always((s, r, e) -> nowhere.countDown());
+            instances.client.connect("10.255.255.1", 18999, 18998, false).onDone(a -> nowhere.countDown()).onError(e -> nowhere.countDown());
             assertTrue(nowhere.await(15, TimeUnit.SECONDS));
             // a connection that is cut while it is being made
             closeNormalConnections(instances.server, instances.client);
             CountDownLatch cut = new CountDownLatch(1);
-            instances.client.connect(serverIdAtClient).always((s, r, e) -> cut.countDown());
+            instances.client.connect(serverIdAtClient).onDone(a -> cut.countDown()).onError(e -> cut.countDown());
             instances.server.shutDownCommunications();
             assertTrue(cut.await(TIMEOUT_SECONDS, TimeUnit.SECONDS));
             Thread.sleep(500);

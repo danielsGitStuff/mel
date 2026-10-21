@@ -1,8 +1,8 @@
 package de.mel.auth.service;
 
 import de.mel.auth.tools.lock2.BunchOfLocks;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 import de.mel.Lok;
 import de.mel.auth.data.db.Certificate;
@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ConnectedEnvironment {
     private Map<Long, MelValidationProcess> idValidateProcessMap = new HashMap<>();
-    private final Map<Long, List<DeferredObject<MelValidationProcess, Exception, Void>>> waitingForConnection = new HashMap<>();
+    private final Map<Long, List<PromiseImpl<MelValidationProcess, Exception>>> waitingForConnection = new HashMap<>();
     private String myHash;
     private Map<Long, AConnectJob> currentlyConnectingCertIds = new HashMap<>();
     private Map<String, AConnectJob> currentlyConnectingAddresses = new HashMap<>();
@@ -44,9 +44,9 @@ public class ConnectedEnvironment {
     }
 
 
-    synchronized Promise<MelValidationProcess, Exception, Void> connect(Certificate certificate) throws SqlQueriesException, InterruptedException {
+    synchronized Promise<MelValidationProcess, Exception> connect(Certificate certificate) throws SqlQueriesException, InterruptedException {
         Lok.debug("connect to cert: " + certificate.getId().v() + " , addr: " + certificate.getAddress().v());
-        DeferredObject<MelValidationProcess, Exception, Void> deferred = new DeferredObject<>();
+        PromiseImpl<MelValidationProcess, Exception> deferred = PromiseImpl.withoutThrowingOnException();
         long certificateId = certificate.getId().v();
         // check if already connected via id and address
         BunchOfLocks bunchOfLocks = null;
@@ -59,14 +59,14 @@ public class ConnectedEnvironment {
             {
                 MelValidationProcess mvp = getValidationProcess(certificateId);
                 if (mvp != null) {
-                    return deferred.resolve(mvp);
+                    return deferred.resolveOk(mvp);
                 } else if ((mvp = getValidationProcess(certificate.getAddress().v(), certificate.getPort().v())) != null) {
-                    return deferred.resolve(mvp);
+                    return deferred.resolveOk(mvp);
                 }
             }
             {
                 ConnectJob job = new ConnectJob(certificateId, certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
-                job.done(result -> {
+                job.onDone(result -> {
                     // use a new transaction, because we want connect in parallel.
                     P.confine(this)
                             .run(() -> {
@@ -74,8 +74,8 @@ public class ConnectedEnvironment {
                                 removeCurrentlyConnecting(certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v());
                             })
                             .end();
-                    deferred.resolve(result);
-                }).fail(result -> {
+                    deferred.resolveOk(result);
+                }).onError(result -> {
                     P.confine(this)
                             .run(() -> {
                                 removeCurrentlyConnecting(certificateId);
@@ -85,7 +85,7 @@ public class ConnectedEnvironment {
                     if (result instanceof DuplicateConnectionException)
                         whenConnected(certificateId, deferred, result);
                     else
-                        deferred.reject(result);
+                        deferred.resolveError(result);
                 });
                 currentlyConnecting(certificateId, job);
                 currentlyConnecting(certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), job);
@@ -103,9 +103,9 @@ public class ConnectedEnvironment {
 
     private static AtomicInteger debug_count = new AtomicInteger(0);
 
-    Promise<MelValidationProcess, Exception, Void> connect(String address, int port, int portCert, boolean regOnUnkown) throws InterruptedException {
+    Promise<MelValidationProcess, Exception> connect(String address, int port, int portCert, boolean regOnUnkown) throws InterruptedException {
 
-        DeferredObject<MelValidationProcess, Exception, Void> deferred = new DeferredObject<>();
+        PromiseImpl<MelValidationProcess, Exception> deferred = PromiseImpl.withoutThrowingOnException();
         MelValidationProcess mvp;
         BunchOfLocks bunchOfLocks = null;
         // there are two try catch blocks because the connection code might be interrupted and needs to end the transaction under any circumstances
@@ -117,16 +117,16 @@ public class ConnectedEnvironment {
                 return def;
             }
             if ((mvp = getValidationProcess(address, port)) != null) {
-                deferred.resolve(mvp);
+                deferred.resolveOk(mvp);
             } else {
                 ConnectJob job = new ConnectJob(null, address, port, portCert, regOnUnkown);
-                job.done(result -> {
+                job.onDone(result -> {
                     removeCurrentlyConnecting(address, port, portCert);
                     registerValidationProcess(result);
-                    deferred.resolve(result);
-                }).fail(result -> {
+                    deferred.resolveOk(result);
+                }).onError(result -> {
                     removeCurrentlyConnecting(address, port, portCert);
-                    deferred.reject(result);
+                    deferred.resolveError(result);
                 });
                 currentlyConnecting(address, port, portCert, job);
                 melAuthService.execute(new ConnectWorker(melAuthService, job));
@@ -182,7 +182,7 @@ public class ConnectedEnvironment {
         if (validationProcess.isClosed())
             return false;
         MelValidationProcess loser = null;
-        List<DeferredObject<MelValidationProcess, Exception, Void>> waiting = null;
+        List<PromiseImpl<MelValidationProcess, Exception>> waiting = null;
         BunchOfLocks bunchOfLocks = P.confine(this);
         try {
             MelValidationProcess existingProcess = idValidateProcessMap.get(validationProcess.getConnectedId());
@@ -208,9 +208,9 @@ public class ConnectedEnvironment {
             loser.getMelAuthSocket().duplicateLost();
         }
         if (waiting != null)
-            for (DeferredObject<MelValidationProcess, Exception, Void> deferred : waiting)
+            for (PromiseImpl<MelValidationProcess, Exception> deferred : waiting)
                 if (deferred.isPending())
-                    deferred.resolve(validationProcess);
+                    deferred.resolveOk(validationProcess);
         return true;
     }
 
@@ -218,7 +218,7 @@ public class ConnectedEnvironment {
      * Passes on the connection to that partner as soon as there is one (a connect attempt lost against another connection that is about to be registered).
      * Fails if there is none after a while.
      */
-    void whenConnected(Long certificateId, DeferredObject<MelValidationProcess, Exception, Void> deferred, Exception failure) {
+    void whenConnected(Long certificateId, PromiseImpl<MelValidationProcess, Exception> deferred, Exception failure) {
         MelValidationProcess existing;
         BunchOfLocks bunchOfLocks = P.confine(this);
         try {
@@ -229,24 +229,24 @@ public class ConnectedEnvironment {
                     melAuthService.getTimeoutScheduler().schedule(() -> {
                         BunchOfLocks locks = P.confine(this);
                         try {
-                            List<DeferredObject<MelValidationProcess, Exception, Void>> list = waitingForConnection.get(certificateId);
+                            List<PromiseImpl<MelValidationProcess, Exception>> list = waitingForConnection.get(certificateId);
                             if (list != null)
                                 list.remove(deferred);
                         } finally {
                             locks.end();
                         }
                         if (deferred.isPending())
-                            deferred.reject(failure);
+                            deferred.resolveError(failure);
                     }, 10, TimeUnit.SECONDS);
                 } catch (RuntimeException e) {
-                    deferred.reject(failure);
+                    deferred.resolveError(failure);
                 }
                 return;
             }
         } finally {
             bunchOfLocks.end();
         }
-        deferred.resolve(existing);
+        deferred.resolveOk(existing);
     }
 
     public Collection<MelValidationProcess> getValidationProcesses() {
@@ -359,10 +359,10 @@ public class ConnectedEnvironment {
         Lok.debug("attempting shutdown");
         BunchOfLocks bunchOfLocks = P.confine(this);
         N.forEachAdvIgnorantly(currentlyConnectingAddresses, (stoppable, index, s, connectJob) -> {
-            connectJob.reject(new Exception("shutting down"));
+            connectJob.resolveError(new Exception("shutting down"));
         });
         N.forEachAdvIgnorantly(currentlyConnectingCertIds, (stoppable, index, aLong, connectJob) -> {
-            connectJob.reject(new Exception("shutting down"));
+            connectJob.resolveError(new Exception("shutting down"));
         });
         currentlyConnectingAddresses.clear();
         currentlyConnectingCertIds.clear();
@@ -389,7 +389,7 @@ public class ConnectedEnvironment {
                 bunchOfLocks.end();
                 N.oneLine(() -> {
                     if (connectJob.isPending()) {
-                        connectJob.reject(new Exception("connection closed"));
+                        connectJob.resolveError(new Exception("connection closed"));
                     }
                 });
             }

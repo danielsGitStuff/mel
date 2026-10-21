@@ -60,7 +60,7 @@ public class CloseEventTest {
         Request<?> request = process.request(service.getUuid(), new EmptyPayload("no answer to this"));
         CountDownLatch failed = new CountDownLatch(1);
         AtomicReference<Exception> failure = new AtomicReference<>();
-        request.fail(e -> {
+        request.onError(e -> {
             failure.set(e);
             failed.countDown();
         });
@@ -90,7 +90,7 @@ public class CloseEventTest {
         MelValidationProcess process = connect(client, server);
         Request<?> request = process.request(service.getUuid(), new EmptyPayload("no answer to this"));
         CountDownLatch failed = new CountDownLatch(1);
-        request.fail(e -> failed.countDown());
+        request.onError(e -> failed.countDown());
         process.getMelAuthSocket().close(CloseReason.SHUTDOWN);
         assertTrue(failed.await(10, TimeUnit.SECONDS), "the request was not failed after we closed");
     }
@@ -106,7 +106,7 @@ public class CloseEventTest {
         CountDownLatch opened = new CountDownLatch(1);
         AtomicReference<MelIsolatedProcess> clientSide = new AtomicReference<>();
         client.connectToService(TestIsolatedProcess.class, serverCertId, serverService.getUuid(), clientService.getUuid(), null, null, null)
-                .done(p -> {
+                .onDone(p -> {
                     clientSide.set(p);
                     opened.countDown();
                 });

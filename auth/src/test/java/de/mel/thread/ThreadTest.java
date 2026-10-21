@@ -5,7 +5,7 @@ import de.mel.Lok;
 import de.mel.MelRunnable;
 import de.mel.MelThread;
 import de.mel.sql.RWLock;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -79,7 +79,7 @@ public class ThreadTest {
             }
 
             @Override
-            public Promise<Void, Void, Void> onShutDown() {
+            public Promise<Void, Void> onShutDown() {
                 Lok.debug("ThreadTest.onShutDown1");
                 return null;
             }
@@ -102,7 +102,7 @@ public class ThreadTest {
             }
 
             @Override
-            public Promise<Void, Void, Void> onShutDown() {
+            public Promise<Void, Void> onShutDown() {
                 Lok.debug("ThreadTest.onShutDown2");
                 return null;
             }

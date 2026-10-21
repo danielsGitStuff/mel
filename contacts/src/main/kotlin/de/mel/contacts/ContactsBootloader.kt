@@ -9,7 +9,7 @@ import de.mel.contacts.service.ContactsClientService
 import de.mel.contacts.service.ContactsServerService
 import de.mel.contacts.service.ContactsService
 
-import org.jdeferred.Promise
+import `fun`.with.promise.Promise
 
 import java.io.File
 import java.io.IOException
@@ -95,19 +95,19 @@ open class ContactsBootloader : Bootloader<ContactsService>() {
 //                    //allow the server to communicate with us
 //                    N.r { melAuthService.databaseManager.grant(service.id.v(), serverCert) }
 //                    melAuthService.connect(serverCert)
-//                        .done { mvp ->
+//                        .onDone { mvp ->
 //                            N.r {
 //                                val serviceDetails = ServiceDetails(serverServiceUuid)
 //                                serviceDetails.intent = ContactStrings.INTENT_REG_AS_CLIENT
 //                                mvp.request(serverServiceUuid, serviceDetails)
-//                                    .done {
+//                                    .onDone {
 //                                        clientSettings.initFinished = true
 //                                        contactsSettings.save()
 //                                        lock.unlock()
 //                                    }
-//                                    .fail { onFail() }
+//                                    .onError { onFail() }
 //                            }
-//                        }.fail { onFail() }
+//                        }.onError { onFail() }
 //                    lock.lock()
 //                }
 //            }
@@ -162,19 +162,19 @@ open class ContactsBootloader : Bootloader<ContactsService>() {
                     //allow the server to communicate with us
                     N.r { melAuthService.databaseManager.grant(service.id.v(), serverCert) }
                     melAuthService.connect(serverCert)
-                        .done { mvp ->
+                        .onDone { mvp ->
                             N.r {
                                 val serviceDetails = ServiceDetails(serverServiceUuid)
                                 serviceDetails.intent = ContactStrings.INTENT_REG_AS_CLIENT
                                 mvp.request(serverServiceUuid, serviceDetails)
-                                    .done {
+                                    .onDone {
                                         clientSettings.initFinished = true
                                         contactsSettings.save()
                                         lock.unlock()
                                     }
-                                    .fail { onFail() }
+                                    .onError { onFail() }
                             }
-                        }.fail { onFail() }
+                        }.onError { onFail() }
                     lock.lock()
                 }
             }
@@ -261,7 +261,7 @@ open class ContactsBootloader : Bootloader<ContactsService>() {
 //    }
 
     @Throws(BootException::class)
-    override fun bootLevelLongImpl(): Promise<Void, BootException, Void>? {
+    override fun bootLevelLongImpl(): Promise<Void, BootException>? {
         return null
     }
 

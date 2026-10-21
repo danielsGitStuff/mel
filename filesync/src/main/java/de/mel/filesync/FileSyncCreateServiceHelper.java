@@ -13,8 +13,8 @@ import de.mel.filesync.data.RootDirectory;
 import de.mel.filesync.service.MelFileSyncServerService;
 import de.mel.sql.SqlQueriesException;
 
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,8 +66,8 @@ public class FileSyncCreateServiceHelper {
         createService(fileSyncSettings, name);
     }
 
-    public Promise<MelFileSyncServerService, Exception, Void> createDriveServerServiceDeferred(String name, IFile rootFile, float wastebinRatio, int maxDays) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
-        DeferredObject<MelFileSyncServerService, Exception, Void> deferred = new DeferredObject<>();
+    public Promise<MelFileSyncServerService, Exception> createDriveServerServiceDeferred(String name, IFile rootFile, float wastebinRatio, int maxDays) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
+        PromiseImpl<MelFileSyncServerService, Exception> deferred = PromiseImpl.withoutThrowingOnException();
         Lok.debug("REMEMBER ME?");
         return deferred;
     }

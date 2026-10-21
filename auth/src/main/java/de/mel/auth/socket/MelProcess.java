@@ -8,7 +8,7 @@ import de.mel.core.serialize.exceptions.JsonSerializationException;
 import de.mel.core.serialize.exceptions.MelJsonException;
 import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.PromiseImpl;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -62,15 +62,15 @@ public abstract class MelProcess implements IRequestHandler {
             StateMsg msg = (StateMsg) deserialized;
             MelRequest request = requestMap.remove(answerId);
             request.stopTimeout();
-            DeferredObject<SerializableEntity, ResponseException, Void> deferred = request.getAnswerDeferred();
+            PromiseImpl<SerializableEntity, ResponseException> deferred = request.getAnswerDeferred();
             if (!msg.getState().equals(MelStrings.msg.STATE_OK)) {
                 if (msg.getException() == null)
-                    deferred.reject(new ResponseException("state was: " + msg.getState()));
+                    deferred.resolveError(new ResponseException("state was: " + msg.getState()));
                 else
-                    deferred.reject(msg.getException());
+                    deferred.resolveError(msg.getException());
                 return true;
             }
-            deferred.resolve(deserialized);
+            deferred.resolveOk(deserialized);
             return true;
         }
         return false;
@@ -104,7 +104,7 @@ public abstract class MelProcess implements IRequestHandler {
             if (requestMap.remove(request.getRequestId(), request)) {
                 request.stopTimeout();
                 if (request.getAnswerDeferred().isPending())
-                    request.getAnswerDeferred().reject(new ResponseException("connection closed: " + reason));
+                    request.getAnswerDeferred().resolveError(new ResponseException("connection closed: " + reason));
             }
         }
     }

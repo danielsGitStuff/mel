@@ -11,9 +11,9 @@ import de.mel.auth.socket.MelAuthSocketOpener;
 import de.mel.auth.socket.process.imprt.MelAuthCertDelivery;
 import de.mel.auth.tools.N;
 
-import de.mel.auth.tools.ShutDownDeferredManager;
-import org.jdeferred.impl.DefaultDeferredManager;
-import org.jdeferred.impl.DeferredObject;
+import de.mel.auth.tools.Promises;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 /**
  * Created by xor on 05.09.2016.
@@ -41,14 +41,14 @@ public class MelAuthWorker extends MelWorker implements PowerManager.IPowerState
         brotCaster = new MelAuthBrotCaster(melAuthService);
         melAuthService.setBrotCaster(brotCaster);
         certDelivery = new MelAuthCertDelivery(melAuthService, deliverPort);
-        DeferredObject<DeferredRunnable, Exception, Void> brotcasterPromise = brotCaster.getStartedDeferred();
-        DeferredObject<DeferredRunnable, Exception, Void> certDeliveryPromise = certDelivery.getStartedDeferred();
+        PromiseImpl<DeferredRunnable, Exception> brotcasterPromise = brotCaster.getStartedDeferred();
+        PromiseImpl<DeferredRunnable, Exception> certDeliveryPromise = certDelivery.getStartedDeferred();
         socketOpener = new MelAuthSocketOpener(melAuthService, port);
-        DeferredObject<DeferredRunnable, Exception, Void> socketOpenerPromise = socketOpener.getStartedDeferred();
+        PromiseImpl<DeferredRunnable, Exception> socketOpenerPromise = socketOpener.getStartedDeferred();
         melAuthService.execute(brotCaster);
         melAuthService.execute(certDelivery);
         melAuthService.execute(socketOpener);
-        new DefaultDeferredManager().when(certDeliveryPromise, socketOpenerPromise, brotcasterPromise).done(result -> {
+        Promise.fusedAnd(certDeliveryPromise, socketOpenerPromise, brotcasterPromise).onDone(result -> {
             //say hello!
             try {
                 Lok.debug("brotcasting Hello");
@@ -61,7 +61,7 @@ public class MelAuthWorker extends MelWorker implements PowerManager.IPowerState
             }
             // saying hello is no condition for being up
             resolveStarted();
-        }).fail(result -> {
+        }).onError(result -> {
             Lok.debug("MelAuthWorker.runTry.STRANGE");
             rejectStarted(new Exception("a part of the worker could not start"));
         });
@@ -89,11 +89,8 @@ public class MelAuthWorker extends MelWorker implements PowerManager.IPowerState
 
 
     @Override
-    public DeferredObject<Void, Void, Void> onShutDown() {
-        return new ShutDownDeferredManager()
-                .when(certDelivery.shutDown(), brotCaster.shutDown(), socketOpener.shutDown()
-                        , super.onShutDown())
-                .digest();
+    public Promise<Void, Void> onShutDown() {
+        return Promises.allSettled(certDelivery.shutDown(), brotCaster.shutDown(), socketOpener.shutDown(), super.onShutDown());
     }
 
 

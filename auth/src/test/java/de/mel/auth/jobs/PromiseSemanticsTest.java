@@ -27,8 +27,8 @@ public class PromiseSemanticsTest {
     public void aCallbackRunsOnTheThreadThatSettlesTheRequest() throws Exception {
         Request<EmptyPayload> request = new Request<>();
         AtomicReference<String> ranOn = new AtomicReference<>();
-        request.done(payload -> ranOn.set(Thread.currentThread().getName()));
-        settleInOtherThread(() -> request.resolve(new EmptyPayload("x")));
+        request.onDone(payload -> ranOn.set(Thread.currentThread().getName()));
+        settleInOtherThread(() -> request.resolveOk(new EmptyPayload("x")));
         assertEquals("settling thread", ranOn.get());
     }
 
@@ -36,17 +36,17 @@ public class PromiseSemanticsTest {
     public void aFailureCallbackRunsOnTheThreadThatRejectsTheRequest() throws Exception {
         Request<EmptyPayload> request = new Request<>();
         AtomicReference<String> ranOn = new AtomicReference<>();
-        request.fail(e -> ranOn.set(Thread.currentThread().getName()));
-        settleInOtherThread(() -> request.reject(new ResponseException("no")));
+        request.onError(e -> ranOn.set(Thread.currentThread().getName()));
+        settleInOtherThread(() -> request.resolveError(new ResponseException("no")));
         assertEquals("settling thread", ranOn.get());
     }
 
     @Test
     public void aCallbackRegisteredAfterwardsRunsAtOnceOnTheRegisteringThread() throws Exception {
         Request<EmptyPayload> request = new Request<>();
-        request.resolve(new EmptyPayload("x"));
+        request.resolveOk(new EmptyPayload("x"));
         AtomicReference<String> ranOn = new AtomicReference<>();
-        request.done(payload -> ranOn.set(Thread.currentThread().getName()));
+        request.onDone(payload -> ranOn.set(Thread.currentThread().getName()));
         assertEquals(Thread.currentThread().getName(), ranOn.get());
     }
 
@@ -55,8 +55,8 @@ public class PromiseSemanticsTest {
         Request<EmptyPayload> request = new Request<>();
         AtomicReference<Boolean> done = new AtomicReference<>(false);
         AtomicReference<Boolean> failed = new AtomicReference<>(false);
-        request.done(p -> done.set(true)).fail(e -> failed.set(true));
-        request.reject(new ResponseException("no"));
+        request.onDone(p -> done.set(true)).onError(e -> failed.set(true));
+        request.resolveError(new ResponseException("no"));
         assertFalse(done.get());
         assertTrue(failed.get());
     }
@@ -64,42 +64,42 @@ public class PromiseSemanticsTest {
     @Test
     public void aRequestIsSettledOnce() {
         Request<EmptyPayload> request = new Request<>();
-        request.resolve(new EmptyPayload("x"));
-        assertThrows(RuntimeException.class, () -> request.resolve(new EmptyPayload("y")));
-        assertThrows(RuntimeException.class, () -> request.reject(new ResponseException("too late")));
-        assertTrue(request.isResolved());
+        request.resolveOk(new EmptyPayload("x"));
+        assertThrows(RuntimeException.class, () -> request.resolveOk(new EmptyPayload("y")));
+        assertThrows(RuntimeException.class, () -> request.resolveError(new ResponseException("too late")));
+        assertTrue(request.hasResult());
     }
 
     @Test
     public void aRejectedRequestStaysRejected() {
         Request<EmptyPayload> request = new Request<>();
-        request.reject(new ResponseException("no"));
-        assertThrows(RuntimeException.class, () -> request.resolve(new EmptyPayload("y")));
-        assertTrue(request.isRejected());
+        request.resolveError(new ResponseException("no"));
+        assertThrows(RuntimeException.class, () -> request.resolveOk(new EmptyPayload("y")));
+        assertTrue(request.hasError());
     }
 
     @Test
     public void theAnswerOfARequestMessageIsSettledOnce() {
         MelRequest request = new MelRequest("service", "intent");
-        request.getAnswerDeferred().reject(new ResponseException("no"));
-        assertThrows(RuntimeException.class, () -> request.getAnswerDeferred().reject(new ResponseException("again")));
+        request.getAnswerDeferred().resolveError(new ResponseException("no"));
+        assertThrows(RuntimeException.class, () -> request.getAnswerDeferred().resolveError(new ResponseException("again")));
     }
 
     @Test
     public void aConnectJobIsSettledOnce() {
         ConnectJob job = new ConnectJob(1L, "localhost", 1, 2, false);
         assertTrue(job.isPending());
-        job.resolve(null);
-        assertTrue(job.isResolved());
-        assertThrows(RuntimeException.class, () -> job.reject(new Exception("too late")));
-        assertThrows(RuntimeException.class, () -> job.resolve(null));
+        job.resolveOk(null);
+        assertTrue(job.hasResult());
+        assertThrows(RuntimeException.class, () -> job.resolveError(new Exception("too late")));
+        assertThrows(RuntimeException.class, () -> job.resolveOk(null));
     }
 
     @Test
     public void anIsolatedConnectJobIsSettledOnce() {
         IsolatedConnectJob<de.mel.auth.service.TestIsolatedProcess> job = new IsolatedConnectJob<>(1L, "localhost", 1, 2, "remote", "own", de.mel.auth.service.TestIsolatedProcess.class);
-        job.reject(new Exception("no"));
-        assertTrue(job.isRejected());
-        assertThrows(RuntimeException.class, () -> job.resolve(null));
+        job.resolveError(new Exception("no"));
+        assertTrue(job.hasError());
+        assertThrows(RuntimeException.class, () -> job.resolveOk(null));
     }
 }

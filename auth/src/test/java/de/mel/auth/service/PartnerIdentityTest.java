@@ -79,10 +79,10 @@ public class PartnerIdentityTest {
 
     private Outcome connectTo(Long certId) throws Exception {
         Outcome outcome = new Outcome();
-        client.connect(certId).done(p -> {
+        client.connect(certId).onDone(p -> {
             outcome.resolved = true;
             outcome.finished.countDown();
-        }).fail(e -> {
+        }).onError(e -> {
             outcome.failure.set(e);
             outcome.finished.countDown();
         });

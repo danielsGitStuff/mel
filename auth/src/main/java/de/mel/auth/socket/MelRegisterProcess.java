@@ -11,7 +11,7 @@ import de.mel.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mel.auth.socket.process.reg.IRegisteredHandler;
 import de.mel.core.serialize.SerializableEntity;
 import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.PromiseImpl;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -49,7 +49,7 @@ public class MelRegisterProcess extends MelProcess {
     private MelRequest request;
     private X509Certificate peerX509;
     private RegisterDetails details;
-    private DeferredObject<Certificate, Exception, Void> clientResult;
+    private PromiseImpl<Certificate, Exception> clientResult;
     private ScheduledFuture<?> timeoutTask;
 
     private void log(String msg) {
@@ -89,7 +89,7 @@ public class MelRegisterProcess extends MelProcess {
      *
      * @param deferred resolved with the trusted entry when the registration is complete, rejected when it is not
      */
-    public void register(DeferredObject<Certificate, Exception, Void> deferred, Long id, String address, int port) throws Exception {
+    public void register(PromiseImpl<Certificate, Exception> deferred, Long id, String address, int port) throws Exception {
         log("register id=" + id);
         MelAuthService service = melAuthSocket.getMelAuthService();
         List<Runnable> afterwards = new ArrayList<>();
@@ -244,11 +244,11 @@ public class MelRegisterProcess extends MelProcess {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        DeferredObject<Certificate, Exception, Void> result = clientResult;
+        PromiseImpl<Certificate, Exception> result = clientResult;
         if (result != null)
             afterwards.add(() -> {
                 if (result.isPending())
-                    result.reject(reason);
+                    result.resolveError(reason);
             });
         melAuthSocket.close(closeReason);
     }
@@ -399,10 +399,10 @@ public class MelRegisterProcess extends MelProcess {
             if (!remoteAcceptedReported)
                 tell(afterwards, handler -> handler.onRemoteAccepted(about));
             reportCompleted(afterwards, stored);
-            DeferredObject<Certificate, Exception, Void> result = clientResult;
+            PromiseImpl<Certificate, Exception> result = clientResult;
             afterwards.add(() -> {
                 if (result != null && result.isPending())
-                    result.resolve(stored);
+                    result.resolveOk(stored);
             });
             melAuthSocket.close(CloseReason.REGISTERED);
         } catch (Exception e) {

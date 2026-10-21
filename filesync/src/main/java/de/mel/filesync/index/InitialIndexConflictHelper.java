@@ -46,7 +46,7 @@ public class InitialIndexConflictHelper {
     public static void finished(String conflictHelperUuid) {
         if (instanceMap.containsKey(conflictHelperUuid)) {
             InitialIndexConflictHelper ch = instanceMap.remove(conflictHelperUuid);
-            ch.indexerRunnable.getStartedDeferred().resolve(ch.indexerRunnable);
+            ch.indexerRunnable.getStartedDeferred().resolveOk(ch.indexerRunnable);
         }
     }
 

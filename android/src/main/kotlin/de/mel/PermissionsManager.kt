@@ -13,7 +13,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.startActivity
 import de.mel.android.MelActivity
 import kotlinx.coroutines.Runnable
-import org.jdeferred.impl.DeferredObject
+import `fun`.with.promise.PromiseImpl
 import java.security.SecureRandom
 import kotlin.math.abs
 
@@ -50,7 +50,7 @@ class PermissionsManager(private val melActivity: MelActivity) {
 
 
     fun doIt(): Unit {
-        val d = DeferredObject<Void, Exception, Void>()
+        val d = PromiseImpl.withoutThrowingOnException<Void, Exception>()
         permissions.filter { p -> !hasPermission(p) }
             .forEach { permission ->
                 val builder = AlertDialog.Builder(melActivity)

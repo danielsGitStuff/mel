@@ -7,8 +7,8 @@ import de.mel.auth.data.db.ServiceJoinServiceType;
 import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.service.power.PowerManager;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -104,19 +104,19 @@ public class BootAndShutdownTest {
         }
 
         @Override
-        public Promise<Void, BootException, Void> bootLevelLongImpl() throws BootException {
+        public Promise<Void, BootException> bootLevelLongImpl() throws BootException {
             longBoots.incrementAndGet();
             switch (longBoot) {
                 case THROW:
                     throw new BootException(this, "long boot threw");
                 case REJECT:
                     // settled before the caller gets it
-                    DeferredObject<Void, BootException, Void> rejected = new DeferredObject<>();
-                    rejected.reject(new BootException(this, "long boot rejected"));
+                    PromiseImpl<Void, BootException> rejected = PromiseImpl.withoutThrowingOnException();
+                    rejected.resolveError(new BootException(this, "long boot rejected"));
                     return rejected;
                 default:
-                    DeferredObject<Void, BootException, Void> resolved = new DeferredObject<>();
-                    resolved.resolve(null);
+                    PromiseImpl<Void, BootException> resolved = PromiseImpl.withoutThrowingOnException();
+                    resolved.resolveOk(null);
                     return resolved;
             }
         }
@@ -160,14 +160,14 @@ public class BootAndShutdownTest {
         }
 
         @Override
-        public Promise<Void, Void, Void> onShutDown() {
+        public Promise<Void, Void> onShutDown() {
             shutDowns.incrementAndGet();
-            DeferredObject<Void, Void, Void> promise = new DeferredObject<>();
+            PromiseImpl<Void, Void> promise = PromiseImpl.withoutThrowingOnException();
             switch (behavior) {
                 case OK:
-                    return promise.resolve(null);
+                    return promise.resolveOk(null);
                 case REJECTED:
-                    return promise.reject(null);
+                    return promise.resolveError(null);
                 case THROWS:
                     throw new IllegalStateException("shutdown of " + getUuid() + " went wrong");
                 default:
@@ -204,10 +204,10 @@ public class BootAndShutdownTest {
         AtomicReference<MelAuthService> booted = new AtomicReference<>();
         AtomicReference<Exception> failure = new AtomicReference<>();
         CountDownLatch latch = new CountDownLatch(1);
-        new MelBoot(settings, powerManager, BootTestBootloader.class).boot().done(service -> {
+        new MelBoot(settings, powerManager, BootTestBootloader.class).boot().onDone(service -> {
             booted.set(service);
             latch.countDown();
-        }).fail(e -> {
+        }).onError(e -> {
             failure.set(e);
             latch.countDown();
         });
@@ -232,10 +232,10 @@ public class BootAndShutdownTest {
         CountDownLatch latch = new CountDownLatch(1);
         MelAuthService shutting = auth;
         auth = null;
-        shutting.shutDown().done(r -> {
+        shutting.shutDown().onDone(r -> {
             resolved.set(true);
             latch.countDown();
-        }).fail(r -> {
+        }).onError(r -> {
             resolved.set(false);
             latch.countDown();
         });

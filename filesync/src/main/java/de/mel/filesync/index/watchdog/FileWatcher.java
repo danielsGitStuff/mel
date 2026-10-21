@@ -8,7 +8,7 @@ import de.mel.filesync.data.PathCollection;
 import de.mel.filesync.index.IndexListener;
 import de.mel.filesync.service.MelFileSyncService;
 import de.mel.auth.tools.WatchDogTimer;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 
 import java.io.*;
 import java.util.Map;
@@ -83,7 +83,7 @@ public abstract class FileWatcher extends DeferredRunnable implements IndexListe
     }
 
     @Override
-    public Promise<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         watchDogTimer.cancel();
         // dereference cause JavaDoc says so
         watchDogTimer = null;

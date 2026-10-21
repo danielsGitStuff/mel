@@ -16,7 +16,8 @@ import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntity
 import de.mel.sql.Hash;
 import de.mel.sql.SqlQueriesException;
 
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 import javax.net.ssl.SSLSocket;
 
@@ -321,7 +322,7 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
     }
 
     @Override
-    public DeferredObject<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         super.onShutDown();
         return null;
     }

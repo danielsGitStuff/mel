@@ -6,7 +6,9 @@ import de.mel.auth.socket.MelSocket
 import de.mel.auth.service.MelAuthService
 import de.mel.core.serialize.JsonIgnore
 import de.mel.core.serialize.SerializableEntity
-import org.jdeferred.impl.DeferredObject
+import `fun`.with.promise.AlreadyResolvedErrorException
+import `fun`.with.promise.AlreadyResolvedOkException
+import `fun`.with.promise.PromiseImpl
 import java.security.SecureRandom
 import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.ScheduledFuture
@@ -23,7 +25,7 @@ class MelRequest() : MelMessage() {
     @JsonIgnore
     private var requestHandler: IRequestHandler? = null
     @JsonIgnore
-    val answerDeferred: DeferredObject<SerializableEntity, ResponseException, Void> = DeferredObject()
+    val answerDeferred: PromiseImpl<SerializableEntity, ResponseException> = PromiseImpl.withoutThrowingOnException()
 
     @JsonIgnore
     @Volatile
@@ -98,8 +100,10 @@ class MelRequest() : MelMessage() {
             timeoutTask = melAuthService.timeoutScheduler.schedule({
                 if (answerDeferred.isPending) {
                     try {
-                        answerDeferred.reject(ResponseException("request timed out"))
-                    } catch (e: IllegalStateException) {
+                        answerDeferred.resolveError(ResponseException("request timed out"))
+                    } catch (e: AlreadyResolvedOkException) {
+                        // answered at the very same moment
+                    } catch (e: AlreadyResolvedErrorException) {
                         // answered at the very same moment
                     }
                 }

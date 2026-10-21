@@ -5,7 +5,7 @@ import de.mel.Lok
 import de.mel.auth.tools.N
 import de.mel.web.miniserver.MiniServer
 import de.mel.web.miniserver.data.FileRepository
-import org.jdeferred.Promise
+import `fun`.with.promise.Promise
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 
@@ -17,7 +17,7 @@ class BinarySocketOpener(private val port: Int, private val miniServer: MiniServ
         return javaClass.simpleName
     }
 
-    override fun onShutDown(): Promise<Void, Void, Void>? {
+    override fun onShutDown(): Promise<Void, Void>? {
         serverSocket?.close()
         return null
     }

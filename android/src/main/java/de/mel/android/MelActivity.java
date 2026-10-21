@@ -19,9 +19,9 @@
 //
 //import android.util.SparseArray;
 //
-//import org.jdeferred.Deferred;
-//import org.jdeferred.Promise;
-//import org.jdeferred.impl.DeferredObject;
+//import fun.with.promise.PromiseImpl;
+//import fun.with.promise.Promise;
+//import fun.with.promise.PromiseImpl;
 //
 //import java.security.SecureRandom;
 //import java.util.ArrayList;
@@ -58,8 +58,8 @@
 //            androidService = localBinder.getService();
 //            Lok.debug(".onServiceConnected: " + androidService.toString());
 //            androidService.getStartedPromise()
-//                    .done(result -> onAndroidServiceAvailable(androidService))
-//                    .fail(Throwable::printStackTrace);
+//                    .onDone(result -> onAndroidServiceAvailable(androidService))
+//                    .onError(Throwable::printStackTrace);
 ////            if (guiController != null)
 ////                guiController.onAndroidServiceBound(androidService);
 //        }
@@ -71,7 +71,7 @@
 ////                guiController.onAndroidServiceUnbound(androidService);
 //        }
 //    };
-//    private SparseArray<Deferred<Void, List<String>, Void>> permissionPromises = new SparseArray<>();
+//    private SparseArray<PromiseImpl<Void, List<String>>> permissionPromises = new SparseArray<>();
 //    private Map<Integer, MelActivityLaunchResult> launchResultMap = new HashMap<>();
 //
 //    public static void onLaunchDestroyed(Integer requestCode) {
@@ -179,11 +179,11 @@
 //                deniedPermissions.add(permissions[i]);
 //            }
 //        }
-//        Deferred<Void, List<String>, Void> deferred = permissionPromises.get(requestCode);
+//        PromiseImpl<Void, List<String>> deferred = permissionPromises.get(requestCode);
 //        if (deniedPermissions.size() == 0) {
-//            deferred.resolve(null);
+//            deferred.resolveOk(null);
 //        } else {
-//            deferred.reject(deniedPermissions);
+//            deferred.resolveError(deniedPermissions);
 //        }
 //    }
 //
@@ -206,8 +206,8 @@
 //     * @param permissions
 //     * @return Promise that resolves when all permission have been granted or will reject with all denied permissions.
 //     */
-//    public Promise<Void, List<String>, Void> annoyWithPermissions(@NonNull String... permissions) {
-//        Deferred<Void, List<String>, Void> deferred = new DeferredObject<>();
+//    public Promise<Void, List<String>> annoyWithPermissions(@NonNull String... permissions) {
+//        PromiseImpl<Void, List<String>> deferred = PromiseImpl.withoutThrowingOnException();
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
 //            boolean request = false;
 //            for (String permission : permissions) {
@@ -225,11 +225,11 @@
 //                        permissions,
 //                        id);
 //            } else {
-//                deferred.resolve(null);
+//                deferred.resolveOk(null);
 //            }
 //            Lok.debug(".askForPermission()?: " + request);
 //        } else {
-//            deferred.resolve(null);
+//            deferred.resolveOk(null);
 //        }
 //        return deferred;
 //    }

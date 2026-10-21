@@ -43,7 +43,7 @@ import de.mel.filesync.sql.FsFile;
 import de.mel.filesync.sql.GenericFSEntry;
 import de.mel.filesync.sql.dao.FsDao;
 import de.mel.sql.*;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -150,7 +150,7 @@ public class FxTest {
         //todo continue gui
         MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), FileSyncFXBootloader.class)
                 .addMelAuthAdmin(new MelAuthFxLoader());
-        boot1.boot().done(result -> {
+        boot1.boot().onDone(result -> {
             result.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
                 Lok.debug("FxTest.startEmptyClient.booted");
@@ -205,7 +205,7 @@ public class FxTest {
         lock.lockWrite();
         MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), FileSyncFXBootloader.class, ContactsFXBootloader.class);
         boot1.addMelAuthAdmin(new MelAuthFxLoader());
-        boot1.boot().done(melAuthService -> {
+        boot1.boot().onDone(melAuthService -> {
             melAuthService.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
                 Lok.debug("FxTest.startEmptyServer.booted");
@@ -269,7 +269,7 @@ public class FxTest {
         lock.lockWrite();
         MelBoot boot1 = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncFXBootloader.class);
         boot1.addMelAuthAdmin(new MelAuthFxLoader());
-        boot1.boot().done(melAuthService -> {
+        boot1.boot().onDone(melAuthService -> {
             melAuthService.addRegisterHandler(allowRegisterHandler);
             melAuthService.addRegisteredHandler(allowRegisteredHandler);
 //            melAuthService.addRegisterHandler(new RegisterHandlerFX());
@@ -277,8 +277,8 @@ public class FxTest {
                 Lok.debug("FxTest.startEmptyServer.booted");
             });
             N.r(() -> {
-                Promise<MelValidationProcess, Exception, Void> connected = melAuthService.connect("127.0.0.1", 8888, 8889, true);
-                connected.done(result -> N.r(() -> {
+                Promise<MelValidationProcess, Exception> connected = melAuthService.connect("127.0.0.1", 8888, 8889, true);
+                connected.onDone(result -> N.r(() -> {
                     FileSyncCreateServiceHelper createController = new FileSyncCreateServiceHelper(melAuthService);
                     createController.createClientService("drive client", testdir, 1L, tmp, 0.1f, 30, false);
                     Lok.debug("FxTest.connectAcceptingClient");
@@ -341,7 +341,7 @@ public class FxTest {
         lock.lockWrite();
         MelBoot boot1 = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncFXBootloader.class);
         boot1.addMelAuthAdmin(new MelAuthFxLoader());
-        boot1.boot().done(melAuthService -> {
+        boot1.boot().onDone(melAuthService -> {
             melAuthService.addRegisterHandler(allowRegisterHandler);
             melAuthService.addRegisteredHandler(allowRegisteredHandler);
 //            melAuthService.addRegisterHandler(new RegisterHandlerFX());
@@ -420,7 +420,7 @@ public class FxTest {
         lock.lockWrite();
         MelBoot boot1 = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncFXBootloader.class, ContactsFXBootloader.class);
         boot1.addMelAuthAdmin(new MelAuthFxLoader());
-        boot1.boot().done(melAuthService -> {
+        boot1.boot().onDone(melAuthService -> {
             melAuthService.addRegisterHandler(allowRegisterHandler);
             melAuthService.addRegisteredHandler(allowRegisteredHandler);
 //            melAuthService.addRegisterHandler(new RegisterHandlerFX());
@@ -491,7 +491,7 @@ public class FxTest {
                 .setBrotcastListenerPort(9966).setBrotcastPort(6699)
                 .setWorkingDirectory(MelBoot.Companion.getDefaultWorkingDir1()).setName("MA1");
         MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), FileSyncBootloader.class);
-        boot1.boot().done(mas1 -> N.r(() -> {
+        boot1.boot().onDone(mas1 -> N.r(() -> {
 
             MelAuthSettings json2 = MelAuthSettings.createDefaultSettings()
                     .setPort(8890).setDeliveryPort(8891)
@@ -500,7 +500,7 @@ public class FxTest {
                     .setWorkingDirectory(MelBoot.Companion.getDefaultWorkingDir2()).setName("MA2");
             MelBoot boot2 = new MelBoot(json2, new PowerManager(json2), FileSyncFXBootloader.class);
             boot2.addMelAuthAdmin(new MelAuthFxLoader());
-            boot2.boot().done(result -> N.r(() -> {
+            boot2.boot().onDone(result -> N.r(() -> {
                 Lok.debug("NANANA");
                 Lok.debug("NANANA");
                 Lok.debug("NANANA");
@@ -626,7 +626,7 @@ public class FxTest {
                 Lok.debug();
             }
         };
-        boot1.boot().done(mas1 -> {
+        boot1.boot().onDone(mas1 -> {
             N.r(() -> {
                 new FileSyncCreateServiceHelper(mas1).createServerService("server", rootServer, 0.4f, 200, false);
                 mas1.addRegisterHandler(allowRegisterHandler);
@@ -638,7 +638,7 @@ public class FxTest {
                 N.r(() -> {
                     Lok.debug("FxTest.driveGui.1.booted");
 //                DriveBootloader.deVinjector = null;
-                    boot2.boot().done(mas2 -> {
+                    boot2.boot().onDone(mas2 -> {
                         Lok.debug("FxTest.driveGui.2.booted");
                         mas2.addRegisterHandler(allowRegisterHandler);
                         runner.r(() -> {
@@ -650,8 +650,8 @@ public class FxTest {
                                 clientService.get().setSyncListener(syncListener);
                             }));
                             mas2.connect("localhost", 8888, 8889, true);
-//                        Promise<MelValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
-//                        connectPromise.done(integer -> {
+//                        Promise<MelValidationProcess, Exception> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
+//                        connectPromise.onDone(integer -> {
 //                            runner.r(() -> {
 //                                Lok.debug("FxTest.driveGui.booted");
 //                                //standAloneAuth2.getBrotCaster().discover(9966);
@@ -742,17 +742,17 @@ public class FxTest {
         json1.save();
         json2.setJsonFile(MelAuthSettings.DEFAULT_FILE_2);
         json2.save();
-        boot1.boot().done(standAloneAuth1 -> {
+        boot1.boot().onDone(standAloneAuth1 -> {
             standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
                 Lok.debug("FxTest.driveGui.1.booted");
 //                DriveBootloader.deVinjector = null;
-                boot2.boot().done(standAloneAuth2 -> {
+                boot2.boot().onDone(standAloneAuth2 -> {
                     Lok.debug("FxTest.driveGui.2.booted");
                     standAloneAuth2.addRegisterHandler(new RegisterHandlerFX());
                     runner.r(() -> {
-//                        Promise<MelValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
-//                        connectPromise.done(integer -> {
+//                        Promise<MelValidationProcess, Exception> connectPromise = standAloneAuth2.connect(null, "localhost", 8888, 8889, true);
+//                        connectPromise.onDone(integer -> {
 //                            runner.r(() -> {
 //                                Lok.debug("FxTest.driveGui.booted");
 //                                //standAloneAuth2.getBrotCaster().discover(9966);
@@ -832,17 +832,17 @@ public class FxTest {
 
         MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), FileSyncFXBootloader.class);
         MelBoot boot2 = new MelBoot(json2, new PowerManager(json2), FileSyncFXBootloader.class);
-        boot1.boot().done(standAloneAuth1 -> {
+        boot1.boot().onDone(standAloneAuth1 -> {
             standAloneAuth1.addRegisterHandler(new RegisterHandlerFX());
             runner.r(() -> {
                 Lok.debug("FxTest.driveGui.1.booted");
 //                DriveBootloader.deVinjector = null;
-                boot2.boot().done(standAloneAuth2 -> {
+                boot2.boot().onDone(standAloneAuth2 -> {
                     Lok.debug("FxTest.driveGui.2.booted");
                     standAloneAuth2.addRegisterHandler(new RegisterHandlerFX());
                     runner.r(() -> {
-                        Promise<MelValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect("localhost", 8888, 8889, true);
-                        connectPromise.done(integer -> {
+                        Promise<MelValidationProcess, Exception> connectPromise = standAloneAuth2.connect("localhost", 8888, 8889, true);
+                        connectPromise.onDone(integer -> {
                             runner.r(() -> {
                                 Lok.debug("FxTest.driveGui.booted");
                                 //standAloneAuth2.getBrotCaster().discover(9966);
@@ -923,19 +923,19 @@ public class FxTest {
 
         MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), FileSyncFXBootloader.class);
         MelBoot boot2 = new MelBoot(json2, new PowerManager(json2), FileSyncFXBootloader.class);
-        boot1.boot().done(standAloneAuth1 -> {
+        boot1.boot().onDone(standAloneAuth1 -> {
             runner.r(() -> {
                 Lok.debug("FxTest.driveGui.1.booted");
                 standAloneAuth1.addRegisteredHandler(registeredHandler);
                 // setup the server Service
                 FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = serverService -> new Thread(() -> N.r(() -> {
-                    boot2.boot().done(standAloneAuth2 -> {
+                    boot2.boot().onDone(standAloneAuth2 -> {
                         Lok.debug("FxTest.driveGui.2.booted");
                         standAloneAuth2.addRegisterHandler(allowRegisterHandler);
                         runner.r(() -> {
                             // connect first. this step will register
-                            Promise<MelValidationProcess, Exception, Void> connectPromise = standAloneAuth2.connect("localhost", 8888, 8889, true);
-                            connectPromise.done(melValidationProcess -> {
+                            Promise<MelValidationProcess, Exception> connectPromise = standAloneAuth2.connect("localhost", 8888, 8889, true);
+                            connectPromise.onDone(melValidationProcess -> {
                                 runner.r(() -> {
                                     Lok.debug("FxTest.driveGui.connected");
                                     // MAs know each other at this point. setup the client Service. it wants some data from the steps before

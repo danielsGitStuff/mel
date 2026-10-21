@@ -19,7 +19,7 @@ import de.mel.filesync.sql.FileSyncDatabaseManager;
 import de.mel.filesync.sql.FsDirectory;
 import de.mel.sql.ISQLQueries;
 import de.mel.sql.SqlQueriesException;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +63,7 @@ public class IndexerRunnable extends AbstractIndexer {
     }
 
     @Override
-    public Promise<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         return fileWatcher.shutDown();
     }
 
@@ -155,11 +155,11 @@ public class IndexerRunnable extends AbstractIndexer {
                 listener.done(examinedStageSetId, bunchOfLocks);
             bunchOfLocks.end();
             Lok.debug("indexing done");
-            if (initialIndexConflictHelper == null && !startedPromise.isResolved())
+            if (initialIndexConflictHelper == null && !startedPromise.hasResult())
                 resolveStarted();
         } catch (Exception e) {
             e.printStackTrace();
-            if (!startedPromise.isResolved())
+            if (!startedPromise.hasResult())
                 rejectStarted(e);
         }
     }

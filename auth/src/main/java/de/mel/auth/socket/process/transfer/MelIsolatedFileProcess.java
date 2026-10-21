@@ -101,7 +101,7 @@ public class MelIsolatedFileProcess extends MelIsolatedProcess implements MelRun
         byte[] bytes = blockJob.getBlock();
         if (bytes.length < 5) {
             Lok.error("MelIsolatedFileProcess.onBlockReceived: record of " + bytes.length + " bytes is too short");
-            blockJob.resolve(null);
+            blockJob.resolveOk(null);
             return;
         }
         byte[] streamBytes = Arrays.copyOfRange(bytes, 1, 5);
@@ -114,7 +114,7 @@ public class MelIsolatedFileProcess extends MelIsolatedProcess implements MelRun
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            blockJob.resolve(null);
+            blockJob.resolveOk(null);
         }
     }
 

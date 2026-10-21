@@ -4,8 +4,8 @@ import de.mel.Lok;
 import de.mel.auth.data.db.Service;
 
 import de.mel.auth.data.db.ServiceJoinServiceType;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicReference;
@@ -76,18 +76,18 @@ public abstract class Bootloader<T extends MelService> {
 
     }
 
-    public final Promise<Void, BootException, Void> bootLevelLong() throws BootException {
+    public final Promise<Void, BootException> bootLevelLong() throws BootException {
         if (bootLevel.compareAndSet(BootLevel.SHORT, BootLevel.LONG)) {
-            Promise<Void, BootException, Void> promise = bootLevelLongImpl();
+            Promise<Void, BootException> promise = bootLevelLongImpl();
             if (promise != null)
-                promise.done(nil -> {
+                promise.onDone(nil -> {
                     melService.setReachedBootLevel(BootLevel.LONG);
                     melService.onBootLevel2Finished();
                 });
             return promise;
         } else {
             Lok.error("Bootloader in " + this.bootLoaderDir + " was told to boot to level 2. But its current level was not 1. current level=" + bootLevel.get());
-            return new DeferredObject<>();
+            return PromiseImpl.withoutThrowingOnException();
         }
     }
 
@@ -98,7 +98,7 @@ public abstract class Bootloader<T extends MelService> {
      * @return
      * @throws BootException
      */
-    public Promise<Void, BootException, Void> bootLevelLongImpl() throws BootException {
+    public Promise<Void, BootException> bootLevelLongImpl() throws BootException {
         return null;
     }
 

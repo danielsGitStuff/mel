@@ -11,11 +11,11 @@ import de.mel.auth.service.MelAuthService;
 import de.mel.auth.socket.CloseReason;
 import de.mel.auth.socket.MelSocket;
 import de.mel.auth.socket.ShamefulSelfConnectException;
-import de.mel.auth.tools.ShutDownDeferredManager;
+import de.mel.auth.tools.Promises;
 import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -23,6 +23,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -35,7 +37,7 @@ public class MelCertRetriever extends DeferredRunnable {
     private final MelAuthService melAuthService;
     private final CertificateManager certificateManager;
     private Map<MelSocket, Object> clientSockets = new ConcurrentHashMap<>();
-    private DeferredObject<Certificate, Exception, Object> deferred;
+    private PromiseImpl<Certificate, Exception> deferred;
     private int portCert;
     private String address;
     private int port;
@@ -46,7 +48,7 @@ public class MelCertRetriever extends DeferredRunnable {
         this.certificateManager = melAuthService.getCertificateManager();
     }
 
-    public DeferredObject<Certificate, Exception, Object> retrieveCertificate(DeferredObject<Certificate, Exception, Object> deferred, String address, int port, int portCert) throws URISyntaxException, InterruptedException {
+    public PromiseImpl<Certificate, Exception> retrieveCertificate(PromiseImpl<Certificate, Exception> deferred, String address, int port, int portCert) throws URISyntaxException, InterruptedException {
         this.address = address;
         this.port = port;
         this.portCert = portCert;
@@ -62,13 +64,13 @@ public class MelCertRetriever extends DeferredRunnable {
     }
 
     @Override
-    public Promise<Void, Void, Void> onShutDown() {
-        ShutDownDeferredManager shutDownDeferredManager = new ShutDownDeferredManager();
-        shutDownDeferredManager.when(certDeliveryClient.shutDown());
+    public Promise<Void, Void> onShutDown() {
+        List<Promise<?, ?>> shutDownDeferredManager = new ArrayList<>();
+        shutDownDeferredManager.add(certDeliveryClient.shutDown());
         for (MelSocket socket : clientSockets.keySet()) {
-            shutDownDeferredManager.when(socket.shutDown());
+            shutDownDeferredManager.add(socket.shutDown());
         }
-        return shutDownDeferredManager.digest();
+        return Promises.allSettled(shutDownDeferredManager.toArray(new Promise[0]));
     }
 
     @Override
@@ -91,15 +93,15 @@ public class MelCertRetriever extends DeferredRunnable {
                         X509Certificate x509Certificate = CertificateManager.loadX509CertificateFromBytes(certificate.getCertificate().v());
                         boolean isItMe = Arrays.equals(certificateManager.getMyX509Certificate().getPublicKey().getEncoded(), x509Certificate.getPublicKey().getEncoded());
                         if (isItMe) {
-                            deferred.reject(new ShamefulSelfConnectException());
+                            deferred.resolveError(new ShamefulSelfConnectException());
                         } else {
                             Certificate result = certificateManager.importCertificate(x509Certificate, certificate.getName().v(), address, port, portCert);
-                            deferred.resolve(result);
+                            deferred.resolveOk(result);
                             // lock.unlockWrite();
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        deferred.reject(e);
+                        deferred.resolveError(e);
                     } finally {
                         stop();
                         melSocket.close(CloseReason.FINISHED);
@@ -114,7 +116,7 @@ public class MelCertRetriever extends DeferredRunnable {
                 @Override
                 public void onError(Exception ex) {
                     ex.printStackTrace();
-                    deferred.reject(ex);
+                    deferred.resolveError(ex);
                     stop();
                 }
 
@@ -122,7 +124,7 @@ public class MelCertRetriever extends DeferredRunnable {
                 public void onClose(CloseReason reason, boolean remote) {
                     clientSockets.remove(certDeliveryClient);
                     if (deferred.isPending())
-                        deferred.reject(new Exception("the certificate delivery closed the connection without an answer: " + reason));
+                        deferred.resolveError(new Exception("the certificate delivery closed the connection without an answer: " + reason));
                     stop();
                 }
 
@@ -143,7 +145,7 @@ public class MelCertRetriever extends DeferredRunnable {
             MelSocket waitingSocket = certDeliveryClient;
             melAuthService.getTimeoutScheduler().schedule(() -> {
                 if (deferred.isPending()) {
-                    deferred.reject(new Exception("the certificate delivery at " + address + ":" + portCert + " did not answer"));
+                    deferred.resolveError(new Exception("the certificate delivery at " + address + ":" + portCert + " did not answer"));
                     waitingSocket.close(CloseReason.TIMEOUT);
                 }
             }, melAuthService.getStateTimeoutMs(), java.util.concurrent.TimeUnit.MILLISECONDS);
@@ -152,7 +154,7 @@ public class MelCertRetriever extends DeferredRunnable {
         } catch (Exception e) {
             e.printStackTrace();
             if (deferred.isPending())
-                deferred.reject(e);
+                deferred.resolveError(e);
             if (certDeliveryClient != null)
                 certDeliveryClient.close(CloseReason.IO_ERROR);
         }

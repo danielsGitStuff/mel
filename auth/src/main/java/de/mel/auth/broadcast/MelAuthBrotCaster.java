@@ -7,7 +7,7 @@ import de.mel.auth.data.db.Service;
 import de.mel.auth.service.IMelService;
 import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.sql.SqlQueriesException;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -144,7 +144,7 @@ public class MelAuthBrotCaster extends BrotCaster {
     }
 
     @Override
-    public Promise<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         super.onShutDown();
         brotCasterListener = null;
         return DeferredRunnable.ResolvedDeferredObject();

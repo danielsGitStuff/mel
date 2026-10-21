@@ -29,7 +29,7 @@ import de.mel.sql.Hash;
 import de.mel.sql.RWLock;
 import de.mel.sql.deserialize.PairDeserializerFactory;
 import de.mel.sql.serialize.PairSerializerFactory;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.io.File;
@@ -85,7 +85,7 @@ public class TransferTest {
         Lok.debug(testDir.getAbsolutePath() + " /// " + testDir.exists());
         melAuthSettings.save();
         MelBoot melBoot = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncBootloader.class);
-        melBoot.boot().done(melAuthService -> {
+        melBoot.boot().onDone(melAuthService -> {
             Lok.debug("Main.main.booted (DEV)");
 
             new Thread(() -> N.r(() -> initDrive.run(melAuthService))).start();
@@ -130,7 +130,7 @@ public class TransferTest {
                 N.forEach(melAuthService.getDatabaseManager().getAllServices(), serviceJoinServiceType -> melAuthService.getDatabaseManager().grant(serviceJoinServiceType.getServiceId().v(), registered.getId().v()));
             });
             lock.unlockWrite();
-        }).fail(exc -> {
+        }).onError(exc -> {
             exc.printStackTrace();
         });
 
@@ -181,8 +181,8 @@ public class TransferTest {
         AtomicReference<MelFileSyncClientService> clientService = new AtomicReference<>();
         CountLock bootLock = new CountLock();
         init(workingDir, melAuthService -> {
-            Promise<MelValidationProcess, Exception, Void> paired = melAuthService.connect("localhost", 6666, 6667, true);
-            paired.done(result -> new Thread(() -> N.r(() -> {
+            Promise<MelValidationProcess, Exception> paired = melAuthService.connect("localhost", 6666, 6667, true);
+            paired.onDone(result -> new Thread(() -> N.r(() -> {
                 IFile root = AbstractFile.instance(AbstractFile.instance(workingDir), ROOT_DIR_NAME);
                 FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> N.r(() -> {
                     clientService.set((MelFileSyncClientService) driveService);

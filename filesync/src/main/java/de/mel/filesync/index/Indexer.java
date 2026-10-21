@@ -9,7 +9,7 @@ import de.mel.filesync.sql.FileSyncDatabaseManager;
 import de.mel.filesync.index.watchdog.FileWatcher;
 import de.mel.sql.SqlQueriesException;
 
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.PromiseImpl;
 
 import java.io.IOException;
 
@@ -61,12 +61,12 @@ public class Indexer {
         indexerRunnable.shutDown();
     }
 
-    public DeferredObject<DeferredRunnable, Exception, Void> start() {
+    public PromiseImpl<DeferredRunnable, Exception> start() {
         melFileSyncService.execute(indexerRunnable);
         return indexerRunnable.getStartedDeferred();
     }
 
-    public DeferredObject<DeferredRunnable, Exception, Void> getIndexerStartedDeferred() {
+    public PromiseImpl<DeferredRunnable, Exception> getIndexerStartedDeferred() {
         return indexerRunnable.getStartedDeferred();
     }
 
@@ -76,9 +76,9 @@ public class Indexer {
 
     public void resume() {
         // put  a new promise in place
-//        if (indexerRunnable.getStartedDeferred().isResolved())
-//            indexerRunnable.setStartedPromise(new DeferredObject<>());
-//        indexerRunnable.getStartedDeferred().done(result -> N.r(melDriveService::onIndexerDone));
+//        if (indexerRunnable.getStartedDeferred().hasResult())
+//            indexerRunnable.setStartedPromise(PromiseImpl.withoutThrowingOnException());
+//        indexerRunnable.getStartedDeferred().onDone(result -> N.r(melDriveService::onIndexerDone));
         indexerRunnable.restart();
         melFileSyncService.execute(indexerRunnable);
     }

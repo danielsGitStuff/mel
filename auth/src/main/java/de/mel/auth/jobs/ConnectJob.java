@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Created by xor on 05.09.2016.
  */
-public class ConnectJob extends AConnectJob<MelValidationProcess, Void> {
+public class ConnectJob extends AConnectJob<MelValidationProcess> {
 
     private final boolean regOnUnknown;
 

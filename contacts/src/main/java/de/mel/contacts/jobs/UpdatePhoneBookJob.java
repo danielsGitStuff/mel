@@ -9,7 +9,7 @@ import de.mel.contacts.data.db.PhoneBookWrapper;
  * Created by xor on 10/4/17.
  */
 
-public class UpdatePhoneBookJob extends Job<Void, Void, Void> {
+public class UpdatePhoneBookJob extends Job<Void, Void> {
     private final Request request;
     private final PhoneBook phoneBook;
 

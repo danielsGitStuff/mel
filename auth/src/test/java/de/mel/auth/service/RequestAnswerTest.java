@@ -41,10 +41,10 @@ public class RequestAnswerTest {
             String intent = request.getPayload() == null ? "" : ((TextPayload) request.getPayload()).getText();
             switch (intent) {
                 case "echo":
-                    request.resolve(new TextPayload().setText("echo of " + intent));
+                    request.resolveOk(new TextPayload().setText("echo of " + intent));
                     break;
                 case "refuse":
-                    request.reject(new ResponseException("not for you"));
+                    request.resolveError(new ResponseException("not for you"));
                     break;
                 case "throw":
                     throw new IllegalStateException("the service is broken");
@@ -85,10 +85,10 @@ public class RequestAnswerTest {
 
     private Outcome ask(String what) throws Exception {
         Outcome outcome = new Outcome();
-        connection.request(service.getUuid(), new TextPayload().setText(what)).done(answer -> {
+        connection.request(service.getUuid(), new TextPayload().setText(what)).onDone(answer -> {
             outcome.answer.set((ServicePayload) answer);
             outcome.settled.countDown();
-        }).fail(e -> {
+        }).onError(e -> {
             outcome.failure.set((Exception) e);
             outcome.settled.countDown();
         });
@@ -143,7 +143,7 @@ public class RequestAnswerTest {
         Request<?> request = connection.request(service.getUuid(), new TextPayload().setText("echo"));
         CountDownLatch called = new CountDownLatch(1);
         AtomicReference<String> thread = new AtomicReference<>();
-        request.done(answer -> {
+        request.onDone(answer -> {
             thread.set(Thread.currentThread().getName());
             called.countDown();
         });
@@ -151,7 +151,7 @@ public class RequestAnswerTest {
         assertNotEquals(Thread.currentThread().getName(), thread.get(), "the answer is handled by the thread of the socket, not by the one that asked");
         // registered after the answer: at once, on this thread
         AtomicReference<String> late = new AtomicReference<>();
-        request.done(answer -> late.set(Thread.currentThread().getName()));
+        request.onDone(answer -> late.set(Thread.currentThread().getName()));
         assertEquals(Thread.currentThread().getName(), late.get());
     }
 }

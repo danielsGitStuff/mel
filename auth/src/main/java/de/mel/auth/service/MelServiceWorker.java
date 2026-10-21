@@ -3,7 +3,7 @@ package de.mel.auth.service;
 import de.mel.Lok;
 import de.mel.auth.jobs.Job;
 import de.mel.auth.tools.CountdownLock;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -35,7 +35,7 @@ public abstract class MelServiceWorker extends MelService {
                     } catch (Exception e) {
                         e.printStackTrace();
                         if (job != null)
-                            job.reject(e);
+                            job.resolveError(e);
                     } finally {
                         melAuthService.getPowerManager().releaseWakeLock(this);
                     }
@@ -65,7 +65,7 @@ public abstract class MelServiceWorker extends MelService {
     }
 
     @Override
-    public Promise<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         super.onShutDown();
         queueLock.unlockWrite();
         waitLock.unlock();

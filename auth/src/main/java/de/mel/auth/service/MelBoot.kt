@@ -9,11 +9,10 @@ import de.mel.auth.data.db.ServiceError
 import de.mel.auth.data.db.ServiceType
 import de.mel.auth.service.power.PowerManager
 import de.mel.auth.tools.BackgroundExecutor
-import de.mel.auth.tools.MelDeferredManager
 import de.mel.sql.SqlQueriesException
 
-import org.jdeferred.Promise
-import org.jdeferred.impl.DeferredObject
+import `fun`.with.promise.Promise
+import `fun`.with.promise.PromiseImpl
 
 import java.io.File
 import java.util.*
@@ -28,13 +27,13 @@ import java.util.logging.Logger
 class MelBoot(private val melAuthSettings: MelAuthSettings, private val powerManager: PowerManager, vararg bootloaderClasses: Class<out Bootloader<out MelService>>) : BackgroundExecutor(), MelRunnable {
     private val bootloaderClasses = HashSet<Class<out Bootloader<out MelService>>>()
     private val bootloaderMap = HashMap<String, Class<out Bootloader<out MelService>>>()
-    private val deferredObject: DeferredObject<MelAuthService, Exception, Void>
+    private val deferredObject: PromiseImpl<MelAuthService, Exception>
     private var melAuthService: MelAuthService? = null
     private val melAuthAdmins = ArrayList<MelAuthAdmin>()
 
 
     init {
-        this.deferredObject = DeferredObject()
+        this.deferredObject = PromiseImpl.withoutThrowingOnException()
         this.bootloaderClasses.addAll(Arrays.asList(*bootloaderClasses))
     }
 
@@ -59,7 +58,7 @@ class MelBoot(private val melAuthSettings: MelAuthSettings, private val powerMan
 
 
     @Throws(Exception::class)
-    fun boot(): Promise<MelAuthService, Exception, Void> {
+    fun boot(): Promise<MelAuthService, Exception> {
         execute(this)
         return deferredObject
     }
@@ -73,7 +72,7 @@ class MelBoot(private val melAuthSettings: MelAuthSettings, private val powerMan
             melAuthService = MelAuthServiceImpl(melAuthSettings, powerManager)
             melAuthService!!.melBoot = this
             val promiseAuthIsUp = melAuthService!!.prepareStart()
-            promiseAuthIsUp.done { result -> deferredObject.resolve(melAuthService) }
+            promiseAuthIsUp.onDone { result -> deferredObject.resolveOk(melAuthService) }
             for (bootClass in this.bootloaderClasses) {
                 createBootLoader(melAuthService, bootClass)
             }
@@ -82,7 +81,7 @@ class MelBoot(private val melAuthSettings: MelAuthSettings, private val powerMan
             bootServices()
         } catch (e: Exception) {
             e.printStackTrace()
-            deferredObject.reject(e)
+            deferredObject.resolveError(e)
         }
     }
 
@@ -92,7 +91,7 @@ class MelBoot(private val melAuthSettings: MelAuthSettings, private val powerMan
             outstandingBootloaders.forEach { bootloader ->
                 try {
                     bootloader.bootLevelLong()
-                            .fail({ handleBootError(bootloader, it) })
+                            .onError({ handleBootError(bootloader, it) })
                 } catch (e: BootException) {
                     handleBootError(bootloader, e)
                 }
@@ -163,7 +162,7 @@ class MelBoot(private val melAuthSettings: MelAuthSettings, private val powerMan
      * booting happens in two steps and in parallel. level 2 starts heavy work if necessary
      */
     fun bootServices() {
-        val bootedPromises = ArrayList<Promise<*, *, *>>()
+        val bootedPromises = ArrayList<Promise<*, *>>()
         for (bootClass in bootloaderClasses) {
             Lok.debug("MelBoot.boot.booting: " + bootClass.canonicalName)
             val dummyBootloader = createBootLoader(melAuthService, bootClass)
@@ -182,11 +181,11 @@ class MelBoot(private val melAuthSettings: MelAuthSettings, private val powerMan
         }
 //        bootedPromises.add(promiseAuthIsUp);
 
-        MelDeferredManager().`when`(bootedPromises)
-                .done {
+        Promise.fusedAnd(*bootedPromises.toTypedArray())
+                .onDone {
                     // boot stage2 of all services
                     bootStage2()
-                }.fail { Lok.error("MelBoot.run.AT LEAST ONE SERVICE FAILED TO BOOT") }
+                }.onError { Lok.error("MelBoot.run.AT LEAST ONE SERVICE FAILED TO BOOT") }
     }
 
     /**

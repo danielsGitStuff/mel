@@ -64,7 +64,7 @@ public class ConnectingTest {
         CountDownLatch finished = new CountDownLatch(1);
         AtomicReference<Exception> failure = new AtomicReference<>();
         long start = System.nanoTime();
-        instances.client.connect("10.255.255.1", 18999, 18998, false).done(p -> finished.countDown()).fail(e -> {
+        instances.client.connect("10.255.255.1", 18999, 18998, false).onDone(p -> finished.countDown()).onError(e -> {
             failure.set(e);
             finished.countDown();
         });

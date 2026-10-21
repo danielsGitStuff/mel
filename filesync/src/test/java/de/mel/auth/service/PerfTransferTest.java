@@ -25,8 +25,8 @@ import de.mel.filesync.bash.BashTools;
 import de.mel.sql.RWLock;
 import de.mel.sql.deserialize.PairDeserializerFactory;
 import de.mel.sql.serialize.PairSerializerFactory;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 import java.io.File;
 import java.io.InputStream;
@@ -53,7 +53,7 @@ public class PerfTransferTest {
 
     }
 
-    public static Promise<PerfTransferTest, Void, Void> create() {
+    public static Promise<PerfTransferTest, Void> create() {
         //init
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PairSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
@@ -62,7 +62,7 @@ public class PerfTransferTest {
         BashTools.Companion.init();
         CertificateManager.deleteDirectory(MelBoot.Companion.getDefaultWorkingDir1());
 
-        DeferredObject result = new DeferredObject();
+        PromiseImpl result = PromiseImpl.withoutThrowingOnException();
         PerfTransferTest perfTransferTest = new PerfTransferTest();
         MelAuthSettings settings = MelAuthSettings.createDefaultSettings();
         MelBoot boot = new MelBoot(settings, new PowerManager(settings), FileSyncBootloader.class);
@@ -145,9 +145,9 @@ public class PerfTransferTest {
             }
         });
         N.r(() -> {
-            Promise<MelAuthService, Exception, Void> booted = boot.boot();
-            booted.done(result1 -> N.r(() -> {
-                result.resolve(perfTransferTest);
+            Promise<MelAuthService, Exception> booted = boot.boot();
+            booted.onDone(result1 -> N.r(() -> {
+                result.resolveOk(perfTransferTest);
 
             }));
         });
@@ -159,8 +159,8 @@ public class PerfTransferTest {
         // put a really big file in this folder to test sync speed
         //CertificateManager.deleteDirectory(new File(PerfTransferTest.SOURCE_PATH));
         RWLock lock = new RWLock();
-        Promise<PerfTransferTest, Void, Void> promise = create();
-        promise.done(test -> N.r(() -> {
+        Promise<PerfTransferTest, Void> promise = create();
+        promise.onDone(test -> N.r(() -> {
             FileSyncCreateServiceHelper createController = new FileSyncCreateServiceHelper(test.mas);
             createController.createServerService("server", AbstractFile.instance(PerfTransferTest.SOURCE_PATH), 0.1f, 30, false);
             Lok.debug("PerfTransferTest.startSource.done");
@@ -172,11 +172,11 @@ public class PerfTransferTest {
     public void startTarget() {
         CertificateManager.deleteDirectory(new File(PerfTransferTest.TARGET_PATH));
         RWLock lock = new RWLock();
-        Promise<PerfTransferTest, Void, Void> promise = create();
-        promise.done(test -> N.r(() -> {
+        Promise<PerfTransferTest, Void> promise = create();
+        promise.onDone(test -> N.r(() -> {
             Lok.debug("PerfTransferTest.startTarget.connecting");
-            Promise<MelValidationProcess, Exception, Void> connected = test.mas.connect("192.168.1.109", 8888, 8889, true);
-            connected.done(mvp -> N.r(() -> {
+            Promise<MelValidationProcess, Exception> connected = test.mas.connect("192.168.1.109", 8888, 8889, true);
+            connected.onDone(mvp -> N.r(() -> {
                 NetworkEnvironment nve = test.mas.getNetworkEnvironment();
                 nve.clear();
                 nve.addObserver((o, arg) -> {
@@ -218,8 +218,8 @@ public class PerfTransferTest {
 
     //    @Test
     public void netServerEncrypted() throws Exception {
-        Promise<PerfTransferTest, Void, Void> started = create();
-        started.done(test -> N.r(() -> {
+        Promise<PerfTransferTest, Void> started = create();
+        started.onDone(test -> N.r(() -> {
             Lok.debug("PerfTransferTest.netServerEncrypted() starting server socket");
             ServerSocket serverSocket = test.mas.getCertificateManager().createServerSocket();
             serverSocket.bind(new InetSocketAddress(9999));
@@ -260,10 +260,10 @@ public class PerfTransferTest {
 
     //    @Test
     public void netClientEncrypted() throws Exception {
-        Promise<PerfTransferTest, Void, Void> started = create();
-        started.done(test -> N.r(() -> {
-            Promise<MelValidationProcess, Exception, Void> connected = test.mas.connect("192.168.1.109", 8888, 8889, true);
-            connected.done(mvp -> N.r(() -> {
+        Promise<PerfTransferTest, Void> started = create();
+        started.onDone(test -> N.r(() -> {
+            Promise<MelValidationProcess, Exception> connected = test.mas.connect("192.168.1.109", 8888, 8889, true);
+            connected.onDone(mvp -> N.r(() -> {
                 Socket socket = test.mas.getCertificateManager().createSocket();
                 socket.connect(new InetSocketAddress("192.168.1.109", 9999));
                 InputStream in = socket.getInputStream();

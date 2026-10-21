@@ -12,9 +12,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.jdeferred.Deferred;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.PromiseImpl;
+import fun.with.promise.Promise;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -143,15 +142,15 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
         }
     }
 
-    public static Promise<IFile, Void, Void> showDialog(MelActivity activity, IFile[] rootDirectories) {
+    public static Promise<IFile, Void> showDialog(MelActivity activity, IFile[] rootDirectories) {
         final NWrap.BWrap isRoot = new NWrap.BWrap(true);
-        Deferred<IFile, Void, Void> deferred = new DeferredObject<>();
+        PromiseImpl<IFile, Void> deferred = PromiseImpl.withoutThrowingOnException();
         Intent intent = new Intent(activity, DirectoryChooserDialog.class);
         FilesActivityPayload payload = new FilesActivityPayload(Lists.wrap(java.util.Arrays.asList(rootDirectories)).map(IFile::getAbsolutePath).get());
         activity.launchActivityForResult(intent, (resultCode, result) -> {
             if (resultCode == AppCompatActivity.RESULT_OK) {
                 String path = result.getStringExtra(AndroidFileSyncStrings.DIR_CHOOSER_KEY);
-                deferred.resolve(AbstractFile.instance(path));
+                deferred.resolveOk(AbstractFile.instance(path));
             }
         }, payload);
         return deferred;

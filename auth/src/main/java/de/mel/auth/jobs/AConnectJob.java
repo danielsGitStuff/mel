@@ -7,7 +7,7 @@ import de.mel.auth.tools.Eva;
 /**
  * Created by xor on 12/13/16.
  */
-public abstract class AConnectJob<R, P> extends Job<R, Exception, P> {
+public abstract class AConnectJob<R> extends Job<R, Exception> {
     private Long certificateId;
     private String address;
     private Integer port, portCert;

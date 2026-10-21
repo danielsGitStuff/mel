@@ -31,8 +31,8 @@ import de.mel.filesync.tasks.SyncRequest;
 import de.mel.sql.ISQLResource;
 import de.mel.sql.SqlQueriesException;
 
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -93,10 +93,10 @@ public class ClientSyncHandler extends SyncHandler {
 
             if (availableHashesTask.getSize() > 0 && debugFlag) {
                 melAuthService.connect(fileSyncSettings.getClientSettings().getServerCertId())
-                        .done(mvp -> {
+                        .onDone(mvp -> {
                             N.r(() -> {
                                 mvp.request(fileSyncSettings.getClientSettings().getServerServiceUuid(), availableHashesTask)
-                                        .done(result -> N.r(() -> {
+                                        .onDone(result -> N.r(() -> {
                                             debugFlag = false;
                                             Lok.debug("got available hashes.");
                                             AvailableHashesContainer availHashesContainer = (AvailableHashesContainer) result;
@@ -111,7 +111,7 @@ public class ClientSyncHandler extends SyncHandler {
                                         }));
                                 availableHashesTask.cleanUp();
                             });
-                        }).fail(result -> {
+                        }).onError(result -> {
                             availableHashesTask.cleanUp();
                             Lok.debug("fail");
                         });
@@ -170,8 +170,8 @@ public class ClientSyncHandler extends SyncHandler {
             if (stageDao.stageSetHasContent(stageSetId)) {
                 //all other stages we can find at this point are complete/valid and wait at this point.
                 //todo conflict checking goes here - has to block
-                Promise<MelValidationProcess, Exception, Void> connected = melAuthService.connect(clientSettings.getServerCertId());
-                connected.done(mvp -> bunchOfLocks.run(() -> {
+                Promise<MelValidationProcess, Exception> connected = melAuthService.connect(clientSettings.getServerCertId());
+                connected.onDone(mvp -> bunchOfLocks.run(() -> {
                     // load to cached data structure
                     StageSet stageSet = stageDao.getStageSetById(stageSetId);
                     Commit commit = new Commit(melDriveService.getCacheDirectory(), CachedInitializer.randomId(), FileSyncSettings.CACHE_LIST_SIZE, melDriveService.getUuid());
@@ -179,7 +179,7 @@ public class ClientSyncHandler extends SyncHandler {
                     commit.setBasedOnVersion(stageSet.getBasedOnVersion().v());
                     commit.setIntent(FileSyncStrings.INTENT_COMMIT);
                     Request committed = mvp.request(clientSettings.getServerServiceUuid(), commit);
-                    committed.done(res -> bunchOfLocks.run(() -> {
+                    committed.onDone(res -> bunchOfLocks.run(() -> {
                         CommitAnswer answer = (CommitAnswer) res;
                         for (Long stageId : answer.getStageIdFsIdMap().keySet()) {
                             Long fsId = answer.getStageIdFsIdMap().get(stageId);
@@ -197,7 +197,7 @@ public class ClientSyncHandler extends SyncHandler {
                         researchTransfers();
                         transferManager.research();
                         bunchOfLocks.end();
-                    })).fail(result -> bunchOfLocks.run(() -> {
+                    })).onError(result -> bunchOfLocks.run(() -> {
                         if (result instanceof TooOldVersionException) {
                             Lok.debug("ClientSyncHandler.syncWithServer");
                             N.r(() -> {
@@ -217,7 +217,7 @@ public class ClientSyncHandler extends SyncHandler {
                         bunchOfLocks.end();
                     }));
                     bunchOfLocks.after(commit::cleanUp);
-                })).fail(result -> bunchOfLocks.run(() -> {
+                })).onError(result -> bunchOfLocks.run(() -> {
                     // todo server did not commit. it probably had a local change. have to solve it here
                     Exception ex = result;
                     System.err.println("MelDriveClientService.startIndexer.could not connect :( due to: " + ex.getMessage());
@@ -660,23 +660,23 @@ public class ClientSyncHandler extends SyncHandler {
             waitLock.unlock();
         });
         Certificate serverCert = melAuthService.getCertificateManager().getTrustedCertificateById(clientSettings.getServerCertId());
-        Promise<MelValidationProcess, Exception, Void> connected = melAuthService.connect(serverCert.getId().v());
-        connected.done(mvp -> runner.runTry(() -> {
+        Promise<MelValidationProcess, Exception> connected = melAuthService.connect(serverCert.getId().v());
+        connected.onDone(mvp -> runner.runTry(() -> {
             long oldeSyncedVersion = fileSyncDatabaseManager.getFileSyncSettings().getLastSyncedVersion();
             StageSet stageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_SERVER, clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), null, oldeSyncedVersion);
             SyncRequest sentSyncRequest = new SyncRequest()
                     .setOldVersion(oldeSyncedVersion);
             sentSyncRequest.setIntent(FileSyncStrings.INTENT_SYNC);
             Request<SyncAnswer> request = mvp.request(clientSettings.getServerServiceUuid(), sentSyncRequest);
-            request.done(syncAnswer -> runner.runTry(() -> {
+            request.onDone(syncAnswer -> runner.runTry(() -> {
                 try {
                     syncAnswer.setStageSet(stageSet);
                     //server might have got a new version in the meantime and sent us that
                     stageSet.setVersion(syncAnswer.getNewVersion());
                     stageSet.setBasedOnVersion(syncAnswer.getOldVersion());
                     stageDao.updateStageSet(stageSet);
-                    Promise<Long, Void, Void> promise = this.sync2Stage(syncAnswer);
-                    promise.done(nil -> runner.runTry(() -> {
+                    Promise<Long, Void> promise = this.sync2Stage(syncAnswer);
+                    promise.onDone(nil -> runner.runTry(() -> {
                         try {
                             melDriveService.addJob(new CommitJob());
                             if (syncListener != null)
@@ -684,7 +684,7 @@ public class ClientSyncHandler extends SyncHandler {
                         } finally {
                             waitLock.unlock();
                         }
-                    })).fail(result -> {
+                    })).onError(result -> {
                                 try {
                                     System.err.println("ClientSyncHandler.syncFromServer.j99f49459f54");
                                     N.r(() -> stageDao.deleteStageSet(stageSet.getId().v()));
@@ -696,8 +696,8 @@ public class ClientSyncHandler extends SyncHandler {
                 } finally {
                     waitLock.unlock();
                 }
-            })).fail(result -> waitLock.unlock());
-        })).fail(result -> waitLock.unlock());
+            })).onError(result -> waitLock.unlock());
+        })).onError(result -> waitLock.unlock());
 
         Lok.debug("waiting to finish");
         waitLock.lock().lock();
@@ -811,16 +811,16 @@ public class ClientSyncHandler extends SyncHandler {
      * @return stageSetId in Promise
      * @throws SqlQueriesException
      */
-    private Promise<Long, Void, Void> sync2Stage(SyncAnswer syncAnswer) throws SqlQueriesException, InterruptedException {
-        DeferredObject<Void, Void, Void> communicationDone = new DeferredObject<>();
-        DeferredObject<Long, Void, Void> finished = new DeferredObject<>();
+    private Promise<Long, Void> sync2Stage(SyncAnswer syncAnswer) throws SqlQueriesException, InterruptedException {
+        PromiseImpl<Void, Void> communicationDone = PromiseImpl.withoutThrowingOnException();
+        PromiseImpl<Long, Void> finished = PromiseImpl.withoutThrowingOnException();
         Map<Long, Long> entryIdStageIdMap = new HashMap<>();
         Order order = new Order();
 //        syncAnswer.setCacheDir(melDriveService.getCacheDirectory());
         Iterator<GenericFSEntry> iterator = syncAnswer.iterator();
         if (!iterator.hasNext()) {
             syncAnswer.cleanUp();
-            finished.reject(null);
+            finished.resolveError(null);
             return finished;
         }
         StageSet stageSet = syncAnswer.getStageSet();
@@ -893,8 +893,8 @@ public class ClientSyncHandler extends SyncHandler {
             }
         }
         if (fsDirIdsToRetrieve.size() > 0) {
-            Promise<List<FsDirectory>, Exception, Void> promise = melDriveService.requestDirectoriesByIds(fsDirIdsToRetrieve.keySet(), clientSettings.getServerCertId(), clientSettings.getServerServiceUuid());
-            promise.done(directories -> runner.runTry(() -> {
+            Promise<List<FsDirectory>, Exception> promise = melDriveService.requestDirectoriesByIds(fsDirIdsToRetrieve.keySet(), clientSettings.getServerCertId(), clientSettings.getServerServiceUuid());
+            promise.onDone(directories -> runner.runTry(() -> {
                 // stage everything not in the directories as deleted
                 for (FsDirectory directory : directories) {
                     Set<Long> stillExistingIds = new HashSet<>();
@@ -915,12 +915,12 @@ public class ClientSyncHandler extends SyncHandler {
                         }
                     }
                 }
-                communicationDone.resolve(null);
+                communicationDone.resolveOk(null);
             }));
         } else {
-            communicationDone.resolve(null);
+            communicationDone.resolveOk(null);
         }
-        communicationDone.done(nul -> {
+        communicationDone.onDone(nul -> {
             /**
              * BFS -> DFS
              */
@@ -928,9 +928,9 @@ public class ClientSyncHandler extends SyncHandler {
             stageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED);
             N.r(() -> stageDao.updateStageSet(stageSet));
             reorderStageSet(stageSet);
-            finished.resolve(stageSet.getId().v());
-        }).fail(nul -> {
-            finished.reject(null);
+            finished.resolveOk(stageSet.getId().v());
+        }).onError(nul -> {
+            finished.resolveError(null);
         });
         return finished;
     }

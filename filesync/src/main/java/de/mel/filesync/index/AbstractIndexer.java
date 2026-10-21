@@ -20,7 +20,7 @@ import de.mel.filesync.sql.dao.StageDao;
 import de.mel.sql.Hash;
 import de.mel.sql.RWLock;
 import de.mel.sql.SqlQueriesException;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,7 +61,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
     @Override
-    public Promise<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         Lok.debug(getClass().getSimpleName() + "[" + initialStageSetId + "] for " + serviceName + ".onShutDown");
         return null;
     }

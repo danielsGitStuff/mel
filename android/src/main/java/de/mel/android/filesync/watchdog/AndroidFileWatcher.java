@@ -11,7 +11,7 @@ import de.mel.filesync.service.MelFileSyncService;
 import de.mel.filesync.index.watchdog.FileWatcher;
 import de.mel.auth.tools.WatchDogTimer;
 import de.mel.sql.RWLock;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 
 /**
  * Created by xor on 2/6/17.
@@ -75,7 +75,7 @@ public class AndroidFileWatcher extends FileWatcher {
     }
 
     @Override
-    public Promise<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
 
         return null;
     }

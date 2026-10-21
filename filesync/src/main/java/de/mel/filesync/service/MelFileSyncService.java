@@ -5,9 +5,8 @@ import de.mel.auth.service.MelAuthService;
 import de.mel.auth.tools.lock2.BunchOfLocks;
 import de.mel.filesync.index.InitialIndexConflictHelper;
 import de.mel.filesync.index.watchdog.FileWatcherFactory;
-import org.jdeferred.Deferred;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.PromiseImpl;
+import fun.with.promise.Promise;
 
 import java.io.File;
 import java.util.List;
@@ -60,7 +59,7 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
     protected Indexer indexer;
     protected StageIndexer stageIndexer;
     protected S syncHandler;
-    protected DeferredObject<DeferredRunnable, Exception, Void> startIndexerDonePromise;
+    protected PromiseImpl<DeferredRunnable, Exception> startIndexerDonePromise;
     protected InitialIndexConflictHelper conflictHelper;
     private Wastebin wastebin;
     private FileSyncSyncListener syncListener;
@@ -152,7 +151,7 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
                     Request request = job.getRequest();
                     if (request.hasIntent(FileSyncStrings.INTENT_DRIVE_DETAILS)) {
                         FileSyncDetails details = databaseManager.getFileSyncSettings().getDriveDetails();
-                        request.resolve(details);
+                        request.resolveOk(details);
                     } else if (request.hasIntent(FileSyncStrings.INTENT_DIRECTORY_CONTENT)) {
                         handleDirectoryContentsRequest(request);
                     } else if (request.hasIntent(FileSyncStrings.INTENT_SYNC)) {
@@ -219,8 +218,8 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
             FileTransferDetailSet detailSet = payload.getFileTransferDetailSet();
             for (FileTransferDetail detail : detailSet.getDetails()) {
                 IFile wasteFile = wastebin.getByHash(detail.getHash());
-                Promise<MelIsolatedFileProcess, Exception, Void> promise = getIsolatedProcess(MelIsolatedFileProcess.class, partnerCertId, detailSet.getServiceUuid());
-                promise.done(fileProcess -> runner.runTry(() -> {
+                Promise<MelIsolatedFileProcess, Exception> promise = getIsolatedProcess(MelIsolatedFileProcess.class, partnerCertId, detailSet.getServiceUuid());
+                promise.onDone(fileProcess -> runner.runTry(() -> {
                     List<FsFile> fsFiles = databaseManager.getFsDao().getFilesByHash(detail.getHash());
                     if (wasteFile != null) {
                         FileTransferDetail mDetail = new FileTransferDetail(wasteFile, detail.getStreamId(), detail.getStart(), detail.getEnd());
@@ -297,7 +296,7 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
             task.getResult().add(fsDirectory);
         }
         task.setIDs(null);
-        request.resolve(task);
+        request.resolveOk(task);
     }
 
     protected abstract void onSyncReceived(Request request);
@@ -308,7 +307,7 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
      */
     protected abstract boolean workWorkWork(Job unknownJob);
 
-    public DeferredObject<DeferredRunnable, Exception, Void> startIndexer() throws SqlQueriesException {
+    public PromiseImpl<DeferredRunnable, Exception> startIndexer() throws SqlQueriesException {
         this.fileSyncSettings = databaseManager.getFileSyncSettings();
         IFile transferDir = fileSyncSettings.getTransferDirectory();
         transferDir.mkdirs();
@@ -336,16 +335,16 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
     }
 
 
-    public Promise<List<FsDirectory>, Exception, Void> requestDirectoriesByIds(Set<Long> fsDirIdsToRetrieve, Long certId, String serviceUuid) throws SqlQueriesException, InterruptedException {
-        Deferred<List<FsDirectory>, Exception, Void> deferred = new DeferredObject<>();
+    public Promise<List<FsDirectory>, Exception> requestDirectoriesByIds(Set<Long> fsDirIdsToRetrieve, Long certId, String serviceUuid) throws SqlQueriesException, InterruptedException {
+        PromiseImpl<List<FsDirectory>, Exception> deferred = PromiseImpl.withoutThrowingOnException();
         Certificate cert = melAuthService.getCertificateManager().getTrustedCertificateById(certId);
-        Promise<MelValidationProcess, Exception, Void> connected = melAuthService.connect(certId);
-        connected.done(melValidationProcess -> runner.runTry(() -> {
+        Promise<MelValidationProcess, Exception> connected = melAuthService.connect(certId);
+        connected.onDone(melValidationProcess -> runner.runTry(() -> {
             Lok.debug("MelDriveService.requestDirectoriesByIds:::::::::::::::");
             Request<DirectoriesContentTask> answer = melValidationProcess.request(serviceUuid, new DirectoriesContentTask().setIDs(fsDirIdsToRetrieve));
-            answer.done(task -> {
+            answer.onDone(task -> {
                 Lok.debug("MelDriveService.requestDirectoriesByIds");
-                deferred.resolve(task.getResult());
+                deferred.resolveOk(task.getResult());
             });
         }));
         return deferred;
@@ -360,7 +359,7 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
     }
 
     @Override
-    public Promise<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         super.onShutDown();
         if (syncHandler != null)
             syncHandler.onShutDown();

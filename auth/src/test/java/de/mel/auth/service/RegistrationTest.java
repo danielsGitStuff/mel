@@ -1,5 +1,8 @@
 package de.mel.auth.service;
 
+import java.util.ArrayList;
+import fun.with.promise.Promise;
+
 import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.data.MelRequest;
 import de.mel.auth.data.db.Certificate;
@@ -10,7 +13,7 @@ import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.socket.process.reg.IRegisterHandler;
 import de.mel.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mel.auth.tools.CountLock;
-import de.mel.auth.tools.ShutDownDeferredManager;
+import de.mel.auth.tools.Promises;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -151,10 +154,10 @@ public class RegistrationTest {
         AtomicReference<MelAuthService> booted = new AtomicReference<>();
         AtomicReference<Exception> failure = new AtomicReference<>();
         CountDownLatch latch = new CountDownLatch(1);
-        new MelBoot(settings, new PowerManager(settings)).boot().done(service -> {
+        new MelBoot(settings, new PowerManager(settings)).boot().onDone(service -> {
             booted.set(service);
             latch.countDown();
-        }).fail(e -> {
+        }).onError(e -> {
             failure.set(e);
             latch.countDown();
         });
@@ -184,16 +187,16 @@ public class RegistrationTest {
     @AfterEach
     public void after() {
         CountLock lock = new CountLock().lock();
-        ShutDownDeferredManager shut = new ShutDownDeferredManager();
+        List<Promise<?, ?>> shut = new ArrayList<>();
         for (MelAuthService service : new MelAuthService[]{client, server}) {
             if (service != null)
                 try {
-                    shut.when(service.shutDown());
+                    shut.add(service.shutDown());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
         }
-        shut.digest().done(r -> lock.unlock());
+        Promises.allSettled(shut.toArray(new Promise[0])).onDone(r -> lock.unlock());
         lock.lock();
     }
 

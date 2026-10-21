@@ -3,12 +3,16 @@ package de.mel.auth.socket.process.val;
 import de.mel.auth.data.ServicePayload;
 import de.mel.auth.data.db.Certificate;
 
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.PromiseImpl;
 
 /**
  * Created by xor on 5/1/16.
  */
-public class Request<T extends ServicePayload> extends DeferredObject<T, Exception, Void> {
+public class Request<T extends ServicePayload> extends PromiseImpl<T, Exception> {
+    public Request() {
+        super(false);
+    }
+
     private T payload;
     private Certificate partnerCertificate;
     private String serviceUuid;

@@ -8,7 +8,7 @@ import de.mel.auth.jobs.Job;
  * gets received PhonebookId when Promise is resolved
  */
 
-public class QueryJob extends Job<Long,Void,Void> {
+public class QueryJob extends Job<Long, Void> {
     public QueryJob(){
         Lok.debug("QueryJob.QueryJob");
     }

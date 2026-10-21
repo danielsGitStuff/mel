@@ -12,7 +12,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -32,8 +32,8 @@ public class PairingFX extends AuthSettingsFX {
     @Override
     public boolean onPrimaryClicked() {
         N.r(() -> {
-            Promise<MelValidationProcess, Exception, Void> promise = melAuthService.connect(txtAddress.getText(), Integer.parseInt(txtPort.getText()), Integer.parseInt(txtCertDeliveryPort.getText()), true);
-            promise.done(result -> discover());
+            Promise<MelValidationProcess, Exception> promise = melAuthService.connect(txtAddress.getText(), Integer.parseInt(txtPort.getText()), Integer.parseInt(txtCertDeliveryPort.getText()), true);
+            promise.onDone(result -> discover());
         });
         return false;
     }

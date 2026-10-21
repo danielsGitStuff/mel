@@ -1,5 +1,8 @@
 package de.mel.auth.service;
 
+import java.util.ArrayList;
+import fun.with.promise.Promise;
+
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.data.IsolationDetails;
@@ -15,7 +18,7 @@ import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
 import de.mel.auth.socket.process.reg.IRegisterHandler;
 import de.mel.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mel.auth.tools.CountLock;
-import de.mel.auth.tools.ShutDownDeferredManager;
+import de.mel.auth.tools.Promises;
 import de.mel.core.serialize.SerializableEntity;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -97,10 +100,10 @@ public class AuthHandshakeTest {
         AtomicReference<MelAuthService> booted = new AtomicReference<>();
         AtomicReference<Exception> failure = new AtomicReference<>();
         CountDownLatch latch = new CountDownLatch(1);
-        new MelBoot(settings, new PowerManager(settings)).boot().done(service -> {
+        new MelBoot(settings, new PowerManager(settings)).boot().onDone(service -> {
             booted.set(service);
             latch.countDown();
-        }).fail(e -> {
+        }).onError(e -> {
             failure.set(e);
             latch.countDown();
         });
@@ -127,16 +130,16 @@ public class AuthHandshakeTest {
     @AfterEach
     public void after() {
         CountLock lock = new CountLock().lock();
-        ShutDownDeferredManager shut = new ShutDownDeferredManager();
+        List<Promise<?, ?>> shut = new ArrayList<>();
         for (MelAuthService service : new MelAuthService[]{client, server}) {
             if (service != null)
                 try {
-                    shut.when(service.shutDown());
+                    shut.add(service.shutDown());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
         }
-        shut.digest().done(r -> lock.unlock());
+        Promises.allSettled(shut.toArray(new Promise[0])).onDone(r -> lock.unlock());
         lock.lock();
     }
 
@@ -148,7 +151,7 @@ public class AuthHandshakeTest {
         client.addRegisteredHandler((service, cert) -> registered.countDown());
         CountDownLatch connected = new CountDownLatch(1);
         client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), true)
-                .always((state, resolved, rejected) -> connected.countDown());
+                .onDone(a -> connected.countDown()).onError(e -> connected.countDown());
         assertTrue(registered.await(15, TimeUnit.SECONDS), "pairing did not complete");
         // the connection that the client makes after the registration belongs to pairing
         assertTrue(connected.await(15, TimeUnit.SECONDS), "the client did not connect after the registration");
@@ -164,7 +167,7 @@ public class AuthHandshakeTest {
         Long serverCertId = pair();
         CountDownLatch authenticated = new CountDownLatch(1);
         AtomicReference<MelValidationProcess> process = new AtomicReference<>();
-        client.connect(serverCertId).done(p -> {
+        client.connect(serverCertId).onDone(p -> {
             process.set(p);
             authenticated.countDown();
         });
@@ -179,21 +182,25 @@ public class AuthHandshakeTest {
      * suspend() shuts the worker (socket opener, certificate delivery, brotcaster) and all sockets down, resume() starts a new worker.
      * Afterwards the instance has to be reachable again: new sockets, the old pairing still counts.
      */
+    private static boolean listens(int port) {
+        try (java.net.Socket probe = new java.net.Socket()) {
+            probe.connect(new java.net.InetSocketAddress("localhost", port), 500);
+            return true;
+        } catch (java.io.IOException e) {
+            return false;
+        }
+    }
+
     @Test
     public void pairedClientCanConnectAgainAfterTheServerWasSuspendedAndResumed() throws Exception {
         Long serverCertId = pair();
+        int serverPort = server.getSettings().getPort();
         server.suspend();
+        // suspend() closes the sockets in the background: a server that is still listening is the old one
+        assertTrue(TwoInstances.waitFor(() -> !listens(serverPort), TIMEOUT_SECONDS), "the suspended server still listens");
         server.resume();
         // resume() starts the sockets in the background: connecting before the server listens again is refused, and nobody retries
-        int serverPort = server.getSettings().getPort();
-        assertTrue(TwoInstances.waitFor(() -> {
-            try (java.net.Socket probe = new java.net.Socket()) {
-                probe.connect(new java.net.InetSocketAddress("localhost", serverPort), 500);
-                return true;
-            } catch (java.io.IOException e) {
-                return false;
-            }
-        }, TIMEOUT_SECONDS), "the resumed server does not listen again");
+        assertTrue(TwoInstances.waitFor(() -> listens(serverPort), TIMEOUT_SECONDS), "the resumed server does not listen again");
 
         CountDownLatch authenticated = new CountDownLatch(1);
         AtomicReference<Exception> failure = new AtomicReference<>();
@@ -201,7 +208,7 @@ public class AuthHandshakeTest {
         long end = System.nanoTime() + TimeUnit.SECONDS.toNanos(TIMEOUT_SECONDS);
         while (client.isConnectedTo(serverCertId) && System.nanoTime() < end)
             Thread.sleep(50);
-        client.connect(serverCertId).done(p -> authenticated.countDown()).fail(e -> {
+        client.connect(serverCertId).onDone(p -> authenticated.countDown()).onError(e -> {
             failure.set(e);
             authenticated.countDown();
         });
@@ -277,7 +284,7 @@ public class AuthHandshakeTest {
         CountDownLatch authenticated = new CountDownLatch(1);
         // regOnUnknown = false: no pairing allowed here
         client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), false)
-                .done(p -> authenticated.countDown());
+                .onDone(p -> authenticated.countDown());
         assertFalse(authenticated.await(5, TimeUnit.SECONDS), "an unpaired client got authenticated");
         assertTrue(server.getCertificateManager().getTrustedCertificates().isEmpty(), "server trusts a client it was never paired with");
     }
@@ -288,7 +295,7 @@ public class AuthHandshakeTest {
         Certificate pairedClient = server.getCertificateManager().getTrustedCertificates().get(0);
         server.getCertificateManager().trustCertificate(pairedClient.getId().v(), false);
         CountDownLatch authenticated = new CountDownLatch(1);
-        client.connect(serverCertId).done(p -> authenticated.countDown());
+        client.connect(serverCertId).onDone(p -> authenticated.countDown());
         assertFalse(authenticated.await(8, TimeUnit.SECONDS), "client was authenticated although the server no longer trusts it");
         assertFalse(server.isConnectedTo(pairedClient.getId().v()));
     }
@@ -309,7 +316,7 @@ public class AuthHandshakeTest {
         CountDownLatch opened = new CountDownLatch(1);
         AtomicReference<MelIsolatedProcess> process = new AtomicReference<>();
         client.connectToService(TestIsolatedProcess.class, serverCertId, serverService.getUuid(), clientService.getUuid(), null, null, null)
-                .done(p -> {
+                .onDone(p -> {
                     process.set(p);
                     opened.countDown();
                 });
@@ -335,7 +342,7 @@ public class AuthHandshakeTest {
         assertFalse(server.getDatabaseManager().isApproved(clientCertId, serviceId), "test setup: client must not have access yet");
         CountDownLatch opened = new CountDownLatch(1);
         client.connectToService(TestIsolatedProcess.class, serverCertId, serverService.getUuid(), clientService.getUuid(), null, null, null)
-                .done(p -> opened.countDown());
+                .onDone(p -> opened.countDown());
         assertFalse(serverService.firstEstablished.await(5, TimeUnit.SECONDS), "a partner without access was handed an isolated connection to the service");
         assertTrue(serverService.established.isEmpty());
         assertEquals(1, opened.getCount(), "the client believes it has an isolated connection to a service it has no access to");
@@ -356,7 +363,7 @@ public class AuthHandshakeTest {
         server.getDatabaseManager().grant(serverServiceId(), server.getCertificateManager().getTrustedCertificates().get(0).getId().v());
         CountDownLatch opened = new CountDownLatch(1);
         client.connectToService(TestIsolatedProcess.class, serverCertId, serverService.getUuid(), clientService.getUuid(), null, null, null)
-                .done(p -> opened.countDown());
+                .onDone(p -> opened.countDown());
         assertTrue(opened.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), "isolated connection failed for a certificate id above 127");
     }
 
@@ -368,7 +375,7 @@ public class AuthHandshakeTest {
         server.getDatabaseManager().grant(serviceId, clientCertId);
         CountDownLatch opened = new CountDownLatch(1);
         client.connectToService(TestIsolatedProcess.class, serverCertId, serverService.getUuid(), clientService.getUuid(), null, null, null)
-                .done(p -> opened.countDown());
+                .onDone(p -> opened.countDown());
         assertTrue(opened.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), "a partner with access could not open an isolated connection");
         assertTrue(serverService.firstEstablished.await(TIMEOUT_SECONDS, TimeUnit.SECONDS));
     }

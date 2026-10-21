@@ -38,8 +38,8 @@ import de.mel.android.file.SAFFileConfiguration;
 import de.mel.android.file.chooserdialog.DirectoryChooserDialog;
 import de.mel.auth.file.IFile;
 
-import org.jdeferred.FailCallback;
-import org.jdeferred.Promise;
+import fun.with.interfaces.actions.ActionConsumer;
+import fun.with.promise.Promise;
 
 import java.io.File;
 import java.io.IOException;
@@ -163,7 +163,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
         } catch (Exception e) {
             e.printStackTrace();
         }
-        annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).done(result -> {
+        annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).onDone(result -> {
             N.r(() -> {
                 AndroidFile f = new AndroidFile("/storage/emulated/0/Download/mel/kkk.txt");
                 boolean ex = f.exists();
@@ -172,7 +172,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
             });
 //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 //
-//                SAFAccessor.askForExternalRootDirectory(MainActivity.this).done(result1 -> N.r(() -> {
+//                SAFAccessor.askForExternalRootDirectory(MainActivity.this).onDone(result1 -> N.r(() -> {
 //                    Lok.debug("lel");
 //                }));
 //            }
@@ -219,7 +219,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
 //        }
         AbstractFile.configure(new DefaultFileConfiguration());
         //testFileWrite();
-//        annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).done(result -> {
+//        annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).onDone(result -> {
 //
 //        });
 
@@ -591,18 +591,18 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
             , int permissionTitle
             , int permissionText
             , Runnable onSuccess
-            , FailCallback<List<String>> onFail) {
+            , ActionConsumer<List<String>> onFail) {
         if (!hasPermissions(permissions)) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setMessage(permissionText)
                     .setTitle(permissionTitle)
                     .setPositiveButton(R.string.btnOk, (dialog, which) -> {
-                        Promise<Void, List<String>, Void> permissionsPromise = annoyWithPermissions(permissions);
-                        permissionsPromise.done(nil -> {
+                        Promise<Void, List<String>> permissionsPromise = annoyWithPermissions(permissions);
+                        permissionsPromise.onDone(nil -> {
                             if (permissionsGrantedListener != null)
                                 permissionsGrantedListener.onPermissionsGranted();
                             onSuccess.run();
-                        }).fail(result -> {
+                        }).onError(result -> {
                             Set<String> failedPermissions = new HashSet<>(result);
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                                 failedPermissions.remove(Manifest.permission.MANAGE_EXTERNAL_STORAGE);
@@ -611,7 +611,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
                             if (result.isEmpty())
                                 onSuccess.run();
                             else
-                                onFail.onFail(result);
+                                onFail.accept(result);
                         });
                     });
             AlertDialog alertDialog = builder.create();
@@ -629,7 +629,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
      */
     public void askUserForPermissionToManageAllFiles(
             Runnable onSuccess,
-            FailCallback<Void> onFail) {
+            ActionConsumer<Void> onFail) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             return;
         }

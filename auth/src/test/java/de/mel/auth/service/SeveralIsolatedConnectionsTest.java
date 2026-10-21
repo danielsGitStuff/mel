@@ -55,7 +55,7 @@ public class SeveralIsolatedConnectionsTest {
         CountDownLatch opened = new CountDownLatch(1);
         AtomicReference<MelIsolatedProcess> process = new AtomicReference<>();
         client.connectToService(TestIsolatedProcess.class, serverIdAtClient, serverService.getUuid(), clientService.getUuid(), null, null, null)
-                .done(p -> {
+                .onDone(p -> {
                     process.set(p);
                     opened.countDown();
                 });
@@ -109,14 +109,14 @@ public class SeveralIsolatedConnectionsTest {
         assertTrue(waitFor(() -> secondAtServer.received.size() == 1, 10), "the remaining connection is not usable");
         // and the service still hands out the one that is left
         AtomicReference<MelIsolatedProcess> again = new AtomicReference<>();
-        serverService.getIsolatedProcess(TestIsolatedProcess.class, idOf(client, server), clientService.getUuid()).done(again::set);
+        serverService.getIsolatedProcess(TestIsolatedProcess.class, idOf(client, server), clientService.getUuid()).onDone(again::set);
         assertTrue(waitFor(() -> again.get() != null, 5));
         assertSame(secondAtServer, again.get());
     }
 
     private MelIsolatedProcess getIsolated(IsolationRecordingService from, MelAuthService owner, Long partnerId, String partnerServiceUuid, int seconds) throws Exception {
         AtomicReference<MelIsolatedProcess> got = new AtomicReference<>();
-        from.getIsolatedProcess(TestIsolatedProcess.class, partnerId, partnerServiceUuid).done(got::set);
+        from.getIsolatedProcess(TestIsolatedProcess.class, partnerId, partnerServiceUuid).onDone(got::set);
         waitFor(() -> got.get() != null, seconds);
         return got.get();
     }
@@ -151,7 +151,7 @@ public class SeveralIsolatedConnectionsTest {
         IsolationRecordingService other = new IsolationRecordingService(server, new File(tempDir, "other service"), "other service uuid");
         server.registerMelService(other);
         AtomicReference<Exception> failure = new AtomicReference<>();
-        clientService.getIsolatedProcess(TestIsolatedProcess.class, serverIdAtClient, other.getUuid()).fail(failure::set);
+        clientService.getIsolatedProcess(TestIsolatedProcess.class, serverIdAtClient, other.getUuid()).onError(failure::set);
         assertTrue(waitFor(() -> failure.get() != null || other.firstEstablished.getCount() == 0, 15) && other.established.isEmpty(),
                 "the connection to a service without access did not fail");
         // now the client may use that service: the failed attempt must not be handed out again

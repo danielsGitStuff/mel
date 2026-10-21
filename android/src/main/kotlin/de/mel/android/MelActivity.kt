@@ -26,9 +26,8 @@ import de.mel.auth.service.MelAuthService
 import de.mel.auth.tools.N
 import de.mel.core.serialize.SerializableEntity
 import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer
-import org.jdeferred.Deferred
-import org.jdeferred.Promise
-import org.jdeferred.impl.DeferredObject
+import `fun`.with.promise.PromiseImpl
+import `fun`.with.promise.Promise
 import java.security.SecureRandom
 
 /**
@@ -75,12 +74,12 @@ abstract class MelActivity : AppCompatActivity(), NavigationView.OnNavigationIte
             androidService = localBinder.service
             Lok.debug(".onServiceConnected: " + androidService.toString())
             androidService?.startedPromise
-                ?.done { result: MelAuthService? ->
+                ?.onDone { result: MelAuthService? ->
                     onAndroidServiceAvailable(
                         androidService
                     )
                 }
-                ?.fail { obj: Exception -> obj.printStackTrace() }
+                ?.onError { obj: Exception -> obj.printStackTrace() }
         }
 
         override fun onServiceDisconnected(arg0: ComponentName) {
@@ -192,7 +191,7 @@ abstract class MelActivity : AppCompatActivity(), NavigationView.OnNavigationIte
 //        if (deniedPermissions.size == 0) {
 //            permissionsManager
 //        } else {
-//            deferred.reject(deniedPermissions)
+//            deferred.resolveError(deniedPermissions)
 //        }
     }
 
@@ -215,8 +214,8 @@ abstract class MelActivity : AppCompatActivity(), NavigationView.OnNavigationIte
      * @return Promise that resolves when all permission have been granted or will reject with all denied permissions.
      */
     @Deprecated("")
-    fun annoyWithPermissions(vararg permissions: String): Promise<Void?, List<String>, Void> {
-        val deferred: Deferred<Void?, List<String>, Void> = DeferredObject()
+    fun annoyWithPermissions(vararg permissions: String): Promise<Void?, List<String>> {
+        val deferred: PromiseImpl<Void?, List<String>> = PromiseImpl.withoutThrowingOnException()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             var request = false
             for (permission in permissions) {
@@ -236,11 +235,11 @@ abstract class MelActivity : AppCompatActivity(), NavigationView.OnNavigationIte
                     id
                 )
             } else {
-                deferred.resolve(null)
+                deferred.resolveOk(null)
             }
             Lok.debug(".askForPermission()?: $request")
         } else {
-            deferred.resolve(null)
+            deferred.resolveOk(null)
         }
         return deferred
     }
@@ -276,8 +275,8 @@ abstract class MelActivity : AppCompatActivity(), NavigationView.OnNavigationIte
         fun annoyWithPermissions(
             activity: Activity,
             vararg permissions: String
-        ): Promise<Void?, List<String>, Void> {
-            val deferred: Deferred<Void?, List<String>, Void> = DeferredObject()
+        ): Promise<Void?, List<String>> {
+            val deferred: PromiseImpl<Void?, List<String>> = PromiseImpl.withoutThrowingOnException()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 var request = false
                 for (permission in permissions) {
@@ -297,11 +296,11 @@ abstract class MelActivity : AppCompatActivity(), NavigationView.OnNavigationIte
                         id
                     )
                 } else {
-                    deferred.resolve(null)
+                    deferred.resolveOk(null)
                 }
                 Lok.debug(".askForPermission()?: $request")
             } else {
-                deferred.resolve(null)
+                deferred.resolveOk(null)
             }
             return deferred
         }

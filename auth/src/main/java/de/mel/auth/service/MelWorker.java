@@ -6,8 +6,8 @@ import de.mel.auth.tools.CountLock;
 import de.mel.auth.tools.N;
 import de.mel.sql.RWLock;
 
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 import java.util.LinkedList;
 
@@ -24,7 +24,7 @@ public abstract class MelWorker extends DeferredRunnable {
     protected LinkedList<Job> jobs = new LinkedList<>();
     protected RWLock queueLock = new RWLock();
     protected CountLock waitLock = new CountLock();
-    private DeferredObject workDonePromise;
+    private PromiseImpl workDonePromise;
 
     @Override
     public void runImpl() {
@@ -35,22 +35,22 @@ public abstract class MelWorker extends DeferredRunnable {
                 queueLock.unlockWrite();
                 if (job != null) {
                     try {
-                        workDonePromise = new DeferredObject();
+                        workDonePromise = PromiseImpl.withoutThrowingOnException();
                         workWork(job);
-                        workDonePromise.resolve(null);
+                        workDonePromise.resolveOk(null);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 } else {
                     // wait here if no jobs are available
                     if (workDonePromise != null)
-                        N.s(() -> workDonePromise.resolve(null));
+                        N.s(() -> workDonePromise.resolveOk(null));
                     N.r(() -> waitLock.lock());
                 }
             }
             if (workDonePromise != null) {
                 RWLock shutDownLock = new RWLock().lockWrite();
-                workDonePromise.done(result -> shutDownLock.unlockWrite());
+                workDonePromise.onDone(result -> shutDownLock.unlockWrite());
                 shutDownLock.lockWrite();
             }
         } catch (Exception e) {
@@ -79,7 +79,7 @@ public abstract class MelWorker extends DeferredRunnable {
      * stops the current worker.
      */
     @Override
-    public Promise<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         stop();
         return DeferredRunnable.ResolvedDeferredObject();
     }

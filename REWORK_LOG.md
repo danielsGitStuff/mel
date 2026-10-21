@@ -144,3 +144,18 @@ ObservableTest 2 and 8 more single-test classes (IndexerTest, TransferManagerDum
 has nothing tagged. There are no filesync tests that exercise the transfer or the services; the file transfer is now covered by `FileTransferTest` in auth.
 Modules without automated tests (android, authfx, fxbundle, serverparts, miniserver, contacts): compile-only safety net, `./gradlew build` includes the Android assemble.
 Full `./gradlew build` after P3 tests: see the line below at the end of P3.
+
+## P4: the JDeferred replacement
+Done in one atomic step (the public types are shared by all modules, so there is no green state in between): a script (`scratchpad/port/port.py`, not kept) did the mechanical part in
+the 76 files that imported `org.jdeferred` (imports, `Promise<D,F,P>` -> `Promise<D,F>` by a bracket-matching parser, `DeferredObject` -> `PromiseImpl`,
+`new DeferredObject<>()` -> `PromiseImpl.withoutThrowingOnException()`, `done/fail/resolve/reject/isResolved/isRejected` -> `onDone/onError/resolveOk/resolveError/hasResult/hasError`),
+a compiler-driven fixer renamed the same calls in files that only use `Request`/`Job`/`connect()` (exactly where javac/kotlinc said "cannot find symbol"), the rest by hand.
+By hand: `DeferredRunnable` (started promise is a `PromiseImpl`, `ResolvedDeferredObject()` = `Promise.resolvedOk()`), `Job<R,F>`/`AConnectJob<R>`/`Request<T>` extend `PromiseImpl`
+(public no-arg constructors calling `super(false)`), `MelRequest.answerDeferred`, `MelBoot` (Kotlin, `Promise.fusedAnd`), `MelAuthWorker` (`fusedAnd`), `MelAuthServiceImpl.resume` (dead branch
+with an always empty list removed), shutdown sites (`ShutDownDeferredManager` -> `Promises.allSettled(...)`, a 10 line helper on top of `Promise.fused`), `.always(...)` -> onDone + onError,
+Android `FailCallback` -> `ActionConsumer`, catches of `IllegalStateException` for double settles -> `AlreadyResolvedOkException | AlreadyResolvedErrorException`.
+Kotlin needs ``import `fun`.with.promise.X`` (fun is a keyword). Deleted: `MelDeferredManager`, `ShutDownDeferredManager`, `DeferredManagersTest` (replaced by `PromisesTest`). `PromiseAdapters` was never needed.
+Removed `api libs.jdeferred` from `auth/build.gradle` and `jdeferred` from `libs.versions.toml`. `grep -rn "org.jdeferred" --include=*.java --include=*.kt --exclude-dir=build .` prints nothing.
+`fun.with` itself was not changed.
+Test race found on the way (not a code bug): `AuthHandshakeTest...SuspendedAndResumed` probed the port right after `suspend()`, while the old listener was still open; it now waits for the port to close, resumes, then waits for it to open.
+The 96 tests of `:auth:test :auth:integrationTest` and `:filesync:test` green, full `./gradlew build` green.

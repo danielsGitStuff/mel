@@ -3,7 +3,7 @@ package de.mel.auth.socket;
 import de.mel.DeferredRunnable;
 import de.mel.Lok;
 import de.mel.auth.jobs.BlockReceivedJob;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -74,7 +74,7 @@ class SocketWorker extends DeferredRunnable {
      * The worker ends with the socket, there is nothing to shut down.
      */
     @Override
-    public Promise<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         return DeferredRunnable.ResolvedDeferredObject();
     }
 }

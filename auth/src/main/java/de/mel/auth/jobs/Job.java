@@ -3,12 +3,17 @@ package de.mel.auth.jobs;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.tools.CountWaitLock;
 
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.PromiseImpl;
 
 /**
  * When a message/request requires (probably long) work to do you may use Jobs so the Socket thread does not block for all that time.
  */
-public abstract class Job<R,F,P> extends DeferredObject<R,F,Void>{
+public abstract class Job<R, F> extends PromiseImpl<R, F> {
+
+    protected Job() {
+        super(false);
+    }
+
 
     private static class Base extends Job{
         protected Certificate partnerCertificate;

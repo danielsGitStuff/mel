@@ -5,7 +5,8 @@ import de.mel.Lok;
 import de.mel.auth.jobs.BlockReceivedJob;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.tools.N;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 import javax.net.SocketFactory;
 
@@ -199,7 +200,7 @@ public class MelSocket extends DeferredRunnable {
 
 
     @Override
-    public DeferredObject<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         close(CloseReason.SHUTDOWN);
         return DeferredRunnable.ResolvedDeferredObject();
     }

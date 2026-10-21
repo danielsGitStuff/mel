@@ -25,8 +25,8 @@ import de.mel.filesync.service.MelFileSyncService;
 import de.mel.filesync.sql.FileSyncDatabaseManager;
 import de.mel.sql.SqlQueriesException;
 
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 import java.io.File;
 import java.io.IOException;
@@ -75,32 +75,32 @@ public class FileSyncBootloader extends Bootloader<MelFileSyncService> {
     }
 
     @Override
-    public Promise<Void, BootException, Void> bootLevelLongImpl() throws BootException {
+    public Promise<Void, BootException> bootLevelLongImpl() throws BootException {
         try {
             Lok.debug(melFileSyncService.getMelAuthService().getName() + ", booting to level 2: " + melFileSyncService.getClass().getSimpleName());
-            DeferredObject<Void, BootException, Void> done = new DeferredObject<>();
+            PromiseImpl<Void, BootException> done = PromiseImpl.withoutThrowingOnException();
             //notify user
             MelNotification notification = new MelNotification(melFileSyncService.getUuid(), FileSyncStrings.Notifications.INTENTION_BOOT, "Booting: " + getName(), "indexing in progress");
             notification.setUserCancelable(false);
             notification.setProgress(0, 0, true);
             melAuthService.onNotificationFromService(melFileSyncService, notification);
-            DeferredObject<DeferredRunnable, Exception, Void> indexDonePromise = startIndexer(melFileSyncService, melFileSyncService.getFileSyncSettings());
+            PromiseImpl<DeferredRunnable, Exception> indexDonePromise = startIndexer(melFileSyncService, melFileSyncService.getFileSyncSettings());
             indexDonePromise
-                    .done(result -> N.r(() -> {
+                    .onDone(result -> N.r(() -> {
                         Lok.debug("indexing done for: " + melFileSyncService.getFileSyncSettings().getRootDirectory().getPath());
                         notification.cancel();
-                        done.resolve(null);
+                        done.resolveOk(null);
                         if (DEV_DRIVE_BOOT_LISTENER != null) {
                             DEV_DriveBootListener tmp = DEV_DRIVE_BOOT_LISTENER;
                             DEV_DRIVE_BOOT_LISTENER = null;
                             tmp.driveServiceBooted(melFileSyncService);
                         }
                     }))
-                    .fail(ex -> {
+                    .onError(ex -> {
                         notification.setText("failed :(")
                                 .finish();
                         System.err.println("DriveBootloader.spawn." + melFileSyncService.getUuid() + " failed");
-                        done.reject(new BootException(this, ex));
+                        done.resolveError(new BootException(this, ex));
                     });
             return done;
         } catch (SQLException | IOException | ClassNotFoundException | SqlQueriesException | JsonDeserializationException | JsonSerializationException | IllegalAccessException e) {
@@ -168,16 +168,16 @@ public class FileSyncBootloader extends Bootloader<MelFileSyncService> {
                 // allow server service to talk to us
                 melAuthService.getDatabaseManager().grant(service.getId().v(), certId);
 
-                Promise<MelValidationProcess, Exception, Void> connected = melAuthService.connect(certId);
+                Promise<MelValidationProcess, Exception> connected = melAuthService.connect(certId);
                 FileSyncDetails fileSyncDetails = new FileSyncDetails().setRole(FileSyncStrings.ROLE_CLIENT).setLastSyncVersion(0).setServiceUuid(service.getUuid().v())
                         .setUsesSymLinks(fileSyncSettings.getUseSymLinks());
                 fileSyncDetails.setIntent(FileSyncStrings.INTENT_REG_AS_CLIENT);
-                connected.done(validationProcess -> N.r(() -> validationProcess.request(serviceUuid, fileSyncDetails).done(result -> N.r(() -> {
+                connected.onDone(validationProcess -> N.r(() -> validationProcess.request(serviceUuid, fileSyncDetails).onDone(result -> N.r(() -> {
                     Lok.debug("Service created and paired");
                     clientSettings.setInitFinished(true);
                     fileSyncSettings.save();
                     lock.unlock();
-                })))).fail(result -> N.r(() -> {
+                })))).onError(result -> N.r(() -> {
                     Lok.debug("DriveCreateController.createDriveClientService.FAIL");
                     result.printStackTrace();
                     melFileSyncClientService.shutDown();
@@ -196,7 +196,7 @@ public class FileSyncBootloader extends Bootloader<MelFileSyncService> {
         return melFileSyncService;
     }
 
-    private DeferredObject<DeferredRunnable, Exception, Void> startIndexer(MelFileSyncService melFileSyncService, FileSyncSettings fileSyncSettings) throws SQLException, IOException, ClassNotFoundException, SqlQueriesException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
+    private PromiseImpl<DeferredRunnable, Exception> startIndexer(MelFileSyncService melFileSyncService, FileSyncSettings fileSyncSettings) throws SQLException, IOException, ClassNotFoundException, SqlQueriesException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
         return melFileSyncService.startIndexer();
     }
 

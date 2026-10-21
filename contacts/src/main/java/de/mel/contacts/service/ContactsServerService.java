@@ -56,7 +56,7 @@ public class ContactsServerService extends ContactsService {
             AnswerQueryJob answerQueryJob = (AnswerQueryJob) job;
             PhoneBook phoneBook = databaseManager.getPhoneBookDao().loadDeepPhoneBook(databaseManager.getSettings().getMasterPhoneBookId());
             PhoneBookWrapper wrapper = new PhoneBookWrapper(phoneBook);
-            answerQueryJob.getRequest().resolve(wrapper);
+            answerQueryJob.getRequest().resolveOk(wrapper);
         } else if (job instanceof UpdatePhoneBookJob) {
             UpdatePhoneBookJob updatePhoneBookJob = (UpdatePhoneBookJob) job;
             try {
@@ -68,17 +68,17 @@ public class ContactsServerService extends ContactsService {
                     phoneBookDao.insertDeep(phoneBook);
                     settings.setMasterPhoneBookId(phoneBook.getId().v());
                     settings.save();
-                    updatePhoneBookJob.getRequest().resolve(null);
-                    updatePhoneBookJob.resolve(null);
+                    updatePhoneBookJob.getRequest().resolveOk(null);
+                    updatePhoneBookJob.resolveOk(null);
                     propagateNewVersion(phoneBook.getVersion().v());
                 } else {
-                    updatePhoneBookJob.getRequest().reject(new Exception("master version was " + masterPhoneBook.getVersion().v() + " clients version was " + phoneBook.getVersion().v()));
-                    updatePhoneBookJob.reject(null);
+                    updatePhoneBookJob.getRequest().resolveError(new Exception("master version was " + masterPhoneBook.getVersion().v() + " clients version was " + phoneBook.getVersion().v()));
+                    updatePhoneBookJob.resolveError(null);
                 }
             } finally {
                 if (updatePhoneBookJob.getRequest().isPending()) {
-                    updatePhoneBookJob.getRequest().reject(null);
-                    updatePhoneBookJob.reject(null);
+                    updatePhoneBookJob.getRequest().resolveError(null);
+                    updatePhoneBookJob.resolveError(null);
                 }
             }
         } else if (job instanceof ServiceRequestHandlerJob) {
@@ -87,9 +87,9 @@ public class ContactsServerService extends ContactsService {
                 ServiceDetails serviceDetails = (ServiceDetails) messageHandlerJob.getRequest().getPayload();
                 settings.getServerSettings().addClient(messageHandlerJob.getPartnerCertificate().getId().v(), serviceDetails.getServiceUuid());
                 settings.save();
-                messageHandlerJob.getRequest().resolve(null);
+                messageHandlerJob.getRequest().resolveOk(null);
             } else {
-                messageHandlerJob.getRequest().reject(null);
+                messageHandlerJob.getRequest().resolveError(null);
             }
         }
     }
@@ -97,7 +97,7 @@ public class ContactsServerService extends ContactsService {
     protected void propagateNewVersion(Long version) {
         try {
             for (ClientData client : settings.getServerSettings().getClients()) {
-                melAuthService.connect(client.getCertId()).done(mvp ->
+                melAuthService.connect(client.getCertId()).onDone(mvp ->
                         N.r(() -> mvp.message(client.getServiceUuid(), new NewVersionDetails(version, ContactStrings.INTENT_PROPAGATE_NEW_VERSION))));
             }
         } catch (Exception e) {

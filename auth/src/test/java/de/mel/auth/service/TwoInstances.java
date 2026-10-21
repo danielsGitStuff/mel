@@ -1,5 +1,7 @@
 package de.mel.auth.service;
 
+import fun.with.promise.Promise;
+
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.data.MelRequest;
@@ -15,7 +17,7 @@ import de.mel.auth.socket.MelValidationProcess;
 import de.mel.auth.socket.process.reg.IRegisterHandler;
 import de.mel.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mel.auth.tools.CountLock;
-import de.mel.auth.tools.ShutDownDeferredManager;
+import de.mel.auth.tools.Promises;
 import de.mel.sql.Hash;
 
 import java.io.File;
@@ -107,10 +109,10 @@ class TwoInstances implements AutoCloseable {
         AtomicReference<MelAuthService> booted = new AtomicReference<>();
         AtomicReference<Exception> failure = new AtomicReference<>();
         CountDownLatch latch = new CountDownLatch(1);
-        new MelBoot(settings, new PowerManager(settings)).boot().done(service -> {
+        new MelBoot(settings, new PowerManager(settings)).boot().onDone(service -> {
             booted.set(service);
             latch.countDown();
-        }).fail(e -> {
+        }).onError(e -> {
             failure.set(e);
             latch.countDown();
         });
@@ -130,7 +132,7 @@ class TwoInstances implements AutoCloseable {
         client.addRegisteredHandler((service, cert) -> registered.countDown());
         // the connect promise is settled when the whole job is over: after a registration the client also connects, and that connection is part of pairing
         client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), true)
-                .always((state, resolved, rejected) -> connected.countDown());
+                .onDone(a -> connected.countDown()).onError(e -> connected.countDown());
         if (!registered.await(10, TimeUnit.SECONDS))
             return false;
         assertTrue(connected.await(10, TimeUnit.SECONDS), "the client did not connect after the registration");
@@ -185,10 +187,10 @@ class TwoInstances implements AutoCloseable {
         CountDownLatch connected = new CountDownLatch(1);
         AtomicReference<MelValidationProcess> process = new AtomicReference<>();
         AtomicReference<Exception> failure = new AtomicReference<>();
-        from.connect(idOf(to, from)).done(p -> {
+        from.connect(idOf(to, from)).onDone(p -> {
             process.set(p);
             connected.countDown();
-        }).fail(e -> {
+        }).onError(e -> {
             failure.set(e);
             connected.countDown();
         });
@@ -296,15 +298,15 @@ class TwoInstances implements AutoCloseable {
     @Override
     public void close() {
         CountLock lock = new CountLock().lock();
-        ShutDownDeferredManager shut = new ShutDownDeferredManager();
+        List<Promise<?, ?>> shut = new ArrayList<>();
         for (MelAuthService service : new MelAuthService[]{client, server}) {
             try {
-                shut.when(service.shutDown());
+                shut.add(service.shutDown());
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        shut.digest().done(r -> lock.unlock());
+        Promises.allSettled(shut.toArray(new Promise[0])).onDone(r -> lock.unlock());
         lock.lock();
     }
 }

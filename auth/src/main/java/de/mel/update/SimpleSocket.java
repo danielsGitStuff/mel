@@ -2,7 +2,7 @@ package de.mel.update;
 
 import de.mel.DeferredRunnable;
 import de.mel.auth.tools.N;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -28,7 +28,7 @@ public abstract class SimpleSocket extends DeferredRunnable {
 
 
     @Override
-    public Promise<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         N.s(socket::close);
         N.s(in::close);
         N.s(out::close);

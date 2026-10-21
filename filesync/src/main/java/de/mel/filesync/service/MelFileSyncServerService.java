@@ -28,8 +28,8 @@ import de.mel.filesync.tasks.SyncRequest;
 import de.mel.sql.ISQLResource;
 import de.mel.sql.SqlQueriesException;
 
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 import java.io.File;
 import java.util.concurrent.ExecutorService;
@@ -70,7 +70,7 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
             answer.toDisk();
             answer.loadFirstCached();
             answer.setNewVersion(databaseManager.getLatestVersion());
-            request.resolve(answer);
+            request.resolveOk(answer);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -93,7 +93,7 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
                         fileSyncSettings.getServerSettings().addClient(certId, fileSyncDetails.getServiceUuid());
                         fileSyncSettings.save();
                         //propagateNewVersion();
-                        request.resolve(null);
+                        request.resolveOk(null);
                         return true;
                     } else if (request.hasIntent(FileSyncStrings.INTENT_COMMIT)) {
                         syncHandler.handleCommit(request);
@@ -139,7 +139,7 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
         try {
             long version = databaseManager.getLatestVersion();
             for (ClientData client : databaseManager.getFileSyncSettings().getServerSettings().getClients()) {
-                melAuthService.connect(client.getCertId()).done(mvp -> N.r(() -> {
+                melAuthService.connect(client.getCertId()).onDone(mvp -> N.r(() -> {
                     mvp.message(client.getServiceUuid(), new FileSyncDetails().setLastSyncVersion(version).setIntent(FileSyncStrings.INTENT_PROPAGATE_NEW_VERSION));
                 }));
             }
@@ -149,8 +149,8 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
     }
 
     @Override
-    public DeferredObject<DeferredRunnable, Exception, Void> startIndexer() throws SqlQueriesException {
-        DeferredObject<DeferredRunnable, Exception, Void> indexingDone = super.startIndexer();
+    public PromiseImpl<DeferredRunnable, Exception> startIndexer() throws SqlQueriesException {
+        PromiseImpl<DeferredRunnable, Exception> indexingDone = super.startIndexer();
         stageIndexer.setStagingDoneListener(stageSetId -> {
             Lok.debug(melAuthService.getName() + " first indexing done!");
             // staging is done. stage data is up to date. time to commit to fs
@@ -173,8 +173,8 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
             // tell everyone fs has a new version
             for (DriveServerSettingsDetails.ClientData clientData : driveSettings.getServerSettings().getClients()) {
                 Certificate client = melAuthService.getCertificateManager().getTrustedCertificateById(clientData.getCertId());
-                Promise<MelValidationProcess, Exception, Void> promise = melAuthService.connect(client.getId().v(), client.getAddress().v(), client.getPort().v(), client.getCertDeliveryPort().v(), false);
-                promise.done(melValidationProcess -> runner.runTry(() -> {
+                Promise<MelValidationProcess, Exception> promise = melAuthService.connect(client.getId().v(), client.getAddress().v(), client.getPort().v(), client.getCertDeliveryPort().v(), false);
+                promise.onDone(melValidationProcess -> runner.runTry(() -> {
                    Lok.debug("MelDriveService.workWork.syncFromServer.msg");
                     melValidationProcess.message(clientData.getServiceUuid(), DriveStrings.INTENT_SYNC, null);
                 }));
@@ -190,13 +190,13 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
             if (stageSetId != null) {
                 syncHandler.commitStage(stageSetId, transaction, null);
             } else {
-                Lok.debug("MelDriveServerService.done(). StageSet was empty");
+                Lok.debug("MelDriveServerService.onDone(). StageSet was empty");
             }
         });
     }
 
     @Override
-    public Promise<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         super.onShutDown();
         return null;
     }

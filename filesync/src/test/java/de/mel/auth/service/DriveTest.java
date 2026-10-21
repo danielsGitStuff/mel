@@ -1,5 +1,7 @@
 package de.mel.auth.service;
 
+import java.util.ArrayList;
+
 import de.mel.Lok;
 import de.mel.auth.MelAuthAdmin;
 import de.mel.auth.MelStrings;
@@ -19,7 +21,7 @@ import de.mel.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mel.auth.socket.process.reg.IRegisteredHandler;
 import de.mel.auth.socket.MelValidationProcess;
 import de.mel.auth.tools.CountLock;
-import de.mel.auth.tools.ShutDownDeferredManager;
+import de.mel.auth.tools.Promises;
 import de.mel.filesync.FileSyncBootloader;
 import de.mel.filesync.serialization.TestDirCreator;
 import de.mel.filesync.service.MelFileSyncClientService;
@@ -34,7 +36,7 @@ import de.mel.filesync.sql.FileSyncDatabaseManager;
 import de.mel.filesync.sql.FsFile;
 import de.mel.filesync.sql.GenericFSEntry;
 import de.mel.sql.RWLock;
-import org.jdeferred.Promise;
+import fun.with.promise.Promise;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -70,10 +72,10 @@ public class DriveTest {
     @AfterEach
     public void after() throws IOException {
         CountLock shutdownLock = new CountLock().lock();
-        ShutDownDeferredManager shut = new ShutDownDeferredManager();
-        N.r(() -> shut.when(melAuthService1.shutDown()));
-        N.r(() -> shut.when(melAuthService2.shutDown()));
-        shut.digest().done(result -> shutdownLock.unlock());
+        List<Promise<?, ?>> shut = new ArrayList<>();
+        N.r(() -> shut.add(melAuthService1.shutDown()));
+        N.r(() -> shut.add(melAuthService2.shutDown()));
+        Promises.allSettled(shut.toArray(new Promise[0])).onDone(result -> shutdownLock.unlock());
         shutdownLock.lock();
         melAuthService1 = melAuthService2 = null;
         lock = null;
@@ -123,8 +125,8 @@ public class DriveTest {
                         File delFile = new File(rootPath + File.separator + "samedir");
                         BashTools.Companion.rmRf(new StandardFile(delFile));
                         MelBoot melBoot = (restartMelBoot != null) ? restartMelBoot : new MelBoot(json1, new PowerManager(json1), FileSyncBootloader.class);
-                        Promise<MelAuthService, Exception, Void> rebooted = melBoot.boot();
-                        rebooted.done(res -> N.r(() -> {
+                        Promise<MelAuthService, Exception> rebooted = melBoot.boot();
+                        rebooted.onDone(res -> N.r(() -> {
                             Lok.debug("DriveTest.alles ok");
 //                            testStructure.setMaClient(melAuthService2)
 //                                    .setMaServer(melAuthService1)
@@ -248,8 +250,8 @@ public class DriveTest {
                         hash = Hash.md5(newFile.inputStream());
                         Lok.debug("DriveTest.onTransfersDone.hash: " + newFile + " -> " + hash);
                         MelBoot melBoot = (restartMelBoot != null) ? restartMelBoot : new MelBoot(json1, new PowerManager(json1), FileSyncBootloader.class);
-                        Promise<MelAuthService, Exception, Void> rebooted = melBoot.boot();
-                        rebooted.done(res -> N.r(() -> {
+                        Promise<MelAuthService, Exception> rebooted = melBoot.boot();
+                        rebooted.onDone(res -> N.r(() -> {
                             Lok.debug("DriveTest.alles ok");
 //                            testStructure.setMaClient(melAuthService2)
 //                                    .setMaServer(melAuthService1)
@@ -333,8 +335,8 @@ public class DriveTest {
 //                        hash = Hash.md5(newFile);
 //                        Lok.debug("DriveTest.onTransfersDone.hash: " + newFile + " -> " + hash);
 //                        MelBoot melBoot = (restartMelBoot != null) ? restartMelBoot : new MelBoot(json1, DriveBootloader.class);
-//                        Promise<MelAuthService, Exception, Void> rebooted = melBoot.spawn();
-//                        rebooted.done(res -> N.r(() -> {
+//                        Promise<MelAuthService, Exception> rebooted = melBoot.spawn();
+//                        rebooted.onDone(res -> N.r(() -> {
 //                            Lok.debug("DriveTest.alles ok");
 ////                            testStructure.setMaClient(melAuthService2)
 ////                                    .setMaServer(melAuthService1)
@@ -408,12 +410,12 @@ public class DriveTest {
 //                    String remoteServiceUuid = testStructure.clientDriveService.getDriveSettings().getClientSettings().getServerServiceUuid();
 //                    String ownServiceUuid = testStructure.clientDriveService.getUuid();
 ////                 String address, int port, int portCert
-//                    Promise<MelIsolatedFileProcess, Exception, Void> isolated = testStructure.clientDriveService.getIsolatedProcess(MelIsolatedFileProcess.class, certId, remoteServiceUuid);
-//                    isolated.done(melIsolatedProcess -> {
+//                    Promise<MelIsolatedFileProcess, Exception> isolated = testStructure.clientDriveService.getIsolatedProcess(MelIsolatedFileProcess.class, certId, remoteServiceUuid);
+//                    isolated.onDone(melIsolatedProcess -> {
 //                        Lok.debug("DriveTest.onSyncDoneImpl.SUCCESS");
 //                        assertTrue(true);
 //                        lock.unlockWrite();
-//                    }).fail(result -> {
+//                    }).onError(result -> {
 //                        Lok.debug("DriveTest.onSyncDoneImpl.FAIL");
 //                        fail();
 //                        lock.unlockWrite();
@@ -489,14 +491,14 @@ public class DriveTest {
                 .setWorkingDirectory(MelBoot.Companion.getDefaultWorkingDir1()).setName("MA1");
         MelBoot boot = new MelBoot(json1, new PowerManager(json1));
         WaitLock waitLock = new WaitLock().lock();
-        Promise<MelAuthService, Exception, Void> promise = boot.boot();
+        Promise<MelAuthService, Exception> promise = boot.boot();
         final MelAuthService[] mas = new MelAuthServiceImpl[1];
-        promise.done(result -> N.r(() -> {
+        promise.onDone(result -> N.r(() -> {
             mas[0] = result;
-            Promise<MelFileSyncServerService, Exception, Void> driveBootedPromise = new FileSyncCreateServiceHelper(result)
+            Promise<MelFileSyncServerService, Exception> driveBootedPromise = new FileSyncCreateServiceHelper(result)
                     .createDriveServerServiceDeferred("server test", testdir1, 0.01f, 30);
-            driveBootedPromise.done(result1 -> N.r(() -> {
-                result1.getIndexer().getIndexerStartedDeferred().done(result2 -> N.r(() -> {
+            driveBootedPromise.onDone(result1 -> N.r(() -> {
+                result1.getIndexer().getIndexerStartedDeferred().onDone(result2 -> N.r(() -> {
                     result.shutDown();
                     waitLock.unlock();
                 }));
@@ -512,7 +514,7 @@ public class DriveTest {
         TestFileCreator.saveFile("newfile.2".getBytes(), newFile);
         boot = new MelBoot(json1, new PowerManager(json1));
         promise = boot.boot();
-        promise.done(result -> N.r(() -> {
+        promise.onDone(result -> N.r(() -> {
             mas[0] = result;
         }));
         waitLock.lock().lock();
@@ -783,7 +785,7 @@ public class DriveTest {
         lock.lockWrite();
 
         MelBoot boot1 = new MelBoot(json1, new PowerManager(json1), FileSyncBootloader.class);
-        boot1.boot().done(ma1 -> {
+        boot1.boot().onDone(ma1 -> {
             runner.runTry(() -> {
                 Lok.debug("DriveTest.driveGui.booted");
                 melAuthService1 = ma1;
@@ -890,7 +892,7 @@ public class DriveTest {
             boot2 = clientMelBoot;
         else
             boot2 = new MelBoot(json2, new PowerManager(json2), FileSyncBootloader.class);
-        boot1.boot().done(ma1 -> {
+        boot1.boot().onDone(ma1 -> {
             runner.runTry(() -> {
                 Lok.debug("DriveFXTest.driveGui.1.booted");
                 melAuthService1 = ma1;
@@ -899,14 +901,14 @@ public class DriveTest {
                 // setup the server Service
                 FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = driveService -> N.r(() -> {
                     MelFileSyncServerService serverService = (MelFileSyncServerService) driveService;
-                    boot2.boot().done(ma2 -> {
+                    boot2.boot().onDone(ma2 -> {
                         Lok.debug("DriveFXTest.driveGui.2.booted");
                         melAuthService2 = ma2;
                         melAuthService2.addRegisterHandler(allowRegisterHandler);
                         melAuthService2.addRegisteredHandler((melAuthService, registered) -> runner.runTry(() -> {
                             // connect first. this step will register
-                            Promise<MelValidationProcess, Exception, Void> connectPromise = melAuthService2.connect("localhost", ma1.getSettings().getPort(), ma1.getSettings().getDeliveryPort(), false);
-                            connectPromise.done(melValidationProcess -> new Thread(() -> {
+                            Promise<MelValidationProcess, Exception> connectPromise = melAuthService2.connect("localhost", ma1.getSettings().getPort(), ma1.getSettings().getDeliveryPort(), false);
+                            connectPromise.onDone(melValidationProcess -> new Thread(() -> {
                                         runner.runTry(() -> {
                                             Lok.debug("DriveFXTest.driveGui.connected");
                                             // MAs know each other at this point. setup the client Service. it wants some data from the steps before

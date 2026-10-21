@@ -15,7 +15,8 @@ import de.mel.auth.socket.MelSocket;
 import de.mel.auth.tools.N;
 import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 import javax.net.ServerSocketFactory;
 
@@ -109,7 +110,7 @@ public class MelAuthCertDelivery extends DeferredRunnable {
 
 
     @Override
-    public DeferredObject<Void, Void, Void> onShutDown() {
+    public Promise<Void, Void> onShutDown() {
         N.r(() -> {
             Lok.debug("unbinding " + port);
             serverSocket.close();

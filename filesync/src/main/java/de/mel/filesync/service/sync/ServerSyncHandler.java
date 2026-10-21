@@ -33,7 +33,7 @@ public class ServerSyncHandler extends SyncHandler {
         AvailableHashes hashesAvailable = ServerSyncHandler.this.hashAvailTimer.getHashesAvailableCopy();
         hashesAvailable.setIntent(FileSyncStrings.INTENT_HASH_AVAILABLE);
         N.forEachIgnorantly(fileSyncSettings.getServerSettings().getClients(),
-                clientData -> melAuthService.connect(clientData.getCertId()).done(
+                clientData -> melAuthService.connect(clientData.getCertId()).onDone(
                         mvp -> N.r(() -> mvp.message(clientData.getServiceUuid(), hashesAvailable))));
     });
 
@@ -50,7 +50,7 @@ public class ServerSyncHandler extends SyncHandler {
     private boolean canCommit(Request request, Commit commit) throws SqlQueriesException {
         final long olderVersion = fileSyncDatabaseManager.getLatestVersion();
         if (commit.getBasedOnVersion() != olderVersion) {
-            request.reject(new TooOldVersionException("old version: " + commit.getBasedOnVersion() + " vs " + fileSyncDatabaseManager.getLatestVersion(), fileSyncDatabaseManager.getLatestVersion()));
+            request.resolveError(new TooOldVersionException("old version: " + commit.getBasedOnVersion() + " vs " + fileSyncDatabaseManager.getLatestVersion(), fileSyncDatabaseManager.getLatestVersion()));
             return false;
         }
         return true;
@@ -92,7 +92,7 @@ public class ServerSyncHandler extends SyncHandler {
             this.commitStage(stageSet.getId().v(), bunchOfLocks, stageIdFsIdMap);
         } catch (OutOfSpaceException e) {
             e.printStackTrace();
-            request.reject(e);
+            request.resolveError(e);
             return;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -105,7 +105,7 @@ public class ServerSyncHandler extends SyncHandler {
             }
         }
         CommitAnswer answer = new CommitAnswer().setStageIdFsIdMap(newIdMap);
-        request.resolve(answer);
+        request.resolveOk(answer);
         // TODO setup transfers
         List<GenericFSEntry> delta = fsDao.getDelta(oldVersion);
         for (GenericFSEntry genericFSEntry : delta) {
@@ -164,10 +164,10 @@ public class ServerSyncHandler extends SyncHandler {
             availableHashesContainer.cleanUp();
             result.toDisk();
             result.loadFirstCached();
-            request.resolve(result);
+            request.resolveOk(result);
         } catch (SqlQueriesException | IOException | MelJsonException e) {
             e.printStackTrace();
-            request.reject(e);
+            request.resolveError(e);
         } finally {
             availableHashesContainer.cleanUp();
         }

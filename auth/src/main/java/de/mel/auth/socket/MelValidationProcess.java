@@ -20,7 +20,7 @@ import de.mel.core.serialize.exceptions.JsonSerializationException;
 import de.mel.core.serialize.exceptions.MelJsonException;
 import de.mel.sql.SqlQueriesException;
 
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.PromiseImpl;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -218,7 +218,7 @@ public class MelValidationProcess extends MelProcess {
             if (melService == null) {
                 if (message instanceof MelRequest) {
                     MelRequest request = (MelRequest) message;
-                    request.getAnswerDeferred().reject(new ResponseException("service not available"));
+                    request.getAnswerDeferred().resolveError(new ResponseException("service not available"));
                 } else {
                     Lok.debug("msg rejected");
                 }
@@ -230,7 +230,7 @@ public class MelValidationProcess extends MelProcess {
                 // this is the place to respond exactly that.
                 if (message instanceof MelRequest) {
                     MelRequest melRequest = (MelRequest) message;
-                    melRequest.getAnswerDeferred().reject(new InsufficientBootLevelException());
+                    melRequest.getAnswerDeferred().resolveError(new InsufficientBootLevelException());
                 }
                 return true;
             }
@@ -243,7 +243,7 @@ public class MelValidationProcess extends MelProcess {
                         Lok.debug("MelValidationProcess.handleServiceInteraction");
                     }
                     //wrap the answer and send it back
-                    request4Service.done(newPayload -> {
+                    request4Service.onDone(newPayload -> {
                         MelResponse response = melRequest.reponse().setPayLoad(newPayload);
                         if (newPayload instanceof CachedInitializer) {
                             CachedInitializer cachedData = (CachedInitializer) newPayload;
@@ -255,7 +255,7 @@ public class MelValidationProcess extends MelProcess {
                             e.printStackTrace();
                             handleError(melRequest, e);
                         }
-                    }).fail(result -> {
+                    }).onError(result -> {
                         handleError(melRequest, result);
                     });
                     try {
@@ -380,15 +380,15 @@ public class MelValidationProcess extends MelProcess {
             request.setPayLoad(payload);
         }
         request.setRequestHandler(this).queue();
-        request.getAnswerDeferred().done(result -> {
+        request.getAnswerDeferred().onDone(result -> {
             StateMsg response = (StateMsg) result;
-            promise.resolve(response.getPayload());
+            promise.resolveOk(response.getPayload());
             melAuthSocket.getMelAuthService().getPowerManager().releaseWakeLock(MelValidationProcess.this);
-        }).fail(result -> {
+        }).onError(result -> {
             if (validateFail(result)) {
                 try {
-                    if (!promise.isRejected()) {
-                        promise.reject(result);
+                    if (!promise.hasError()) {
+                        promise.resolveError(result);
                     }
                 } finally {
                     melAuthSocket.getMelAuthService().getPowerManager().releaseWakeLock(MelValidationProcess.this);
@@ -396,8 +396,8 @@ public class MelValidationProcess extends MelProcess {
             } else {
                 try {
 
-                    if (!promise.isRejected()) {
-                        promise.reject(result);
+                    if (!promise.hasError()) {
+                        promise.resolveError(result);
                     }
                 } finally {
                     melAuthSocket.getMelAuthService().getPowerManager().releaseWakeLock(MelValidationProcess.this);

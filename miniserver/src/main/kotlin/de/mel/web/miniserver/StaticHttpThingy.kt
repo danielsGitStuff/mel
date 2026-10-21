@@ -4,7 +4,7 @@ import com.sun.net.httpserver.HttpServer
 import de.mel.DeferredRunnable
 import de.mel.Lok
 import de.mel.MelThread
-import org.jdeferred.Promise
+import `fun`.with.promise.Promise
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.util.*
@@ -14,7 +14,7 @@ import java.util.concurrent.Semaphore
 
 
 class StaticHttpThingy(private val port: Int) : DeferredRunnable() {
-    override fun onShutDown(): Promise<Void, Void, Void>? = null
+    override fun onShutDown(): Promise<Void, Void>? = null
 
     override fun runImpl() {
         start()

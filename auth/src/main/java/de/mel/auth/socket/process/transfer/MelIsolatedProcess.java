@@ -13,8 +13,8 @@ import de.mel.auth.tools.N;
 import de.mel.core.serialize.SerializableEntity;
 
 
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;

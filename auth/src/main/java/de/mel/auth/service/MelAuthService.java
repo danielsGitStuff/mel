@@ -23,8 +23,8 @@ import de.mel.auth.socket.process.val.Request;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
 import de.mel.sql.SqlQueriesException;
 import de.mel.update.Updater;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DeferredObject;
+import fun.with.promise.Promise;
+import fun.with.promise.PromiseImpl;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -129,7 +129,7 @@ public abstract class MelAuthService {
 
     public abstract MelAuthService addRegisterHandler(IRegisterHandler registerHandler);
 
-    public abstract DeferredObject<DeferredRunnable, Exception, Void> prepareStart();
+    public abstract PromiseImpl<DeferredRunnable, Exception> prepareStart();
 
     public abstract void updateProgram() throws UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException;
 
@@ -170,15 +170,15 @@ public abstract class MelAuthService {
 
     public abstract void updateCertAddresses(Long remoteCertId, String address, Integer port, Integer portCert) throws SqlQueriesException;
 
-    public abstract Promise<MelAuthService, Exception, Void> boot();
+    public abstract Promise<MelAuthService, Exception> boot();
 
     public abstract MelAuthService saveApprovals(ApprovalMatrix approvalMatrix) throws SqlQueriesException;
 
-    abstract <T extends MelIsolatedProcess> DeferredObject<T, Exception, Void> connectToService(Class<T> isolatedServiceClass, Long certId, String remoteServiceUuid, String ownServiceUuid, String address, Integer port, Integer portCert) throws SqlQueriesException, InterruptedException;
+    abstract <T extends MelIsolatedProcess> PromiseImpl<T, Exception> connectToService(Class<T> isolatedServiceClass, Long certId, String remoteServiceUuid, String ownServiceUuid, String address, Integer port, Integer portCert) throws SqlQueriesException, InterruptedException;
 
-    public abstract Promise<MelValidationProcess, Exception, Void> connect(Long certificateId) throws SqlQueriesException, InterruptedException;
+    public abstract Promise<MelValidationProcess, Exception> connect(Long certificateId) throws SqlQueriesException, InterruptedException;
 
-    abstract Promise<MelValidationProcess, Exception, Void> connect(String address, int port, int portCert, boolean regOnUnkown) throws InterruptedException;
+    abstract Promise<MelValidationProcess, Exception> connect(String address, int port, int portCert, boolean regOnUnkown) throws InterruptedException;
 
     public abstract Set<IMelService> getMelServices();
 
@@ -212,7 +212,7 @@ public abstract class MelAuthService {
      *
      * @return
      */
-    public abstract Promise<Void, Void, Void> shutDown();
+    public abstract Promise<Void, Void> shutDown();
 
     /**
      * @return the registered normal connection to that certificate, null if there is none
@@ -254,7 +254,7 @@ public abstract class MelAuthService {
 
     public abstract void shutDownCommunications();
 
-    public abstract DeferredObject<DeferredRunnable, Exception, Void> startUpCommunications();
+    public abstract PromiseImpl<DeferredRunnable, Exception> startUpCommunications();
 
     public abstract File getCacheDir();
 

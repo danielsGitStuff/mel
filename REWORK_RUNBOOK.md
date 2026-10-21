@@ -88,15 +88,15 @@ Mapping:
 | failure type `List<String>` (Android permissions) | keep as `Promise<..., List<String>>` (allowed) or a small holder |
 
 Order:
-1. [ ] `auth` internals that are not public API (tools, workers, sockets left over after P2).
-2. [ ] The public types one at a time, each followed by compiling **all** modules and fixing every caller in the same commit:
+1. [x] `auth` internals that are not public API (tools, workers, sockets left over after P2).
+2. [x] The public types one at a time, each followed by compiling **all** modules and fixing every caller in the same commit:
        `DeferredRunnable` (start/shutdown promises), `Job` and the connect jobs, `Request` + `MelRequest.answerDeferred`,
        `MelAuthService` API (`connect`, `connectToService`, `boot`, `shutDown`, `getAllowedServices`), `MelService` /
        `MelServiceWorker`, `Bootloader`, `MelBoot`.
-3. [ ] Remaining modules: `contacts`, `filesync`, `miniserver`, `serverparts`, `authfx`, `fxbundle`, `android`.
-4. [ ] Delete `MelDeferredManager`, `ShutDownDeferredManager`, `PromiseAdapters`; remove the dependency (`auth/build.gradle`,
+3. [x] Remaining modules: `contacts`, `filesync`, `miniserver`, `serverparts`, `authfx`, `fxbundle`, `android`.
+4. [x] Delete `MelDeferredManager`, `ShutDownDeferredManager`, `PromiseAdapters`; remove the dependency (`auth/build.gradle`,
        `libs.versions.toml`); the grep in "Definition of done" is empty; full `./gradlew build`.
-5. [ ] Update memory `mel-jdeferred-replacement` (done) and `mel-socket-rework` (done).
+5. [x] Update memory `mel-jdeferred-replacement` (done) and `mel-socket-rework` (done).
 
 `fun.with` is a git submodule. Avoid changing it. If a change is unavoidable (a missing overload, a bug): commit inside
 `fun.with` first, then the new submodule pointer in the parent, both with the trailer; never push either; log it.

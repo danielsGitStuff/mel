@@ -3,7 +3,9 @@ package de.mel.auth.socket;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.service.MelService;
 
-import org.jdeferred.Promise;
+import fun.with.promise.AlreadyResolvedErrorException;
+import fun.with.promise.AlreadyResolvedOkException;
+import fun.with.promise.Promise;
 
 import java.io.IOException;
 import java.util.List;
@@ -198,7 +200,7 @@ public class MelAuthProcess extends MelProcess {
                         .setProcessClass(((IsolatedConnectJob) job).getProcessClass().getCanonicalName());
                 request.setPayLoad(isolationDetails);
             }
-            request.getAnswerDeferred().done(result -> {
+            request.getAnswerDeferred().onDone(result -> {
                 runner.runTry(() -> {
                     if (job instanceof ConnectJob) {
                         MelValidationProcess validationProcess = new MelValidationProcess(melAuthSocket, partnerCertificate, false);
@@ -209,7 +211,7 @@ public class MelAuthProcess extends MelProcess {
                             Lok.debug(melAuthSocket.getMelAuthService().getName() + " AuthProcess leaves socket");
                             if (expectedPartner) {
                                 // tell MAS we are connected & authenticated
-                                job.resolve(validationProcess);
+                                job.resolveOk(validationProcess);
                                 runner.runTry(() -> {
                                     Long actualRemoteCertId = (id == null) ? partnerCertificate.getId().v() : id;
                                     melAuthSocket.getMelAuthService().updateCertAddresses(actualRemoteCertId, address, port, job.getPortCert());
@@ -232,10 +234,10 @@ public class MelAuthProcess extends MelProcess {
                         melAuthSocket.setState(new SocketState.Isolated(melIsolatedProcess, partnerCertificate));
                         melIsolatedProcess.setService(service);
                         service.onIsolatedConnectionEstablished(melIsolatedProcess);
-                        job.resolve(melIsolatedProcess);
+                        job.resolveOk(melIsolatedProcess);
                     }
                 });
-            }).fail(e -> {
+            }).onError(e -> {
                 Exception reason = closeReason == CloseReason.DUPLICATE ? new DuplicateConnectionException() : e;
                 reject(job, reason);
                 if (!melAuthSocket.isStopped())
@@ -257,8 +259,8 @@ public class MelAuthProcess extends MelProcess {
         if (!job.isPending())
             return;
         try {
-            job.reject(reason);
-        } catch (IllegalStateException e) {
+            job.resolveError(reason);
+        } catch (AlreadyResolvedOkException | AlreadyResolvedErrorException e) {
             // settled in the meantime
         }
     }
