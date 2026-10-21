@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * (each one sends its brotcasts to a port nobody listens on), so every connection between them is one the test made.
  * "server" and "client" only say who pairs with whom, both can open connections to the other.
  */
-class TwoInstances implements AutoCloseable {
+public class TwoInstances implements AutoCloseable {
     static final int TIMEOUT_SECONDS = 30;
 
     /**
@@ -92,14 +92,22 @@ class TwoInstances implements AutoCloseable {
      * @param portBase takes 10 ports from here on
      */
     TwoInstances(File dir, int portBase, IRegisterHandler serverUser, IRegisterHandler clientUser) throws Exception {
+        this(dir, portBase, serverUser, clientUser, new Class[0]);
+    }
+
+    /**
+     * @param bootloaders the services both instances can run
+     */
+    @SafeVarargs
+    TwoInstances(File dir, int portBase, IRegisterHandler serverUser, IRegisterHandler clientUser, Class<? extends Bootloader<? extends MelService>>... bootloaders) throws Exception {
         AbstractFile.configure(new DefaultFileConfiguration());
-        server = boot(dir, "SERVER", portBase, portBase + 1, portBase + 4, portBase + 6);
-        client = boot(dir, "CLIENT", portBase + 2, portBase + 3, portBase + 5, portBase + 7);
+        server = boot(dir, "SERVER", portBase, portBase + 1, portBase + 4, portBase + 6, bootloaders);
+        client = boot(dir, "CLIENT", portBase + 2, portBase + 3, portBase + 5, portBase + 7, bootloaders);
         server.addRegisterHandler(serverUser);
         client.addRegisterHandler(clientUser);
     }
 
-    private static MelAuthService boot(File parent, String name, int port, int deliveryPort, int brotcastListenerPort, int brotcastPort) throws Exception {
+    private static MelAuthService boot(File parent, String name, int port, int deliveryPort, int brotcastListenerPort, int brotcastPort, Class<? extends Bootloader<? extends MelService>>[] bootloaders) throws Exception {
         File dir = new File(parent, name);
         dir.mkdirs();
         MelAuthSettings settings = new MelAuthSettings().setPort(port).setDeliveryPort(deliveryPort)
@@ -109,7 +117,7 @@ class TwoInstances implements AutoCloseable {
         AtomicReference<MelAuthService> booted = new AtomicReference<>();
         AtomicReference<Exception> failure = new AtomicReference<>();
         CountDownLatch latch = new CountDownLatch(1);
-        new MelBoot(settings, new PowerManager(settings)).boot().onDone(service -> {
+        new MelBoot(settings, new PowerManager(settings), bootloaders).boot().onDone(service -> {
             booted.set(service);
             latch.countDown();
         }).onError(e -> {

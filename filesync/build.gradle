@@ -16,4 +16,5 @@ dependencies {
     filesyncTestOutput sourceSets.test.output
     api project(':auth')
     implementation libs.kotlin.coroutines
+    testImplementation project(path: ':auth', configuration: 'authTestOutput')
 }

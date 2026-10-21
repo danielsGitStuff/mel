@@ -2,6 +2,19 @@ plugins {
     id 'mel-kotlin-jvm-library'
 }
 
+configurations {
+    // the helpers of the integration tests (TwoInstances and friends), for the tests of modules that sit on top of auth
+    authTestOutput {
+        canBeConsumed = true
+        canBeResolved = false
+    }
+}
+artifacts {
+    authTestOutput(layout.buildDirectory.dir('classes/java/test')) {
+        builtBy 'testClasses'
+    }
+}
+
 
 dependencies {
     api 'fun.with:fun.with'
