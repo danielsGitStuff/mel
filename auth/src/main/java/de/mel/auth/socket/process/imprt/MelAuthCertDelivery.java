@@ -124,7 +124,7 @@ public class MelAuthCertDelivery extends DeferredRunnable {
             serverSocket.setReuseAddress(true);
             Lok.debug("binding " + port);
             serverSocket.bind(new InetSocketAddress(port));
-            startedPromise.resolve(null);
+            resolveStarted();
             while (!Thread.currentThread().isInterrupted()) {
                 Socket socket = serverSocket.accept();
                 // every client has its own thread: one that says nothing must not hold up the others

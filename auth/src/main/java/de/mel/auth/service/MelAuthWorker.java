@@ -58,12 +58,12 @@ public class MelAuthWorker extends MelWorker implements PowerManager.IPowerState
             } catch (Exception e) {
                 Lok.error("brotcast went wrong :(");
                 e.printStackTrace();
-                startedPromise.resolve(this);
             }
-            startedPromise.resolve(this);
+            // saying hello is no condition for being up
+            resolveStarted();
         }).fail(result -> {
             Lok.debug("MelAuthWorker.runTry.STRANGE");
-            startedPromise.reject(new Exception("keinen plan von nix"));
+            rejectStarted(new Exception("a part of the worker could not start"));
         });
         // wait for work
         super.run();

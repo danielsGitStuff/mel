@@ -89,4 +89,66 @@ public class DeferredRunnableTest {
         thread.join(5000);
         assertFalse(thread.isAlive(), "the runnable did not see the stop");
     }
+
+    @Test
+    public void theStartedPromiseResolvesWhenTheRunnableSaysSo() {
+        DeferredRunnable runnable = new DeferredRunnable() {
+            @Override
+            public Promise<Void, Void, Void> onShutDown() {
+                return DeferredRunnable.ResolvedDeferredObject();
+            }
+
+            @Override
+            public void runImpl() {
+                resolveStarted();
+            }
+
+            @Override
+            public String getRunnableName() {
+                return "starting";
+            }
+        };
+        assertTrue(runnable.getStartedDeferred().isPending());
+        runnable.run();
+        assertTrue(runnable.getStartedDeferred().isResolved());
+    }
+
+    @Test
+    public void startingIsSettledOnceWhateverComesAfter() {
+        Counting runnable = new Counting();
+        assertTrue(runnable.resolveStarted());
+        assertFalse(runnable.resolveStarted(), "a second resolve is ignored, it must not throw");
+        assertFalse(runnable.rejectStarted(new Exception("too late")));
+        assertTrue(runnable.getStartedDeferred().isResolved());
+
+        Counting failing = new Counting();
+        assertTrue(failing.rejectStarted(new Exception("no")));
+        assertFalse(failing.resolveStarted());
+        assertFalse(failing.rejectStarted(new Exception("again")));
+        assertTrue(failing.getStartedDeferred().isRejected());
+    }
+
+    @Test
+    public void shuttingDownARunnableWhoseOnShutDownReturnsNullStillCompletes() {
+        DeferredRunnable nullReturning = new DeferredRunnable() {
+            @Override
+            public Promise<Void, Void, Void> onShutDown() {
+                return null;
+            }
+
+            @Override
+            public void runImpl() {
+            }
+
+            @Override
+            public String getRunnableName() {
+                return "null returning";
+            }
+        };
+        Counting fine = new Counting();
+        org.jdeferred.impl.DeferredObject<Void, Void, Void> done = new de.mel.auth.tools.ShutDownDeferredManager()
+                .when(nullReturning.shutDown(), fine.shutDown()).digest();
+        assertTrue(done.isResolved());
+        assertTrue(nullReturning.isStopped());
+    }
 }

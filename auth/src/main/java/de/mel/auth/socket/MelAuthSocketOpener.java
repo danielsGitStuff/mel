@@ -37,7 +37,7 @@ public class MelAuthSocketOpener extends DeferredRunnable {
             Lok.debug("binding to " + port);
             serverSocket.bind(new InetSocketAddress(port));
             Lok.debug("binding to " + port + " successful");
-            startedPromise.resolve(this);
+            resolveStarted();
             while (!Thread.currentThread().isInterrupted()) {
                 Socket socket = this.serverSocket.accept();
                 MelSocket melSocket = new MelAuthSocket(melAuthService, socket);

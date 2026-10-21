@@ -142,7 +142,7 @@ public class IndexerRunnable extends AbstractIndexer {
                 fastBooting = true;
             } catch (Exception e) {
                 e.printStackTrace();
-                startedPromise.reject(e);
+                rejectStarted(e);
                 return;
             } finally {
                 bunchOfLocks.end();
@@ -156,11 +156,11 @@ public class IndexerRunnable extends AbstractIndexer {
             bunchOfLocks.end();
             Lok.debug("indexing done");
             if (initialIndexConflictHelper == null && !startedPromise.isResolved())
-                startedPromise.resolve(this);
+                resolveStarted();
         } catch (Exception e) {
             e.printStackTrace();
             if (!startedPromise.isResolved())
-                startedPromise.reject(e);
+                rejectStarted(e);
         }
     }
 

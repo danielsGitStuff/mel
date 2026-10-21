@@ -62,6 +62,35 @@ public abstract class DeferredRunnable implements MelRunnable {
         return stopped;
     }
 
+    /**
+     * Says that this runnable is running. Settles the started promise once: whatever comes after the first outcome is ignored,
+     * a start that is reported twice (e.g. by a catch block and the code after it) must not throw.
+     *
+     * @return whether this call settled it
+     */
+    protected boolean resolveStarted() {
+        synchronized (this) {
+            if (!startedPromise.isPending())
+                return false;
+            startedPromise.resolve(this);
+            return true;
+        }
+    }
+
+    /**
+     * Says that this runnable could not start. Settles the started promise once, see {@link #resolveStarted()}.
+     *
+     * @return whether this call settled it
+     */
+    protected boolean rejectStarted(Exception reason) {
+        synchronized (this) {
+            if (!startedPromise.isPending())
+                return false;
+            startedPromise.reject(reason);
+            return true;
+        }
+    }
+
     public DeferredObject<DeferredRunnable, Exception, Void> getStartedDeferred() {
         return startedPromise;
     }

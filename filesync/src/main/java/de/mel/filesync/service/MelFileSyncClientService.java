@@ -225,7 +225,7 @@ public class MelFileSyncClientService extends MelFileSyncService<ClientSyncHandl
                 melAuthService.connect(serverId).done(result1 -> addJob(new CommitJob(true)));
             }
         });
-        N.r(() -> startedPromise.resolve(this));
+        N.r(() -> resolveStarted());
     }
 
     public void onInsufficientSpaceAvailable(Long stageSetId) {

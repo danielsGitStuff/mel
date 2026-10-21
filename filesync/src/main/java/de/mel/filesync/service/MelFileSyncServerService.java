@@ -208,7 +208,7 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
         for (ClientData client : this.fileSyncSettings.getServerSettings().getClients()) {
             N.r(() -> melAuthService.connect(client.getCertId()));
         }
-        N.r(() -> startedPromise.resolve(this));
+        N.r(() -> resolveStarted());
     }
 
 

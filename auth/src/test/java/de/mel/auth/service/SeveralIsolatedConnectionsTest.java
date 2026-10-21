@@ -113,4 +113,51 @@ public class SeveralIsolatedConnectionsTest {
         assertTrue(waitFor(() -> again.get() != null, 5));
         assertSame(secondAtServer, again.get());
     }
+
+    private MelIsolatedProcess getIsolated(IsolationRecordingService from, MelAuthService owner, Long partnerId, String partnerServiceUuid, int seconds) throws Exception {
+        AtomicReference<MelIsolatedProcess> got = new AtomicReference<>();
+        from.getIsolatedProcess(TestIsolatedProcess.class, partnerId, partnerServiceUuid).done(got::set);
+        waitFor(() -> got.get() != null, seconds);
+        return got.get();
+    }
+
+    @Test
+    public void getIsolatedProcessReusesAnOpenOne() throws Exception {
+        MelIsolatedProcess first = getIsolated(clientService, client, serverIdAtClient, serverService.getUuid(), 10);
+        assertNotNull(first);
+        MelIsolatedProcess again = getIsolated(clientService, client, serverIdAtClient, serverService.getUuid(), 10);
+        assertSame(first, again);
+        // and the other side finds the same connection, not a new one
+        assertTrue(waitFor(() -> serverService.established.size() == 1, 10));
+        MelIsolatedProcess atServer = getIsolated(serverService, server, idOf(client, server), clientService.getUuid(), 10);
+        assertSame(serverService.established.get(0), atServer);
+        assertEquals(1, serverService.established.size());
+    }
+
+    @Test
+    public void getIsolatedProcessOpensANewOneAfterTheOldOneWasClosed() throws Exception {
+        MelIsolatedProcess first = getIsolated(clientService, client, serverIdAtClient, serverService.getUuid(), 10);
+        assertNotNull(first);
+        first.stop();
+        assertTrue(waitFor(() -> !first.isOpen() && clientService.closedCalls.get() == 1, 10));
+        MelIsolatedProcess second = getIsolated(clientService, client, serverIdAtClient, serverService.getUuid(), 10);
+        assertNotNull(second, "no new isolated connection was opened");
+        assertNotSame(first, second);
+        assertTrue(second.isOpen());
+    }
+
+    @Test
+    public void getIsolatedProcessTriesAgainAfterAFailedAttempt() throws Exception {
+        IsolationRecordingService other = new IsolationRecordingService(server, new File(tempDir, "other service"), "other service uuid");
+        server.registerMelService(other);
+        AtomicReference<Exception> failure = new AtomicReference<>();
+        clientService.getIsolatedProcess(TestIsolatedProcess.class, serverIdAtClient, other.getUuid()).fail(failure::set);
+        assertTrue(waitFor(() -> failure.get() != null || other.firstEstablished.getCount() == 0, 15) && other.established.isEmpty(),
+                "the connection to a service without access did not fail");
+        // now the client may use that service: the failed attempt must not be handed out again
+        grant(server, other, client);
+        MelIsolatedProcess second = getIsolated(clientService, client, serverIdAtClient, other.getUuid(), 15);
+        assertNotNull(second, "no second attempt was made after the first one failed");
+        assertTrue(second.isOpen());
+    }
 }

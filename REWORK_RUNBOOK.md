@@ -50,16 +50,16 @@ What exists: `fun.with` has its own `PromiseImplTest` (~27 tests). In Mel, `Boot
 `MelDeferredManager`/`ShutDownDeferredManager` contracts; `RegistrationTest` pinned the register `when(...)` (gone after P2).
 
 Write (in `auth`, unit level where possible, tagged `integration` only if they boot instances):
-- [ ] **Request/answer:** a request resolves with the answer's payload; an error answer rejects with the `ResponseException`
+- [x] **Request/answer:** a request resolves with the answer's payload; an error answer rejects with the `ResponseException`
       sent; a request without an answer rejects on timeout (short timeout setting from P2 step 1); callbacks run on the
       thread that settles, or at once if already settled (the JDeferred semantics the code relies on).
-- [ ] **Jobs:** `ConnectJob`/`IsolatedConnectJob` resolve once; settling twice is a bug that throws (JDeferred: `IllegalStateException`,
+- [x] **Jobs:** `ConnectJob`/`IsolatedConnectJob` resolve once; settling twice is a bug that throws (JDeferred: `IllegalStateException`,
       `PromiseImpl`: `AlreadyResolved*Exception`): find every place that might settle twice (known: `MelAuthWorker` start when a
       service throws in `onServiceRegistered`, see `BootFailureTest`) and make it settle once, test included.
-- [ ] **`MelService.getIsolatedProcess`:** reuses an open isolated process, opens a new one after a failure or close.
-- [ ] **`DeferredRunnable` start/shutdown promises:** `getStartedDeferred` resolves when running; `shutDown()` of a runnable whose
+- [x] **`MelService.getIsolatedProcess`:** reuses an open isolated process, opens a new one after a failure or close.
+- [x] **`DeferredRunnable` start/shutdown promises:** `getStartedDeferred` resolves when running; `shutDown()` of a runnable whose
       `onShutDown` returns null still completes (the `fused` null filter).
-- [ ] **filesync baseline:** run `./gradlew :filesync:test` (and `:filesync:integrationTest` if anything is tagged) on the
+- [x] **filesync baseline:** run `./gradlew :filesync:test` (and `:filesync:integrationTest` if anything is tagged) on the
       result of P2 and record which tests are green; those are the safety net for porting `filesync` (18 files). Do not start P4
       on a red filesync.
 - Modules without automated tests (`android` 12 files, `authfx` 2, `fxbundle` 1, `serverparts` 2, `miniserver` 3, `contacts` 1):

@@ -67,7 +67,7 @@ public abstract class BrotCaster extends DeferredRunnable {
 //            InetAddress group = InetAddress.getByName("localhost");
                     socket.joinGroup(group);
                 }
-                startedPromise.resolve(this);
+                resolveStarted();
                 while (!Thread.currentThread().isInterrupted()) {
                     byte[] buf = new byte[300];
                     DatagramPacket packet = new DatagramPacket(buf, buf.length);
@@ -80,12 +80,12 @@ public abstract class BrotCaster extends DeferredRunnable {
                 // network seems to be down
                 if (!isStopped()) {
                     e.printStackTrace();
-                    startedPromise.resolve(this);
+                    resolveStarted();
                 }
             } catch (Exception e) {
                 if (!isStopped()) {
                     e.printStackTrace();
-                    startedPromise.reject(e);
+                    rejectStarted(e);
                 }
             } finally {
                 try {
@@ -98,7 +98,7 @@ public abstract class BrotCaster extends DeferredRunnable {
 
             }
         } else
-            startedPromise.resolve(this);
+            resolveStarted();
     }
 
 

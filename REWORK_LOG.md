@@ -127,3 +127,20 @@ closes connections), `isAlreadyPaired` in `RegistrationCommitTest`. 5 full runs 
 Deleted `LargeJson`, `LotsOfTests` (nothing but comments), `SocketTest` (step 2), `ReceivedJob`, `RequestTimer.kt`/`RequestTimerMain` (dead prototype of a request timer).
 `BLOCK_SIZE`, `MODE_ISOLATE`, `MelRegisterConfirm` were removed with their steps. `suspend()`/`resume()` stay (see step 2). The brief has a status section.
 P2 (socket rework) is complete: full `./gradlew build` to be run at the start of P3.
+
+## P3: tests for the JDeferred replacement
+Deviation from the runbook rule for P2, logged here: rewritten socket code (ConnectWorker, MelRegisterProcess) still uses JDeferred types inside, there is no
+`PromiseAdapters`; the pieces are small and P4 ports them anyway.
+Added: `DeferredManagersTest` (MelDeferredManager: empty resolves, settled promises call back, fail fast; ShutDownDeferredManager: nulls, rejection, waits for the last),
+`PromiseSemanticsTest` (callbacks on the settling thread / at once on the registering thread, settled once for `Request`, `MelRequest.answerDeferred`, `ConnectJob`,
+`IsolatedConnectJob`), `RequestAnswerTest` (answer resolves with the payload, error answer rejects with the `ResponseException`, a service that throws is answered and the connection
+stays, no answer -> timeout, callback threads), `SettleOnceTest` (runs the flows that settle jobs and fails if a stack trace/log line says a promise was settled twice; mutation checked),
+more in `DeferredRunnableTest` (started promise, settle once, shutdown with a null `onShutDown`), `SeveralIsolatedConnectionsTest` (`getIsolatedProcess` reuses an open one, opens a
+new one after a close and after a failed attempt).
+Double settles found and fixed: `DeferredRunnable.resolveStarted()/rejectStarted()` settle the started promise once; `MelAuthWorker` (resolved in the catch block and again right after it),
+`BrotCaster` (resolve after resolve/reject when the network goes down), the services and `IndexerRunnable` use them. In `MelAuthProcess`/`ConnectWorker` jobs are settled through guarded helpers.
+filesync baseline on the result of P2: `./gradlew :filesync:test` green: BashToolsStuffModifiedTest 6, BashCommandsTest 6, ConflictTest 15, SingleServiceTest 4, SqlEnumTest 5, BashToolsTest 7,
+ObservableTest 2 and 8 more single-test classes (IndexerTest, TransferManagerDummy, SerTest, FreeSpaceTest, BashToolsTestOlde, InsertTransactionTest, FsTest, MergeTest); `:filesync:integrationTest`
+has nothing tagged. There are no filesync tests that exercise the transfer or the services; the file transfer is now covered by `FileTransferTest` in auth.
+Modules without automated tests (android, authfx, fxbundle, serverparts, miniserver, contacts): compile-only safety net, `./gradlew build` includes the Android assemble.
+Full `./gradlew build` after P3 tests: see the line below at the end of P3.

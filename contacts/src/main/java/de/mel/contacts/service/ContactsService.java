@@ -87,7 +87,7 @@ public abstract class ContactsService extends MelService {
 
     @Override
     public void onBootLevel1Finished() {
-        N.r(() -> startedPromise.resolve(this));
+        N.r(() -> resolveStarted());
     }
 
     @Override
