@@ -70,6 +70,14 @@ public class Indexer {
         return indexerRunnable.getStartedDeferred();
     }
 
+    /**
+     * Looks at every file, not only at what changed since the last time. Takes a while and reads the whole directory tree, so it is for the user to ask for.
+     */
+    public void fullScan() {
+        indexerRunnable.requestFullScan();
+        resume();
+    }
+
     public void suspend() {
         indexerRunnable.stop();
     }

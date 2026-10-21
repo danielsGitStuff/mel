@@ -37,7 +37,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     protected Long initialStageSetId;
     protected Long examinedStageSetId;
     private Order order = new Order();
-    protected Boolean fastBooting = true;
 
     protected InitialIndexConflictHelper initialIndexConflictHelper;
 
@@ -47,7 +46,6 @@ public abstract class AbstractIndexer extends DeferredRunnable {
 
     protected AbstractIndexer(FileSyncDatabaseManager databaseManager) {
         this.databaseManager = databaseManager;
-        fastBooting = databaseManager.getFileSyncSettings().getFastBoot();
         this.stageDao = databaseManager.getStageDao();
         this.fsDao = databaseManager.getFsDao();
         this.serviceName = databaseManager.getMelFileSyncService().getRunnableName();

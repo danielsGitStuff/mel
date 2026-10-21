@@ -363,6 +363,14 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
         return startIndexerDonePromise;
     }
 
+    /**
+     * Looks at every file of the root directory and stages what differs from the fs table. The start of the service does this only for what changed since the last time
+     * (see {@link FileSyncSettings#getFastBoot()}), so this is what a user starts when something may have gone unnoticed.
+     */
+    public void fullScan() {
+        indexer.fullScan();
+    }
+
     protected abstract IndexListener createIndexListener();
 
     protected abstract S initSyncHandler();

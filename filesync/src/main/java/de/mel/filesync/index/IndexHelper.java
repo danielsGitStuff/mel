@@ -133,26 +133,4 @@ public class IndexHelper {
             return null;
         return stageStack.peek();
     }
-
-    void fastBoot(IFile file, FsEntry fsEntry, Stage stage) {
-        if (databaseManager.getFileSyncSettings().getFastBoot()) {
-            try {
-                FsBashDetails fsBashDetails = BashTools.Companion.getFsBashDetails(file);
-                if (fsEntry.getModified().equalsValue(fsBashDetails.getModified())
-                        && fsEntry.getiNode().equalsValue(fsBashDetails.getiNode())
-                        && ((fsEntry.getIsDirectory().v() && file.isDirectory()) || fsEntry.getSize().equalsValue(file.length()))) {
-                    stage.setiNode(fsBashDetails.getiNode());
-                    stage.setModified(fsBashDetails.getModified());
-                    stage.setContentHash(fsEntry.getContentHash().v());
-                    stage.setSize(fsEntry.getSize().v());
-                    stage.setSynced(true);
-                    if (fsBashDetails.isSymLink())
-                        stage.setSymLink(fsBashDetails.getSymLinkTarget());
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
 }

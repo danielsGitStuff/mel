@@ -11,6 +11,7 @@ import de.mel.core.serialize.serialize.tools.OTimer;
 import de.mel.filesync.bash.AutoKlausIterator;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.bash.FsBashDetails;
+import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.FileSyncStrings;
 import de.mel.filesync.data.RootDirectory;
 import de.mel.filesync.index.watchdog.FileWatcher;
@@ -34,6 +35,31 @@ public class IndexerRunnable extends AbstractIndexer {
     private List<IndexListener> listeners = new ArrayList<>();
     private RootDirectory rootDirectory;
     private Order ord = new Order();
+    private volatile boolean fullScanRequested = false;
+
+    /**
+     * the next run looks at every file, not only at what changed since the last one
+     */
+    public void requestFullScan() {
+        fullScanRequested = true;
+    }
+
+    /**
+     * Said to `find` when it looks for what changed. More than the rounding of any file system.
+     */
+    static final long MARGIN_MS = 2000;
+
+    /**
+     * @return the time to look for changes since, null if every file has to be looked at: the setting says so, it was requested, there was no run before, the clock
+     * went back since or this platform's find cannot take a time
+     */
+    private Long incrementalSince(long now) {
+        FileSyncSettings settings = databaseManager.getFileSyncSettings();
+        Long last = settings.getLastScanTime();
+        if (fullScanRequested || !settings.getFastBoot() || last == null || last > now || !BashTools.Companion.canFindByTime())
+            return null;
+        return last - MARGIN_MS;
+    }
 
 
     /**
@@ -69,6 +95,7 @@ public class IndexerRunnable extends AbstractIndexer {
 
     @Override
     public void runImpl() {
+        Long scanned = null;
         try {
             Lok.debug("roaming...");
             // if root directory does not exist: create one
@@ -100,7 +127,14 @@ public class IndexerRunnable extends AbstractIndexer {
                 ISQLQueries sqlQueries = stageDao.getSqlQueries();
 //                OTimer timerFind = new OTimer("bash.find").start();
                 OTimer timerInit = new OTimer("init stageset");
-                try (AutoKlausIterator<IFile> found = BashTools.Companion.find(rootDirectory.getOriginalFile(), databaseManager.getMelFileSyncService().getFileSyncSettings().getTransferDirectory())) {
+                // taken before anything is looked at: what changes meanwhile is found next time
+                final long scanStart = System.currentTimeMillis();
+                final Long since = incrementalSince(scanStart);
+                IFile transferDirectory = databaseManager.getMelFileSyncService().getFileSyncSettings().getTransferDirectory();
+                Lok.debug(since == null ? "index: every file" : "index: what changed since " + since);
+                try (AutoKlausIterator<IFile> found = since == null
+                        ? BashTools.Companion.find(rootDirectory.getOriginalFile(), transferDirectory)
+                        : BashTools.Companion.stuffModifiedAfter(rootDirectory.getOriginalFile(), transferDirectory, since)) {
                     Lok.debug("starting stageset initialization");
                     Lok.error("TRANSACTION DISABLED!!!!!");
                     Lok.error("TRANSACTION DISABLED!!!!!");
@@ -115,6 +149,7 @@ public class IndexerRunnable extends AbstractIndexer {
                     timerExamine.stop().print();
                     finishStaging();
 //                    sqlQueries.commit();
+                    scanned = scanStart;
                 } catch (Exception e) {
                     e.printStackTrace();
                     sqlQueries.rollback();
@@ -127,7 +162,7 @@ public class IndexerRunnable extends AbstractIndexer {
                     if (!conflicts)
                         initialIndexConflictHelper = null;
                 }
-                fastBooting = true;
+                fullScanRequested = false;
             } catch (Exception e) {
                 e.printStackTrace();
                 rejectStarted(e);
@@ -142,6 +177,10 @@ public class IndexerRunnable extends AbstractIndexer {
             for (IndexListener listener : listeners)
                 listener.done(examinedStageSetId, bunchOfLocks);
             bunchOfLocks.end();
+            // the next start looks for what changed from here on. Only a run that went through counts: after a failure the old time stays and the next run does more, never less
+            if (scanned != null) {
+                databaseManager.getFileSyncSettings().setLastScanTime(scanned).save();
+            }
             Lok.debug("indexing done");
             if (initialIndexConflictHelper == null && !startedPromise.hasResult())
                 resolveStarted();

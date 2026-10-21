@@ -28,7 +28,16 @@ public class FileSyncSettings extends JsonSettings {
     protected IFile transferDirectory;
     protected Boolean useSymLinks = true;
 
+    /**
+     * If set (and the platform's find can take a time), the index that runs when the service starts only looks at what changed since
+     * {@link #lastScanTime}, not at every file. A full scan is started by hand ({@link de.mel.filesync.service.MelFileSyncService#fullScan()}).
+     */
     protected boolean fastBoot = true;
+
+    /**
+     * When the last index that went through began (ms). null: there was none.
+     */
+    protected Long lastScanTime;
 
     public FileSyncSettings setUseSymLinks(Boolean useSymLinks) {
         this.useSymLinks = useSymLinks;
@@ -83,6 +92,15 @@ public class FileSyncSettings extends JsonSettings {
 
     public boolean getFastBoot() {
         return fastBoot;
+    }
+
+    public Long getLastScanTime() {
+        return lastScanTime;
+    }
+
+    public FileSyncSettings setLastScanTime(Long lastScanTime) {
+        this.lastScanTime = lastScanTime;
+        return this;
     }
 
     public interface DevRootDirInjector {
