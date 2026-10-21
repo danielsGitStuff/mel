@@ -18,6 +18,7 @@ dependencies {
 //    implementation rootProject.dep_k_std
 //    implementation rootProject.dep_k_cor
     testImplementation project(configuration: 'filesyncTestOutput', path: ':filesync')
+    testImplementation project(path: ':auth', configuration: 'authTestOutput')
 //    testImplementation rootProject.dep_junit4
 //    testImplementation rootProject.dep_sqlite
 }
