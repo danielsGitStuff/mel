@@ -217,6 +217,16 @@ class TwoInstances implements AutoCloseable {
     }
 
     /**
+     * every socket the instance knows (no API for this)
+     */
+    @SuppressWarnings("unchecked")
+    static List<MelSocket> socketsOf(MelAuthService instance) throws Exception {
+        Field field = MelAuthServiceImpl.class.getDeclaredField("sockets");
+        field.setAccessible(true);
+        return new ArrayList<>((Set<MelSocket>) field.get(instance));
+    }
+
+    /**
      * Every open socket of the instance that carries a normal (validated) connection to the partner, registered or not.
      * There is no API for this (yet), so it looks into the instance.
      */

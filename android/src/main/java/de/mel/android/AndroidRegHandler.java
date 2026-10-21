@@ -63,7 +63,7 @@ public class AndroidRegHandler implements IRegisterHandler {
             intent.putExtra(REGBUNDLE_CERT_HASH, regBundle.getHash());
             regBundle.setNotificationIntent(intent);
             CharSequence title = Tools.getApplicationContext().getText(R.string.coupleNotificationCertTitle);
-            CharSequence text = Tools.getApplicationContext().getText(R.string.coupleNotificationCertText);
+            CharSequence text = Tools.getApplicationContext().getText(certificate.isKnownPartner() ? R.string.coupleNotificationCertTextKnown : R.string.coupleNotificationCertText);
             Notifier.pendingNotification(requestCode, intent, Notifier.CHANNEL_ID_SOUND, title, text, ":)");
         } catch (IOException e) {
             e.printStackTrace();

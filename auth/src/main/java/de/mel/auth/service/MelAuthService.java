@@ -49,6 +49,11 @@ public abstract class MelAuthService {
     protected final MelAuthSettings settings;
     private volatile long requestTimeoutMs = DEFAULT_REQUEST_TIMEOUT_MS;
     /**
+     * How long a registration waits for the users and the partner.
+     */
+    public static final long DEFAULT_REGISTER_TIMEOUT_MS = 5 * 60_000L;
+    private volatile long registerTimeoutMs = DEFAULT_REGISTER_TIMEOUT_MS;
+    /**
      * One thread for the timeouts of all requests of this instance. The thread starts with the first timeout.
      */
     private final ScheduledExecutorService timeoutScheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
@@ -65,6 +70,14 @@ public abstract class MelAuthService {
 
     public ScheduledExecutorService getTimeoutScheduler() {
         return timeoutScheduler;
+    }
+
+    public long getRegisterTimeoutMs() {
+        return registerTimeoutMs;
+    }
+
+    public void setRegisterTimeoutMs(long registerTimeoutMs) {
+        this.registerTimeoutMs = registerTimeoutMs;
     }
 
     public long getRequestTimeoutMs() {

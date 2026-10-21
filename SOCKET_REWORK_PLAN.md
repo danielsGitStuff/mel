@@ -327,17 +327,17 @@ For the session that does the work. Steps in this order; each one is a commit (o
 
 ### Step 7: registration (problem 6, the commit, re-registration)
 
-- [ ] New messages (`de.mel.auth.data` or a `reg` subpackage): `RegisterRequest(name, port, deliveryPort)` (no certificate
+- [x] New messages (`de.mel.auth.data` or a `reg` subpackage): `RegisterRequest(name, port, deliveryPort)` (no certificate
       field: the TLS client certificate is the certificate), `RegisterDecision(boolean)`, `RegisterFinal(boolean)`.
       Remove `MelRegisterConfirm` and the `certificate` field on `MelRequest` if nothing else uses it.
-- [ ] `MelRegisterProcess` rewritten as the REGISTERING handler: S persists (single statement setting `trusted`: INSERT of a
+- [x] `MelRegisterProcess` rewritten as the REGISTERING handler: S persists (single statement setting `trusted`: INSERT of a
       trusted row, or UPDATE of a known row) **before** sending `Final(true)`; C persists on `Final(true)` (UPDATE of the row the
       retriever imported, or of its known row), then closes with `REGISTERED`. A rejection persists nothing; C deletes the
       untrusted imported row as today, never a row that was trusted before. No `DefaultDeferredManager().when(...)`.
-- [ ] Register timeout: REGISTERING closes with `TIMEOUT` after 5 min; make it a setting so tests can use 1 s.
-- [ ] `IRegisterHandler.acceptCertificate`: tell the user when the partner is known already (extra parameter or flag);
+- [x] Register timeout: REGISTERING closes with `TIMEOUT` after 5 min; make it a setting so tests can use 1 s.
+- [x] `IRegisterHandler.acceptCertificate`: tell the user when the partner is known already (extra parameter or flag);
       adapt `RegisterHandlerFX`, `AndroidRegHandler`, the test handlers.
-- [ ] The handler callbacks (`onRemoteAccepted`, `onLocallyAccepted`, `onRegistrationCompleted`, rejections) keep their
+- [x] The handler callbacks (`onRemoteAccepted`, `onLocallyAccepted`, `onRegistrationCompleted`, rejections) keep their
       meaning; `RegistrationTest` pins them.
 - Enable: `RegistrationCommitTest.aKnownPartnerCanRegisterAgainAndKeepsItsAccess`; `serverAlreadyTrustsTheClientWhenTheClientIsDone`
   must now hold by construction (run 5 times).

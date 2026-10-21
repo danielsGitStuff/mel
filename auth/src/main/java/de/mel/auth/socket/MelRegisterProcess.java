@@ -5,216 +5,432 @@ import de.mel.auth.MelStrings;
 import de.mel.auth.data.*;
 import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.data.db.Certificate;
+import de.mel.auth.service.MelAuthService;
 import de.mel.auth.socket.process.reg.IRegisterHandler;
 import de.mel.auth.socket.process.reg.IRegisterHandlerListener;
 import de.mel.auth.socket.process.reg.IRegisteredHandler;
-import de.mel.auth.tools.N;
 import de.mel.core.serialize.SerializableEntity;
-import de.mel.core.serialize.exceptions.JsonSerializationException;
 import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
-import de.mel.sql.SqlQueriesException;
-import org.jdeferred.Promise;
-import org.jdeferred.impl.DefaultDeferredManager;
 import org.jdeferred.impl.DeferredObject;
-import org.jdeferred.multiple.OneReject;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.*;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
- * handles registration of incoming and outgoing connections
- * Created by xor on 4/20/16.
+ * Handles a socket in the state REGISTERING, on both sides. C opened the socket, S accepted it.
+ * <pre>
+ * 1. C -> S  RegisterRequest (name, ports; the certificate is the TLS client certificate)
+ * 2. S -> C  Decision(accepted), only if S's user decides first (informational)
+ * 3. C -> S  Decision(accepted)
+ * 4. S -> C  Final(accepted) once S has both decisions. S persists first, then sends it.
+ * 5. C persists, then C closes the socket. S closes only on a timeout.
+ * </pre>
+ * A rejection ends it at once: <code>Decision(false)</code> (C) or <code>Final(false)</code> (S), nothing is persisted, the rejecting side closes.
+ * Persisting is one statement that sets <code>trusted</code>, written only after the outcome is final, never during the wait for the users.
+ * The decisions of the users arrive on other threads than the messages, so the state is guarded by a lock. Handlers are told outside of it.
  */
 public class MelRegisterProcess extends MelProcess {
-    private CertificateManager certificateManager = null;
+    private final CertificateManager certificateManager;
+    private final Object lock = new Object();
 
-
-    private N runner = new N(Throwable::printStackTrace);
+    // guarded by lock
+    private Certificate partner;
+    private boolean wasTrustedBefore = false;
+    private Boolean localDecision = null;
+    private Boolean remoteDecision = null;
+    private boolean remoteAcceptedReported = false;
+    private boolean done = false;
+    private MelRequest request;
+    private X509Certificate peerX509;
+    private RegisterDetails details;
+    private DeferredObject<Certificate, Exception, Void> clientResult;
+    private ScheduledFuture<?> timeoutTask;
 
     private void log(String msg) {
         Lok.debug("[" + Thread.currentThread().getName() + "] " + melAuthSocket.getMelAuthService().getName() + ".MelRegisterProcess: " + msg);
     }
 
-    private DeferredObject<MelRegisterConfirm, Exception, Void> confirmedPromise = new DeferredObject<>();
-    private DeferredObject<Certificate, Exception, Void> acceptedPromise = new DeferredObject<>();
-
     public MelRegisterProcess(MelAuthSocket melAuthSocket) {
         super(melAuthSocket);
         this.certificateManager = melAuthSocket.getMelAuthService().getCertificateManager();
-        confirmedPromise.done(result -> {
-            for (IRegisterHandler registerHandler : melAuthSocket.getMelAuthService().getRegisterHandlers())
-                registerHandler.onRemoteAccepted(partnerCertificate);
-        });
-        acceptedPromise.done(result -> {
-            for (IRegisterHandler registerHandler : melAuthSocket.getMelAuthService().getRegisterHandlers())
-                registerHandler.onLocallyAccepted(partnerCertificate);
-        });
-        new DefaultDeferredManager().when(confirmedPromise, acceptedPromise).done(results -> runner.runTry(() -> {
-                    Lok.debug(melAuthSocket.getMelAuthService().getName() + ".MelRegisterProcess.MelRegisterProcess");
-                    Certificate certificate = (Certificate) results.get(1).getResult();
-                    certificateManager.updateCertificate(certificate);
-                    certificateManager.trustCertificate(certificate.getId().v(), true);
-                    for (IRegisterHandler registerHandler : melAuthSocket.getMelAuthService().getRegisterHandlers())
-                        registerHandler.onRegistrationCompleted(partnerCertificate);
-                    for (IRegisteredHandler handler : melAuthSocket.getMelAuthService().getRegisteredHandlers()) {
-                        handler.onCertificateRegistered(melAuthSocket.getMelAuthService(), certificate);
-                    }
-                    //todo send done, so the other side can connect!
-                })
-        ).fail(results -> runner.runTry(() -> {
-            if (results instanceof OneReject) {
-                if (results.getReject() instanceof PartnerDidNotTrustException) {
-                    Lok.debug("MelRegisterProcess.MelRegisterProcess.rejected: " + results.getReject().toString());
-                    for (IRegisterHandler registerHandler : melAuthSocket.getMelAuthService().getRegisterHandlers())
-                        registerHandler.onRemoteRejected(partnerCertificate);
-                } else if (results.getReject() instanceof UserDidNotTrustException) {
-                    Lok.debug("MelRegisterProcess.MelRegisterProcess.user.did.not.trust");
-                    for (IRegisterHandler registerHandler : melAuthSocket.getMelAuthService().getRegisterHandlers())
-                        registerHandler.onLocallyRejected(partnerCertificate);
-                }
-                certificateManager.deleteCertificate(partnerCertificate);
-            } else {
-                Lok.error("MelRegisterProcess.MelRegisterProcess.reject.UNKNOWN.2");
-                certificateManager.deleteCertificate(partnerCertificate);
-            }
-
-            melAuthSocket.close(CloseReason.REJECTED);
-        }));
     }
 
-    public Promise<Certificate, Exception, Void> register(DeferredObject<Certificate, Exception, Void> deferred, Long id, String address, int port) throws InterruptedException, SqlQueriesException, CertificateException, NoSuchPaddingException, NoSuchAlgorithmException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, ClassNotFoundException, JsonSerializationException, IllegalAccessException, URISyntaxException, UnrecoverableKeyException, KeyStoreException, KeyManagementException {
-        Lok.debug(melAuthSocket.getMelAuthService().getName() + ".MelRegisterProcessImpl.register.id=" + id);
+    private boolean isClient() {
+        return melAuthSocket.getRole() == Transitions.Role.CLIENT;
+    }
+
+    private void tell(List<Runnable> afterwards, Consumer<IRegisterHandler> what) {
+        afterwards.add(() -> {
+            for (IRegisterHandler handler : new ArrayList<>(melAuthSocket.getMelAuthService().getRegisterHandlers()))
+                what.accept(handler);
+        });
+    }
+
+    private static void run(List<Runnable> afterwards) {
+        for (Runnable runnable : afterwards) {
+            try {
+                runnable.run();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    // ---- client ----
+
+    /**
+     * Client side. The socket connects with the certificate that was imported before (untrusted, or trusted already when the partner is known).
+     *
+     * @param deferred resolved with the trusted entry when the registration is complete, rejected when it is not
+     */
+    public void register(DeferredObject<Certificate, Exception, Void> deferred, Long id, String address, int port) throws Exception {
+        log("register id=" + id);
+        MelAuthService service = melAuthSocket.getMelAuthService();
+        List<Runnable> afterwards = new ArrayList<>();
+        synchronized (lock) {
+            clientResult = deferred;
+            partner = certificateManager.getCertificateById(id);
+            wasTrustedBefore = Boolean.TRUE.equals(partner.getTrusted().v());
+            partner.setKnownPartner(wasTrustedBefore);
+        }
         melAuthSocket.setState(new SocketState.Registering(this));
         melAuthSocket.connectSSL(id, address, port);
-        partnerCertificate = melAuthSocket.getMelAuthService().getCertificateManager().getCertificateById(id);
-        Certificate myCert = new Certificate();
-        myCert.setName(melAuthSocket.getMelAuthService().getName());
-        myCert.setCertificate(melAuthSocket.getMelAuthService().getCertificateManager().getMyX509Certificate().getEncoded());
-        MelAuthSettings settings = melAuthSocket.getMelAuthService().getSettings();
-        myCert.setPort(settings.getPort())
-                .setCertDeliveryPort(settings.getDeliveryPort());
-        MelRequest request = new MelRequest(MelStrings.SERVICE_NAME, MelStrings.msg.INTENT_REGISTER)
-                .setCertificate(myCert)
-                .setRequestHandler(this).queue();
-
-
-        new DefaultDeferredManager().when(confirmedPromise, acceptedPromise).done(result -> {
-            Lok.debug("MelRegisterProcess.register");
-            deferred.resolve(partnerCertificate);
-        });
-        String json = SerializableEntitySerializer.serialize(request);
-        log("sending registration request");
-        this.melAuthSocket.send(json);
-        for (IRegisterHandler regHandler : melAuthSocket.getMelAuthService().getRegisterHandlers()) {
-            log("asking register handler " + regHandler.getClass().getSimpleName());
-            regHandler.acceptCertificate(new IRegisterHandlerListener() {
-                @Override
-                public void onCertificateAccepted(MelRequest request, Certificate certificate) {
-                    runner.runTry(() -> {
-                        // tell your partner that you trust him
-                        MelRegisterProcess.this.sendConfirmation(true);
-                        partnerCertificate = certificate;
-                        acceptedPromise.resolve(certificate);
-                    });
-
-                }
-
-                @Override
-                public void onCertificateRejected(MelRequest request, Certificate certificate) {
-                    runner.runTry(() -> {
-                        MelRegisterProcess.this.sendConfirmation(false);
-                        acceptedPromise.reject(new UserDidNotTrustException());
-                    });
-                }
-            }, request, melAuthSocket.getMelAuthService().getMyCertificate(), partnerCertificate);
+        synchronized (lock) {
+            // whoever answered has to be the one whose certificate we hold
+            if (!Arrays.equals(melAuthSocket.getPeerCertificate().getEncoded(), partner.getCertificate().v())) {
+                failClient(afterwards, new UntrustedPartnerException("the one that answered is not the one whose certificate was fetched"), CloseReason.UNTRUSTED);
+                run(afterwards);
+                return;
+            }
+            startTimeout();
+            RegisterDetails mine = new RegisterDetails(service.getName(), service.getSettings().getPort(), service.getSettings().getDeliveryPort());
+            request = new MelRequest(MelStrings.SERVICE_NAME, MelStrings.msg.INTENT_REGISTER).setPayLoad(mine);
         }
-        return deferred;
+        // the request leaves before the handlers are asked: a handler that decides within the call sends its decision behind it
+        log("sending registration request");
+        melAuthSocket.send(SerializableEntitySerializer.serialize(request));
+        askHandlers(partner);
     }
 
-    public void sendConfirmation(boolean trusted) throws JsonSerializationException, IllegalAccessException {
-        log("sending confirmation, trusted=" + trusted);
-        MelMessage message = new MelMessage(MelStrings.SERVICE_NAME, null);
-        message.setPayLoad(new MelRegisterConfirm().setConfirmed(trusted));
-        send(message);
+    // ---- both ----
+
+    private void askHandlers(Certificate about) throws Exception {
+        MelAuthService service = melAuthSocket.getMelAuthService();
+        IRegisterHandlerListener listener = new IRegisterHandlerListener() {
+            @Override
+            public void onCertificateAccepted(MelRequest request, Certificate certificate) {
+                localDecided(true);
+            }
+
+            @Override
+            public void onCertificateRejected(MelRequest request, Certificate certificate) {
+                localDecided(false);
+            }
+        };
+        if (service.getRegisterHandlers().isEmpty())
+            Lok.debug("MelRegisterProcess: NO.HANDLER.FOR.REGISTRATION.AVAILABLE");
+        for (IRegisterHandler handler : new ArrayList<>(service.getRegisterHandlers())) {
+            log("asking register handler " + handler.getClass().getSimpleName());
+            handler.acceptCertificate(listener, request, service.getMyCertificate(), about);
+        }
     }
 
-    @Override
-    public void onMessageReceived(SerializableEntity deserialized, MelAuthSocket webSocket) {
-        if (this.melAuthSocket == null)
-            this.melAuthSocket = webSocket;
-        if (!handleAnswer(deserialized))
-            if (deserialized instanceof MelRequest) {
-                MelRequest request = (MelRequest) deserialized;
-                log("received registration request");
+    private void startTimeout() {
+        try {
+            MelAuthService service = melAuthSocket.getMelAuthService();
+            timeoutTask = service.getTimeoutScheduler().schedule(this::onTimeout, service.getRegisterTimeoutMs(), TimeUnit.MILLISECONDS);
+        } catch (RejectedExecutionException e) {
+            // the instance is shut down
+        }
+    }
+
+    private void onTimeout() {
+        List<Runnable> afterwards = new ArrayList<>();
+        synchronized (lock) {
+            if (!done) {
+                log("timeout");
+                if (isClient())
+                    failClient(afterwards, new Exception("registration timed out"), CloseReason.TIMEOUT);
+                else
+                    finishWithoutResult(CloseReason.TIMEOUT);
+            } else {
+                // nothing is left to do but closing: the server waits for the client to close, the client closes at once
+                melAuthSocket.close(CloseReason.TIMEOUT);
+            }
+        }
+        run(afterwards);
+    }
+
+    private void stopTimeout() {
+        if (timeoutTask != null)
+            timeoutTask.cancel(false);
+    }
+
+    /**
+     * the user of this side decided (any thread)
+     */
+    private void localDecided(boolean accepted) {
+        List<Runnable> afterwards = new ArrayList<>();
+        synchronized (lock) {
+            if (done || localDecision != null)
+                return;
+            localDecision = accepted;
+            Certificate about = partner;
+            log("local decision: " + accepted);
+            if (!accepted) {
+                tell(afterwards, handler -> handler.onLocallyRejected(about));
+                if (isClient()) {
+                    sendDecision(false);
+                    failClient(afterwards, new UserDidNotTrustException(), CloseReason.REJECTED);
+                } else {
+                    sendFinal(false);
+                    finishWithoutResult(CloseReason.REJECTED);
+                }
+            } else {
+                tell(afterwards, handler -> handler.onLocallyAccepted(about));
+                if (isClient()) {
+                    sendDecision(true);
+                } else if (Boolean.TRUE.equals(remoteDecision)) {
+                    commitServer(afterwards);
+                } else {
+                    // informational, tells the client that it only waits for its own user
+                    sendDecision(true);
+                }
+            }
+        }
+        run(afterwards);
+    }
+
+    private void sendDecision(boolean accepted) {
+        send(new MelMessage(MelStrings.SERVICE_NAME, null).setPayLoad(new RegisterDecision(accepted)));
+    }
+
+    private void sendFinal(boolean accepted) {
+        send(new MelMessage(MelStrings.SERVICE_NAME, null).setPayLoad(new RegisterFinal(accepted)));
+    }
+
+    private void send(MelMessage message) {
+        try {
+            melAuthSocket.send(SerializableEntitySerializer.serialize(message));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * the outcome is a rejection or the end of the connection and there is nothing to clean up (server side)
+     */
+    private void finishWithoutResult(CloseReason reason) {
+        done = true;
+        stopTimeout();
+        melAuthSocket.close(reason);
+    }
+
+    /**
+     * Client side, the registration failed. A certificate that was only fetched for it is removed again, one that was trusted before is not touched.
+     */
+    private void failClient(List<Runnable> afterwards, Exception reason, CloseReason closeReason) {
+        done = true;
+        stopTimeout();
+        try {
+            if (!wasTrustedBefore && partner != null)
+                certificateManager.deleteCertificate(partner);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        DeferredObject<Certificate, Exception, Void> result = clientResult;
+        if (result != null)
+            afterwards.add(() -> {
+                if (result.isPending())
+                    result.reject(reason);
+            });
+        melAuthSocket.close(closeReason);
+    }
+
+    /**
+     * Server side, both users accepted: persist, then say so. Persisting is one statement.
+     */
+    private void commitServer(List<Runnable> afterwards) {
+        MelAuthService service = melAuthSocket.getMelAuthService();
+        try {
+            Certificate stored = certificateManager.registerTrusted(peerX509, details.getName(), melAuthSocket.getAddress(), details.getPort(), details.getDeliveryPort());
+            done = true;
+            sendFinal(true);
+            reportCompleted(afterwards, stored);
+        } catch (Exception e) {
+            e.printStackTrace();
+            sendFinal(false);
+            finishWithoutResult(CloseReason.INTERNAL_ERROR);
+        }
+    }
+
+    private void reportCompleted(List<Runnable> afterwards, Certificate stored) {
+        MelAuthService service = melAuthSocket.getMelAuthService();
+        tell(afterwards, handler -> handler.onRegistrationCompleted(stored));
+        afterwards.add(() -> {
+            for (IRegisteredHandler handler : new ArrayList<>(service.getRegisteredHandlers())) {
                 try {
-                    Certificate certificate = request.getCertificate();
-                    // not imported yet, but from now on there is somebody to tell the handlers about and to clean up after
-                    partnerCertificate = certificate;
-                    if (melAuthSocket.getMelAuthService().getRegisterHandlers().size() == 0) {
-                        Lok.debug("MelRegisterProcess.onMessageReceived.NO.HANDLER.FOR.REGISTRATION.AVAILABLE");
-                    }
-                    for (IRegisterHandler registerHandler : melAuthSocket.getMelAuthService().getRegisterHandlers()) {
-                        registerHandler.acceptCertificate(new IRegisterHandlerListener() {
-                            @Override
-                            public void onCertificateAccepted(MelRequest request, Certificate certificate) {
-                                runner.runTry(() -> {
-                                    if (confirmedPromise.isRejected()) {
-                                        // the partner said no while the user was thinking, the registration is over
-                                        return;
-                                    }
-                                    // The certificate is imported but not trusted. That happens when the partner has confirmed, too (see constructor).
-                                    // Trusting it here would leave somebody trusted who rejected us in the meantime.
-                                    X509Certificate x509Certificate = CertificateManager.loadX509CertificateFromBytes(certificate.getCertificate().v());
-                                    String address = melAuthSocket.getAddress();
-                                    int port = certificate.getPort().v();
-                                    int portCert = certificate.getCertDeliveryPort().v();
-                                    partnerCertificate = certificateManager.importCertificate(x509Certificate, certificate.getName().v(), address, port, portCert);
-                                    if (confirmedPromise.isRejected()) {
-                                        // rejected between the check and the import: nobody cleaned up the certificate, because it did not exist yet
-                                        certificateManager.deleteCertificate(partnerCertificate);
-                                        return;
-                                    }
-                                    // If the partner confirmed already, this trusts it right here. Only then tell it, because
-                                    // it is done once it knows and connects (on another socket) at once.
-                                    acceptedPromise.resolve(partnerCertificate);
-                                    // tell your partner that you appreciate her actions!
-                                    MelRegisterProcess.this.sendConfirmation(true);
-                                });
-                            }
-
-                            @Override
-                            public void onCertificateRejected(MelRequest request, Certificate certificate) {
-                                runner.runTry(() -> {
-                                    MelRegisterProcess.this.sendConfirmation(false);
-                                    acceptedPromise.reject(new UserDidNotTrustException());
-                                });
-                            }
-                        }, request, melAuthSocket.getMelAuthService().getMyCertificate(), certificate);
-                    }
+                    handler.onCertificateRegistered(service, stored);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            } else if (deserialized instanceof MelResponse) {
-                //should not be called
-                Lok.debug("MelRegisterProcess.onMessageReceived.WRONG");
-            } else if (deserialized instanceof MelMessage) {
-                MelMessage message = (MelMessage) deserialized;
-                if (message.getPayload() != null && message.getPayload() instanceof MelRegisterConfirm) {
-                    MelRegisterConfirm confirm = (MelRegisterConfirm) message.getPayload();
-                    log("received confirmation, confirmed=" + confirm.isConfirmed());
-                    if (confirm.isConfirmed()) {
-                        confirmedPromise.resolve(confirm);
-                    } else {
-                        confirmedPromise.reject(new PartnerDidNotTrustException());
-                    }
+            }
+        });
+    }
+
+    // ---- what arrives ----
+
+    @Override
+    public void onMessageReceived(SerializableEntity deserialized, MelAuthSocket webSocket) {
+        List<Runnable> afterwards = new ArrayList<>();
+        boolean ask = false;
+        synchronized (lock) {
+            if (done)
+                return;
+            if (deserialized instanceof MelRequest) {
+                if (isClient()) {
+                    melAuthSocket.protocolViolation("a client does not receive registration requests");
+                    return;
                 }
-            } else
-                Lok.debug("MelRegisterProcess.onMessageReceived.VERY.WRONG");
+                ask = onRegisterRequest((MelRequest) deserialized);
+            } else if (deserialized instanceof MelMessage && ((MelMessage) deserialized).getPayload() instanceof RegisterDecision) {
+                onDecision(((RegisterDecision) ((MelMessage) deserialized).getPayload()).isAccepted(), afterwards);
+            } else if (deserialized instanceof MelMessage && ((MelMessage) deserialized).getPayload() instanceof RegisterFinal) {
+                onFinal(((RegisterFinal) ((MelMessage) deserialized).getPayload()).isAccepted(), afterwards);
+            } else {
+                melAuthSocket.protocolViolation("unexpected " + deserialized.getClass().getSimpleName() + " while registering");
+            }
+        }
+        run(afterwards);
+        if (ask) {
+            try {
+                askHandlers(partner);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Server side. The partner is whoever owns the TLS client certificate, not what the request says.
+     *
+     * @return whether the handlers have to be asked
+     */
+    private boolean onRegisterRequest(MelRequest registerRequest) {
+        log("received registration request");
+        try {
+            request = registerRequest;
+            peerX509 = melAuthSocket.getPeerCertificate();
+            if (!(registerRequest.getPayload() instanceof RegisterDetails)) {
+                melAuthSocket.protocolViolation("registration request without details");
+                return false;
+            }
+            details = (RegisterDetails) registerRequest.getPayload();
+            Certificate known = certificateManager.getCertificateByHash(de.mel.sql.Hash.sha256(peerX509.getEncoded()));
+            // for the handlers only, nothing is stored before both users said yes
+            partner = new Certificate()
+                    .setCertificate(peerX509.getEncoded())
+                    .setName(details.getName())
+                    .setAddress(melAuthSocket.getAddress())
+                    .setPort(details.getPort())
+                    .setCertDeliveryPort(details.getDeliveryPort())
+                    .setTrusted(false)
+                    .setKnownPartner(known != null);
+            startTimeout();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            melAuthSocket.close(CloseReason.REFUSED);
+            done = true;
+            return false;
+        }
+    }
+
+    private void onDecision(boolean accepted, List<Runnable> afterwards) {
+        log("received decision, accepted=" + accepted);
+        if (remoteDecision != null) {
+            melAuthSocket.protocolViolation("decided twice");
+            return;
+        }
+        remoteDecision = accepted;
+        Certificate about = partner;
+        if (!accepted) {
+            tell(afterwards, handler -> handler.onRemoteRejected(about));
+            if (isClient())
+                failClient(afterwards, new PartnerDidNotTrustException(), CloseReason.REJECTED);
+            else
+                finishWithoutResult(CloseReason.REJECTED);
+            return;
+        }
+        remoteAcceptedReported = true;
+        tell(afterwards, handler -> handler.onRemoteAccepted(about));
+        if (!isClient() && Boolean.TRUE.equals(localDecision))
+            commitServer(afterwards);
+    }
+
+    /**
+     * Client side
+     */
+    private void onFinal(boolean accepted, List<Runnable> afterwards) {
+        log("received final, accepted=" + accepted);
+        Certificate about = partner;
+        if (!accepted) {
+            if (localDecision == null || localDecision) // our own user did not say no, so this is news
+                tell(afterwards, handler -> handler.onRemoteRejected(about));
+            failClient(afterwards, new PartnerDidNotTrustException(), CloseReason.REJECTED);
+            return;
+        }
+        if (!Boolean.TRUE.equals(localDecision)) {
+            melAuthSocket.protocolViolation("the server finished a registration that this side did not accept");
+            return;
+        }
+        try {
+            // the commit: one statement
+            certificateManager.trustCertificate(partner.getId().v(), true);
+            Certificate stored = certificateManager.getCertificateById(partner.getId().v());
+            done = true;
+            stopTimeout();
+            if (!remoteAcceptedReported)
+                tell(afterwards, handler -> handler.onRemoteAccepted(about));
+            reportCompleted(afterwards, stored);
+            DeferredObject<Certificate, Exception, Void> result = clientResult;
+            afterwards.add(() -> {
+                if (result != null && result.isPending())
+                    result.resolve(stored);
+            });
+            melAuthSocket.close(CloseReason.REGISTERED);
+        } catch (Exception e) {
+            e.printStackTrace();
+            failClient(afterwards, e, CloseReason.INTERNAL_ERROR);
+        }
+    }
+
+    @Override
+    public void onSocketClosed(CloseReason reason, boolean remote) {
+        List<Runnable> afterwards = new ArrayList<>();
+        synchronized (lock) {
+            if (!done) {
+                log("socket closed before the registration was over: " + reason);
+                Certificate about = partner;
+                if (remote && about != null)
+                    tell(afterwards, handler -> handler.onRemoteRejected(about));
+                if (isClient())
+                    failClient(afterwards, new Exception("connection closed: " + reason), reason);
+                else {
+                    done = true;
+                    stopTimeout();
+                }
+            } else {
+                stopTimeout();
+            }
+        }
+        run(afterwards);
+        super.onSocketClosed(reason, remote);
     }
 }

@@ -167,19 +167,19 @@ public class MelAuthProcess extends MelProcess {
             this.partnerCertificate = melAuthSocket.getTrustedPartnerCertificate();
             if (partnerCertificate == null) {
                 Lok.debug("closing: the one that answered shows a certificate we do not trust");
+                reject(job, new UntrustedPartnerException("the one at " + address + ":" + port + " is no trusted partner"));
                 melAuthSocket.close(CloseReason.UNTRUSTED);
-                job.reject(new UntrustedPartnerException("the one at " + address + ":" + port + " is no trusted partner"));
                 return;
             }
             final boolean expectedPartner = id == null || Objects.equals(partnerCertificate.getId().v(), id);
             if (!expectedPartner && job instanceof IsolatedConnectJob) {
+                reject(job, new WrongPartnerException("expected certificate " + id + " but " + partnerCertificate.getId().v() + " answered"));
                 melAuthSocket.close(CloseReason.WRONG_PARTNER);
-                job.reject(new WrongPartnerException("expected certificate " + id + " but " + partnerCertificate.getId().v() + " answered"));
                 return;
             }
             N runner = new N(e -> {
                 e.printStackTrace();
-                job.reject(e);
+                reject(job, e);
             });
             MelRequest request = new MelRequest(MelStrings.SERVICE_NAME, MelStrings.msg.INTENT_AUTH)
                     .setRequestHandler(this).queue();
@@ -210,12 +210,12 @@ public class MelAuthProcess extends MelProcess {
                                 });
                             } else {
                                 // the connection is kept, but it belongs to somebody else than the one that was asked for
-                                job.reject(new WrongPartnerException("expected certificate " + id + " but " + partnerCertificate.getId().v() + " answered"));
+                                reject(job, new WrongPartnerException("expected certificate " + id + " but " + partnerCertificate.getId().v() + " answered"));
                             }
                         } else {
                             Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already exists and wins. closing this one. v=" + melAuthSocket.getV());
+                            reject(job, new DuplicateConnectionException());
                             melAuthSocket.duplicateLost();
-                            job.reject(new DuplicateConnectionException());
                         }
                     } else if (job instanceof IsolatedConnectJob) {
                         IsolatedConnectJob isolatedConnectJob = (IsolatedConnectJob) job;
@@ -229,20 +229,34 @@ public class MelAuthProcess extends MelProcess {
                             service.onIsolatedConnectionEstablished(melIsolatedProcess);
                             melIsolatedProcess.setService(service);
                             job.resolve(melIsolatedProcess);
-                        }).fail(excc -> job.reject(excc));
+                        }).fail(excc -> reject(job, excc));
                     }
                 });
             }).fail(e -> {
                 Exception reason = closeReason == CloseReason.DUPLICATE ? new DuplicateConnectionException() : e;
+                reject(job, reason);
                 if (!melAuthSocket.isStopped())
                     melAuthSocket.close(CloseReason.REFUSED);
-                job.reject(reason);
             });
             send(request);
         } catch (Exception e) {
             Lok.error("Exception occured: " + e.toString() + " v=" + melAuthSocket.getV());
+            reject(job, e);
             melAuthSocket.close(CloseReason.IO_ERROR);
-            job.reject(e);
+        }
+    }
+
+    /**
+     * A job is settled once. The socket reports its end to the job as well (ConnectedEnvironment), so whoever knows the real reason says it first.
+     */
+    @SuppressWarnings("unchecked")
+    private static void reject(AConnectJob job, Exception reason) {
+        if (!job.isPending())
+            return;
+        try {
+            job.reject(reason);
+        } catch (IllegalStateException e) {
+            // settled in the meantime
         }
     }
 

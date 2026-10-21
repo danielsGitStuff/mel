@@ -8,6 +8,7 @@
 
     <string name="coupleNotificationCertTitle">Pairing Attempt!</string>
     <string name="coupleNotificationCertText">Your Mel instance wants to get to know another one.</string>
+    <string name="coupleNotificationCertTextKnown">This one is known already. Accepting keeps its access rights.</string>
     <string name="slogan">No Clouds included!</string>
     <string name="permanentNotification">This notification prevents Mel from being shut down.</string>
     <string name="btnOk">Ok</string>

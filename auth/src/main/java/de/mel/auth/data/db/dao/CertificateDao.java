@@ -93,6 +93,18 @@ public class CertificateDao extends Dao.ConnectionLockingDao {
         Lok.debug("CertificateDao.trustCertificate");
     }
 
+    /**
+     * @return the entry for that certificate, trusted or not
+     */
+    public Certificate getCertificateByHash(String hash) throws SqlQueriesException {
+        Certificate dummy = new Certificate();
+        String where = dummy.getHash().k() + "=?";
+        List<SQLTableObject> result = sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(hash));
+        if (result.size() == 1)
+            return (Certificate) result.get(0);
+        return null;
+    }
+
     public Certificate getTrustedCertificateByHash(String hash) throws SqlQueriesException {
         Certificate dummy = new Certificate();
         String where = dummy.getHash().k() + "=? and " + dummy.getTrusted().k() + "=?";

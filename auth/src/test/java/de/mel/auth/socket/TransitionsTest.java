@@ -3,7 +3,8 @@ package de.mel.auth.socket;
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.EmptyPayload;
 import de.mel.auth.data.MelMessage;
-import de.mel.auth.data.MelRegisterConfirm;
+import de.mel.auth.data.RegisterDecision;
+import de.mel.auth.data.RegisterFinal;
 import de.mel.auth.data.MelRequest;
 import de.mel.auth.data.MelResponse;
 import de.mel.auth.data.ProtocolError;
@@ -35,7 +36,9 @@ public class TransitionsTest {
                     return START_AUTHENTICATING;
                 return VIOLATION;
             case REGISTERING:
-                return message == REGISTER_DECISION ? DELIVER : VIOLATION;
+                if (message == REGISTER_DECISION)
+                    return DELIVER;
+                return role == Role.CLIENT && message == REGISTER_FINAL ? DELIVER : VIOLATION;
             case AUTHENTICATING:
                 return role == Role.CLIENT && message == RESPONSE ? DELIVER : VIOLATION;
             case ESTABLISHED:
@@ -56,7 +59,7 @@ public class TransitionsTest {
                     assertEquals(expected(state, role, message), Transitions.onMessage(state, role, message), state + "/" + role + "/" + message);
                     checked++;
                 }
-        assertEquals(6 * 2 * 9, checked);
+        assertEquals(6 * 2 * 10, checked);
     }
 
     @Test
@@ -96,7 +99,8 @@ public class TransitionsTest {
         assertEquals(SERVICE, Transitions.classify(new MelRequest("a service", MelStrings.msg.INTENT_AUTH)));
         assertEquals(SERVICE, Transitions.classify(new MelRequest(MelStrings.SERVICE_NAME, "something else")));
         assertEquals(RESPONSE, Transitions.classify(new MelResponse()));
-        assertEquals(REGISTER_DECISION, Transitions.classify(new MelMessage(MelStrings.SERVICE_NAME, null).setPayLoad(new MelRegisterConfirm().setConfirmed(true))));
+        assertEquals(REGISTER_DECISION, Transitions.classify(new MelMessage(MelStrings.SERVICE_NAME, null).setPayLoad(new RegisterDecision(true))));
+        assertEquals(REGISTER_FINAL, Transitions.classify(new MelMessage(MelStrings.SERVICE_NAME, null).setPayLoad(new RegisterFinal(true))));
         assertEquals(SERVICE, Transitions.classify(new MelMessage("a service", null).setPayLoad(new EmptyPayload("x"))));
         assertEquals(ERROR, Transitions.classify(new ProtocolError("PROTOCOL_VIOLATION", "because")));
     }

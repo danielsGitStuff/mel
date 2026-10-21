@@ -76,3 +76,20 @@ address/port changed; uses `FakePartner`), `DuplicateConnectionTest` x2 enabled 
 refused, nobody retries). That is a race in the test, not in the code (found in the log); the test now waits until the server accepts connections again.
 That test then ran 12 times in a row green.
 Decision taken alone: a duplicate loser on the server side is told `DUPLICATE` and closed (before: silently left open, the client hung).
+
+## Step 7: registration
+New messages `RegisterDetails` (request payload, no certificate), `RegisterDecision`, `RegisterFinal`; `MelRegisterConfirm` and `MelRequest.certificate` are gone.
+`MelRegisterProcess` rewritten as the REGISTERING handler for both roles: the partner of the server is the TLS client certificate; nothing is stored before
+both users accepted; S persists (`CertificateManager.registerTrusted`: INSERT of a trusted row or UPDATE of the known one, one statement) before sending
+`Final(true)`; C persists on `Final(true)` (`trustCertificate`), then closes with `REGISTERED`. A rejection stores nothing; the client deletes the entry it fetched only
+if it was untrusted before. Decisions of the users come in on other threads, so the process guards its state with a lock and tells the handlers outside it.
+No `DefaultDeferredManager().when(...)` any more. REGISTERING timeout: 5 min, `MelAuthService.setRegisterTimeoutMs` for tests (1 s). `importCertificate` reuses
+the entry of a known certificate (refreshes name/address/ports). The client checks that the TLS certificate of the register socket is the one it fetched.
+`Certificate.isKnownPartner()` (not stored) tells the handlers that the partner is known; `RegisterHandlerFX` and `AndroidRegHandler` show it (new Android string).
+`ConnectWorker.register` returns the promise that `register` resolves/rejects (it used to never reject).
+Tests: `RegistrationCommitTest` (known partner registers again and keeps access, enabled; the other direction: server forgot the client; pairing by mistake with a
+trusted partner: nobody asked, only a connection; registration timeout leaves nothing), `TransitionsTest` extended (REGISTER_FINAL).
+Bug found by `PartnerIdentityTest` (hung once in about 8 runs): `MelAuthProcess.authenticate` closed the socket before settling the job, and the close reported
+`connection closed` to the same job first, so the second `reject` threw. Jobs are now settled first and only once (`reject` helper). 25 runs green after that.
+5 full runs of `:auth:test :auth:integrationTest` green.
+Not done yet from the plan text for this step: "the caller learns 'already paired with X'" (step 9).

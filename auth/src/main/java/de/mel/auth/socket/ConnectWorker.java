@@ -208,12 +208,13 @@ public class ConnectWorker extends MelWorker {
         retriever.retrieveCertificate(deferred, address, port, portCert);
     }
 
-    private Promise<Certificate, Exception, Void> register(DeferredObject<Certificate, Exception, Void> result, Certificate certificate, String address, Integer port) throws IllegalAccessException, SqlQueriesException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, JsonSerializationException, CertificateException, KeyStoreException, ClassNotFoundException, KeyManagementException, BadPaddingException, UnrecoverableKeyException, NoSuchPaddingException, IOException, IllegalBlockSizeException, InterruptedException {
+    private Promise<Certificate, Exception, Void> register(DeferredObject<Certificate, Exception, Void> result, Certificate certificate, String address, Integer port) throws Exception {
         melAuthSocket = new MelAuthSocket(melAuthService);
 //        Socket socket = melAuthService.getCertificateManager().createSocket();
 //        socket.connect(new InetSocketAddress(address,port));
         MelRegisterProcess melRegisterProcess = new MelRegisterProcess(melAuthSocket);
-        return melRegisterProcess.register(result, certificate.getId().v(), address, port);
+        melRegisterProcess.register(result, certificate.getId().v(), address, port);
+        return result;
     }
 
     @Override

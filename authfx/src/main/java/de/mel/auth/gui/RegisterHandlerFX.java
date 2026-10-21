@@ -69,7 +69,7 @@ public class RegisterHandlerFX implements IRegisterHandler, Initializable {
     public void setCertificate(Certificate certificate) {
         this.certificate = certificate;
         showCertificate(txtCert, lblHash, certificate);
-        lblCert.setText("Incoming Certificate (" + certificate.getName().v() + ")");
+        lblCert.setText("Incoming Certificate (" + certificate.getName().v() + ")" + (certificate.isKnownPartner() ? " - already known, accepting keeps its access rights" : ""));
     }
 
     private void showCertificate(TextArea txtArea, Label lblHash, Certificate cert) {

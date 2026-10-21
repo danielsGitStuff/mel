@@ -3,7 +3,9 @@ package de.mel.auth.service;
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.IsolationDetails;
 import de.mel.auth.data.MelMessage;
-import de.mel.auth.data.MelRegisterConfirm;
+import de.mel.auth.data.RegisterDecision;
+import de.mel.auth.data.RegisterDetails;
+import de.mel.auth.data.RegisterFinal;
 import de.mel.auth.data.MelRequest;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.socket.FrameCodec;
@@ -116,20 +118,25 @@ public class RawPeer implements AutoCloseable {
         return request;
     }
 
-    public static MelRequest registerRequest(String name, X509Certificate certificate, int port, int deliveryPort) throws Exception {
-        Certificate details = new Certificate()
-                .setName(name)
-                .setCertificate(certificate.getEncoded())
-                .setPort(port)
-                .setCertDeliveryPort(deliveryPort);
-        return new MelRequest(MelStrings.SERVICE_NAME, MelStrings.msg.INTENT_REGISTER).setCertificate(details);
+    /**
+     * The certificate of a registration is the TLS client certificate of the connection, so it is not part of the request.
+     */
+    public static MelRequest registerRequest(String name, int port, int deliveryPort) {
+        return new MelRequest(MelStrings.SERVICE_NAME, MelStrings.msg.INTENT_REGISTER).setPayLoad(new RegisterDetails(name, port, deliveryPort));
     }
 
     /**
      * the decision of this peer's user in a registration
      */
     public static MelMessage registerDecision(boolean accepted) {
-        return new MelMessage(MelStrings.SERVICE_NAME, null).setPayLoad(new MelRegisterConfirm().setConfirmed(accepted));
+        return new MelMessage(MelStrings.SERVICE_NAME, null).setPayLoad(new RegisterDecision(accepted));
+    }
+
+    /**
+     * what only a server may send
+     */
+    public static MelMessage registerFinal(boolean accepted) {
+        return new MelMessage(MelStrings.SERVICE_NAME, null).setPayLoad(new RegisterFinal(accepted));
     }
 
     // ---- how bytes travel ----

@@ -115,8 +115,7 @@ public class ProtocolViolationTest {
     @Test
     public void aRegistrationOnANormalConnectionClosesIt() throws Exception {
         try (RawPeer peer = authenticatedClient()) {
-            peer.send(RawPeer.registerRequest("CLIENT", client.getCertificateManager().getMyX509Certificate(),
-                    client.getSettings().getPort(), client.getSettings().getDeliveryPort()));
+            peer.send(RawPeer.registerRequest("CLIENT", client.getSettings().getPort(), client.getSettings().getDeliveryPort()));
             assertClosedForViolation(peer, "the server kept a normal connection open that received a registration request");
         }
     }

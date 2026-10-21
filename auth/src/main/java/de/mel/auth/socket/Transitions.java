@@ -2,7 +2,8 @@ package de.mel.auth.socket;
 
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.MelMessage;
-import de.mel.auth.data.MelRegisterConfirm;
+import de.mel.auth.data.RegisterDecision;
+import de.mel.auth.data.RegisterFinal;
 import de.mel.auth.data.MelRequest;
 import de.mel.auth.data.MelResponse;
 import de.mel.auth.data.ProtocolError;
@@ -13,7 +14,7 @@ import de.mel.core.serialize.SerializableEntity;
  * <pre>
  * state          | client                 | server
  * NEW            | nothing (it sends)     | register request, auth request
- * REGISTERING    | decision               | decision
+ * REGISTERING    | decision, final        | decision
  * AUTHENTICATING | response               | nothing (decides at once)
  * ESTABLISHED    | service traffic        | service traffic
  * ISOLATED       | blocks, isolate hello  | blocks, isolate hello
@@ -28,7 +29,7 @@ public final class Transitions {
     public enum Role {CLIENT, SERVER}
 
     public enum MessageKind {
-        REGISTER_REQUEST, REGISTER_DECISION, AUTH_REQUEST,
+        REGISTER_REQUEST, REGISTER_DECISION, REGISTER_FINAL, AUTH_REQUEST,
         /**
          * answers to requests, of the authentication and of services alike
          */
@@ -79,8 +80,10 @@ public final class Transitions {
         }
         if (entity instanceof MelResponse)
             return MessageKind.RESPONSE;
-        if (entity instanceof MelMessage && ((MelMessage) entity).getPayload() instanceof MelRegisterConfirm)
+        if (entity instanceof MelMessage && ((MelMessage) entity).getPayload() instanceof RegisterDecision)
             return MessageKind.REGISTER_DECISION;
+        if (entity instanceof MelMessage && ((MelMessage) entity).getPayload() instanceof RegisterFinal)
+            return MessageKind.REGISTER_FINAL;
         return MessageKind.SERVICE;
     }
 
@@ -99,7 +102,10 @@ public final class Transitions {
                 }
                 return Verdict.VIOLATION;
             case REGISTERING:
-                return message == MessageKind.REGISTER_DECISION ? Verdict.DELIVER : Verdict.VIOLATION;
+                if (message == MessageKind.REGISTER_DECISION)
+                    return Verdict.DELIVER;
+                // the server has the last word, nobody sends it to the server
+                return role == Role.CLIENT && message == MessageKind.REGISTER_FINAL ? Verdict.DELIVER : Verdict.VIOLATION;
             case AUTHENTICATING:
                 return role == Role.CLIENT && message == MessageKind.RESPONSE ? Verdict.DELIVER : Verdict.VIOLATION;
             case ESTABLISHED:

@@ -4,7 +4,6 @@ import de.mel.auth.data.access.CertificateCreator;
 import de.mel.auth.data.db.Certificate;
 import de.mel.sql.Hash;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -44,7 +43,6 @@ public class RegistrationCommitTest {
      * The client lost the server (it deleted it, or the registration only completed on the server's side) and pairs again.
      * The server knows the client already: the entry stays the same, so the services the client may use stay, too.
      */
-    @Disabled("fails on the old code: importing a known certificate violates UNIQUE (certificate), see SOCKET_PROCESS_REWORK.md")
     @Test
     public void aKnownPartnerCanRegisterAgainAndKeepsItsAccess() throws Exception {
         instances = new TwoInstances(tempDir, nextPortBase.getAndAdd(10), ACCEPT_ALL, ACCEPT_ALL);
@@ -107,7 +105,7 @@ public class RegistrationCommitTest {
         X509Certificate certificate = CertificateCreator.generateCertificate(keys, "patient");
         String hash = Hash.sha256(certificate.getEncoded());
         try (RawPeer patient = RawPeer.connect(server.getSettings().getPort(), certificate, keys.getPrivate())) {
-            patient.send(RawPeer.registerRequest("patient", certificate, 1, 2));
+            patient.send(RawPeer.registerRequest("patient", 1, 2));
             patient.send(RawPeer.registerDecision(true));
             assertTrue(waitFor(() -> {
                 try {
@@ -134,7 +132,7 @@ public class RegistrationCommitTest {
             X509Certificate certificate = CertificateCreator.generateCertificate(keys, "hasty" + round);
             String hash = Hash.sha256(certificate.getEncoded());
             try (RawPeer hasty = RawPeer.connect(server.getSettings().getPort(), certificate, keys.getPrivate())) {
-                hasty.send(RawPeer.registerRequest("hasty" + round, certificate, 1, 2));
+                hasty.send(RawPeer.registerRequest("hasty" + round, 1, 2));
                 hasty.send(RawPeer.registerDecision(true));
             }
             boolean trusted = waitFor(() -> {
@@ -148,5 +146,126 @@ public class RegistrationCommitTest {
                 lost++;
         }
         assertEquals(0, lost, "in " + lost + " of " + rounds + " rounds the server lost the last decision");
+    }
+
+    /**
+     * counts how often its user was asked
+     */
+    private static class CountingUser extends SwitchableUser {
+        final AtomicInteger asked = new AtomicInteger();
+
+        CountingUser() {
+            super(true);
+        }
+
+        @Override
+        public void acceptCertificate(de.mel.auth.socket.process.reg.IRegisterHandlerListener listener, de.mel.auth.data.MelRequest request, Certificate myCertificate, Certificate certificate) {
+            asked.incrementAndGet();
+            super.acceptCertificate(listener, request, myCertificate, certificate);
+        }
+    }
+
+    private void closeNormalConnections() throws Exception {
+        MelAuthService server = instances.server;
+        MelAuthService client = instances.client;
+        for (de.mel.auth.socket.MelAuthSocket socket : openNormalConnections(client, server))
+            socket.close(de.mel.auth.socket.CloseReason.SHUTDOWN);
+        for (de.mel.auth.socket.MelAuthSocket socket : openNormalConnections(server, client))
+            socket.close(de.mel.auth.socket.CloseReason.SHUTDOWN);
+        assertTrue(waitFor(() -> {
+            try {
+                return openNormalConnections(client, server).isEmpty() && openNormalConnections(server, client).isEmpty();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }, 10), "test setup: connections did not go away");
+    }
+
+    /**
+     * The other way round: the server deleted the client, the client still trusts the server. The certificate of the server that the
+     * client fetches again belongs to an entry that exists already (and is trusted), it must be reused and stay as it is.
+     */
+    @Test
+    public void aClientThatIsStillTrustedByItsServerCanPairAgainAfterTheServerForgotIt() throws Exception {
+        instances = new TwoInstances(tempDir, nextPortBase.getAndAdd(10), ACCEPT_ALL, ACCEPT_ALL);
+        MelAuthService server = instances.server;
+        MelAuthService client = instances.client;
+        instances.pair();
+        Long serverIdAtClient = idOf(server, client);
+        closeNormalConnections();
+        for (Certificate certificate : entriesOf(client, server))
+            server.getCertificateManager().deleteCertificate(certificate);
+        assertTrue(trusts(client, server));
+        assertFalse(trusts(server, client));
+
+        assertTrue(instances.pairAgain(), "pairing did not complete");
+        assertTrue(waitFor(() -> trusts(server, client)), "the server does not trust the client again");
+        assertTrue(trusts(client, server));
+        assertEquals(serverIdAtClient, idOf(server, client), "the client replaced its entry for the server");
+    }
+
+    /**
+     * Pairing with an address whose owner both sides trust already: no registration, nobody is asked, nothing changes but the address.
+     */
+    @Test
+    public void pairingByMistakeWithATrustedPartnerJustConnects() throws Exception {
+        CountingUser serverUser = new CountingUser();
+        CountingUser clientUser = new CountingUser();
+        instances = new TwoInstances(tempDir, nextPortBase.getAndAdd(10), serverUser, clientUser);
+        MelAuthService server = instances.server;
+        MelAuthService client = instances.client;
+        instances.pair();
+        int serverAsked = serverUser.asked.get();
+        int clientAsked = clientUser.asked.get();
+        assertEquals(1, serverAsked);
+        assertEquals(1, clientAsked);
+        closeNormalConnections();
+        Long serverIdAtClient = idOf(server, client);
+        Certificate before = client.getCertificateManager().getCertificateById(serverIdAtClient);
+
+        java.util.concurrent.CountDownLatch connected = new java.util.concurrent.CountDownLatch(1);
+        client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), true).done(p -> connected.countDown());
+        assertTrue(connected.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), "the connection was not made");
+        assertEquals(serverAsked, serverUser.asked.get(), "the server's user was asked although the client is a trusted partner");
+        assertEquals(clientAsked, clientUser.asked.get(), "the client's user was asked although the server is a trusted partner");
+        assertEquals(1, entriesOf(server, client).size());
+        Certificate after = client.getCertificateManager().getCertificateById(serverIdAtClient);
+        assertEquals(before.getName().v(), after.getName().v());
+        assertEquals(before.getHash().v(), after.getHash().v());
+        assertTrue(after.getTrusted().v());
+    }
+
+    /**
+     * Nobody ever decides. The registration is over after the (short) timeout on both sides and nothing is left behind.
+     */
+    @Test
+    public void aRegistrationNobodyDecidesOnTimesOutAndLeavesNothing() throws Exception {
+        instances = new TwoInstances(tempDir, nextPortBase.getAndAdd(10), new SwitchableUser(true) {
+            @Override
+            public void acceptCertificate(de.mel.auth.socket.process.reg.IRegisterHandlerListener listener, de.mel.auth.data.MelRequest request, Certificate myCertificate, Certificate certificate) {
+                // the user went for coffee
+            }
+        }, new SwitchableUser(true) {
+            @Override
+            public void acceptCertificate(de.mel.auth.socket.process.reg.IRegisterHandlerListener listener, de.mel.auth.data.MelRequest request, Certificate myCertificate, Certificate certificate) {
+            }
+        });
+        MelAuthService server = instances.server;
+        MelAuthService client = instances.client;
+        server.setRegisterTimeoutMs(1000);
+        client.setRegisterTimeoutMs(1000);
+        assertFalse(instances.pairAgain(), "a registration nobody decided on completed");
+        assertTrue(waitFor(() -> {
+            try {
+                return socketsOf(server).stream().noneMatch(s -> s instanceof de.mel.auth.socket.MelAuthSocket a && a.getState().kind() == de.mel.auth.socket.SocketState.Kind.REGISTERING)
+                        && socketsOf(client).stream().noneMatch(s -> s instanceof de.mel.auth.socket.MelAuthSocket a && a.getState().kind() == de.mel.auth.socket.SocketState.Kind.REGISTERING);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }, 10), "a socket still waits for a registration");
+        assertFalse(trusts(server, client));
+        assertFalse(trusts(client, server));
+        assertTrue(server.getCertificateManager().getAllCertificateDetails().isEmpty(), "the server stored something");
+        assertTrue(client.getCertificateManager().getAllCertificateDetails().isEmpty(), "the client keeps the fetched certificate of a registration that timed out");
     }
 }

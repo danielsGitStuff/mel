@@ -2,7 +2,6 @@ package de.mel.auth.data
 
 import de.mel.Lok
 import de.mel.auth.MelStrings.msg
-import de.mel.auth.data.db.Certificate
 import de.mel.auth.socket.MelSocket
 import de.mel.auth.service.MelAuthService
 import de.mel.core.serialize.JsonIgnore
@@ -25,8 +24,6 @@ class MelRequest() : MelMessage() {
     private var requestHandler: IRequestHandler? = null
     @JsonIgnore
     val answerDeferred: DeferredObject<SerializableEntity, ResponseException, Void> = DeferredObject()
-    var certificate: Certificate? = null
-        private set
 
     @JsonIgnore
     @Volatile
@@ -66,11 +63,6 @@ class MelRequest() : MelMessage() {
 
     fun setAnswerId(answerId: Long): MelRequest {
         this.answerId = answerId
-        return this
-    }
-
-    fun setCertificate(certificate: Certificate?): MelRequest {
-        this.certificate = certificate
         return this
     }
 

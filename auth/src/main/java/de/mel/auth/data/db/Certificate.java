@@ -40,6 +40,21 @@ public class Certificate extends SQLTableObject implements SerializableEntity {
     @JsonIgnore
     private Pair<String> hash = new Pair<>(String.class, "hash");
 
+    /**
+     * Not stored. Tells the register handlers that this partner is known already (it is paired with us, or was imported before).
+     */
+    @JsonIgnore
+    private boolean knownPartner = false;
+
+    public boolean isKnownPartner() {
+        return knownPartner;
+    }
+
+    public Certificate setKnownPartner(boolean knownPartner) {
+        this.knownPartner = knownPartner;
+        return this;
+    }
+
     @Override
     public int hashCode() {
         int hash = (id.v() == null) ? super.hashCode() : id.v().hashCode();

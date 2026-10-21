@@ -149,7 +149,56 @@ public class CertificateManager extends FileRelatedManager {
         return publicKey;
     }
 
+    /**
+     * @return the entry for that certificate, trusted or not, null if the certificate is not known
+     */
+    public Certificate getCertificateByHash(String hash) throws SqlQueriesException {
+        BunchOfLocks bunchOfLocks = P.confine(P.read(certificateDao));
+        Certificate certificate = bunchOfLocks.runResult(() -> certificateDao.getCertificateByHash(hash));
+        bunchOfLocks.end();
+        return certificate;
+    }
+
+    /**
+     * Makes a certificate trusted in one statement: an insert of a trusted entry, or an update of the entry that is there already (name, address, ports and
+     * the trust). Nothing else about the entry changes, so it keeps its id and with it the services its owner may use.
+     */
+    public synchronized Certificate registerTrusted(X509Certificate x509Certificate, String name, String address, Integer port, Integer portCert) throws CertificateException, SqlQueriesException, KeyStoreException, NoSuchAlgorithmException, IOException {
+        String hash = Hash.sha256(x509Certificate.getEncoded());
+        Certificate known = getCertificateByHash(hash);
+        if (known != null) {
+            known.setName(name).setAddress(address).setPort(port).setCertDeliveryPort(portCert).setTrusted(true);
+            certificateDao.updateCertificate(known);
+            return known;
+        }
+        Certificate certificate = new Certificate();
+        String uuid = getNewUUID();
+        BunchOfLocks bunchOfLocks = P.confine(certificateDao);
+        bunchOfLocks.run(() -> {
+            certificate.setUuid(uuid)
+                    .setCertificate(x509Certificate.getEncoded())
+                    .setAddress(address)
+                    .setName(name)
+                    .setPort(port)
+                    .setCertDeliveryPort(portCert)
+                    .setTrusted(true);
+            certificateDao.insertCertificate(certificate);
+            this.storeCertInKeyStore(uuid, x509Certificate);
+        }).end();
+        return certificate;
+    }
+
+    /**
+     * Stores a certificate that is not trusted (yet). If the certificate is known already its entry is kept (id, trust) and only name,
+     * address and ports are refreshed.
+     */
     public synchronized Certificate importCertificate(X509Certificate x509Certificate, String name, String address, Integer port, Integer portCert) throws CertificateException, SqlQueriesException, KeyStoreException, NoSuchAlgorithmException, IOException {
+        Certificate known = getCertificateByHash(Hash.sha256(x509Certificate.getEncoded()));
+        if (known != null) {
+            known.setName(name).setAddress(address).setPort(port).setCertDeliveryPort(portCert);
+            certificateDao.updateCertificate(known);
+            return known;
+        }
         AtomicReference<Certificate> certificate = new AtomicReference<>(new Certificate());
         String uuid = getNewUUID();
         BunchOfLocks bunchOfLocks = P.confine(certificateDao);

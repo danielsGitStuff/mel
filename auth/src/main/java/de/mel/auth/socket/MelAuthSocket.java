@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.net.*;
 import java.security.*;
 import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -245,6 +246,14 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
         //stop();
         setSocket(socket);
         start();
+    }
+
+    /**
+     * @return the certificate the other side showed in the TLS handshake
+     */
+    X509Certificate getPeerCertificate() throws IOException {
+        SSLSocket sslSocket = (SSLSocket) socket;
+        return (X509Certificate) sslSocket.getSession().getPeerCertificates()[0];
     }
 
     Certificate getTrustedPartnerCertificate() throws IOException, CertificateEncodingException, SqlQueriesException, ShamefulSelfConnectException {
