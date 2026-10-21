@@ -50,6 +50,7 @@ abstract class BashTools<A : IFile> {
         fun stuffModifiedAfter(directory: IFile, pruneDir: IFile, timeStamp: Long): AutoKlausIterator<IFile> = implementation.stuffModifiedAfter(directory, pruneDir, timeStamp)
         fun stuffModifiedAfter(referenceFile: IFile, directory: IFile, pruneDir: IFile): List<IFile> = implementation.stuffModifiedAfter(referenceFile, directory, pruneDir)
         fun setCreationDate(target: IFile, created: Long) = implementation.setCreationDate(target = target, created = created)
+        fun canFindByTime(): Boolean = implementation.canFindByTime()
     }
 
     open fun isSymLink(f: A): Boolean = Files.isSymbolicLink(Paths.get(File(f.absolutePath).toURI()))
@@ -83,4 +84,10 @@ abstract class BashTools<A : IFile> {
 
     @Throws(exceptionClasses = [IOException::class, java.lang.InterruptedException::class])
     abstract fun stuffModifiedAfter(directory: A, pruneDir: A, timeStamp: Long): AutoKlausIterator<A>
+
+    /**
+     * @return true if [stuffModifiedAfter] with a time stamp is done by `find` (which is fast and also finds what only changed in ctime).
+     * Then the watcher needs no time reference files. Platforms where `find` cannot do this say false.
+     */
+    open fun canFindByTime(): Boolean = false
 }

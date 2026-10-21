@@ -265,10 +265,46 @@ open class BashToolsUnix : BashTools<StandardFile>() {
 
 
     /**
+     * Not every `find` takes a time stamp: this one does if it understands the time in the format that GNU find and bfs have in common (ISO 8601, UTC, whole seconds)
+     * and compares it with the change time of a file. Tried once.
+     */
+    private val findByTime: Boolean by lazy {
+        val dir = Files.createTempDirectory("mel.find.test").toFile()
+        try {
+            val proc = ProcessBuilder(BIN_PATH, "-c", "find ${escapeQuotedAbsoluteFilePath(StandardFile(dir.absolutePath))} -newerct 1970-01-01T00:00:00Z -print").redirectErrorStream(true).start()
+            val out = proc.inputStream.bufferedReader().readText()
+            proc.waitFor() == 0 && out.trim() == dir.absolutePath
+        } catch (e: Exception) {
+            false
+        } finally {
+            dir.delete()
+        }
+    }
+
+    override fun canFindByTime(): Boolean = findByTime
+
+    /**
+     * `find` by the change time (ctime): what is new, modified, renamed or copied with an old modified time. [timeStamp] is rounded down to the second, so a bit more is found, never less.
+     */
+    private fun findChangedAfter(directory: StandardFile, pruneDir: StandardFile, timeStamp: Long): AutoKlausIterator<StandardFile> {
+        // year 9999. Nothing is changed after that, and the format ends there
+        if (timeStamp > 253402300799000L)
+            return object : AutoKlausIterator<StandardFile> {
+                override fun hasNext(): Boolean = false
+                override fun next(): StandardFile = throw NoSuchElementException()
+                override fun close() {}
+            }
+        val time = java.time.format.DateTimeFormatter.ISO_INSTANT.format(java.time.Instant.ofEpochSecond(Math.floorDiv(Math.max(timeStamp, 0L), 1000L)))
+        return exec("find ${escapeQuotedAbsoluteFilePath(directory)} -path ${escapeQuotedAbsoluteFilePath(pruneDir)} -prune -o -newerct $time -print")
+    }
+
+    /**
      * Everything below [directory] that was modified after [timeStamp] (ms), except what lives in [pruneDir].
      * [directory] itself is included if it was modified at or after [timeStamp]. Same semantics as the Windows implementation.
      */
     override fun stuffModifiedAfter(directory: StandardFile, pruneDir: StandardFile, timeStamp: Long): AutoKlausIterator<StandardFile> {
+        if (canFindByTime())
+            return findChangedAfter(directory, pruneDir, timeStamp)
         val root = Paths.get(directory.absolutePath)
         val prune = pruneDir.absolutePath
         val stream = Files.walk(root)
