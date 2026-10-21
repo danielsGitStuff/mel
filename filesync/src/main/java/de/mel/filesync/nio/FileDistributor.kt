@@ -20,6 +20,12 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
     private var stopped: Boolean = false;
     private var notification: MelNotification? = null
     private var running: Boolean = false
+
+    /**
+     * Only one thread works on the tasks. The distributor is started by whoever adds a job, and two of them can come before the first thread says it runs:
+     * two threads would load the same tasks and copy, move and delete the same files at the same time.
+     */
+    private val active = java.util.concurrent.atomic.AtomicBoolean(false)
     val fileDistTaskDao = fileSyncService.fileSyncDatabaseManager.fileDistTaskDao
     val melAuthService: MelAuthService = fileSyncService.melAuthService
     val fsDao = fileSyncService.fileSyncDatabaseManager.fsDao
@@ -46,15 +52,16 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
     fun createJob(distributionTask: FileDistributionTask) {
         // unpack and store in database
         fileDistTaskDao.insert(distributionTask)
-        if (!running && distributionTask.canStart()) {
-            stopped = false
-            fileSyncService.execute(this)
-        }
+        startIfIdle(distributionTask)
     }
 
     fun completeJob(distributionTask: FileDistributionTask) {
         fileDistTaskDao.completeJob(distributionTask)
-        if (!running && distributionTask.canStart()) {
+        startIfIdle(distributionTask)
+    }
+
+    private fun startIfIdle(distributionTask: FileDistributionTask) {
+        if (!active.get() && distributionTask.canStart()) {
             stopped = false
             fileSyncService.execute(this)
         }
@@ -62,15 +69,21 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
 
 
     override fun run() {
+        // another thread is at work: it takes the tasks that are there, and checks again when it is done
+        if (!active.compareAndSet(false, true))
+            return
         // first setup all the nice things we need
 
         melAuthService.powerManager.wakeLock(this)
         running = true
         var hasTransferred = false
+        var finishedNormally = false
         try {
 
-            if (!fileDistTaskDao.hasWork())
+            if (!fileDistTaskDao.hasWork()) {
+                finishedNormally = true
                 return
+            }
 
             while (fileDistTaskDao.hasWork() && !Thread.currentThread().isInterrupted && !stopped) {
                 hasTransferred = true
@@ -83,6 +96,7 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
                     showNotification(++countDone, max)
                 }
             }
+            finishedNormally = true
         } finally {
             running = false
             melAuthService.powerManager.releaseWakeLock(this)
@@ -96,6 +110,10 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
             }
             if (hasTransferred)
                 fileSyncService.onSyncDone()
+            active.set(false)
+            // a job that came while this was finishing found a busy distributor and started nothing. (After a failure not: that would try the same task again and again)
+            if (finishedNormally && !stopped && fileDistTaskDao.hasWork())
+                fileSyncService.execute(this)
         }
     }
 
