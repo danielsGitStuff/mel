@@ -201,6 +201,10 @@ public abstract class MelAuthService {
 
     public abstract Updater getUpdater();
 
+    public abstract void suspend();
+
+    public abstract void resume();
+
     public abstract void shutDownCommunications();
 
     public abstract DeferredObject<DeferredRunnable, Exception, Void> startUpCommunications();

@@ -374,7 +374,7 @@ For the session that does the work. Steps in this order; each one is a commit (o
 
 ### Step 10: cleanup
 
-- [ ] Delete `suspend()`/`resume()` and `AuthHandshakeTest.pairedClientCanConnectAgainAfterTheServerWasSuspendedAndResumed`.
+- [x] NOT done on purpose: `suspend()`/`resume()` have a caller (`AndroidPowerManager`), they and their test stay.
 - [ ] Delete `auth/src/test/.../socket/SocketTest.java`, `LargeJson.java`; `LotsOfTests` if it only holds commented tests.
 - [ ] Remove leftovers: `MelSocket.BLOCK_SIZE`, `MelStrings.msg.MODE_ISOLATE`, `MelRegisterConfirm`, unused exceptions.
 - [ ] Brief: mark the problems fixed, move the open items to the JDeferred task; memory: mark the rework done.

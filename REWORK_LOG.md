@@ -25,8 +25,9 @@ calls `onClose(reason, remote)` once (`finishClose` is guarded by a CAS; a never
 backpressure by a weighted semaphore (64 permits, a block weighs 32). `MelProcess.onSocketClosed` rejects pending requests at once.
 `MelCertRetriever` closes its socket after handling the answer; delivery closes with `FINISHED`.
 Pairing retries removed from `TwoInstances.pair`, `AuthHandshakeTest.pair`, `RegistrationTest.startPairing`.
-Decision taken alone: `suspend()`/`resume()` of `MelAuthService` and their test were deleted already here (step 10 item), because
-the F15 change made them need extra restart code for something with no callers. Deleted `SocketTest` (did not compile with the
+Decision taken alone: `suspend()`/`resume()` of `MelAuthService` are NOT deleted (plan step 10 and brief problem 8 say "no callers", but
+`AndroidPowerManager` calls both for power saving). They stay, with `restart()` calls for the services and the worker, and their test
+stays. (They were deleted by mistake in commit 9442dfb7 and restored right after.) Deleted `SocketTest` (did not compile with the
 new listener; step 10 deletes it anyway).
 Observed before step 2 (old code, in the first full run): `RegistrationTest.serverTrustsNobodyWhoRejectedBeforeItsUserAccepted` failed
 once ("server never heard about the rejection") = the old lost-message-on-close bug.
@@ -35,3 +36,9 @@ Tests: `CloseEventTest` (pending request fails at once, `onIsolatedConnectionClo
 
 ## Step 3: send lock
 `MelSocket.send` and `MelAuthSocket.sendBlock` hold `sendLock`. Enabled `ConcurrentSendTest.longMessagesFromSeveralThreadsArriveWhole`.
+
+Known until step 6: `AuthHandshakeTest.pairedClientCanConnectAgainAfterTheServerWasSuspendedAndResumed` fails in about 2 of 8 class runs
+since step 2 (passes alone). Cause (from the log): after `resume()` the discovery makes both instances connect to each other, and
+the test's own `client.connect(...)` is the third connection: the server drops it as a duplicate without answering (problem 2),
+the client's connect job stays pending. Same cause as the disabled `DuplicateConnectionTest`s; step 6 must make it stable
+(5 runs in a row). Not disabled, not loosened.

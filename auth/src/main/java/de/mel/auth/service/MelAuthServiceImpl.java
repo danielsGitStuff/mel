@@ -515,6 +515,55 @@ public class MelAuthServiceImpl extends MelAuthService {
     }
 
     @Override
+    public void suspend() {
+        uuidServiceMapSemaphore.lock();
+        for (IMelService service : uuidServiceMap.values()) {
+            if (service instanceof MelService) {
+                N.r(((MelService) service)::stop);
+            }
+        }
+        uuidServiceMapSemaphore.unlock();
+//        connectedEnvironment.shutDown();
+        Set<MelSocket> socks = new HashSet<>(sockets);
+        Lok.debug("closing no of sockets: " + socks.size());
+        for (MelSocket socket : socks) {
+            socket.shutDown();
+        }
+        melAuthWorker.shutDown();
+
+    }
+
+    @Override
+    public void resume() {
+        Lok.debug("resume");
+        melBoot.onHeavyWorkAllowed();
+        uuidServiceMapSemaphore.lock();
+        List<DeferredObject> servicesStarted = new ArrayList<>();
+        for (IMelService service : uuidServiceMap.values()) {
+            if (service instanceof MelService) {
+                MelService melService = (MelService) service;
+                DeferredObject<DeferredRunnable, Exception, Void> startedPromise = new DeferredObject<>();
+                melService.setStartedPromise(startedPromise);
+//                servicesStarted.add(startedPromise);
+                melService.restart();
+                melService.resume();
+                execute(melService);
+            }
+        }
+        uuidServiceMapSemaphore.unlock();
+        // reconnect everything after resume
+        melAuthWorker.restart();
+        melAuthWorker.addJob(new NetworkEnvDiscoveryJob());
+        DeferredObject[] arr = N.arr.fromCollection(servicesStarted, N.converter(DeferredObject.class, element -> element));
+        if (arr.length > 0) {
+            new DefaultDeferredManager().when(arr).done(result -> execute(melAuthWorker))
+                    .fail(result -> Lok.error("could not resume!"));
+        } else {
+            execute(melAuthWorker);
+        }
+    }
+
+    @Override
     public void addMelSocket(MelSocket melSocket) {
         sockets.add(melSocket);
     }
