@@ -1,5 +1,40 @@
 # Rework log (unattended run, branch rework2026)
 
+## Final summary (2026-10-21)
+
+**Definition of done (REWORK_RUNBOOK.md): reached.**
+1. Sockets reworked: all 10 steps of `SOCKET_REWORK_PLAN.md` section 4 are ticked, no `@Disabled` test is left (`grep -rn "@Disabled" auth/src/test` prints nothing).
+2. No JDeferred: `grep -rn "org.jdeferred" --include=*.java --include=*.kt --exclude-dir=build .` prints nothing; `api libs.jdeferred` and `jdeferred` in the version catalog are gone.
+3. `./gradlew build` is green (all modules, unit + integration tests, Android assembles/lint), last full run 5 min.
+4. Everything is committed on `rework2026`, nothing pushed, no other branch touched, `fun.with` and `~/tools` unchanged.
+
+**Decisions taken alone ("needs the user" first):**
+- needs the user: none that contradicts a decision of the user.
+- `suspend()`/`resume()` of `MelAuthService` stay. The plan/brief say "no callers", but `AndroidPowerManager` calls both (power saving). Their test stays; the services and the worker get `restart()`.
+- A message above 1 MiB is not sent (logged) instead of the old corrupting chunking; file blocks are 1 MiB now (were 4 MiB). If bigger service messages exist they have to use the cached-data mechanism.
+- A duplicate connection that loses is told `ProtocolError(DUPLICATE)` and closed on both roles; a connect job that lost gets the winner as soon as it is registered (`whenConnected`, 10 s).
+- `FileTransferDetail.readFile` was fixed (it skipped the offset again on every call: every file above one block was corrupt); `sendingNotification.cancel()` null check.
+- `DeferredRunnable.run()` no longer resets `stopped`; `restart()` is explicit.
+- Runbook deviation: no `PromiseAdapters` (the rewritten socket code was small and was ported in P4 anyway).
+- Android: new string `coupleNotificationCertTextKnown` (en/de) and the FX dialog label for "partner already known".
+
+**Remaining risks / not done:**
+- Android was only compiled/assembled/linted, nothing was run on a device (foreground service, TLS client certificates on Android with the new partner-from-TLS check, the register dialog with the known-partner text).
+- `ConnectWorker`/`MelRegisterProcess` etc. block a thread per connect job; unchanged in spirit.
+- Boot failures still never reach the caller of `MelBoot.boot()` (problem 7 of the brief, pinned by `BootFailureTest`), not part of this run.
+- Certificates still travel unencrypted at pairing (users compare nothing); a fingerprint comparison string is still a later idea.
+- No keep-alive in ESTABLISHED (decided): a half open connection is only noticed when the next send fails or the partner reconnects (the "same initiator, newer wins" rule then replaces it).
+- Timing: the integration tests were run 5 times in a row after steps 2/3, 6, 7, 8, 9 and after P4; earlier flaky tests were test races, each explained in its step.
+
+**Verify:**
+```
+. ~/tools/env.sh
+./gradlew build                               # about 5 min
+./gradlew :auth:test :auth:integrationTest    # about 3.5 min
+grep -rn "org.jdeferred" --include=*.java --include=*.kt --exclude-dir=build .
+git log --oneline 05afb263..HEAD
+```
+
 Started 2026-10-21. Driven by `REWORK_RUNBOOK.md`. One entry per step. Final summary goes to the top at the end.
 
 ## Decisions taken alone ("needs the user" first)
