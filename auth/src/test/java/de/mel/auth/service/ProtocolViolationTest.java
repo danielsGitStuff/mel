@@ -2,11 +2,12 @@ package de.mel.auth.service;
 
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.MelResponse;
+import de.mel.auth.data.ProtocolError;
 import de.mel.auth.data.access.CertificateCreator;
+import de.mel.auth.socket.CloseReason;
 import de.mel.core.serialize.SerializableEntity;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -68,68 +69,71 @@ public class ProtocolViolationTest {
         return peer;
     }
 
-    @Disabled("fails on the old code: messages that do not fit are dropped or ignored and the connection stays open, see SOCKET_PROCESS_REWORK.md")
+    /**
+     * The instance says why before it hangs up, and then it does hang up.
+     */
+    private void assertClosedForViolation(RawPeer peer, String what) throws Exception {
+        SerializableEntity last = peer.receive(HANG_UP_MILLIS);
+        assertInstanceOf(ProtocolError.class, last, what + ": the instance did not say why it closes the connection (got " + last + ")");
+        assertEquals(CloseReason.PROTOCOL_VIOLATION.name(), ((ProtocolError) last).getReason());
+        assertTrue(peer.hangsUpWithin(HANG_UP_MILLIS), what + ": the instance kept the connection open after the error");
+    }
+
     @Test
     public void aDecisionWithoutARegistrationClosesTheConnection() throws Exception {
         try (RawPeer peer = stranger()) {
             peer.send(RawPeer.registerDecision(true));
-            assertTrue(peer.hangsUpWithin(HANG_UP_MILLIS), "the server kept a connection open that started with a registration decision");
+            assertClosedForViolation(peer, "the server kept a connection open that started with a registration decision");
         }
         assertTrue(server.getCertificateManager().getAllCertificateDetails().isEmpty(), "the server knows the stranger now");
     }
 
-    @Disabled("fails on the old code: messages that do not fit are dropped or ignored and the connection stays open, see SOCKET_PROCESS_REWORK.md")
     @Test
     public void somethingThatIsNoMessageClosesTheConnection() throws Exception {
         try (RawPeer peer = stranger()) {
             peer.sendUnparsable();
-            assertTrue(peer.hangsUpWithin(HANG_UP_MILLIS), "the server kept a connection open that started with something that is no message");
+            assertClosedForViolation(peer, "the server kept a connection open that started with something that is no message");
         }
     }
 
-    @Disabled("fails on the old code: the server stops reading but keeps the connection open, see SOCKET_PROCESS_REWORK.md")
     @Test
     public void aBlockOnANewConnectionClosesIt() throws Exception {
         try (RawPeer peer = stranger()) {
             peer.sendBlock();
-            assertTrue(peer.hangsUpWithin(HANG_UP_MILLIS), "the server kept a connection open that started with a block");
+            assertClosedForViolation(peer, "the server kept a connection open that started with a block");
         }
     }
 
-    @Disabled("fails on the old code: the server stops reading but keeps the connection open, see SOCKET_PROCESS_REWORK.md")
     @Test
     public void aBlockOnANormalConnectionClosesIt() throws Exception {
         try (RawPeer peer = authenticatedClient()) {
             peer.sendBlock();
-            assertTrue(peer.hangsUpWithin(HANG_UP_MILLIS), "the server kept a normal connection open that received a block");
+            assertClosedForViolation(peer, "the server kept a normal connection open that received a block");
         }
     }
 
-    @Disabled("fails on the old code: messages that do not fit are dropped or ignored and the connection stays open, see SOCKET_PROCESS_REWORK.md")
     @Test
     public void aRegistrationOnANormalConnectionClosesIt() throws Exception {
         try (RawPeer peer = authenticatedClient()) {
             peer.send(RawPeer.registerRequest("CLIENT", client.getCertificateManager().getMyX509Certificate(),
                     client.getSettings().getPort(), client.getSettings().getDeliveryPort()));
-            assertTrue(peer.hangsUpWithin(HANG_UP_MILLIS), "the server kept a normal connection open that received a registration request");
+            assertClosedForViolation(peer, "the server kept a normal connection open that received a registration request");
         }
     }
 
-    @Disabled("fails on the old code: messages that do not fit are dropped or ignored and the connection stays open, see SOCKET_PROCESS_REWORK.md")
     @Test
     public void authenticatingTwiceClosesTheConnection() throws Exception {
         try (RawPeer peer = authenticatedClient()) {
             peer.send(RawPeer.authRequest(null));
-            assertTrue(peer.hangsUpWithin(HANG_UP_MILLIS), "the server kept a normal connection open that received a second auth request");
+            assertClosedForViolation(peer, "the server kept a normal connection open that received a second auth request");
         }
     }
 
-    @Disabled("fails on the old code: messages that do not fit are dropped or ignored and the connection stays open, see SOCKET_PROCESS_REWORK.md")
     @Test
     public void somethingThatIsNoMessageClosesANormalConnection() throws Exception {
         try (RawPeer peer = authenticatedClient()) {
             peer.sendUnparsable();
-            assertTrue(peer.hangsUpWithin(HANG_UP_MILLIS), "the server kept a normal connection open that received something that is no message");
+            assertClosedForViolation(peer, "the server kept a normal connection open that received something that is no message");
         }
     }
 }

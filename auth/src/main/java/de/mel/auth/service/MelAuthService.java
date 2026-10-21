@@ -174,6 +174,13 @@ public abstract class MelAuthService {
      */
     public abstract Promise<Void, Void, Void> shutDown();
 
+    /**
+     * @return the registered normal connection to that certificate, null if there is none
+     */
+    public MelValidationProcess getValidationProcess(Long certificateId) {
+        return null;
+    }
+
     public abstract void addMelSocket(MelSocket melSocket);
 
     public abstract void removeMelSocket(MelSocket melSocket);

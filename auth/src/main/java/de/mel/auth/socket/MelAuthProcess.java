@@ -80,6 +80,7 @@ public class MelAuthProcess extends MelProcess {
                             partnerAuthenticated = true;
                             MelValidationProcess validationProcess = new MelValidationProcess(socket, partnerCertificate, true);
                             if (melAuthSocket.getMelAuthService().registerValidationProcess(validationProcess)) {
+                                socket.setState(new SocketState.Established(validationProcess, partnerCertificate));
                                 // get all allowed Services
                                 MelAuthProcess.addAllowedServices(melAuthSocket.getMelAuthService(), partnerCertificate, response);
                                 send(response);
@@ -90,7 +91,8 @@ public class MelAuthProcess extends MelProcess {
                                 // whenever an outgoing connection is set up a random high port is used to do so (port 50k+)
                                 propagateAuthentication(this.partnerCertificate, socket.getSocket().getInetAddress().getHostAddress(), partnerCertificate.getPort().v());
                             } else {
-                                Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already exists. waiting for the other side to close connection.");
+                                Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already exists. closing this one.");
+                                socket.close(CloseReason.DUPLICATE);
                             }
                         } else {
                             Lok.debug("leaving for IsolationProcess");
@@ -103,6 +105,7 @@ public class MelAuthProcess extends MelProcess {
                             Class<? extends MelIsolatedProcess> isolatedClass = (Class<? extends MelIsolatedProcess>) getClass().forName(isolationDetails.getProcessClass());
                             MelIsolatedProcess isolatedProcess = MelIsolatedProcess.instance(isolatedClass, melAuthSocket, service, partnerCertificate.getId().v(), isolationDetails.getSourceService(), isolationDetails.getIsolationUuid());
                             isolatedProcess.setService(service);
+                            socket.setState(new SocketState.Isolated(isolatedProcess, partnerCertificate));
                             service.onIsolatedConnectionEstablished(isolatedProcess);
                             send(response);
                         }
@@ -157,6 +160,7 @@ public class MelAuthProcess extends MelProcess {
         final String address = job.getAddress();
         final Integer port = job.getPort();
         try {
+            melAuthSocket.setState(new SocketState.Authenticating(this));
             melAuthSocket.connectSSL(id, address, port);
             if (partnerCertificate == null)
                 this.partnerCertificate = melAuthSocket.getTrustedPartnerCertificate();
@@ -185,6 +189,7 @@ public class MelAuthProcess extends MelProcess {
                         // check if already connected to that cert
                         MelValidationProcess validationProcess = new MelValidationProcess(melAuthSocket, partnerCertificate, false);
                         if (melAuthSocket.getMelAuthService().registerValidationProcess(validationProcess)) {
+                            melAuthSocket.setState(new SocketState.Established(validationProcess, partnerCertificate));
                             // propagate that we are connected!
                             propagateAuthentication(partnerCertificate, melAuthSocket.getSocket().getInetAddress().getHostAddress(), melAuthSocket.getSocket().getPort());
                             // done here, set up validationprocess
@@ -199,7 +204,12 @@ public class MelAuthProcess extends MelProcess {
                             });
                         } else {
                             Lok.debug("connection to cert " + partnerCertificate.getId().v() + " already existing. closing... v=" + melAuthSocket.getV());
-                            job.resolve(validationProcess);
+                            melAuthSocket.close(CloseReason.DUPLICATE);
+                            MelValidationProcess existing = melAuthSocket.getMelAuthService().getValidationProcess(partnerCertificate.getId().v());
+                            if (existing != null)
+                                job.resolve(existing);
+                            else
+                                job.reject(new Exception("duplicate connection"));
                             return;
                         }
                     } else if (job instanceof IsolatedConnectJob) {
@@ -211,6 +221,7 @@ public class MelAuthProcess extends MelProcess {
                             IMelService service = melAuthSocket.getMelAuthService().getMelService(isolatedConnectJob.getOwnServiceUuid());
                             Class isolatedProcessClass = isolatedConnectJob.getProcessClass();
                             MelIsolatedProcess melIsolatedProcess = MelIsolatedProcess.instance(isolatedProcessClass, melAuthSocket, service, partnerCertificate.getId().v(), isolatedConnectJob.getRemoteServiceUuid(), isolatedConnectJob.getIsolatedUuid());
+                            melAuthSocket.setState(new SocketState.Isolated(melIsolatedProcess, partnerCertificate));
                             Promise<Void, Exception, Void> isolated = melIsolatedProcess.sendIsolate();
                             isolated.done(nil -> {
                                 service.onIsolatedConnectionEstablished(melIsolatedProcess);
@@ -224,6 +235,7 @@ public class MelAuthProcess extends MelProcess {
             send(request);
         } catch (Exception e) {
             Lok.error("Exception occured: " + e.toString() + " v=" + melAuthSocket.getV());
+            melAuthSocket.close(CloseReason.IO_ERROR);
             job.reject(e);
         }
     }

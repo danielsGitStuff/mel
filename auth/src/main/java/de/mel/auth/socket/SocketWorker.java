@@ -28,7 +28,7 @@ class SocketWorker extends DeferredRunnable {
             while (true) {
                 SocketEvent event = socket.takeEvent();
                 if (event instanceof SocketEvent.CloseRequested) {
-                    socket.finishClose(((SocketEvent.CloseRequested) event).reason, false);
+                    socket.finishClose(((SocketEvent.CloseRequested) event).reason, ((SocketEvent.CloseRequested) event).remote);
                     return;
                 }
                 if (event instanceof SocketEvent.Violation) {

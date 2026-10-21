@@ -46,9 +46,11 @@ abstract class SocketEvent {
 
     static final class CloseRequested extends SocketEvent {
         final CloseReason reason;
+        final boolean remote;
 
-        CloseRequested(CloseReason reason) {
+        CloseRequested(CloseReason reason, boolean remote) {
             this.reason = reason;
+            this.remote = remote;
         }
     }
 }

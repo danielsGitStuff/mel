@@ -10,6 +10,7 @@ import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.socket.MelAuthSocket;
 import de.mel.auth.socket.MelSocket;
+import de.mel.auth.socket.SocketState;
 import de.mel.auth.socket.MelValidationProcess;
 import de.mel.auth.socket.process.reg.IRegisterHandler;
 import de.mel.auth.socket.process.reg.IRegisterHandlerListener;
@@ -230,9 +231,9 @@ class TwoInstances implements AutoCloseable {
         for (MelSocket socket : copy) {
             if (!(socket instanceof MelAuthSocket authSocket))
                 continue;
-            if (!(authSocket.getProcess() instanceof MelValidationProcess process))
+            if (!(authSocket.getState() instanceof SocketState.Established established))
                 continue;
-            if (!Objects.equals(process.getConnectedId(), partnerId))
+            if (!Objects.equals(established.partner().getId().v(), partnerId))
                 continue;
             if (authSocket.isStopped() || authSocket.getSocket() == null || authSocket.getSocket().isClosed())
                 continue;

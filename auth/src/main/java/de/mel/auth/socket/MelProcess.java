@@ -28,7 +28,6 @@ public abstract class MelProcess implements IRequestHandler {
 
     public MelProcess(MelAuthSocket melAuthSocket) {
         this.melAuthSocket = melAuthSocket;
-        melAuthSocket.setProcess(this);
     }
 
 
@@ -48,7 +47,7 @@ public abstract class MelProcess implements IRequestHandler {
         melAuthSocket.close(CloseReason.SHUTDOWN);
     }
 
-    protected synchronized boolean handleAnswer(SerializableEntity deserialized) {
+    protected boolean handleAnswer(SerializableEntity deserialized) {
         Long answerId = null;
         if (deserialized instanceof MelRequest) {
             answerId = ((MelRequest) deserialized).getAnswerId();

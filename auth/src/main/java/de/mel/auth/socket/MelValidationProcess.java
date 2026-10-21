@@ -25,7 +25,7 @@ import org.jdeferred.impl.DeferredObject;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
 /**
@@ -34,12 +34,12 @@ import java.util.Map;
 @SuppressWarnings("Duplicates")
 public class MelValidationProcess extends MelProcess {
     private final Long connectedId;
-    //    private final Map<Long, CachedData> cachedForRetrieving = new HashMap<>();
-//    private final Map<Long, StateMsg> cachedStateMessages = new HashMap<>();
-//    private final Map<Long, CachedData> cachedForSending = new HashMap<>();
-    private final Map<Long, CachedInitializer> cachedForSending = new HashMap<>();
-    private final Map<Long, CachedInitializer> cachedForRequesting = new HashMap<>();
-    private final Map<Long, StateMsg> cachedStateMessages = new HashMap<>();
+    //    private final Map<Long, CachedData> cachedForRetrieving = new ConcurrentHashMap<>();
+//    private final Map<Long, StateMsg> cachedStateMessages = new ConcurrentHashMap<>();
+//    private final Map<Long, CachedData> cachedForSending = new ConcurrentHashMap<>();
+    private final Map<Long, CachedInitializer> cachedForSending = new ConcurrentHashMap<>();
+    private final Map<Long, CachedInitializer> cachedForRequesting = new ConcurrentHashMap<>();
+    private final Map<Long, StateMsg> cachedStateMessages = new ConcurrentHashMap<>();
     private final boolean incoming;
 
     @Override
@@ -87,7 +87,7 @@ public class MelValidationProcess extends MelProcess {
 
 
     @Override
-    public synchronized void onMessageReceived(SerializableEntity deserialized, MelAuthSocket webSocket) throws IOException, MelJsonException {
+    public void onMessageReceived(SerializableEntity deserialized, MelAuthSocket webSocket) throws IOException, MelJsonException {
         if (!handleCached(deserialized) && !handleAnswer(deserialized)) {
             try {
                 if (!handleGetServices(deserialized)) {

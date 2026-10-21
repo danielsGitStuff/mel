@@ -90,6 +90,7 @@ public class MelRegisterProcess extends MelProcess {
 
     public Promise<Certificate, Exception, Void> register(DeferredObject<Certificate, Exception, Void> deferred, Long id, String address, int port) throws InterruptedException, SqlQueriesException, CertificateException, NoSuchPaddingException, NoSuchAlgorithmException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, ClassNotFoundException, JsonSerializationException, IllegalAccessException, URISyntaxException, UnrecoverableKeyException, KeyStoreException, KeyManagementException {
         Lok.debug(melAuthSocket.getMelAuthService().getName() + ".MelRegisterProcessImpl.register.id=" + id);
+        melAuthSocket.setState(new SocketState.Registering(this));
         melAuthSocket.connectSSL(id, address, port);
         partnerCertificate = melAuthSocket.getMelAuthService().getCertificateManager().getCertificateById(id);
         Certificate myCert = new Certificate();

@@ -564,6 +564,11 @@ public class MelAuthServiceImpl extends MelAuthService {
     }
 
     @Override
+    public MelValidationProcess getValidationProcess(Long certificateId) {
+        return connectedEnvironment.getValidationProcess(certificateId);
+    }
+
+    @Override
     public void addMelSocket(MelSocket melSocket) {
         sockets.add(melSocket);
     }

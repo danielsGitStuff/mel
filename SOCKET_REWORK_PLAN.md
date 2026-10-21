@@ -284,22 +284,22 @@ For the session that does the work. Steps in this order; each one is a commit (o
 
 ### Step 5: the state type (problems 1, 3, 5; the state table)
 
-- [ ] `SocketState` (new): `New`, `Registering(MelRegisterProcess)`, `Authenticating(MelAuthProcess)`,
+- [x] `SocketState` (new): `New`, `Registering(MelRegisterProcess)`, `Authenticating(MelAuthProcess)`,
       `Established(MelValidationProcess, Certificate partner)`, `Isolated(MelIsolatedProcess, Certificate partner)`,
       `Closed(CloseReason, boolean remote)`. Immutable. `MelAuthSocket` holds it in an `AtomicReference`; only the worker
       sets it; other threads read it or request a close.
-- [ ] `Transitions` (new, pure, no I/O): `(state, event, role) -> Result(next state, actions)`, actions like `Send(entity)`,
+- [x] `Transitions` (new, pure, no I/O): `(state, event, role) -> Result(next state, actions)`, actions like `Send(entity)`,
       `Close(reason)`, `Notify...`. The table is the one in the brief. **Unit test it exhaustively** (every state x every
       message kind -> expected next state or `PROTOCOL_VIOLATION`); this is the fast replacement for most socket-level
       violation tests.
-- [ ] `MelAuthSocket.onMessage` dispatches through `Transitions`; remove the lazy process creation, the `process` field,
+- [x] `MelAuthSocket.onMessage` dispatches through `Transitions`; remove the lazy process creation, the `process` field,
       `setProcess`, the blind casts in `onIsolated`/`onBlockReceived`; `getProcess()` callers move to `getState()`.
       `MelProcess` constructor no longer calls `setProcess`.
-- [ ] Protocol violation = send `ProtocolError(reason)` (new small `SerializableEntity`) then close with
+- [x] Protocol violation = send `ProtocolError(reason)` (new small `SerializableEntity`) then close with
       `PROTOCOL_VIOLATION`. Unparsable JSON is a violation too.
-- [ ] Remove `synchronized` from `MelValidationProcess.onMessageReceived` and `MelProcess.handleAnswer`; cache maps ->
+- [x] Remove `synchronized` from `MelValidationProcess.onMessageReceived` and `MelProcess.handleAnswer`; cache maps ->
       `ConcurrentHashMap` (F11).
-- [ ] Expose the close reason for tests: e.g. `MelAuthSocket.getState()` returning `Closed(reason, remote)` after the end, and
+- [x] Expose the close reason for tests: e.g. `MelAuthSocket.getState()` returning `Closed(reason, remote)` after the end, and
       a listener/`CompletableFuture<Closed>` `whenClosed()`. Replace the reflection in `TwoInstances` with it.
 - Enable: all 7 `ProtocolViolationTest`s; make each also assert the reason (`RawPeer` can read the `ProtocolError` before the
   hang-up). Consider moving most cases to the `Transitions` unit test and keeping 2-3 at socket level.

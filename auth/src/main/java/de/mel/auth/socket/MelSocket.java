@@ -211,10 +211,17 @@ public class MelSocket extends DeferredRunnable {
      * Nothing is sent or received on a socket that is closing. This is also how a socket that was never started is closed.
      */
     public void close(CloseReason reason) {
-        events.add(new SocketEvent.CloseRequested(reason));
+        close(reason, false);
+    }
+
+    /**
+     * @param remote whether the partner is the one who ended the connection (it told us so)
+     */
+    public void close(CloseReason reason, boolean remote) {
+        events.add(new SocketEvent.CloseRequested(reason, remote));
         stopped = true;
         if (!started.get())
-            finishClose(reason, false);
+            finishClose(reason, remote);
     }
 
     /**
