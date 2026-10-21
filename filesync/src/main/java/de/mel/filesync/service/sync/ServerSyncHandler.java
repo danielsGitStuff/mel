@@ -75,6 +75,11 @@ public class ServerSyncHandler extends SyncHandler {
                 FsEntry fsParent = this.fsDao.getFsEntryById(stage.getFsParentId());
                 stage.setDepth(fsParent.getDepth().v() + 1);
                 stage.setPath(fsParent.getPath().v() + fsParent.getName() + "/");
+            } else if (stage.getParentId() != null) {
+                // new below a directory that is new as well: it came with this commit and is staged already
+                Stage parentStage = stageDao.getStageById(stage.getParentId());
+                stage.setDepth(parentStage.getDepth() + 1);
+                stage.setPath(parentStage.getPath() + parentStage.getName() + "/");
             }
             Long oldId = stage.getId();
             stageDao.insert(stage);

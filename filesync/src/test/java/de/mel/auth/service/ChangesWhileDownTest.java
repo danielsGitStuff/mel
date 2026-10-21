@@ -1,6 +1,5 @@
 package de.mel.auth.service;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -18,11 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Changes made while a service is not running are found by the index the service makes when it boots ({@link de.mel.filesync.index.IndexerRunnable}), not by the file watcher.
  * From there on the way is the one every change takes: commit, propagate, merge, transfer. So these tests show whether that way works, whatever the file watcher does
  * (see {@link LiveChangeIndexingTest} for that).
- * <p>
- * DISABLED: all of them fail on the code as it is, see REWORK_LOG.md: Live changes do not sync. The server side fails in the commit of the index (fswrite.contenthash),
- * the client side when the server takes the commit of the client (stage.path). See {@link BootIndexTest} for the part before.
  */
-@Disabled("changes made while a service was down are not synced, see REWORK_LOG.md: Live changes do not sync")
 @Timeout(value = 5, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class ChangesWhileDownTest {

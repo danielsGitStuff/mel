@@ -189,6 +189,8 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
             databaseManager.updateVersion();
             if (stageSetId != null) {
                 syncHandler.commitStage(stageSetId, transaction, null);
+                // what changed while the service was down is news for the clients as well
+                propagateNewVersion();
             } else {
                 Lok.debug("MelDriveServerService.onDone(). StageSet was empty");
             }

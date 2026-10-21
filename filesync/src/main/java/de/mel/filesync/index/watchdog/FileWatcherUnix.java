@@ -75,7 +75,8 @@ class FileWatcherUnix extends FileWatcherPC {
     @Override
     public void onTimerStopped() {
         Lok.debug("IndexWatchdogListener.onTimerStopped");
-        PathCollection pathCollection = new PathCollection();
+        // what the events reported (deleted files cannot be found by the reference file) and what changed since the reference file
+        PathCollection pathCollection = takePathCollection();
 
         try {
             /**
@@ -95,7 +96,6 @@ class FileWatcherUnix extends FileWatcherPC {
         }
         //melDriveService.addJob(new FsSyncJob(pathCollection));
         stageIndexer.examinePaths(this, pathCollection);
-        pathCollection = new PathCollection();
     }
 
     @Override

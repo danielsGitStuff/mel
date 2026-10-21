@@ -113,19 +113,7 @@ public class IndexerRunnable extends AbstractIndexer {
                     OTimer timerExamine = new OTimer("examine stageset").start();
                     examineStage();
                     timerExamine.stop().print();
-                    hashFiles();
-                    minimizeStageSet();
-                    Lok.debug("nuvng");
-                    if (!stageDao.stageSetHasContent(examinedStageSetId)) {
-                        stageDao.deleteStageSet(examinedStageSetId);
-                    } else {
-                        examinedStageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED);
-                        stageDao.updateStageSet(examinedStageSet);
-                        Eva.runIf(() -> !this.databaseManager.melFileSyncService.getFileSyncSettings().isServer(), () -> {
-                            Lok.debug("debug clien 32fi2");
-                        });
-                        Lok.debug("stageset has content");
-                    }
+                    finishStaging();
 //                    sqlQueries.commit();
                 } catch (Exception e) {
                     e.printStackTrace();

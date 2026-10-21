@@ -58,7 +58,7 @@ public abstract class FileWatcherPC extends FileWatcher {
                 this.watchDirectory(file);
             }
             Lok.debug("IndexWatchdogListener[" + melFileSyncService.getFileSyncSettings().getRole() + "].analyze[" + event.kind() + "]: " + file.getAbsolutePath());
-            pathCollection.addPath(file);
+            addEventPath(file);
         } catch (Exception e) {
             e.printStackTrace();
             // todo check for inotify exceeded. if so, stop the service

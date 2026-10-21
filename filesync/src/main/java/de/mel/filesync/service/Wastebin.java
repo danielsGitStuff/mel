@@ -184,6 +184,8 @@ public class Wastebin {
                 }
             }
             fileSyncDatabaseManager.getFsDao().deleteById(fsFile.getId().v());
+            // while a stage set is committed the fs table is replaced by fswrite in the end: the entry has to go there as well (it is empty at any other time)
+            fileSyncDatabaseManager.getFsWriteDao().deleteById(fsFile.getId().v());
         } catch (Exception e) {
             System.err.println("Wastebin.deleteFsFile.failed");
             e.printStackTrace();

@@ -42,8 +42,20 @@ public abstract class FileWatcher extends DeferredRunnable implements IndexListe
     public void onTimerStopped() {
         Lok.debug("IndexWatchdogListener.onTimerStopped");
         //melDriveService.addJob(new FsSyncJob(pathCollection));
-        stageIndexer.examinePaths(this, pathCollection);
+        stageIndexer.examinePaths(this, takePathCollection());
+    }
+
+    /**
+     * @return what the events reported since the last time. The watcher starts over with an empty one.
+     */
+    protected synchronized PathCollection takePathCollection() {
+        PathCollection taken = pathCollection;
         pathCollection = new PathCollection();
+        return taken;
+    }
+
+    protected synchronized void addEventPath(IFile file) {
+        pathCollection.addPath(file);
     }
 
     public StageIndexer getStageIndexer() {

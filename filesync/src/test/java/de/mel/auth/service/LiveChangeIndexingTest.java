@@ -1,6 +1,5 @@
 package de.mel.auth.service;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -35,10 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * is a stage set that exists, has the source FS and the status STAGED, and holds one stage for each change. Files have their content hash, because the commit needs it.
  * <p>
  * Only the server service is started and its listener is replaced by one that records what it gets. So nothing is committed, merged or transferred: this is only about the indexing.
- * <p>
- * DISABLED: they fail on the code as it is, see REWORK_LOG.md: Live changes do not sync. Everything below the stage set of the watcher is not reached because of that.
  */
-@Disabled("the indexer of the file watcher hands over a stage set that is gone, see REWORK_LOG.md: Live changes do not sync")
 @Timeout(value = 3, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class LiveChangeIndexingTest {

@@ -1,6 +1,5 @@
 package de.mel.auth.service;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
@@ -114,7 +113,6 @@ public class SyncedStateTest {
         }
     }
 
-    @Disabled("the watcher's indexer stages the files the sync wrote and leaves the stage set behind, see REWORK_LOG.md: Live changes do not sync")
     @Test
     public void aClientThatJustSyncedHasNothingToCommitAndStaysQuiet() throws Exception {
         prepare(new File(dir, "serverRoot"));

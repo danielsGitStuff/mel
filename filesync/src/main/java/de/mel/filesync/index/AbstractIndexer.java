@@ -120,147 +120,168 @@ public abstract class AbstractIndexer extends DeferredRunnable {
     }
 
     /**
-     * Calculate contentHash based on all subdirectories and files found on the file system.
-     * Then add all {@link FsEntry}s that have not been synced yet.
-     * Depth First Search
-     *
-     * @param dir
-     * @param fsEntry
-     * @param order
-     * @return
-     * @throws SqlQueriesException
+     * the stages of the examined stage set by path+name. Needed to hang stages below their parents and to stage nothing twice.
      */
-    private void examineDirContentHash(@NotNull Stage stage, @NotNull IFile dir, @Nullable FsEntry fsEntry, MapWrap<Long, Long> oldIdNewId, Order order) throws SqlQueriesException {
+    private Map<String, Stage> examinedStages;
+    private Set<String> unchangedPaths;
+    private Order examineOrder;
+
+    private String rootPath() {
+        return databaseManager.getFileSyncSettings().getRootDirectory().getPath();
+    }
+
+    private IFile fileOf(String path, String name) {
+        return AbstractFile.instance(rootPath() + path + name);
+    }
+
+    private static boolean isRoot(String path, String name) {
+        return path.isEmpty() && name.isEmpty();
+    }
+
+    /**
+     * @return the stage of the directory that contains the file, null if there is none (root)
+     */
+    private Stage examineParent(String path) throws SqlQueriesException {
+        // "/a/b/" -> "/a/" and "b"
+        String trimmed = path.substring(0, path.length() - 1);
+        int slash = trimmed.lastIndexOf('/');
+        return examinePath(trimmed.substring(0, slash + 1), trimmed.substring(slash + 1));
+    }
+
+    private static boolean sameAsInFs(GenericFSEntry fsEntry, FsBashDetails details, long size) {
+        return !fsEntry.getIsDirectory().v()
+                && fsEntry.getCreated().equalsValue(details.getCreated())
+                && fsEntry.getModified().equalsValue(details.getModified())
+                && fsEntry.getiNode().equalsValue(details.getiNode())
+                && fsEntry.getSize().equalsValue(size);
+    }
+
+    /**
+     * Puts what is found at the path into the examined stage set, if it differs from what the fs table knows:
+     * <ul>
+     *     <li>gone: staged as deleted (only if the fs table knows it, and it was not just waiting for a transfer)</li>
+     *     <li>a file that is not the same as in the fs table (or new)</li>
+     *     <li>a directory, together with whatever in it is new or gone</li>
+     * </ul>
+     * Parents are examined first, so a stage hangs below the stage of its directory or, if that did not change, below the fs entry of it.
+     *
+     * @return the stage, or null if the path is unchanged
+     */
+    private Stage examinePath(String path, String name) throws SqlQueriesException {
+        String key = path + name;
+        if (examinedStages.containsKey(key))
+            return examinedStages.get(key);
+        if (unchangedPaths.contains(key))
+            return null;
+        IFile file = isRoot(path, name) ? AbstractFile.instance(rootPath()) : fileOf(path, name);
+        GenericFSEntry fsEntry = fsDao.getGenericByPathAndName(path, name);
+        Stage stage = new Stage().setStageSet(examinedStageSetId).setPath(path).setName(name);
+        stage.setSynced(true); // true because this is an observation on the file system.
+        if (!file.exists()) {
+            if (fsEntry == null || (!fsEntry.getIsDirectory().v() && fsEntry.getSynced().notNull() && !fsEntry.getSynced().v())) {
+                // never known, or a file we are still waiting for
+                unchangedPaths.add(key);
+                return null;
+            }
+            stage.setDeleted(true).setIsDirectory(fsEntry.getIsDirectory().v()).setContentHash(fsEntry.getContentHash().v());
+        } else {
+            boolean directory = file.isDirectory();
+            FsBashDetails details = BashTools.Companion.getFsBashDetails(file);
+            if (!directory && fsEntry != null && sameAsInFs(fsEntry, details, file.length())) {
+                unchangedPaths.add(key);
+                return null;
+            }
+            stage.setDeleted(false).setIsDirectory(directory);
+            // NPE possible: a folder may have been deleted manually just now and the details are null. Then: fail, clean up, restart.
+            stage.applyFsBashDetails(details);
+            if (!directory)
+                stage.setSize(file.length());
+        }
+        stage.setDepth(isRoot(path, name) ? 0 : path.length() - path.replace("/", "").length());
+        if (fsEntry != null) {
+            stage.setFsId(fsEntry.getId().v());
+            stage.setFsParentId(fsEntry.getParentId().v());
+        }
+        if (!isRoot(path, name)) {
+            Stage parent = examineParent(path);
+            // the parent may have found us already
+            if (examinedStages.containsKey(key))
+                return examinedStages.get(key);
+            if (parent != null) {
+                stage.setParentId(parent.getId());
+                if (parent.getFsId() != null)
+                    stage.setFsParentId(parent.getFsId());
+            } else {
+                String trimmed = path.substring(0, path.length() - 1);
+                int slash = trimmed.lastIndexOf('/');
+                GenericFSEntry fsParent = fsDao.getGenericByPathAndName(trimmed.substring(0, slash + 1), trimmed.substring(slash + 1));
+                if (fsParent != null)
+                    stage.setFsParentId(fsParent.getId().v());
+            }
+        }
+        stage.setOrder(examineOrder.ord());
+        stageDao.insert(stage);
+        examinedStages.put(key, stage);
+        if (file.exists() && file.isDirectory())
+            examineDirectory(stage, file, fsEntry != null && fsEntry.getIsDirectory().v() ? fsEntry : null);
+        return stage;
+    }
+
+    /**
+     * Sets the content hash of the directory stage (names of what is in it). If it is the one the fs table has nothing was added or removed.
+     * Otherwise whatever is new or gone is examined as well, a new directory is examined down to its leaves.
+     */
+    private void examineDirectory(Stage stage, IFile dir, @Nullable GenericFSEntry fsDirectory) throws SqlQueriesException {
+        Map<String, Boolean> onDisk = new HashMap<>(); // name -> is directory
+        for (IFile f : dir.listDirectories())
+            onDisk.put(f.getName(), true);
+        for (IFile f : dir.listFiles())
+            onDisk.put(f.getName(), false);
+        boolean root = isRoot(stage.getPath(), stage.getName());
+        if (root)
+            onDisk.remove(FileSyncStrings.TRANSFER_DIR);
+        Map<String, FsEntry> inFs = new HashMap<>();
+        Set<String> names = new HashSet<>(onDisk.keySet());
+        if (fsDirectory != null) {
+            for (FsEntry fsContent : fsDao.getDirectoryContent(fsDirectory.getId().v())) {
+                inFs.put(fsContent.getName().v(), fsContent);
+                // add outstanding files
+                if (!fsContent.getIsDirectory().v() && !fsContent.getSynced().v())
+                    names.add(fsContent.getName().v());
+            }
+        }
         Set<String> subDirectories = new HashSet<>();
         Set<String> files = new HashSet<>();
-        // add everything in the directory
-        for (IFile f : dir.listDirectories()) {
-            subDirectories.add(f.getName());
-        }
-        for (IFile f : dir.listFiles()) {
-            files.add(f.getName());
-        }
-        // remove transfer dir
-        if (stage.getPath().equals("") && stage.getName().equals(""))
-            subDirectories.remove(FileSyncStrings.TRANSFER_DIR);
-        // add outstanding files
-        if (fsEntry != null) {
-            List<FsEntry> fsContent = fsDao.getDirectoryContent(fsEntry.getId().v());
-            for (FsEntry fsContentEntry : fsContent) {
-                if (!fsContentEntry.getIsDirectory().v() && !fsContentEntry.getSynced().v()) {
-                    files.add(fsContentEntry.getName().v());
-                }
-            }
+        for (String name : names) {
+            Boolean isDirectory = onDisk.get(name);
+            if (isDirectory == null)
+                isDirectory = false; // outstanding file
+            (isDirectory ? subDirectories : files).add(name);
         }
         String contentHash = FsDirectory.calculateContentHash(subDirectories, files);
-        // content hash did not change!
-        if (fsEntry != null && fsEntry.getContentHash().equalsValue(contentHash)) {
-            return;
-        } else {
-            // content hash differs or directory is new
-            stage.setContentHash(contentHash);
-            FsBashDetails details = BashTools.Companion.getFsBashDetails(dir);
-            // this method is only called for directories that exist. It might happen though, that a folder was deleted manually at this point and details returns null.
-            // In this case: fail, clean up, restart. So the NPE that may pop up here serves a purpose.
-            stage.applyFsBashDetails(details);
-            stageDao.update(stage);
-            for (IFile subDirectory : dir.listDirectories()) {
-                // check for transfer dir and skip
-                if (stage.getName().equals("") && subDirectory.getName().equals(FileSyncStrings.TRANSFER_DIR))
-                    continue;
-                String path = subDirectory.getParentFile().getAbsolutePath().substring(rootPathLength) + "/";
-                Stage existingStage = stageDao.getStageByPathAndName(initialStageSetId, path, subDirectory.getName());
-                Stage newStage;
-                if (existingStage == null) {
-                    newStage = new Stage();
-                    newStage.setName(subDirectory.getName());
-                    newStage.setPath(path);
-                } else {
-                    newStage = existingStage.copy();
-                }
-
-                newStage.setStageSet(examinedStageSetId);
-                newStage.setDepth(stage.getDepth() + 1);
-                newStage.setSynced(true);
-                newStage.setParentId(stage.getId());
-                newStage.setOrder(this.order.ord());
-                newStage.setIsDirectory(true);
-                newStage.setDeleted(false);
-                FsBashDetails subDetails = BashTools.Companion.getFsBashDetails(subDirectory);
-                // NPE possible, see above
-                newStage.applyFsBashDetails(subDetails);
-                newStage.setOrder(order.ord());
-
-                if (fsEntry != null) {
-                    newStage.setFsParentId(fsEntry.getId().v());
-                    newStage.setDepth(fsEntry.getDepth().v());
-                }
-
-                stageDao.insert(newStage);
-                if (existingStage != null)
-                    oldIdNewId.put(existingStage.getId(), newStage.getId());
-                FsEntry subFsEntry = fsDao.getGenericByPathAndName(path, subDirectory.getName());
-                // DFS
-                examineDirContentHash(newStage, subDirectory, subFsEntry, oldIdNewId, order);
-            }
-            for (IFile file : dir.listFiles()) {
-                String path = file.getParentFile().getAbsolutePath().substring(rootPathLength) + "/";
-                Stage existingStage = stageDao.getStageByPathAndName(initialStageSetId, path, file.getName());
-                Stage newStage;
-                if (existingStage == null) {
-                    newStage = new Stage();
-                    newStage.setName(file.getName());
-                    newStage.setPath(path);
-                } else {
-                    newStage = existingStage.copy();
-                }
-                newStage.setStageSet(examinedStageSetId);
-                newStage.setDepth(stage.getDepth() + 1);
-                newStage.setSynced(true);
-                newStage.setParentId(stage.getId());
-                newStage.setOrder(this.order.ord());
-                newStage.setIsDirectory(false);
-                newStage.setDeleted(false);
-                newStage.setSize(file.length());
-                FsBashDetails fileDetails = BashTools.Companion.getFsBashDetails(file);
-                // NPE possible, see above
-                newStage.applyFsBashDetails(fileDetails);
-                newStage.setOrder(order.ord());
-                // old entry found. copy contentHash if modified, iNode or created changed
-                if (fsEntry != null && !fsEntry.getIsDirectory().v()) {
-                    newStage.setFsParentId(fsEntry.getId().v());
-                    if (fsEntry.getCreated().equalsValue(fileDetails.getCreated()) && fsEntry.getModified().equalsValue(fileDetails.getModified()) && fsEntry.getiNode().equalsValue(fileDetails.getiNode())) {
-                        newStage.setContentHash(fsEntry.getContentHash().v());
-                    }
-                }
-                stageDao.insert(newStage);
-                if (existingStage != null)
-                    oldIdNewId.put(existingStage.getId(), newStage.getId());
-            }
-        }
-    }
-
-    private void examineDir(@NotNull IFile iFile, @NotNull Stage stage, @Nullable FsEntry fsEntry, MapWrap<Long, Long> oldIdNewId, Order order) throws SqlQueriesException {
-        if (iFile.exists()) {
-            if (iFile.isDirectory()) {
-                stage.setIsDirectory(true);
-                IFile dir = iFile;
-                this.examineDirContentHash(stage, dir, fsEntry, oldIdNewId, order);
-            } else {
-                stage.setIsDirectory(false);
-            }
-        } else {
-            stage.setDeleted(true);
-            // todo recursive delete
-        }
+        stage.setContentHash(contentHash);
         stageDao.update(stage);
+        if (fsDirectory != null && fsDirectory.getContentHash().equalsValue(contentHash))
+            return; // nothing added, nothing removed
+        String childPath = stage.getPath() + stage.getName() + "/";
+        for (Map.Entry<String, Boolean> child : onDisk.entrySet()) {
+            FsEntry known = inFs.get(child.getKey());
+            // what is known and of the same kind is examined when it was reported
+            if (known == null || !child.getValue().equals(known.getIsDirectory().v()))
+                examinePath(childPath, child.getKey());
+        }
+        for (String name : inFs.keySet())
+            if (!onDisk.containsKey(name))
+                examinePath(childPath, name);
     }
 
+    /**
+     * Removes the stages that say the same as the fs table.
+     */
     protected void minimizeStageSet() throws SqlQueriesException {
-        Lok.debug("asd");
         for (Stage stage : stageDao.getStagesWithFsId(this.examinedStageSetId)) {
             GenericFSEntry fsEntry = fsDao.getGenericById(stage.getFsId());
-            if (fsEntry.getIsDirectory().equalsValue(stage.getIsDirectory()) && fsEntry.getContentHash().equalsValue(stage.getContentHash())) {
+            if (fsEntry.getIsDirectory().equalsValue(stage.getIsDirectory()) && fsEntry.getContentHash().equalsValue(stage.getContentHash()) && !Boolean.TRUE.equals(stage.getDeleted())) {
                 // did not change
                 boolean canRemove = true;
                 List<Stage> children = stageDao.getStagesByParentId(stage.getId());
@@ -279,68 +300,64 @@ public abstract class AbstractIndexer extends DeferredRunnable {
                 }
             }
         }
-
     }
 
+    /**
+     * Compares what the initial stage set reports with the fs table and puts the difference in a new stage set (the examined one).
+     * The initial stage set is deleted.
+     */
     protected void examineStage() throws SqlQueriesException {
         examinedStageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_FS, null, null, initialStageSet.getVersion().v(), initialStageSet.getBasedOnVersion().v());
         examinedStageSetId = examinedStageSet.getId().v();
-        Order order = new Order();
+        examinedStages = new HashMap<>();
+        unchangedPaths = new HashSet<>();
+        examineOrder = new Order();
+        List<String[]> reported = new ArrayList<>();
         N.sqlResource(stageDao.getStagesByStageSet(initialStageSetId), stages -> {
-            MapWrap<Long, Long> oldNewIdMap = new MapWrap<>(new HashMap<>());
-            Stage oldStage = stages.getNext();
-            while (oldStage != null) {
-                Stage stage = oldStage.copy();
-                stage.setStageSet(examinedStageSetId);
-                String name = stage.getName();
-                String path = databaseManager.getFileSyncSettings().getRootDirectory().getPath() + stage.getPath();
-                IFile f = path.length() > 0 ? AbstractFile.instance(path + name) : AbstractFile.instance(databaseManager.getFileSyncSettings().getRootDirectory().getPath());
-                IFile fParent = path.length() == 0 ? null : f.getParentFile();
-                String parentPath = fParent == null || fParent.getAbsolutePath().length() < rootPathLength ? null : fParent.getAbsolutePath().substring(rootPathLength);
-                parentPath += "/";
-                Stage existingStage = stageDao.getStageByPathAndName(examinedStageSetId, parentPath, name);
-                if (existingStage != null) {
-                    oldStage = stages.getNext();
-                    continue;
-                }
-                FsEntry fsEntry = fsDao.getGenericByPathAndName(path, name);
-                FsDirectory fsParent = fParent == null ? null : fsDao.getFsDirectoryByPathAndName(parentPath, fParent.getName());
-                if (fsEntry != null) {
-                    stage.setFsId(fsEntry.getId().v());
-                    stage.setFsParentId(fsEntry.getParentId().v());
-                    stage.setDepth(fsEntry.getDepth().v());
-                }
-                if (fsParent != null) {
-                    stage.setDepth(fsParent.getDepth().v() + 1);
-                    stage.setFsParentId(fsParent.getId().v());
-                }
-                if (oldStage.getParentId() != null && oldNewIdMap.containsKey(oldStage.getParentId())) {
-                    stage.setParentId(oldNewIdMap.get(oldStage.getParentId()));
-                }
-                stage.setOrder(order.ord());
-                stageDao.insert(stage);
-                oldNewIdMap.put(oldStage.getId(), stage.getId());
-
-                examineDir(f, stage, fsEntry, oldNewIdMap, order);
-                oldStage = stages.getNext();
+            Stage reportedStage = stages.getNext();
+            while (reportedStage != null) {
+                reported.add(new String[]{reportedStage.getPath(), reportedStage.getName()});
+                reportedStage = stages.getNext();
             }
         });
+        for (String[] pathAndName : reported)
+            examinePath(pathAndName[0], pathAndName[1]);
+        examinedStages = null;
+        unchangedPaths = null;
         stageDao.deleteStageSet(initialStageSetId);
         Lok.debug("examine done");
     }
 
     protected void hashFiles() throws SqlQueriesException {
-        List<Stage> DEBUG = new ArrayList<>();
         N.sqlResource(stageDao.getFilesWithoutHashAsResource(examinedStageSetId), stages -> {
             Stage stage = stages.getNext();
             while (stage != null) {
-                DEBUG.add(stage);
-                IFile file = AbstractFile.instance(this.databaseManager.getFileSyncSettings().getRootDirectory().getPath() + stage.getPath() + stage.getName());
+                // gone files have the hash of the fs table, so only files that exist
+                IFile file = fileOf(stage.getPath(), stage.getName());
                 stage.setContentHash(Hash.md5(file.inputStream()));
                 stageDao.update(stage);
                 stage = stages.getNext();
             }
         });
+    }
+
+    /**
+     * Hashes the files, drops what did not change and marks the examined stage set as staged.
+     * If there is nothing left the stage set is deleted.
+     *
+     * @return the id of the staged stage set, null if nothing changed
+     */
+    protected Long finishStaging() throws SqlQueriesException {
+        hashFiles();
+        minimizeStageSet();
+        if (!stageDao.stageSetHasContent(examinedStageSetId)) {
+            stageDao.deleteStageSet(examinedStageSetId);
+            examinedStageSetId = null;
+            return null;
+        }
+        examinedStageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED);
+        stageDao.updateStageSet(examinedStageSet);
+        return examinedStageSetId;
     }
 
     /**

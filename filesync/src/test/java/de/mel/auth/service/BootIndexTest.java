@@ -1,7 +1,6 @@
 package de.mel.auth.service;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -35,10 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *     <li>what is new hangs below a parent: by stage or by fs id</li>
  *     <li>only what changed is in the set. If nothing changed there is no stage set to commit</li>
  * </ul>
- * <p>
- * DISABLED: all of them fail on the code as it is, see REWORK_LOG.md: Live changes do not sync. They were written to the contract above and have not been seen green yet.
  */
-@Disabled("the index at boot hands over the whole tree as new, see REWORK_LOG.md: Live changes do not sync")
 @Timeout(value = 3, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class BootIndexTest {

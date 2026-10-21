@@ -39,6 +39,10 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by xor on 10/27/16.
@@ -647,6 +651,32 @@ public class ClientSyncHandler extends SyncHandler {
     }
 
 
+    private static final int MAX_SYNC_FAILURES = 10;
+    private static final long SYNC_RETRY_BASE_MS = 300;
+    private static final long SYNC_RETRY_MAX_MS = 10_000;
+    private final AtomicInteger syncFailures = new AtomicInteger();
+    private final ScheduledExecutorService syncRetryExecutor = Executors.newSingleThreadScheduledExecutor(runnable -> {
+        Thread thread = new Thread(runnable, "sync retry");
+        thread.setDaemon(true);
+        return thread;
+    });
+
+    /**
+     * The server could not be asked (no connection, the request failed). The connection can be closed under the request, eg. when it lost against
+     * another one to the same partner (duplicate rule), and nobody else would ask again. So ask again a bit later, a few times.
+     */
+    private void syncFromServerFailed(Object reason) {
+        int failures = syncFailures.getAndIncrement();
+        if (failures >= MAX_SYNC_FAILURES) {
+            Lok.error("giving up to sync from the server after " + failures + " attempts, until it tells us about a new version or we boot: " + reason);
+            syncFailures.set(0);
+            return;
+        }
+        long delay = Math.min(SYNC_RETRY_BASE_MS << failures, SYNC_RETRY_MAX_MS);
+        Lok.debug("syncing from the server failed (" + reason + "), trying again in " + delay + "ms");
+        syncRetryExecutor.schedule(() -> N.r(() -> melDriveService.addJob(new SyncClientJob())), delay, TimeUnit.MILLISECONDS);
+    }
+
     /**
      * pulls StageSet from the Server. locks.
      *
@@ -670,6 +700,7 @@ public class ClientSyncHandler extends SyncHandler {
             Request<SyncAnswer> request = mvp.request(clientSettings.getServerServiceUuid(), sentSyncRequest);
             request.onDone(syncAnswer -> runner.runTry(() -> {
                 try {
+                    syncFailures.set(0);
                     syncAnswer.setStageSet(stageSet);
                     //server might have got a new version in the meantime and sent us that
                     stageSet.setVersion(syncAnswer.getNewVersion());
@@ -696,8 +727,14 @@ public class ClientSyncHandler extends SyncHandler {
                 } finally {
                     waitLock.unlock();
                 }
-            })).onError(result -> waitLock.unlock());
-        })).onError(result -> waitLock.unlock());
+            })).onError(result -> {
+                syncFromServerFailed(result);
+                waitLock.unlock();
+            });
+        })).onError(result -> {
+            syncFromServerFailed(result);
+            waitLock.unlock();
+        });
 
         Lok.debug("waiting to finish");
         waitLock.lock().lock();

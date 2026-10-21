@@ -1,6 +1,5 @@
 package de.mel.auth.service;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -17,11 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Changes after the first sync travel in both directions. Files made on the client are fetched by the server, the other way round the client fetches.
- * <p>
- * DISABLED: these fail because of defects in the indexing/merge part of the file sync, which has nothing to do with the transfer. Written down in REWORK_LOG.md
- * ("Live changes do not sync"). Enable them when that is fixed; they were written to find out, and do what they should (the first sync passes in {@link FileSyncTransferTest}).
  */
-@Disabled("changes after the first sync are not synced, see REWORK_LOG.md: Live changes do not sync")
 @Timeout(value = 5, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class FileSyncRoundTripTest {

@@ -241,7 +241,7 @@ database after `PRAGMA synchronous=OFF` and a crash), tells the server where to 
 - The hash check reads every finished file once more.
 - A transfer that fails because the partner has no such file stays SUSPENDED until the next retry; the `available` flag logic of the sync is unchanged.
 
-### Live changes do not sync (analysed, tests written, not fixed)
+### Live changes do not sync (analysed, tests written, FIXED - see the end of this section)
 
 After the first sync, changes do not reach the other side. This is not the transfer, and not the rework: it is the indexing/commit part of `filesync`, which was left half rewritten in June 2022.
 It was analysed in a second session (the user asked to get to the bottom of it, write tests and not fix yet).
@@ -277,3 +277,16 @@ The client then commits its own stage set 6 back to the server (version 2 -> 3).
 - `FileSyncRoundTripTest` (4, disabled, from before): the same for live changes through the watcher.
 - `SyncedStateTest`: 2 enabled (the fs table of server and client equal their disks after the first sync: size, hash, inode, modified: this part is right), 1 disabled (the client must not stage its own sync writes; A2-A4).
 Re-enable the classes when the matching defect is fixed; the order that makes sense: A1-A3 -> A4 -> A5/A6 -> B -> C.
+
+**Fixed (third session, all tests of this section enabled and green):**
+- A1-A3, A6: `AbstractIndexer.finishStaging()` (hash, minimize, delete the stage set if empty, else STAGED) is shared by `IndexerRunnable` and `StageIndexerRunnable`, which now hands over `examinedStageSetId` (null if nothing changed; before, a deleted id was also given to the listener at boot).
+  Every stage gets `deleted` set explicitly. Minimizing never drops a stage that is deleted.
+- A4, A5: `examineStage` was rewritten (the old `examineDirContentHash`/`examineDir` are gone) as `examinePath`/`examineDirectory`: each reported path is compared with the fs table (changed file = created/modified/inode/size differ), parents are examined first, so a stage hangs below its parent stage or the fs entry of the parent;
+  an unchanged file is not staged at all (no insert, no hashing: boot index of an unchanged tree stages nothing). A directory always gets its content hash; if it equals the one in the fs table nothing was added or removed, otherwise the new names are examined (a new directory down to its leaves) and the names the fs table has but the disk lacks are staged as deleted.
+  Files that the fs table still waits for (`synced=false`) count as present for the hash and are never staged as deleted. The Unix watcher no longer drops what the events reported (`FileWatcher.takePathCollection`).
+  The old algorithm (`initStageOlde`, `examineStageOlde`, ...) is still in `AbstractIndexer`, unused.
+- B: `ServerSyncHandler.executeCommit` derives path and depth of a stage with neither fs id nor fs parent id from its parent stage of the same commit.
+- C: it was not the client. `Wastebin.deleteFsFile` deleted the entry from the `fs` table, but `commitStage` works on `fswrite` and replaces `fs` with it at the end, so the entry came back (the server never deleted the file in its fs table, so every directory request still listed it). It deletes in both tables now.
+- D (found because the server-restart tests were flaky, 50% in a class run): the boot index of the server committed what changed while it was down but, unlike the file watcher's listener, never called `propagateNewVersion()`. The clients only learned of it if they happened to sync. It does now.
+- E (same tests): the client's `SyncRequest` can go out on a connection that the duplicate rule closes at that moment (known race, see the socket rework); the request fails and nothing asked again. `ClientSyncHandler` now schedules a new `SyncClientJob` when connecting or the request fails
+  (300 ms doubling up to 10 s, 10 attempts, counter reset by an answer or a new try from a message of the server). Note `syncFromServer()` returns when the stage sets are cleaned up, not when the request is done (`WaitLock` is unlocked early), that was not changed.
