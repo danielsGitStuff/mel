@@ -31,6 +31,10 @@ class SocketWorker extends DeferredRunnable {
                     socket.finishClose(((SocketEvent.CloseRequested) event).reason, false);
                     return;
                 }
+                if (event instanceof SocketEvent.Violation) {
+                    socket.finishClose(CloseReason.PROTOCOL_VIOLATION, false);
+                    return;
+                }
                 if (event instanceof SocketEvent.PeerClosed) {
                     Exception cause = ((SocketEvent.PeerClosed) event).cause;
                     socket.finishClose(cause instanceof java.io.EOFException ? CloseReason.PEER_CLOSED : CloseReason.IO_ERROR, true);
@@ -58,8 +62,6 @@ class SocketWorker extends DeferredRunnable {
             listener.onMessage(socket, ((SocketEvent.MessageReceived) event).message);
         } else if (event instanceof SocketEvent.BlockReceived) {
             listener.onBlockReceived(new BlockReceivedJob().setBlock(((SocketEvent.BlockReceived) event).block));
-        } else if (event instanceof SocketEvent.IsolateConfirmed) {
-            listener.onIsolated();
         }
     }
 

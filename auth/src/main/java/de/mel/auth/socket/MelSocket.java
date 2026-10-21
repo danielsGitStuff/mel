@@ -2,7 +2,6 @@ package de.mel.auth.socket;
 
 import de.mel.DeferredRunnable;
 import de.mel.Lok;
-import de.mel.auth.MelStrings;
 import de.mel.auth.jobs.BlockReceivedJob;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.tools.N;
@@ -14,6 +13,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,18 +32,7 @@ public class MelSocket extends DeferredRunnable {
 //    }
 
 
-    protected volatile boolean allowIsolation = false;
-    protected volatile boolean isIsolated = false;
     protected String runnableName = null;
-
-    public MelSocket setIsolated(boolean isolated) {
-        isIsolated = isolated;
-        return this;
-    }
-
-    // 128 kb + meta = 32 * 4kb + meta
-//    public static final int BLOCK_SIZE = 32 * 4096 + 21;
-    public static final int BLOCK_SIZE = 1024 * 4096 + 21; // performance increase with bigger blocks?
 
     /**
      * The reader blocks when the worker has this many messages (or, weighted, blocks) to handle.
@@ -109,11 +98,6 @@ public class MelSocket extends DeferredRunnable {
         }
     }
 
-    public MelSocket allowIsolation() {
-        this.allowIsolation = true;
-        return this;
-    }
-
     /**
      * Starts the worker that handles what is received and the reader that receives it.
      */
@@ -129,39 +113,42 @@ public class MelSocket extends DeferredRunnable {
         this.thread.start();
     }
 
-    private static String TOO_LONG_APPENDIX = "?";
-    private static int MAX_CHARS = 63 * 1024 - 2 - TOO_LONG_APPENDIX.length();
-
     /**
      * Everything that writes to the stream holds this, so frames of different threads do not interleave.
      */
     protected final Object sendLock = new Object();
 
+    /**
+     * Sends a message frame (UTF-8). A message that does not fit into a frame is not sent at all.
+     */
     public void send(String json) {
-        synchronized (sendLock) {
-            sendUnlocked(json);
+        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+        if (bytes.length > FrameCodec.MAX_FRAME) {
+            Lok.error(getClass().getSimpleName() + ".send(): message of " + bytes.length + " bytes exceeds the maximum frame size, NOT SENT: " + json.substring(0, Math.min(200, json.length())));
+            return;
         }
+        Lok.debug("   " + (melAuthService == null ? "no service" : melAuthService.getName()) + ".MelSocket(v=" + v + ").send to " + (socket == null ? "?" : socket.getInetAddress()) + ": " + json);
+        write(FrameCodec.MESSAGE, bytes);
     }
 
-    private void sendUnlocked(String json) {
-        try {
-            Lok.debug("   " + (melAuthService == null ? "no service" : melAuthService.getName()) + ".MelSocket(v=" + v + ").send to " + socket.getInetAddress().toString() + ": " + json);
-            if (socket.isClosed()) {
-                Lok.error(getClass().getSimpleName() + ".send(): Socket closed!");
-                return;
+    /**
+     * Sends a block frame. Must not be longer than {@link FrameCodec#MAX_FRAME}.
+     */
+    public void sendBlock(byte[] block) {
+        write(FrameCodec.BLOCK, block);
+    }
+
+    private void write(byte type, byte[] payload) {
+        synchronized (sendLock) {
+            try {
+                if (socket.isClosed()) {
+                    Lok.error(getClass().getSimpleName() + ".send(): Socket closed!");
+                    return;
+                }
+                FrameCodec.write(out, type, payload);
+            } catch (IOException e) {
+                Lok.error("MelSocket.send.error: " + e.toString() + " v=" + v);
             }
-//            Lok.debug("send(v=" + v + "): " + json);
-            while (json.length() > MAX_CHARS) {
-                String s = json.substring(0, MAX_CHARS) + TOO_LONG_APPENDIX;
-                json = json.substring(MAX_CHARS, json.length());
-                this.out.writeUTF(s);
-                this.out.flush();
-            }
-            this.out.writeUTF(json);
-            this.out.flush();
-        } catch (IOException e) {
-            Lok.error("MelSocket.send.error: " + e.toString() + " v=" + v);
-            e.printStackTrace();
         }
     }
 
@@ -298,44 +285,22 @@ public class MelSocket extends DeferredRunnable {
         Thread thread = Thread.currentThread();
         if (socket == null)
             Lok.error(getClass().getSimpleName() + " running without underlying socket!!!");
-        StringBuilder msgBuffer = new StringBuilder();
         try {
             if (in == null || out == null)
                 streams();
             while (!isStopped()) {
-                if (isIsolated && allowIsolation) {
-                    byte[] bytes = new byte[BLOCK_SIZE];
-                    in.readFully(bytes);
-                    enqueue(new SocketEvent.BlockReceived(bytes), BLOCK_PERMITS);
+                FrameCodec.Frame frame = FrameCodec.read(in);
+                if (frame.type == FrameCodec.BLOCK) {
+                    enqueue(new SocketEvent.BlockReceived(frame.payload), BLOCK_PERMITS);
                 } else {
-                    String s = in.readUTF();
-                    if (s.length() > MAX_CHARS) {
-                        if (s.endsWith(TOO_LONG_APPENDIX)) {
-                            msgBuffer.append(s.substring(0, MAX_CHARS));
-                            continue;
-                        } else {
-                            Lok.error("strange stuff happened");
-                        }
-                        Lok.debug("MelSocket.runImpl");
-                    } else {
-                        if (msgBuffer.length() > 0) {
-                            msgBuffer.append(s);
-                            enqueue(new SocketEvent.MessageReceived(msgBuffer.toString()), 1);
-                            msgBuffer = new StringBuilder();
-                            continue;
-                        }
-                    }
+                    String s = new String(frame.payload, StandardCharsets.UTF_8);
                     Lok.debug("   " + melAuthService.getName() + "(v=" + v + ")got(" + socket.getInetAddress() + "): " + s);
-                    if (s.equals(MelStrings.msg.MODE_ISOLATE) && allowIsolation) {
-                        if (!isIsolated)
-                            send(MelStrings.msg.MODE_ISOLATE);
-                        else
-                            enqueue(new SocketEvent.IsolateConfirmed(), 1);
-                        isIsolated = true;
-                    } else
-                        enqueue(new SocketEvent.MessageReceived(s), 1);
+                    enqueue(new SocketEvent.MessageReceived(s), 1);
                 }
             }
+        } catch (FrameCodec.ProtocolViolationException e) {
+            Lok.error(getClass().getSimpleName() + " v=" + v + " protocol violation: " + e.getMessage());
+            events.add(new SocketEvent.Violation(e.getMessage()));
         } catch (Exception e) {
             if (!isStopped()) {
                 String line = (melAuthService == null ? "no service" : melAuthService.getName()) + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")";

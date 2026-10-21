@@ -23,9 +23,14 @@ abstract class SocketEvent {
     }
 
     /**
-     * the partner confirmed that the connection is isolated from now on
+     * the partner broke the rules of the wire format
      */
-    static final class IsolateConfirmed extends SocketEvent {
+    static final class Violation extends SocketEvent {
+        final String description;
+
+        Violation(String description) {
+            this.description = description;
+        }
     }
 
     /**

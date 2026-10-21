@@ -6,7 +6,7 @@ import de.mel.auth.data.MelMessage;
 import de.mel.auth.data.MelRegisterConfirm;
 import de.mel.auth.data.MelRequest;
 import de.mel.auth.data.db.Certificate;
-import de.mel.auth.socket.MelSocket;
+import de.mel.auth.socket.FrameCodec;
 import de.mel.core.serialize.SerializableEntity;
 import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
@@ -26,6 +26,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
@@ -149,12 +150,13 @@ public class RawPeer implements AutoCloseable {
      * Written in the background: an instance that stops reading but keeps the connection open would block the test forever.
      */
     public void sendBlock() {
-        byte[] block = new byte[MelSocket.BLOCK_SIZE];
+        byte[] block = new byte[64 * 1024];
         block[0] = 'T';
         Thread writer = new Thread(() -> {
             try {
-                out.write(block);
-                out.flush();
+                synchronized (out) {
+                    FrameCodec.write(out, FrameCodec.BLOCK, block);
+                }
             } catch (IOException e) {
                 // hung up while we were writing, or closed by the test
             }
@@ -165,10 +167,20 @@ public class RawPeer implements AutoCloseable {
     }
 
     private void sendText(String text) throws IOException {
-        if (text.length() > 60 * 1024)
-            throw new IllegalArgumentException("RawPeer does not split long messages");
-        out.writeUTF(text);
-        out.flush();
+        synchronized (out) {
+            FrameCodec.write(out, FrameCodec.MESSAGE, text.getBytes(StandardCharsets.UTF_8));
+        }
+    }
+
+    /**
+     * Only the header of a frame, as an instance that announces more than it sends or more than allowed.
+     */
+    public void sendRawHeader(byte type, int length) throws IOException {
+        synchronized (out) {
+            out.writeByte(type);
+            out.writeInt(length);
+            out.flush();
+        }
     }
 
     /**
@@ -177,7 +189,8 @@ public class RawPeer implements AutoCloseable {
     public SerializableEntity receive(int timeoutMillis) throws Exception {
         try {
             socket.setSoTimeout(timeoutMillis);
-            return SerializableEntityDeserializer.deserialize(in.readUTF());
+            FrameCodec.Frame frame = FrameCodec.read(in);
+            return SerializableEntityDeserializer.deserialize(new String(frame.payload, StandardCharsets.UTF_8));
         } catch (EOFException | SocketTimeoutException | SSLException | SocketException e) {
             return null;
         }

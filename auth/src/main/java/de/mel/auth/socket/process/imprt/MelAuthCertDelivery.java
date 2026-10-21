@@ -10,6 +10,7 @@ import de.mel.auth.data.db.Certificate;
 import de.mel.auth.jobs.BlockReceivedJob;
 import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.socket.CloseReason;
+import de.mel.auth.socket.FrameCodec;
 import de.mel.auth.socket.MelSocket;
 import de.mel.auth.tools.N;
 import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer;
@@ -135,7 +136,7 @@ public class MelAuthCertDelivery extends DeferredRunnable {
                 Socket socket = serverSocket.accept();
                 in = new DataInputStream(socket.getInputStream());
                 out = new DataOutputStream(socket.getOutputStream());
-                String s = in.readUTF();
+                String s = new String(FrameCodec.read(in).payload, java.nio.charset.StandardCharsets.UTF_8);
                 Lok.debug(melAuthService.getName() + ".MelAuthCertDelivery.runTry.got: " + s);
                 MelSocket melSocket = new MelSocket(melAuthService, socket);
                 this.listener.onMessage(melSocket, s);

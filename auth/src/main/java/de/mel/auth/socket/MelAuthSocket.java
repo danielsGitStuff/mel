@@ -77,11 +77,6 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
         return MelAuthSocket.getAddressString(socket.getInetAddress(), port);
     }
 
-    public MelAuthSocket allowIsolation() {
-        this.allowIsolation = true;
-        return this;
-    }
-
     @Override
     public void onIsolated() {
         ((MelIsolatedProcess) process).onIsolated();
@@ -91,6 +86,14 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
     public void onMessage(MelSocket melSocket, String msg) {
         try {
             melAuthService.getPowerManager().wakeLock(this);
+            if (MelStrings.msg.MODE_ISOLATE.equals(msg)) {
+                // handshake of the isolated connection, to go in step 8
+                if (process instanceof MelIsolatedProcess)
+                    ((MelIsolatedProcess) process).onIsolateMessage();
+                else
+                    Lok.warn(melAuthService.getName() + ".MelAuthSocket.onMessage: DROPPED isolate message, this is no isolated connection");
+                return;
+            }
             SerializableEntity deserialized = SerializableEntityDeserializer.deserialize(msg);
             if (deserialized instanceof MelResponse response) {
                 if (response.getPayload() instanceof MelServicesPayload) {
@@ -177,15 +180,6 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
         }
         return partnerCertificate;
     }
-
-    public void sendBlock(byte[] block) throws IOException {
-        assert block.length == MelSocket.BLOCK_SIZE;
-        synchronized (sendLock) {
-            out.write(block);
-            out.flush();
-        }
-    }
-
 
     public boolean isValidated() {
         return (process != null && process instanceof MelValidationProcess);

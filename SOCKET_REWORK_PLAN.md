@@ -265,19 +265,19 @@ For the session that does the work. Steps in this order; each one is a commit (o
 
 ### Step 4: typed frames (F3)
 
-- [ ] `FrameCodec` (new, `de.mel.auth.socket`): `write(out, type, bytes)` and `read(in) -> Frame(type, bytes)`; header
+- [x] `FrameCodec` (new, `de.mel.auth.socket`): `write(out, type, bytes)` and `read(in) -> Frame(type, bytes)`; header
       `type (1) | length (4, big endian, DataOutputStream.writeInt)`; `MAX_FRAME = 1 MiB` (constant); length < 0 or > MAX ->
       `ProtocolViolation` before allocating. Types: `MESSAGE = 1` (UTF-8 JSON), `BLOCK = 2`. Unit tests with
       `PipedInput/OutputStream` or byte arrays: round trip, empty payload, exactly MAX, MAX+1, negative length, truncated stream.
-- [ ] `MelSocket`: reader = `FrameCodec.read` loop, `send(String)` = MESSAGE frame (UTF-8), `sendBlock(byte[])` = BLOCK frame.
+- [x] `MelSocket`: reader = `FrameCodec.read` loop, `send(String)` = MESSAGE frame (UTF-8), `sendBlock(byte[])` = BLOCK frame.
       Delete `MAX_CHARS`, `TOO_LONG_APPENDIX`, `msgBuffer`, the `MODE_ISOLATE` handling in the reader, `isIsolated`,
       `allowIsolation`, `BLOCK_SIZE`-sized reads. A BLOCK frame on a socket whose state does not take blocks -> step 5; until
       then hand it to the listener as today.
-- [ ] Isolation handshake for now: keep `MODE_ISOLATE` as a normal MESSAGE that the process handles (the echo goes away in
+- [x] Isolation handshake for now: keep `MODE_ISOLATE` as a normal MESSAGE that the process handles (the echo goes away in
       step 8). `MelIsolatedFileProcess.transfer()` keeps its packing for now but sends blocks via `sendBlock` (one frame each).
-- [ ] `RawPeer`: `sendText`/`receive` via frames, `sendBlock` = BLOCK frame, `sendUnparsable` = MESSAGE frame with junk;
+- [x] `RawPeer`: `sendText`/`receive` via frames, `sendBlock` = BLOCK frame, `sendUnparsable` = MESSAGE frame with junk;
       add `sendRawHeader(type, length)` for the max-size test.
-- [ ] Certificate delivery/retrieval: same framing on both ends (`MelAuthCertDelivery` reads its request with `FrameCodec`).
+- [x] Certificate delivery/retrieval: same framing on both ends (`MelAuthCertDelivery` reads its request with `FrameCodec`).
 - New tests: long message with many non-ASCII characters arrives whole; a header announcing MAX+1 closes the connection.
 - Done also: `filesync` transfer tests still pass (`./gradlew :filesync:test :filesync:integrationTest` if tagged, otherwise
   `:filesync:test`).

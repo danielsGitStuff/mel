@@ -17,7 +17,7 @@ import de.mel.auth.jobs.BlockReceivedJob;
 import de.mel.auth.service.IMelService;
 import de.mel.auth.socket.CloseReason;
 import de.mel.auth.socket.MelAuthSocket;
-import de.mel.auth.socket.MelSocket;
+import de.mel.auth.socket.FrameCodec;
 import de.mel.auth.tools.ByteTools;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
 import de.mel.sql.RWLock;
@@ -96,7 +96,7 @@ public class MelIsolatedFileProcess extends MelIsolatedProcess implements MelRun
     @Override
     public void onBlockReceived(BlockReceivedJob blockJob) {
         byte[] bytes = blockJob.getBlock();
-        assert bytes.length == MelSocket.BLOCK_SIZE;
+        assert bytes.length == BLOCK_SIZE;
         byte[] streamBytes = Arrays.copyOfRange(bytes, 1, 5);
         int streamId = ByteTools.bytesToInt(streamBytes);
         Block block = new Block(streamId).setBytes(bytes);
@@ -114,6 +114,10 @@ public class MelIsolatedFileProcess extends MelIsolatedProcess implements MelRun
     }
 
 
+    /**
+     * the size of one block frame, padded as long as the packing of records stays (step 8)
+     */
+    public static final int BLOCK_SIZE = FrameCodec.MAX_FRAME;
     private static final int META_LENGTH = 17;
 
     /**
@@ -214,8 +218,8 @@ public class MelIsolatedFileProcess extends MelIsolatedProcess implements MelRun
      */
     public void transfer() throws IOException, InterruptedException {
         int blockOffset = 0;
-        int bytesLeft = MelSocket.BLOCK_SIZE;
-        byte[] block = new byte[MelSocket.BLOCK_SIZE];
+        int bytesLeft = BLOCK_SIZE;
+        byte[] block = new byte[BLOCK_SIZE];
         String hash = sendingDetails.peek();
         FileTransferDetail transferDetail = hashFTDSendingMap.get(hash);
         while (transferDetail != null) {
@@ -246,12 +250,12 @@ public class MelIsolatedFileProcess extends MelIsolatedProcess implements MelRun
             FileTransferDetail.FReadInfo readResult = null;
             if (!transferDetail.hasError()) {
                 //keep in mind that 4 bytes still have to be added before the actual PAYLOAD
-                bytesLeft = MelSocket.BLOCK_SIZE - blockOffset - 4;
+                bytesLeft = BLOCK_SIZE - blockOffset - 4;
                 readResult = transferDetail.readFile(transferDetail.getPosition(), bytesLeft);
                 // [length of PAYLOAD]
                 blockOffset = ByteTools.fill(block, blockOffset, ByteTools.intToBytes(readResult.getBytes().length), readResult.getBytes());
             }
-            bytesLeft = MelSocket.BLOCK_SIZE - blockOffset;
+            bytesLeft = BLOCK_SIZE - blockOffset;
             // if file is processed
             if (transferDetail.transferred() || transferDetail.hasError() || readResult == null || (readResult != null && readResult.getNotFilledBytes() > 0)) {
                 sendingSemaphore.acquire();

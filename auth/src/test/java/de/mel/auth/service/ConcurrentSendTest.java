@@ -96,7 +96,19 @@ public class ConcurrentSendTest {
         sendAndCheck(1, 5);
     }
 
+    /**
+     * writeUTF limited bytes, not characters: about 1000 characters of CJK or umlauts exceeded it and the message was lost
+     */
+    @Test
+    public void longMessagesWithManyNonAsciiCharactersArriveWhole() throws Exception {
+        sendAndCheck(2, 3, 100_000, "\u00e4\u00f6\u00fc\u4e2d\u6587\ud83d\ude00");
+    }
+
     private void sendAndCheck(int threads, int perThread) throws Exception {
+        sendAndCheck(threads, perThread, 200_000, null);
+    }
+
+    private void sendAndCheck(int threads, int perThread, int length, String fillers) throws Exception {
         MelAuthService server = instances.server;
         MelAuthService client = instances.client;
         instances.pair();
@@ -106,15 +118,14 @@ public class ConcurrentSendTest {
         MelValidationProcess connection = connect(client, server);
 
         // several times the length that fits into one piece
-        int length = 200_000;
         Set<String> sent = new HashSet<>();
         List<List<String>> work = new ArrayList<>();
         for (int t = 0; t < threads; t++) {
             List<String> mine = new ArrayList<>();
             for (int m = 0; m < perThread; m++) {
                 String id = "message " + t + "/" + m + ":";
-                char filler = (char) ('a' + (t * perThread + m) % 26);
-                String text = id + String.valueOf(filler).repeat(length);
+                String filler = fillers == null ? String.valueOf((char) ('a' + (t * perThread + m) % 26)) : fillers.substring((t * perThread + m) % 3, (t * perThread + m) % 3 + 1);
+                String text = id + filler.repeat(length);
                 mine.add(text);
                 sent.add(text);
             }
