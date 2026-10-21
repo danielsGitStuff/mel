@@ -241,16 +241,39 @@ database after `PRAGMA synchronous=OFF` and a crash), tells the server where to 
 - The hash check reads every finished file once more.
 - A transfer that fails because the partner has no such file stays SUSPENDED until the next retry; the `available` flag logic of the sync is unchanged.
 
-### Live changes do not sync (found while writing the sync tests, not fixed)
+### Live changes do not sync (analysed, tests written, not fixed)
 
-`FileSyncRoundTripTest` (4 tests, `@Disabled`, they describe what should work): after the first sync, a file created on the client, a file created, changed or deleted on the server does not reach the other side within 60 s.
-The first sync (everything the server has at the start) works and is covered by `FileSyncTransferTest`. All four fail on the code as it is; nothing in `index/` was changed by the rework except the promise port.
-What I found by reading the logs (the indexer/merge is half rewritten, `initStageOlde` is still there):
-1. `StageIndexerRunnable` (the file watcher's indexer) hands `initialStageSetId` to the "staging done" listener, but `examineStage()` deletes that stage set and continues in `examinedStageSetId` (as `IndexerRunnable` does). The server then
-   finds an empty stage set ("deleted stageset 3"), the client commit job finds no staged set. Nothing is ever committed, so nothing is propagated.
-2. With that fixed (experiment, reverted): `StageIndexerRunnable` does not call `hashFiles()` and `minimizeStageSet()` and does not set the status STAGED like `IndexerRunnable` does; the commit fails with
-   `NOT NULL constraint failed: fswrite.contenthash`.
-3. With those added (experiment, reverted): the next layer fails. The client stages the files the sync itself just wrote as its own changes (the watchdog sees the writes), commits them with an old base version (`TooOldVersionException`),
-   the merge ends in `lateinit property mergedStageSet has not been initialized`, `NOT NULL constraint failed: stage.path` and `SQL error ... incomplete input`, and in that experiment the client lost `first.bin` (the test expected both files).
-I did not keep the experiment: changing the indexer/merge pipeline on a guess is the wrong call without the author's intent; it needs its own session (idea: first make the watchdog ignore the sync's own writes, then 1 and 2).
+After the first sync, changes do not reach the other side. This is not the transfer, and not the rework: it is the indexing/commit part of `filesync`, which was left half rewritten in June 2022.
+It was analysed in a second session (the user asked to get to the bottom of it, write tests and not fix yet).
 
+**When it broke.** Commit `2bd0369b` "quicksave, transfer" (2022-06-15) rewrote `AbstractIndexer`: new `initStage`/`examineStage` (`examineDirContentHash`, `examineDir`) and the stage set ids were renamed
+(`stageSetId` -> `initialStageSetId` + `examinedStageSetId`). The old algorithm was kept as `initStageOlde`/`examineStageOlde`. `8e2352a3` "minimize stageset" (2022-06-16) and `b4a4b9d3` (2022-11-19, adds the STAGED status) adapted
+`IndexerRunnable` (the index at boot), the file watcher's `StageIndexerRunnable` was never adapted. The commit itself carries `Lok.debug("asd")`, `"nuvng"`, "TRANSACTION DISABLED". The `path` column of the stage table is from `1fa2e765` (2022-05-31).
+The first sync works because everything is new then.
+**Evidence that it worked before:** switching both indexers back to `initStageOlde`/`examineStageOlde` (experiment, reverted, nothing of it is committed) makes the 4 `LiveChangeIndexingTest` and all 7 `BootIndexTest` pass,
+the `ChangesWhileDownTest` cases for a file changed or deleted on the client and made or changed on the server pass, and so do 2 of 4 `FileSyncRoundTripTest` (file created and changed on the server). So commit, propagate, merge and transfer work with the old indexer; two more defects remain (B, C below).
+I did not run the 2019-2022 code itself (the build files were reworked since), only the old algorithm in today's tree.
+
+**A. The new indexer (`AbstractIndexer`, `StageIndexerRunnable`)**, found with `BootIndexTest`/`LiveChangeIndexingTest`:
+1. `StageIndexerRunnable` hands `initialStageSetId` to the listener, but `examineStage()` deletes that stage set and continues in `examinedStageSetId` (as `IndexerRunnable` does). Server: "deleted stageset 3", client: `CommitJob` finds nothing.
+2. `StageIndexerRunnable` does not call `hashFiles()`/`minimizeStageSet()` and does not set STAGED (`IndexerRunnable` does). Without the hash the commit dies on `fswrite.contenthash NOT NULL`; the examined stage set stays behind in status "staging" (orphan: the client leaves one after every sync, `SyncedStateTest`).
+3. `deleted` stays NULL for every stage that exists on disk (the root directory, files reached by their own event): `StageDao.getNotDeletedStagesByStageSet` asks `deleted=false`, NULL does not match, so such a stage is never committed.
+   Consequence: the root's fs entry keeps the content hash of an empty directory for ever (`eff7d5db...`), the root always looks changed, and every index restages the whole tree (`nothingChangedMeansNothingToCommit`: the delta is the entire tree).
+4. Stages made while walking a changed directory (`examineDirContentHash`) never get their `fsId` (the condition `fsEntry != null && !fsEntry.getIsDirectory().v()` tests the directory entry and is never true; subdirectories are not linked at all). So unchanged files and
+   directories are committed as new; an unchanged subdirectory is staged without content hash and the commit dies with `fswrite.contenthash NOT NULL` ("dir"). On the client the same re-stages the sync's own writes.
+5. Deletions are never detected: the Unix watcher only reports the directory (`onTimerStopped` uses `find -newer`, `analyze()` adds the deleted path to a collection that `onTimerStopped` does not use), and the new walk only lists what exists (`todo recursive delete` in `examineDir`). The old code staged what the fs table has and the disk lacks.
+6. Files reached by their own event get no size (`stage.size` null); only the directory walk sets it.
+
+**B. `ServerSyncHandler.executeCommit`:** a stage from a client without `fsId` and `fsParentId` gets no `path`/`depth` (they are derived from the fs entries only), `stage.path NOT NULL` fails. This is every new directory made on the client, and everything in it
+(a new file next to the others or in an existing directory is fine). With the old indexer: `aFileMadeOnTheClientInANewDirectory...` and `aNewDirectoryInANewDirectory...` fail, `...NextToTheOthers`/`...InAnExistingDirectory` pass. The path has to be derived from the parent stage that came with the same commit.
+**C. A file deleted on the server is not deleted on the client** (also with the old indexer; found with `aFileDeletedOnTheServer...`, both as live change and as change while down). The server stages and commits the deletion correctly, the client asks the server for the directory
+(`syncFromServer.SOMETHING.DELETED?`, `requestDirectoriesByIds`), but the stage set it gets (`src=server`, 5) holds only the root directory, no stage for the file. Not traced further. (`stillExistingIds` compares server fs ids with the client's own fs ids; they only coincide by luck.)
+The client then commits its own stage set 6 back to the server (version 2 -> 3).
+
+**Tests** (all in `filesync/src/test/java/de/mel/auth/service`, harness additions in `FileSyncInstances`: `Snapshot`, `RecordingServerService.indexed`/`holdBackCommit`, `restartServer`; `TwoInstances.restartServer`):
+- `LiveChangeIndexingTest` (4, disabled): the file watcher's indexer on a server whose commit is replaced by a recorder: changed file, new file in a new directory, deleted file, "there is a stage set behind the id". Fail on A1-A3, A5, A6; pass with the old indexer.
+- `BootIndexTest` (7, disabled): the boot index of a restarted server, commit held back: nothing changed, changed content, new file in an existing directory, new directory chain, deleted file, deleted directory, file<->directory. Fail on A3, A4 (and A5); pass with the old indexer. Written to the contract in the class comment.
+- `ChangesWhileDownTest` (9, disabled): the whole way (index at boot, commit, propagate, merge, transfer) for changes made while one side was down, in both directions. Fail on A3-A5, B, C.
+- `FileSyncRoundTripTest` (4, disabled, from before): the same for live changes through the watcher.
+- `SyncedStateTest`: 2 enabled (the fs table of server and client equal their disks after the first sync: size, hash, inode, modified: this part is right), 1 disabled (the client must not stage its own sync writes; A2-A4).
+Re-enable the classes when the matching defect is fixed; the order that makes sense: A1-A3 -> A4 -> A5/A6 -> B -> C.

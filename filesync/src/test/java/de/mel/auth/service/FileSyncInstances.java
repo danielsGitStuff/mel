@@ -14,7 +14,10 @@ import de.mel.filesync.service.MelFileSyncClientService;
 import de.mel.filesync.service.MelFileSyncServerService;
 import de.mel.filesync.service.MelFileSyncService;
 import de.mel.filesync.sql.DbTransferDetails;
+import de.mel.filesync.index.IndexListener;
 import de.mel.filesync.sql.FileSyncDatabaseManager;
+import de.mel.filesync.sql.Stage;
+import de.mel.filesync.sql.StageSet;
 import de.mel.filesync.sql.TransferState;
 import de.mel.filesync.transfer.FileTransferDetailsPayload;
 import de.mel.filesync.transfer.TManager;
@@ -52,6 +55,52 @@ public class FileSyncInstances implements AutoCloseable {
     }
 
     /**
+     * A stage set as it was when somebody was told about it: the set and its stages, copied. {@code stageSet} is null when there was no such stage set (any more).
+     */
+    public record Snapshot(Long stageSetId, StageSet stageSet, List<Stage> stages) {
+        public static Snapshot of(FileSyncDatabaseManager database, Long stageSetId) throws Exception {
+            if (stageSetId == null)
+                return new Snapshot(null, null, List.of());
+            StageSet stageSet = database.getStageDao().getStageSetById(stageSetId);
+            return new Snapshot(stageSetId, stageSet, stageSet == null ? List.of() : database.getStageDao().getStagesByStageSetAsList(stageSetId));
+        }
+
+        public Stage stage(String path, String name) {
+            return stages.stream().filter(s -> path.equals(s.getPath()) && name.equals(s.getName())).findFirst().orElse(null);
+        }
+
+        /**
+         * the flag is null as long as nobody set it
+         */
+        public static boolean deleted(Stage stage) {
+            return Boolean.TRUE.equals(stage.getDeleted());
+        }
+
+        public static boolean directory(Stage stage) {
+            return Boolean.TRUE.equals(stage.getIsDirectory());
+        }
+
+        public boolean staged() {
+            return stageSet != null
+                    && FileSyncStrings.STAGESET_SOURCE_FS.equals(stageSet.getSource().v())
+                    && FileSyncStrings.STAGESET_STATUS_STAGED.equals(stageSet.getStatus().v());
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder("stage set " + stageSetId);
+            if (stageSet == null)
+                return builder.append(" (none)").toString();
+            builder.append(" ").append(stageSet.getSource().v()).append("/").append(stageSet.getStatus().v()).append(":");
+            for (Stage stage : stages)
+                builder.append(" [#").append(stage.getId()).append(" fs=").append(stage.getFsId()).append(" parent=").append(stage.getParentId()).append(" fsParent=").append(stage.getFsParentId())
+                        .append(" ").append(stage.getPath()).append(stage.getName()).append(deleted(stage) ? " deleted" : "").append(directory(stage) ? " dir" : "")
+                        .append(" hash=").append(stage.getContentHash()).append("]");
+            return builder.toString();
+        }
+    }
+
+    /**
      * A server service that writes down what it is asked for, and can send a damaged file instead of the real one.
      */
     public static class RecordingServerService extends MelFileSyncServerService {
@@ -63,6 +112,29 @@ public class FileSyncInstances implements AutoCloseable {
 
         public RecordingServerService(de.mel.auth.service.MelAuthService melAuthService, File workingDirectory, Long serviceTypeId, String uuid, FileSyncSettings fileSyncSettings, FileSyncDatabaseManager databaseManager) {
             super(melAuthService, workingDirectory, serviceTypeId, uuid, fileSyncSettings, databaseManager);
+        }
+
+        /**
+         * what the index at boot found, as it was handed over to the listener. Set {@link #holdBackCommit} to look only
+         */
+        public final List<Snapshot> indexed = new CopyOnWriteArrayList<>();
+        /**
+         * what the index finds is not committed. Has to be set before the service boots.
+         */
+        public static volatile boolean holdBackCommit = false;
+
+        @Override
+        protected IndexListener createIndexListener() {
+            IndexListener real = super.createIndexListener();
+            return (stageSetId, bunchOfLocks) -> {
+                try {
+                    indexed.add(Snapshot.of(getFileSyncDatabaseManager(), stageSetId));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                if (!holdBackCommit)
+                    real.done(stageSetId, bunchOfLocks);
+            };
         }
 
         /**
@@ -223,6 +295,23 @@ public class FileSyncInstances implements AutoCloseable {
         two.restartClient(whileDown);
         assertTrue(latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), "the client service did not boot again");
         clientService = booted.get();
+    }
+
+    /**
+     * Shuts the server down and starts it again, like {@link #restartClient(Runnable)}. What is changed on its disk meanwhile is found by the index when it boots.
+     *
+     * @param whileDown is run when the server is shut down and not started again yet
+     */
+    public void restartServer(Runnable whileDown) throws Exception {
+        AtomicReference<RecordingServerService> booted = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+        FileSyncBootloader.DEV_DRIVE_BOOT_LISTENER = service -> {
+            booted.set((RecordingServerService) service);
+            latch.countDown();
+        };
+        two.restartServer(whileDown);
+        assertTrue(latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), "the server service did not boot again");
+        serverService = booted.get();
     }
 
     public TManager clientTransferManager() {

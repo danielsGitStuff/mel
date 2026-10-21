@@ -85,7 +85,10 @@ public class TwoInstances implements AutoCloseable {
         }
     }
 
-    final MelAuthService server;
+    /**
+     * Changes when the server is restarted, see {@link #restartServer(Runnable)}
+     */
+    volatile MelAuthService server;
     /**
      * Changes when the client is restarted, see {@link #restartClient()}
      */
@@ -159,6 +162,22 @@ public class TwoInstances implements AutoCloseable {
         whileDown.run();
         client = boot(settings, "CLIENT", bootloaders);
         client.addRegisterHandler(ACCEPT_ALL);
+    }
+
+    /**
+     * Shuts the server down and starts it again, like {@link #restartClient(Runnable)}.
+     *
+     * @param whileDown is run when the server is shut down and not started again yet
+     */
+    void restartServer(Runnable whileDown) throws Exception {
+        MelAuthService old = server;
+        MelAuthSettings settings = old.getSettings();
+        CountLock lock = new CountLock().lock();
+        Promises.allSettled(old.shutDown()).onDone(r -> lock.unlock());
+        lock.lock();
+        whileDown.run();
+        server = boot(settings, "SERVER", bootloaders);
+        server.addRegisterHandler(ACCEPT_ALL);
     }
 
     /**
