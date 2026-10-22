@@ -492,3 +492,7 @@ Fix: `copyFile` writes under the lock of the fs table, as the move of the last p
 Test: `DistributionDuringCommitTest` holds the lock and the copy of the table as a commit does while the distribution makes a copy; the entry must be synced afterwards. Fails with `P.confine(fsId)`. `DumpFlowTest` runs with the short timers now (`FileSyncInstances.useShortTimers()`): 5 of 5 runs green with the fix (about 48 s a run).
 
 Noticed, not changed: `FileDistributor.stop()` sets `stopped = false`, so the `stop()` at the start of `commitStage` does nothing. Making it stop would leave tasks lying until the next job starts the distributor; with the lock it is not needed.
+
+## File distribution: stop stops
+
+`FileDistributor.stop()` set `stopped = false`. Now it sets it, the thread ends after the task it works on, and a job that comes meanwhile waits in the database: `startIfIdle` no longer clears the flag, `resume()` does and starts the distributor if there is work (`SyncHandler.resume()` calls it, so the service's `stop`/`resume` covers the distributor too). The `stop()` at the start of `commitStage` is gone (not needed with the lock, see above).

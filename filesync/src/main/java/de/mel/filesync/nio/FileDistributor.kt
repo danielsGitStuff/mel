@@ -17,7 +17,11 @@ import java.util.*
 
 @Suppress("FINITE_BOUNDS_VIOLATION_IN_JAVA")
 open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>) : MelRunnable {
-    private var stopped: Boolean = false;
+    /**
+     * Set while the service is suspended: the thread ends after the task it works on, jobs that come meanwhile wait in the database until [resume].
+     */
+    @Volatile
+    private var stopped: Boolean = false
     private var notification: MelNotification? = null
     private var running: Boolean = false
 
@@ -61,8 +65,7 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
     }
 
     private fun startIfIdle(distributionTask: FileDistributionTask) {
-        if (!active.get() && distributionTask.canStart()) {
-            stopped = false
+        if (!stopped && !active.get() && distributionTask.canStart()) {
             fileSyncService.execute(this)
         }
     }
@@ -91,6 +94,10 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
                 var countDone = fileDistTaskDao.countDone()
 
                 N.forEachAdv(fileDistTaskDao.loadChunk()) { stoppable, index, wrapperId, fileDistributionTask ->
+                    if (stopped) {
+                        stoppable.stop()
+                        return@forEachAdv
+                    }
                     workOnDistTask(fileDistributionTask)
                     fileDistTaskDao.markDone(wrapperId)
                     showNotification(++countDone, max)
@@ -247,7 +254,13 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
     }
 
     fun stop() {
+        stopped = true
+    }
+
+    fun resume() {
         stopped = false
+        if (!active.get() && fileDistTaskDao.hasWork())
+            fileSyncService.execute(this)
     }
 
 

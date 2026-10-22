@@ -246,8 +246,6 @@ public abstract class SyncHandler {
 
         bunchOfLocks.run(() -> {
             try {
-                // sop files being moved around
-                fileDistributor.stop();
                 fsWriteDao.prepare();
                 StageSet stageSet = stageDao.getStageSetById(stageSetId);
                 // if version not provided by the stageset we will increase the old one
@@ -539,6 +537,8 @@ public abstract class SyncHandler {
     public void resume() {
         if (transferManager != null)
             this.transferManager.resume();
+        if (fileDistributor != null)
+            fileDistributor.resume();
     }
 
     public void onShutDown() {
