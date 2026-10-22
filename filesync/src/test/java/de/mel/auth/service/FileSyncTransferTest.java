@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * The client service gets the files of the server service. Two real instances on loopback, real sockets, real databases.
  */
-@Timeout(value = 5, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+@Timeout(value = 60, unit = TimeUnit.SECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class FileSyncTransferTest {
     @TempDir
@@ -309,7 +309,7 @@ public class FileSyncTransferTest {
             instances.two.client.setRequestTimeoutMs(1000);
             instances.createClient();
             instances.clientTransferManager().setRetryBaseDelayMs(300);
-            assertTrue(TwoInstances.waitFor(() -> instances.serverService.requestsFor(scenario.bigHash).size() >= 2, 60),
+            assertTrue(TwoInstances.waitFor(() -> instances.serverService.requestsFor(scenario.bigHash).size() >= 2, TwoInstances.TIMEOUT_SECONDS),
                     "the client should ask again after the first request got no answer: " + instances.serverService.requests);
             assertFalse(FileSyncInstances.hashesBelow(instances.clientRoot).containsKey("big.bin"));
             instances.serverService.ignoreRequests = false;
@@ -329,7 +329,7 @@ public class FileSyncTransferTest {
             instances.createClient();
             instances.clientTransferManager().setStallTimeoutMs(1500);
             instances.clientTransferManager().setRetryBaseDelayMs(300);
-            assertTrue(TwoInstances.waitFor(() -> instances.serverService.requestsFor(scenario.bigHash).size() >= 2, 60),
+            assertTrue(TwoInstances.waitFor(() -> instances.serverService.requestsFor(scenario.bigHash).size() >= 2, TwoInstances.TIMEOUT_SECONDS),
                     "the client should give up on the silent server and ask again: " + instances.serverService.requests);
             instances.serverService.sendNothing = false;
             assertClientGets(instances, scenario.expected, 60);

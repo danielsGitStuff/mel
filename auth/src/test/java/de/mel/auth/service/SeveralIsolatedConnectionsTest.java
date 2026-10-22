@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * File transfers open several isolated connections between the same two services. None may get in the way of another.
  */
-@Timeout(value = 3, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+@Timeout(value = 30, unit = TimeUnit.SECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class SeveralIsolatedConnectionsTest {
     @TempDir
@@ -152,7 +152,7 @@ public class SeveralIsolatedConnectionsTest {
         server.registerMelService(other);
         AtomicReference<Exception> failure = new AtomicReference<>();
         clientService.getIsolatedProcess(TestIsolatedProcess.class, serverIdAtClient, other.getUuid()).onError(failure::set);
-        assertTrue(waitFor(() -> failure.get() != null || other.firstEstablished.getCount() == 0, 15) && other.established.isEmpty(),
+        assertTrue(waitFor(() -> failure.get() != null || other.firstEstablished.getCount() == 0, TwoInstances.TIMEOUT_SECONDS) && other.established.isEmpty(),
                 "the connection to a service without access did not fail");
         // now the client may use that service: the failed attempt must not be handed out again
         grant(server, other, client);

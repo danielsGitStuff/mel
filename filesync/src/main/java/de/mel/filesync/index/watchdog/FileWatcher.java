@@ -22,8 +22,15 @@ import java.util.concurrent.locks.ReentrantLock;
 @SuppressWarnings("Duplicates")
 public abstract class FileWatcher extends DeferredRunnable implements IndexListener, Runnable, WatchDogTimer.WatchDogTimerFinished {
 
+    /**
+     * How long the files must be quiet before the changes are indexed: 100 ms, then this many periods without a change (about 3 s).
+     * The app keeps the default (big copies take a while); tests make it short. Read when a watcher is made.
+     */
+    public static volatile int quietRepetitions = 20;
+    public static volatile int quietPeriodMs = 150;
+
     protected String name;
-    protected WatchDogTimer watchDogTimer = new WatchDogTimer("Indexer",this, 20, 100, 150);
+    protected WatchDogTimer watchDogTimer = new WatchDogTimer("Indexer", this, quietRepetitions, 100, quietPeriodMs);
     protected MelFileSyncService melFileSyncService;
     protected PathCollection pathCollection = new PathCollection();
     protected Map<String, Integer> ignoredMap = new ConcurrentHashMap<>();

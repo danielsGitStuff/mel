@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Who a connection belongs to is decided by the certificate the other side showed in the TLS handshake, never by the address it was found at.
  * Both sides check that the other one is trusted.
  */
-@Timeout(value = 3, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+@Timeout(value = 30, unit = TimeUnit.SECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class PartnerIdentityTest {
     private static final int FAKE_PORT = 29080;

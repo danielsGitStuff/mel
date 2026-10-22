@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * The rule (see SOCKET_PROCESS_REWORK.md): different initiators -> the one initiated by the lower certificate hash wins;
  * same initiator -> the newer one wins.
  */
-@Timeout(value = 3, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+@Timeout(value = 30, unit = TimeUnit.SECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class DuplicateConnectionTest {
     private static final AtomicInteger nextPortBase = new AtomicInteger(23000);

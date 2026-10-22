@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * To see the difference a change is made while the service is down and hidden from the start: the saved time of the last scan is set after the change. A user who
  * does that to a file deserves that it is not noticed.
  */
-@Timeout(value = 3, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+@Timeout(value = 30, unit = TimeUnit.SECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class IncrementalBootTest {
     @TempDir
@@ -49,14 +49,14 @@ public class IncrementalBootTest {
         FileSyncInstances instances = new FileSyncInstances(dir, port);
         try {
             instances.createServer();
-            assertTrue(TwoInstances.waitFor(() -> !instances.serverService.indexed.isEmpty(), 60), "the server did not index at first boot");
+            assertTrue(TwoInstances.waitFor(() -> !instances.serverService.indexed.isEmpty(), TwoInstances.TIMEOUT_SECONDS), "the server did not index at first boot");
             assertNotNull(instances.serverService.getFileSyncSettings().getLastScanTime(), "the first index should save the time it began");
             FileSyncInstances.RecordingServerService.holdBackCommit = true;
             instances.restartServer(() -> {
                 try {
                     FileSyncInstances.writeFile(instances.serverRoot, "changes.bin", 30_000, 9);
-                    // more than the margin the start looks back, so the change is hidden
-                    Thread.sleep(3_500);
+                    // more than the margin the start looks back (plus up to a second: find rounds the time down), so the change is hidden
+                    Thread.sleep(FileSyncInstances.SCAN_MARGIN_MS + 1_300);
                     FileSyncSettings settings = instances.serverService.getFileSyncSettings();
                     settings.setLastScanTime(System.currentTimeMillis());
                     settingsWhileDown.accept(settings);
@@ -65,7 +65,7 @@ public class IncrementalBootTest {
                     throw new RuntimeException(e);
                 }
             });
-            assertTrue(TwoInstances.waitFor(() -> !instances.serverService.indexed.isEmpty(), 60), "the server did not index at the second boot");
+            assertTrue(TwoInstances.waitFor(() -> !instances.serverService.indexed.isEmpty(), TwoInstances.TIMEOUT_SECONDS), "the server did not index at the second boot");
             return instances;
         } catch (Throwable t) {
             instances.close();
@@ -84,7 +84,7 @@ public class IncrementalBootTest {
             assertNull(firstIndexOf(instances).stage("/", "changes.bin"), "the start looked at a file that did not change since the last scan: " + firstIndexOf(instances));
             int before = instances.serverService.indexed.size();
             instances.serverService.fullScan();
-            assertTrue(TwoInstances.waitFor(() -> instances.serverService.indexed.size() > before, 60), "the full scan did not report");
+            assertTrue(TwoInstances.waitFor(() -> instances.serverService.indexed.size() > before, TwoInstances.TIMEOUT_SECONDS), "the full scan did not report");
             Snapshot full = Snapshot.of(instances.serverService.getFileSyncDatabaseManager(), instances.serverService.indexed.get(before).stageSetId());
             assertNotNull(full.stage("/", "changes.bin"), "the full scan did not find the change: " + full);
             assertNull(full.stage("/", "stays.bin"), "what did not change is not part of it: " + full);

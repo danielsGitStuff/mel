@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>
  * Only the server service is started and its listener is replaced by one that records what it gets. So nothing is committed, merged or transferred: this is only about the indexing.
  */
-@Timeout(value = 3, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+@Timeout(value = 30, unit = TimeUnit.SECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class LiveChangeIndexingTest {
     @TempDir
@@ -177,7 +177,7 @@ public class LiveChangeIndexingTest {
             server.awaitFirstIndex("first.bin");
             FileSyncInstances.writeFile(server.instances.serverRoot, "second.bin", 2_000, 2);
             // whatever the listener is given, the services pass it on to commitStage(id): there has to be a stage set behind the id
-            TwoInstances.waitFor(() -> !server.handed.isEmpty(), 40);
+            TwoInstances.waitFor(() -> !server.handed.isEmpty(), TwoInstances.TIMEOUT_SECONDS);
             assertTrue(!server.handed.isEmpty(), "the watcher's indexer did not call the listener at all");
             for (Snapshot h : server.handed)
                 assertNotNull(h.stageSet(), "the listener was given an id with no stage set behind: " + h);

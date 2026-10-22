@@ -48,7 +48,11 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @Tag("integration")
 public class AuthHandshakeTest {
-    private static final int TIMEOUT_SECONDS = 30;
+    private static final int TIMEOUT_SECONDS = TwoInstances.TIMEOUT_SECONDS;
+    /**
+     * After the server answered a partner it refused, something that went wrong anyway (a connection handed to the service) would show within this time
+     */
+    private static final int GRACE_MS = 300;
 
     @TempDir
     File tempDir;
@@ -152,9 +156,9 @@ public class AuthHandshakeTest {
         CountDownLatch connected = new CountDownLatch(1);
         client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), true)
                 .onDone(a -> connected.countDown()).onError(e -> connected.countDown());
-        assertTrue(registered.await(15, TimeUnit.SECONDS), "pairing did not complete");
+        assertTrue(registered.await(TwoInstances.TIMEOUT_SECONDS, TimeUnit.SECONDS), "pairing did not complete");
         // the connection that the client makes after the registration belongs to pairing
-        assertTrue(connected.await(15, TimeUnit.SECONDS), "the client did not connect after the registration");
+        assertTrue(connected.await(TwoInstances.TIMEOUT_SECONDS, TimeUnit.SECONDS), "the client did not connect after the registration");
         // the tests want to see what a connection attempt does, not the one that pairing left
         TwoInstances.closeNormalConnections(server, client);
         List<Certificate> trusted = client.getCertificateManager().getTrustedCertificates();
@@ -283,9 +287,11 @@ public class AuthHandshakeTest {
     public void unpairedClientCannotConnect() throws Exception {
         CountDownLatch authenticated = new CountDownLatch(1);
         // regOnUnknown = false: no pairing allowed here
+        CountDownLatch refused = new CountDownLatch(1);
         client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), false)
-                .onDone(p -> authenticated.countDown());
-        assertFalse(authenticated.await(5, TimeUnit.SECONDS), "an unpaired client got authenticated");
+                .onDone(p -> authenticated.countDown()).onError(e -> refused.countDown());
+        assertTrue(refused.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), "connecting without pairing was not refused");
+        assertEquals(1, authenticated.getCount(), "an unpaired client got authenticated");
         assertTrue(server.getCertificateManager().getTrustedCertificates().isEmpty(), "server trusts a client it was never paired with");
     }
 
@@ -295,8 +301,10 @@ public class AuthHandshakeTest {
         Certificate pairedClient = server.getCertificateManager().getTrustedCertificates().get(0);
         server.getCertificateManager().trustCertificate(pairedClient.getId().v(), false);
         CountDownLatch authenticated = new CountDownLatch(1);
-        client.connect(serverCertId).onDone(p -> authenticated.countDown());
-        assertFalse(authenticated.await(8, TimeUnit.SECONDS), "client was authenticated although the server no longer trusts it");
+        CountDownLatch refused = new CountDownLatch(1);
+        client.connect(serverCertId).onDone(p -> authenticated.countDown()).onError(e -> refused.countDown());
+        assertTrue(refused.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), "the connection was not refused");
+        assertEquals(1, authenticated.getCount(), "client was authenticated although the server no longer trusts it");
         assertFalse(server.isConnectedTo(pairedClient.getId().v()));
     }
 
@@ -341,9 +349,11 @@ public class AuthHandshakeTest {
         Long serviceId = serverServiceId();
         assertFalse(server.getDatabaseManager().isApproved(clientCertId, serviceId), "test setup: client must not have access yet");
         CountDownLatch opened = new CountDownLatch(1);
+        CountDownLatch refused = new CountDownLatch(1);
         client.connectToService(TestIsolatedProcess.class, serverCertId, serverService.getUuid(), clientService.getUuid(), null, null, null)
-                .onDone(p -> opened.countDown());
-        assertFalse(serverService.firstEstablished.await(5, TimeUnit.SECONDS), "a partner without access was handed an isolated connection to the service");
+                .onDone(p -> opened.countDown()).onError(e -> refused.countDown());
+        assertTrue(refused.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), "the isolated connection was not refused");
+        assertFalse(serverService.firstEstablished.await(GRACE_MS, TimeUnit.MILLISECONDS), "a partner without access was handed an isolated connection to the service");
         assertTrue(serverService.established.isEmpty());
         assertEquals(1, opened.getCount(), "the client believes it has an isolated connection to a service it has no access to");
     }
@@ -353,9 +363,11 @@ public class AuthHandshakeTest {
      */
     @Test
     public void isolatedConnectionWorksWithLargeCertificateIds() throws Exception {
+        // the certificates only have to be different, not their keys (a key pair takes a while to make)
+        KeyPair fillerKeys = strangersKeys();
         for (int i = 0; i < 130; i++) {
             Certificate filler = client.getCertificateManager().importCertificate(
-                    CertificateCreator.generateCertificate(strangersKeys(), "filler" + i), "filler" + i, "localhost", 1, 1);
+                    CertificateCreator.generateCertificate(fillerKeys, "filler" + i), "filler" + i, "localhost", 1, 1);
             client.getCertificateManager().trustCertificate(filler.getId().v(), false);
         }
         Long serverCertId = pair();
@@ -386,7 +398,7 @@ public class AuthHandshakeTest {
         KeyPair stranger = strangersKeys();
         SerializableEntity answer = impersonate(true, CertificateCreator.generateCertificate(stranger, "stranger"), stranger.getPrivate());
         assertNothingLeaked(answer);
-        assertFalse(serverService.firstEstablished.await(2, TimeUnit.SECONDS), "an impostor was handed an isolated connection to a service");
+        assertFalse(serverService.firstEstablished.await(GRACE_MS, TimeUnit.MILLISECONDS), "an impostor was handed an isolated connection to a service");
         assertTrue(serverService.established.isEmpty());
     }
 
@@ -395,7 +407,7 @@ public class AuthHandshakeTest {
         pair();
         SerializableEntity answer = impersonate(true, null, null);
         assertNothingLeaked(answer);
-        assertFalse(serverService.firstEstablished.await(2, TimeUnit.SECONDS), "a client without certificate was handed an isolated connection to a service");
+        assertFalse(serverService.firstEstablished.await(GRACE_MS, TimeUnit.MILLISECONDS), "a client without certificate was handed an isolated connection to a service");
     }
 
     @Test

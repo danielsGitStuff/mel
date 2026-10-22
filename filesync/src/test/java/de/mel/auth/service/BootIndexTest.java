@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *     <li>only what changed is in the set. If nothing changed there is no stage set to commit</li>
  * </ul>
  */
-@Timeout(value = 3, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+@Timeout(value = 30, unit = TimeUnit.SECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class BootIndexTest {
     @TempDir
@@ -65,7 +65,7 @@ public class BootIndexTest {
         FileSyncInstances.writeFile(serverRoot(), "other/deeper/deepest.bin", 24_000, 5);
         try (FileSyncInstances instances = new FileSyncInstances(dir, port)) {
             instances.createServer();
-            assertTrue(TwoInstances.waitFor(() -> !instances.serverService.indexed.isEmpty(), 60), "the server did not index at first boot");
+            assertTrue(TwoInstances.waitFor(() -> !instances.serverService.indexed.isEmpty(), TwoInstances.TIMEOUT_SECONDS), "the server did not index at first boot");
             FileSyncInstances.RecordingServerService.holdBackCommit = true;
             instances.restartServer(() -> {
                 try {
@@ -74,7 +74,7 @@ public class BootIndexTest {
                     throw new RuntimeException(e);
                 }
             });
-            assertTrue(TwoInstances.waitFor(() -> !instances.serverService.indexed.isEmpty(), 60), "the server did not index at the second boot");
+            assertTrue(TwoInstances.waitFor(() -> !instances.serverService.indexed.isEmpty(), TwoInstances.TIMEOUT_SECONDS), "the server did not index at the second boot");
             Snapshot snapshot = instances.serverService.indexed.get(0);
             assertEquals(1, instances.serverService.indexed.size(), "the index reported more than once " + instances.serverService.indexed);
             snapshot = Snapshot.of(instances.serverService.getFileSyncDatabaseManager(), snapshot.stageSetId());

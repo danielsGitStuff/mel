@@ -34,9 +34,13 @@ import static org.junit.jupiter.api.Assertions.*;
 @Tag("integration")
 public class BootFailureTest {
     /**
-     * long enough for a healthy boot (a few hundred milliseconds), short enough to keep the tests fast
+     * how long a boot that should settle may take (a healthy one takes a few hundred milliseconds)
      */
-    private static final int WAIT_FOR_BOOT_MILLIS = 6000;
+    private static final int WAIT_FOR_BOOT_MILLIS = TwoInstances.TIMEOUT_SECONDS * 1000;
+    /**
+     * how long a boot that must not settle is watched: several times a healthy boot, also a cold one
+     */
+    private static final int NEVER_SETTLES_MILLIS = 2000;
     private static final AtomicInteger nextPortBase = new AtomicInteger(21000);
 
     @TempDir
@@ -58,7 +62,7 @@ public class BootFailureTest {
         if (directService != null) {
             CountDownLatch latch = new CountDownLatch(1);
             directService.shutDown().onDone(r -> latch.countDown()).onError(r -> latch.countDown());
-            latch.await(30, TimeUnit.SECONDS);
+            latch.await(TwoInstances.TIMEOUT_SECONDS, TimeUnit.SECONDS);
         }
         if (melBoot != null) {
             // the instance never reached the caller of boot(), so get it from where MelBoot keeps it
@@ -68,7 +72,7 @@ public class BootFailureTest {
             if (service != null) {
                 CountDownLatch latch = new CountDownLatch(1);
                 service.shutDown().onDone(r -> latch.countDown()).onError(r -> latch.countDown());
-                latch.await(30, TimeUnit.SECONDS);
+                latch.await(TwoInstances.TIMEOUT_SECONDS, TimeUnit.SECONDS);
             }
         }
     }
@@ -117,7 +121,7 @@ public class BootFailureTest {
         Outcome outcome = boot(base, base + 1, base + 4, base + 5);
 
         // the socket opener only logs that it failed, it neither resolves nor rejects its start
-        assertFalse(outcome.settled.await(WAIT_FOR_BOOT_MILLIS, TimeUnit.MILLISECONDS),
+        assertFalse(outcome.settled.await(NEVER_SETTLES_MILLIS, TimeUnit.MILLISECONDS),
                 "boot settled although the port was taken: booted=" + outcome.booted.get() + " failure=" + outcome.failure.get());
     }
 
@@ -128,7 +132,7 @@ public class BootFailureTest {
         // but MelBoot only listens for success
         Outcome outcome = boot(base, base + 1, 70000, base + 5);
 
-        assertFalse(outcome.settled.await(WAIT_FOR_BOOT_MILLIS, TimeUnit.MILLISECONDS),
+        assertFalse(outcome.settled.await(NEVER_SETTLES_MILLIS, TimeUnit.MILLISECONDS),
                 "boot settled although the brotcaster could not start: booted=" + outcome.booted.get() + " failure=" + outcome.failure.get());
     }
 
@@ -177,7 +181,7 @@ public class BootFailureTest {
         });
         directService.start();
 
-        assertTrue(done.await(WAIT_FOR_BOOT_MILLIS * 5L, TimeUnit.MILLISECONDS), "start never settled");
+        assertTrue(done.await(WAIT_FOR_BOOT_MILLIS, TimeUnit.MILLISECONDS), "start never settled");
         assertFalse(rejected.get(), "start was rejected");
         assertTrue(started.hasResult());
         assertEquals(1, service.told.get());

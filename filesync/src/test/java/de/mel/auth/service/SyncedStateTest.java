@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * That is how the indexer tells a file that changed from one that did not. If the sync leaves the fs table in a different state than the disk, the next index
  * sees the sync's own writes as changes of the user, commits them with an old version and starts a merge nobody asked for.
  */
-@Timeout(value = 3, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+@Timeout(value = 30, unit = TimeUnit.SECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class SyncedStateTest {
     @TempDir
@@ -85,7 +85,7 @@ public class SyncedStateTest {
         try (FileSyncInstances instances = new FileSyncInstances(dir, 24500)) {
             instances.createServer();
             instances.createClient();
-            assertTrue(TwoInstances.waitFor(() -> synced(instances), 60), "the client did not get the files");
+            assertTrue(TwoInstances.waitFor(() -> synced(instances), TwoInstances.TIMEOUT_SECONDS), "the client did not get the files");
             FileSyncDatabaseManager database = instances.clientService.getFileSyncDatabaseManager();
             // the transfer is done when the files are there, the bookkeeping of it a bit later
             List<String> differences = new ArrayList<>();
@@ -109,7 +109,7 @@ public class SyncedStateTest {
         try (FileSyncInstances instances = new FileSyncInstances(dir, 24510)) {
             instances.createServer();
             instances.createClient();
-            assertTrue(TwoInstances.waitFor(() -> synced(instances), 60), "the client did not get the files");
+            assertTrue(TwoInstances.waitFor(() -> synced(instances), TwoInstances.TIMEOUT_SECONDS), "the client did not get the files");
             FileSyncDatabaseManager database = instances.serverService.getFileSyncDatabaseManager();
             List<String> differences = differences(instances.serverRoot, database);
             assertTrue(differences.isEmpty(), "the fs table of the server differs from its disk: " + differences);
@@ -126,7 +126,7 @@ public class SyncedStateTest {
         try (FileSyncInstances instances = new FileSyncInstances(dir, 24530)) {
             instances.createServer();
             instances.createClient();
-            assertTrue(TwoInstances.waitFor(() -> synced(instances), 60), "the client did not get the files");
+            assertTrue(TwoInstances.waitFor(() -> synced(instances), TwoInstances.TIMEOUT_SECONDS), "the client did not get the files");
             FileSyncDatabaseManager database = instances.clientService.getFileSyncDatabaseManager();
             List<String> looksChanged = new ArrayList<>();
             boolean same = TwoInstances.waitFor(() -> {
@@ -163,7 +163,7 @@ public class SyncedStateTest {
         try (FileSyncInstances instances = new FileSyncInstances(dir, 24540)) {
             instances.createServer();
             instances.createClient();
-            assertTrue(TwoInstances.waitFor(() -> synced(instances), 60), "the client did not get the files");
+            assertTrue(TwoInstances.waitFor(() -> synced(instances), TwoInstances.TIMEOUT_SECONDS), "the client did not get the files");
             FileSyncDatabaseManager database = instances.clientService.getFileSyncDatabaseManager();
             List<String> wrong = new ArrayList<>();
             boolean ok = TwoInstances.waitFor(() -> {
@@ -193,7 +193,7 @@ public class SyncedStateTest {
         try (FileSyncInstances instances = new FileSyncInstances(dir, 24550)) {
             instances.createServer();
             instances.createClient();
-            assertTrue(TwoInstances.waitFor(() -> synced(instances), 60), "the client did not get the files");
+            assertTrue(TwoInstances.waitFor(() -> synced(instances), TwoInstances.TIMEOUT_SECONDS), "the client did not get the files");
             instances.restartClient(() -> {
                 try {
                     FileSyncInstances.writeFile(instances.clientRoot, "from the client.bin", 9_000, 42);
@@ -203,8 +203,8 @@ public class SyncedStateTest {
                 }
             });
             File onServer = new File(instances.serverRoot, "from the client.bin");
-            assertTrue(TwoInstances.waitFor(() -> synced(instances), 60), "the server did not get the file");
-            assertTrue(TwoInstances.waitFor(() -> onServer.lastModified() == old, 20), "the file has the time " + onServer.lastModified() + " on the server instead of " + old);
+            assertTrue(TwoInstances.waitFor(() -> synced(instances), TwoInstances.TIMEOUT_SECONDS), "the server did not get the file");
+            assertTrue(TwoInstances.waitFor(() -> onServer.lastModified() == old, TwoInstances.TIMEOUT_SECONDS), "the file has the time " + onServer.lastModified() + " on the server instead of " + old);
         }
     }
 
@@ -223,10 +223,10 @@ public class SyncedStateTest {
         try (FileSyncInstances instances = new FileSyncInstances(dir, 24560)) {
             instances.createServer();
             instances.createClient();
-            assertTrue(TwoInstances.waitFor(() -> synced(instances), 60), "the client did not get the files");
+            assertTrue(TwoInstances.waitFor(() -> synced(instances), TwoInstances.TIMEOUT_SECONDS), "the client did not get the files");
             File one = new File(instances.clientRoot, "a/one.bin");
             File two = new File(instances.clientRoot, "b/two.bin");
-            assertTrue(TwoInstances.waitFor(() -> one.lastModified() == first && two.lastModified() == second, 30),
+            assertTrue(TwoInstances.waitFor(() -> one.lastModified() == first && two.lastModified() == second, TwoInstances.TIMEOUT_SECONDS),
                     "one " + one.lastModified() + " (should be " + first + "), two " + two.lastModified() + " (should be " + second + ")");
         }
     }
@@ -237,11 +237,11 @@ public class SyncedStateTest {
         try (FileSyncInstances instances = new FileSyncInstances(dir, 24520)) {
             instances.createServer();
             instances.createClient();
-            assertTrue(TwoInstances.waitFor(() -> synced(instances), 60), "the client did not get the files");
+            assertTrue(TwoInstances.waitFor(() -> synced(instances), TwoInstances.TIMEOUT_SECONDS), "the client did not get the files");
             FileSyncDatabaseManager database = instances.clientService.getFileSyncDatabaseManager();
             long serverVersion = instances.serverService.getFileSyncDatabaseManager().getLatestVersion();
-            // time for the watcher of the client to see the writes of the sync and to do whatever it does with them
-            Thread.sleep(15_000);
+            // time for the watcher of the client to see the writes of the sync and to do whatever it does with them: several quiet periods, and indexing
+            Thread.sleep(FileSyncInstances.QUIET_MS * 5 + 500);
             StageSet leftover = null;
             for (long id = 1; id < 30 && leftover == null; id++) {
                 StageSet stageSet = database.getStageDao().getStageSetById(id);

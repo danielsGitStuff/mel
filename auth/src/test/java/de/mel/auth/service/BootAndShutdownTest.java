@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @Tag("integration")
 public class BootAndShutdownTest {
-    private static final int TIMEOUT_SECONDS = 30;
+    private static final int TIMEOUT_SECONDS = TwoInstances.TIMEOUT_SECONDS;
     private static final AtomicInteger nextPortBase = new AtomicInteger(20000);
 
     /**

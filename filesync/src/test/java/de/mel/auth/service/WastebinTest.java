@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * <p>
  * The tests work on the bin of a synced client that is stopped then, so its own sync does not get in the way.
  */
-@Timeout(value = 1, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+@Timeout(value = 30, unit = TimeUnit.SECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class WastebinTest {
     @TempDir
@@ -46,7 +46,7 @@ public class WastebinTest {
         try {
             instances.createServer();
             instances.createClient();
-            assertTrue(TwoInstances.waitFor(() -> ConflictSyncTest.equal(instances) && synced("same.bin") && synced("other.bin"), 30), "the first sync did not finish");
+            assertTrue(TwoInstances.waitFor(() -> ConflictSyncTest.equal(instances) && synced("same.bin") && synced("other.bin"), TwoInstances.TIMEOUT_SECONDS), "the first sync did not finish");
             instances.clientService.stop();
             file = new File(instances.clientRoot, "same.bin");
             md5 = FileSyncInstances.md5Of(file);

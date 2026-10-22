@@ -39,7 +39,11 @@ import static org.junit.jupiter.api.Assertions.*;
  * "server" and "client" only say who pairs with whom, both can open connections to the other.
  */
 public class TwoInstances implements AutoCloseable {
-    static final int TIMEOUT_SECONDS = 30;
+    /**
+     * How long a test waits for something that should happen. A cold run (the first after a compile) boots two instances, pairs and syncs in 1 to 3 s,
+     * the slowest single step that passes takes about 7 s: this is generous for that, and a failure shows within seconds instead of minutes.
+     */
+    static final int TIMEOUT_SECONDS = 10;
 
     /**
      * accepts everyone at once, so pairing needs no user
@@ -192,10 +196,9 @@ public class TwoInstances implements AutoCloseable {
         // the connect promise is settled when the whole job is over: after a registration the client also connects, and that connection is part of pairing
         client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), true)
                 .onDone(a -> connected.countDown()).onError(e -> connected.countDown());
-        if (!registered.await(10, TimeUnit.SECONDS))
-            return false;
-        assertTrue(connected.await(10, TimeUnit.SECONDS), "the client did not connect after the registration");
-        return true;
+        // settled also when the registration was rejected or timed out: no need to wait for a registration that does not come
+        assertTrue(connected.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), "pairing never came to an end");
+        return registered.getCount() == 0;
     }
 
     /**

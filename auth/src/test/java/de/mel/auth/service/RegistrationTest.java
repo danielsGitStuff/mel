@@ -38,8 +38,12 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @Tag("integration")
 public class RegistrationTest {
-    private static final int TIMEOUT_SECONDS = 30;
+    private static final int TIMEOUT_SECONDS = TwoInstances.TIMEOUT_SECONDS;
     private static final int USER_THINKING_MILLIS = 300;
+    /**
+     * a user who decides when the other side has long decided (that takes a few milliseconds over loopback)
+     */
+    private static final int LATE_USER_MILLIS = 1000;
     private static final AtomicInteger nextPortBase = new AtomicInteger(19000);
 
     /**
@@ -49,6 +53,10 @@ public class RegistrationTest {
      */
     private static class RecordingHandler implements IRegisterHandler {
         final List<String> events = new CopyOnWriteArrayList<>();
+        /**
+         * the user has decided (and the decision was handed on)
+         */
+        final java.util.concurrent.CountDownLatch decided = new java.util.concurrent.CountDownLatch(1);
         /**
          * events whose certificate was null: the user cannot be told who it is about
          */
@@ -91,6 +99,7 @@ public class RegistrationTest {
                     listener.onCertificateAccepted(request, certificate);
                 else
                     listener.onCertificateRejected(request, certificate);
+                decided.countDown();
                 return;
             }
             Thread user = new Thread(() -> {
@@ -103,6 +112,7 @@ public class RegistrationTest {
                     listener.onCertificateAccepted(request, certificate);
                 else
                     listener.onCertificateRejected(request, certificate);
+                decided.countDown();
             });
             user.setDaemon(true);
             user.start();
@@ -208,7 +218,7 @@ public class RegistrationTest {
         RecordingHandler asked = serverUser;
         int eventsBefore = asked.events.size();
         client.connect("localhost", server.getSettings().getPort(), server.getSettings().getDeliveryPort(), true);
-        assertTrue(waitFor(() -> asked.events.size() > eventsBefore, 15), "pairing did not even start");
+        assertTrue(waitFor(() -> asked.events.size() > eventsBefore, TwoInstances.TIMEOUT_SECONDS), "pairing did not even start");
     }
 
     private static boolean waitFor(BooleanSupplier condition) throws InterruptedException {
@@ -226,10 +236,10 @@ public class RegistrationTest {
     }
 
     /**
-     * Absence cannot be waited for. Give a (wrong) late event the chance to show up.
+     * Absence cannot be waited for. Give a (wrong) late event the chance to show up: the two talk over loopback, a late event takes milliseconds.
      */
     private static void settle() throws InterruptedException {
-        Thread.sleep(1500);
+        Thread.sleep(500);
     }
 
     private static boolean trustsSomebody(MelAuthService service) {
@@ -426,12 +436,13 @@ public class RegistrationTest {
      */
     @Test
     public void serverTrustsNobodyWhoRejectedBeforeItsUserAccepted() throws Exception {
-        startInstances(new RecordingHandler(true, false, 2500), new RecordingHandler(false, true));
+        startInstances(new RecordingHandler(true, false, LATE_USER_MILLIS), new RecordingHandler(false, true));
         startPairing();
         assertTrue(waitFor(() -> clientUser.events.contains("onLocallyRejected")), clientUser.events.toString());
         assertTrue(waitFor(() -> serverUser.events.contains("onRemoteRejected")), "the server never heard about the rejection: " + serverUser.events);
         // the server's user finally accepts, too late
-        Thread.sleep(3500);
+        assertTrue(serverUser.decided.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), "the server's user never decided");
+        settle();
 
         assertNoTrustedPartner(server, "server (events: " + serverUser.events + ")");
         assertTrue(serverRegistered.isEmpty(), "the server reported a registration that was rejected: " + serverRegistered);
@@ -444,7 +455,7 @@ public class RegistrationTest {
      */
     @Test
     public void serverTrustsNobodyWhoRejectedAfterItsUserAccepted() throws Exception {
-        startInstances(new RecordingHandler(true, false, 100), new RecordingHandler(false, false, 2500));
+        startInstances(new RecordingHandler(true, false, 100), new RecordingHandler(false, false, LATE_USER_MILLIS));
         startPairing();
         assertTrue(waitFor(() -> clientUser.events.contains("onLocallyRejected")), clientUser.events.toString());
         assertTrue(waitFor(() -> serverUser.events.contains("onRemoteRejected")), "the server never heard about the rejection: " + serverUser.events);

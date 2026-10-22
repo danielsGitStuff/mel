@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * One side deletes what the other side changes while they are apart. The user decides which one counts.
  * Whoever loses gives up its version: it must be in the bin of that side then ("nothing the sync removes or overwrites disappears without a bin entry").
  */
-@Timeout(value = 1, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+@Timeout(value = 30, unit = TimeUnit.SECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class ConflictDeleteTest {
     @TempDir
@@ -36,7 +36,7 @@ public class ConflictDeleteTest {
         try {
             instances.createServer();
             instances.createClient();
-            assertTrue(TwoInstances.waitFor(() -> ConflictSyncTest.equal(instances), 30), "the first sync did not finish");
+            assertTrue(TwoInstances.waitFor(() -> ConflictSyncTest.equal(instances), TwoInstances.TIMEOUT_SECONDS), "the first sync did not finish");
             return instances;
         } catch (Throwable t) {
             instances.close();
@@ -160,7 +160,7 @@ public class ConflictDeleteTest {
         try (FileSyncInstances instances = synced(24740)) {
             ConflictSyncTest.bothChange(instances, root -> assertTrue(new File(root, "same.bin").delete()), () -> serverEntryGone(instances, "/", "same.bin"),
                     root -> assertTrue(new File(root, "same.bin").delete()));
-            assertTrue(TwoInstances.waitFor(() -> ConflictSyncTest.equal(instances), 15));
+            assertTrue(TwoInstances.waitFor(() -> ConflictSyncTest.equal(instances), TwoInstances.TIMEOUT_SECONDS));
             assertFalse(exists(instances.serverRoot, "same.bin"));
             assertFalse(exists(instances.clientRoot, "same.bin"));
             assertTrue(instances.clientService.getConflictSolverMap().isEmpty(), "both wanted it gone: nothing to ask");

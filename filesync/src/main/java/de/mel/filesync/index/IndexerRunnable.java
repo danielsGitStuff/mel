@@ -46,8 +46,9 @@ public class IndexerRunnable extends AbstractIndexer {
 
     /**
      * Said to `find` when it looks for what changed. More than the rounding of any file system.
+     * The app keeps the default; tests make it short (their files are written while the service is down). Read at each start.
      */
-    static final long MARGIN_MS = 2000;
+    public static volatile long marginMs = 2000;
 
     /**
      * @return the time to look for changes since, null if every file has to be looked at: the setting says so, it was requested, there was no run before, the clock
@@ -58,7 +59,7 @@ public class IndexerRunnable extends AbstractIndexer {
         Long last = settings.getLastScanTime();
         if (fullScanRequested || !settings.getFastBoot() || last == null || last > now || !BashTools.Companion.canFindByTime())
             return null;
-        return last - MARGIN_MS;
+        return last - marginMs;
     }
 
 

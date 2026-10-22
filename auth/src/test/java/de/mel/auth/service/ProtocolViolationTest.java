@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Nothing is dropped silently, nothing waits for something that will never come.
  * Once connections are closed with a reason, these tests check the reason, too.
  */
-@Timeout(value = 3, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+@Timeout(value = 30, unit = TimeUnit.SECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class ProtocolViolationTest {
     private static final AtomicInteger nextPortBase = new AtomicInteger(24000);

@@ -401,3 +401,15 @@ Found and fixed:
 - The branch "a bin entry with this inode exists but the file changed: do not bin" is gone; it left the file in place and deleted its fs entry anyway.
 
 `ConflictSyncTest` passed 6 of 6 cold cycles afterwards (before: 3 of 6 failed, twice). The race itself is still there (duplicate sends, parallel pulls); it no longer loses the file. The plan for the race: `SYNC_SESSION_PLAN.md`.
+
+## Shorter waits in the integration tests
+
+The two integration suites (`:filesync:integrationTest`, `:auth:integrationTest`) took 7 min 44 s; now 5 min 14 s, with the same tests. Measured first: a cold run boots two instances, pairs and syncs in 1 to 3 s, the slowest single step that passes takes about 7 s. The tests run one after the other, so the wall time is the sum of the tests.
+
+- **Waiting for something that should happen**: 10 s (`TwoInstances.TIMEOUT_SECONDS`, was 30, and literal 15 to 60 s), big transfers 20 s (were 60 and 90). `@Timeout` 30 s per test, 60 s for the transfer classes (were 1 to 5 min). A failure shows within seconds instead of minutes.
+- **No idle wait where there is an event**: refused connections and isolated connections wait for the promise to fail (were `assertFalse(await(5 to 8 s))`); `TwoInstances.pairAgain` returns when connecting settled (it waited 10 s for a registration that a rejection never brings); the late user in `RegistrationTest` is waited for (`RecordingHandler.decided`, was a 3.5 s sleep).
+- **"Nothing happens" checks** are sized by what they watch: 500 ms after a settled pairing or close over loopback (were 1 to 1.5 s), 2 s for a boot that must not settle (a healthy one takes a few hundred ms, was 6 s), 300 ms after the server answered a refused partner.
+- **Setup**: one key pair for the 130 filler certificates of `isolatedConnectionWorksWithLargeCertificateIds` (25 s to 7 s).
+- **Production timers, settable for tests, defaults unchanged** (author's decision): `FileWatcher.quietRepetitions/quietPeriodMs` (quiet time before indexing, about 3 s), `HashAvailTimer.quietRepetitions/quietPeriodMs` (about 10 s before the server tells about available files), `IndexerRunnable.marginMs` (2 s the start looks back). `FileSyncInstances` sets 300 ms, 300 ms and 200 ms; `SyncedStateTest` waits a few quiet periods (was 15 s), `IncrementalBootTest` margin plus rounding (was 3.5 s).
+
+What is left is structural: every test boots two instances (1 to 2 s). Faster would be running test classes in parallel (each uses its own ports and directories) or sharing instances within a class.

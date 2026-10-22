@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Closing a connection is an event in the queue of the socket: it happens once, after what was received before, and whoever waits
  * for an answer is told at once.
  */
-@Timeout(value = 3, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+@Timeout(value = 30, unit = TimeUnit.SECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class CloseEventTest {
     private TwoInstances instances;
@@ -76,7 +76,7 @@ public class CloseEventTest {
         long start = System.nanoTime();
         for (MelAuthSocket socket : openNormalConnections(server, client))
             socket.close(CloseReason.SHUTDOWN);
-        assertTrue(failed.await(10, TimeUnit.SECONDS), "the request was not failed after the partner closed");
+        assertTrue(failed.await(TwoInstances.TIMEOUT_SECONDS, TimeUnit.SECONDS), "the request was not failed after the partner closed");
         long millis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
         assertTrue(millis < 10_000, "took " + millis + " ms");
         assertNotNull(failure.get());
@@ -92,7 +92,7 @@ public class CloseEventTest {
         CountDownLatch failed = new CountDownLatch(1);
         request.onError(e -> failed.countDown());
         process.getMelAuthSocket().close(CloseReason.SHUTDOWN);
-        assertTrue(failed.await(10, TimeUnit.SECONDS), "the request was not failed after we closed");
+        assertTrue(failed.await(TwoInstances.TIMEOUT_SECONDS, TimeUnit.SECONDS), "the request was not failed after we closed");
     }
 
     @Test
@@ -115,8 +115,8 @@ public class CloseEventTest {
         // the server hangs up
         serverService.established.get(0).stop();
         assertTrue(waitFor(() -> clientService.closedCalls.get() > 0 && serverService.closedCalls.get() > 0, 10), "close was not reported on both sides");
-        // anything reported twice would show up shortly after
-        Thread.sleep(1000);
+        // anything reported twice would show up shortly after (milliseconds over loopback)
+        Thread.sleep(500);
         assertEquals(1, serverService.closedCalls.get(), "server side: onIsolatedConnectionClosed");
         assertEquals(1, clientService.closedCalls.get(), "client side: onIsolatedConnectionClosed");
     }

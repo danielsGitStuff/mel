@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Both sides change the same thing while they are apart: the client finds out when it syncs and asks (here: the test, usually the user) which side wins.
  * Whatever is decided, both directories must be the same afterwards and nothing may be lost that was not decided against.
  */
-@Timeout(value = 1, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+@Timeout(value = 30, unit = TimeUnit.SECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class ConflictSyncTest {
     @TempDir
@@ -37,7 +37,7 @@ public class ConflictSyncTest {
         try {
             instances.createServer();
             instances.createClient();
-            assertTrue(TwoInstances.waitFor(() -> equal(instances), 30), "the first sync did not finish");
+            assertTrue(TwoInstances.waitFor(() -> equal(instances), TwoInstances.TIMEOUT_SECONDS), "the first sync did not finish");
             return instances;
         } catch (Throwable t) {
             instances.close();
@@ -94,7 +94,7 @@ public class ConflictSyncTest {
     static void bothChange(FileSyncInstances instances, Consumer<File> onServer, java.util.function.BooleanSupplier serverIndexed, Consumer<File> onClient) throws Exception {
         instances.restartServer(() -> onServer.accept(instances.serverRoot));
         // the server's boot index finds the change a bit after the service is up. The client must not commit before the server has it, else there is nothing to collide
-        assertTrue(TwoInstances.waitFor(serverIndexed, 30), "the server did not index its change");
+        assertTrue(TwoInstances.waitFor(serverIndexed, TwoInstances.TIMEOUT_SECONDS), "the server did not index its change");
         instances.restartClient(() -> onClient.accept(instances.clientRoot));
     }
 
@@ -194,11 +194,11 @@ public class ConflictSyncTest {
     public void differentFilesChangedOnBothSidesAreMerged() throws Exception {
         try (FileSyncInstances instances = synced(24620)) {
             bothChange(instances, root -> write(root, "same.bin", 21_000, 11), root -> write(root, "dir/other.bin", 31_000, 12));
-            assertTrue(TwoInstances.waitFor(() -> equal(instances), 15), "the changes did not meet. server: " + sizes(instances.serverRoot) + " client: " + sizes(instances.clientRoot));
+            assertTrue(TwoInstances.waitFor(() -> equal(instances), TwoInstances.TIMEOUT_SECONDS), "the changes did not meet. server: " + sizes(instances.serverRoot) + " client: " + sizes(instances.clientRoot));
             assertEquals(21_000, new File(instances.clientRoot, "same.bin").length());
             assertEquals(31_000, new File(instances.serverRoot, "dir/other.bin").length());
             assertTrue(instances.clientService.getConflictSolverMap().isEmpty(), "different files are no conflict");
-            assertTrue(TwoInstances.waitFor(() -> nothingLeftToMerge(instances), 15), "the client keeps stage sets it has merged already");
+            assertTrue(TwoInstances.waitFor(() -> nothingLeftToMerge(instances), TwoInstances.TIMEOUT_SECONDS), "the client keeps stage sets it has merged already");
         }
     }
 
@@ -281,9 +281,9 @@ public class ConflictSyncTest {
             String first = answerOnce(instances, false);
             // the server has news before anybody told the client to go on
             write(instances.serverRoot, "later.bin", 7_000, 31);
-            assertTrue(TwoInstances.waitFor(() -> equal(instances) && fileHas(instances, "same.bin", 21_000) && fileHas(instances, "later.bin", 7_000), 30),
+            assertTrue(TwoInstances.waitFor(() -> equal(instances) && fileHas(instances, "same.bin", 21_000) && fileHas(instances, "later.bin", 7_000), TwoInstances.TIMEOUT_SECONDS),
                     "the answer was lost. server: " + hashes(instances.serverRoot) + " client: " + hashes(instances.clientRoot));
-            assertTrue(TwoInstances.waitFor(() -> instances.clientService.getConflictSolverMap().isEmpty(), 15), "the solver of " + first + " stays");
+            assertTrue(TwoInstances.waitFor(() -> instances.clientService.getConflictSolverMap().isEmpty(), TwoInstances.TIMEOUT_SECONDS), "the solver of " + first + " stays");
         }
     }
 
@@ -294,7 +294,7 @@ public class ConflictSyncTest {
             bothChange(instances, root -> write(root, "same.bin", 21_000, 11), root -> write(root, "same.bin", 22_000, 12));
             answerOnce(instances, true);
             write(instances.clientRoot, "later.bin", 7_000, 31);
-            assertTrue(TwoInstances.waitFor(() -> equal(instances) && fileHas(instances, "same.bin", 22_000) && fileHas(instances, "later.bin", 7_000), 30),
+            assertTrue(TwoInstances.waitFor(() -> equal(instances) && fileHas(instances, "same.bin", 22_000) && fileHas(instances, "later.bin", 7_000), TwoInstances.TIMEOUT_SECONDS),
                     "the answer was lost. server: " + hashes(instances.serverRoot) + " client: " + hashes(instances.clientRoot));
         }
     }

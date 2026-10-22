@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Several threads send on the same connection at once. Every message has to arrive whole, however long it is.
  */
-@Timeout(value = 3, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+@Timeout(value = 30, unit = TimeUnit.SECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class ConcurrentSendTest {
     private static final AtomicInteger nextPortBase = new AtomicInteger(22000);
@@ -154,7 +154,7 @@ public class ConcurrentSendTest {
         assertNull(failure.get(), "sending failed");
 
         int expected = threads * perThread;
-        boolean all = waitFor(() -> receiver.received.size() >= expected, 20);
+        boolean all = waitFor(() -> receiver.received.size() >= expected, TwoInstances.TIMEOUT_SECONDS);
         assertTrue(all, "only " + receiver.received.size() + " of " + expected + " messages arrived");
         assertEquals(sent, new HashSet<>(receiver.received), "messages arrived changed");
     }

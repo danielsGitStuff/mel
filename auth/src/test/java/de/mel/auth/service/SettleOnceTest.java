@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * A promise is settled once. Settling a settled one throws, and most of the code that does so is inside a callback that logs and carries on,
  * so a double settle shows up only as a stack trace on stderr. This runs the flows that settle jobs and looks for such traces.
  */
-@Timeout(value = 3, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+@Timeout(value = 30, unit = TimeUnit.SECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class SettleOnceTest {
     @TempDir
@@ -71,7 +71,7 @@ public class SettleOnceTest {
             instances.client.setConnectTimeoutMs(500);
             CountDownLatch nowhere = new CountDownLatch(1);
             instances.client.connect("10.255.255.1", 18999, 18998, false).onDone(a -> nowhere.countDown()).onError(e -> nowhere.countDown());
-            assertTrue(nowhere.await(15, TimeUnit.SECONDS));
+            assertTrue(nowhere.await(TwoInstances.TIMEOUT_SECONDS, TimeUnit.SECONDS));
             // a connection that is cut while it is being made
             closeNormalConnections(instances.server, instances.client);
             CountDownLatch cut = new CountDownLatch(1);

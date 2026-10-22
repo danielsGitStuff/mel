@@ -49,6 +49,25 @@ public class FileSyncInstances implements AutoCloseable {
     static final int TIMEOUT_SECONDS = TwoInstances.TIMEOUT_SECONDS;
 
     /**
+     * The watcher indexes after this long without a change, the server tells the clients about files that became available after this long without a new one
+     * (the app: about 3 s and 10 s, see {@link de.mel.filesync.index.watchdog.FileWatcher#quietRepetitions}). A check that "nothing happens" waits a few of these.
+     */
+    static final int QUIET_MS = 300;
+
+    /**
+     * how far a start looks back before the last scan for changes (the app: 2 s)
+     */
+    static final long SCAN_MARGIN_MS = 200;
+
+    static {
+        de.mel.filesync.index.IndexerRunnable.marginMs = SCAN_MARGIN_MS;
+        de.mel.filesync.index.watchdog.FileWatcher.quietRepetitions = 2;
+        de.mel.filesync.index.watchdog.FileWatcher.quietPeriodMs = 100;
+        de.mel.filesync.service.sync.HashAvailTimer.quietRepetitions = 2;
+        de.mel.filesync.service.sync.HashAvailTimer.quietPeriodMs = 100;
+    }
+
+    /**
      * What a server service was asked for.
      */
     public record Request(String hash, long start, long end) {

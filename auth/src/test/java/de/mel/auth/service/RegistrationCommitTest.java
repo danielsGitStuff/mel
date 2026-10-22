@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * When a registration is persisted and what it does to an entry that exists already.
  * See SOCKET_PROCESS_REWORK.md: the mutual confirmation is the commit; a known partner may register again.
  */
-@Timeout(value = 3, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+@Timeout(value = 30, unit = TimeUnit.SECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class RegistrationCommitTest {
     private static final AtomicInteger nextPortBase = new AtomicInteger(25000);
@@ -84,7 +84,8 @@ public class RegistrationCommitTest {
 
         serverUser.accept = false;
         assertFalse(instances.pairAgain(), "the client completed a registration the server's user rejected");
-        Thread.sleep(1500);
+        // pairing is over (pairAgain waited for it); a late, wrong change would show within milliseconds over loopback
+        Thread.sleep(500);
         assertFalse(trusts(client, server), "the client trusts a server that rejected it");
         List<Certificate> entries = entriesOf(client, server);
         assertEquals(1, entries.size(), "the server should still have exactly one entry for the client");

@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Connecting must not hang on partners that do not answer, and one bad client must not stop the others.
  */
-@Timeout(value = 3, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+@Timeout(value = 30, unit = TimeUnit.SECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class ConnectingTest {
     @TempDir
@@ -68,7 +68,7 @@ public class ConnectingTest {
             failure.set(e);
             finished.countDown();
         });
-        assertTrue(finished.await(15, TimeUnit.SECONDS), "connecting to an address that does not answer never came to an end");
+        assertTrue(finished.await(TwoInstances.TIMEOUT_SECONDS, TimeUnit.SECONDS), "connecting to an address that does not answer never came to an end");
         assertNotNull(failure.get());
         assertTrue(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) < 12_000);
     }

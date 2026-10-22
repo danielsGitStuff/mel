@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Files travel over isolated connections as records in block frames. Nothing else tests this in the build.
  */
-@Timeout(value = 3, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+@Timeout(value = 60, unit = TimeUnit.SECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class FileTransferTest {
     @TempDir
@@ -101,7 +101,7 @@ public class FileTransferTest {
         FileTransferDetail sending = new FileTransferDetail(sourceFile, streamId, 0, content.length).setHash("hash" + streamId);
         sending.openRead();
         sender.sendFile(sending);
-        assertTrue(waitFor(done::get, 60), "file of " + content.length + " bytes did not arrive");
+        assertTrue(waitFor(done::get, 20), "file of " + content.length + " bytes did not arrive");
         assertArrayEquals(content, Files.readAllBytes(target.toPath()), "file of " + content.length + " bytes arrived changed");
     }
 
@@ -179,7 +179,7 @@ public class FileTransferTest {
     }
 
     private static void assertAllArrived(List<Transfer> transfers) throws Exception {
-        assertTrue(waitFor(() -> transfers.stream().allMatch(Transfer::over), 90),
+        assertTrue(waitFor(() -> transfers.stream().allMatch(Transfer::over), 20),
                 transfers.stream().filter(t -> !t.over()).count() + " of " + transfers.size() + " files did not arrive");
         for (Transfer transfer : transfers) {
             assertFalse(transfer.failed.get(), "stream " + transfer.streamId + " failed");
@@ -280,7 +280,7 @@ public class FileTransferTest {
         sending.openRead();
         long before = clientSide.getSentFileBytes();
         clientSide.sendFile(sending);
-        assertTrue(waitFor(done::get, 60));
+        assertTrue(waitFor(done::get, 20));
         assertArrayEquals(content, Files.readAllBytes(target.toPath()), "the file is not what was sent: the beginning was lost or the garbage stayed");
         assertEquals(content.length - start, clientSide.getSentFileBytes() - before, "only the rest should be sent");
     }
@@ -309,7 +309,7 @@ public class FileTransferTest {
      * A transfer that goes wrong is reported and stops, the others on the connection go on.
      */
     private void assertFailsAndOthersGoOn(Transfer failing, MelIsolatedFileProcess sender, MelIsolatedFileProcess receiver) throws Exception {
-        assertTrue(waitFor(failing::over, 20), "the receiver was not told that the transfer failed");
+        assertTrue(waitFor(failing::over, TwoInstances.TIMEOUT_SECONDS), "the receiver was not told that the transfer failed");
         assertTrue(failing.failed.get());
         assertFalse(failing.done.get());
         // the connection and the other transfers are fine
@@ -382,7 +382,7 @@ public class FileTransferTest {
         byte[] first = randomBytes(40, 6);
         raw(clientSide, 'T', 28, 0, first);
         raw(clientSide, 'T', 28, 50, new byte[10]);
-        assertTrue(waitFor(expected::over, 20));
+        assertTrue(waitFor(expected::over, TwoInstances.TIMEOUT_SECONDS));
         assertTrue(expected.failed.get());
         // a download that is continued needs what came in order
         assertArrayEquals(first, Files.readAllBytes(expected.target.toPath()));

@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * From there on the way is the one every change takes: commit, propagate, merge, transfer. So these tests show whether that way works, whatever the file watcher does
  * (see {@link LiveChangeIndexingTest} for that).
  */
-@Timeout(value = 5, unit = TimeUnit.MINUTES, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+@Timeout(value = 30, unit = TimeUnit.SECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @Tag("integration")
 public class ChangesWhileDownTest {
     @TempDir
