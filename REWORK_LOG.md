@@ -426,7 +426,7 @@ Found and fixed:
 
 Not changed: the content hash of a directory is the one of its newest entry, not computed again from what the merge put in it (as before).
 
-Fix (same day): the short timers were set when `FileSyncInstances` was loaded, so the dump tests got them too (`DumpFlowTest` writes its files with `FileSyncInstances.writeFile`). With the watcher's quiet time at 300 ms, the three tests after `nothingOfTheTargetComesBackToTheSource` got nothing at the target, every time (with only the margin or only the `HashAvailTimer` short they pass). The timers are set when instances are made now. **Open**: a dump whose watcher indexes after 300 ms loses what the source has; not looked into (the app keeps 3 s).
+Fix (same day): the short timers were set when `FileSyncInstances` was loaded, so the dump tests got them too (`DumpFlowTest` writes its files with `FileSyncInstances.writeFile`). With the watcher's quiet time at 300 ms, the three tests after `nothingOfTheTargetComesBackToTheSource` got nothing at the target, every time (with only the margin or only the `HashAvailTimer` short they pass). The timers are set when instances are made now. ~~**Open**: a dump whose watcher indexes after 300 ms loses what the source has~~: wrong description, the content arrived; the entries of the other names for it stayed "not synced". Solved, see "File distribution: writes wait for a commit".
 
 ## Transfer: a file goes on the connection it was asked on
 
@@ -480,3 +480,15 @@ After this and the transfer fixes: the seven conflict tests that were disabled p
 The plan said "one version worker" on the server. What was found: its version changes on three paths (its own index at boot, its live changes, commits of clients), and all three hold the lock of the fs table (`P.confine(fsDao)`, a write lock, bound to the lock object, not to a thread) while they check and change the version: they take turns already. One thread for all three would deadlock (the indexer holds the lock while it calls its listeners). What was left of the goal: client commits ran on the service worker, so messages and transfer requests waited while a commit was put in place. They run one after another on a thread of their own now (`ServerSyncHandler.queueCommit`, also for the dump target's `handleCommit`).
 
 `SyncSessionTest.aCommitThatIsTooOldIsResolvedAgainWithTheAnswerGivenBefore` waits 20 s for its end state: several rounds (the commit that is too old, another session, its commit, files both ways) took up to 9.5 s against a wait of 10 s.
+
+## File distribution: writes wait for a commit
+
+Found by the dump tests with the short test timers (the "open" item of the timer fix): with the target's watcher at 300 ms, `whereReferencesAreHadEachNameIsKept` and `whereNoReferencesAreHadTheOtherNamesAreLeftOutAndNothingIsCopied` failed now and then (2 of 2 at 58fc0508, 1 of 2 at 8d234e6f): the content was there, the entries of its other names stayed "not synced", with the reference on the disk or after it had been left out.
+
+Cause: `SyncHandler.commitStage` works on a copy of the fs table (`FsWriteDao.prepare`: the whole table into `fswrite`) and puts that copy in place of the table at its end (`FsWriteDao.commit`), holding the lock of the fs table. Whatever another thread writes into the fs table in between is undone. `FileDistributor.copyFile` (every place of a download but one, also in plain file sync: one download, the same content in several places) wrote its update ("synced", inode, time) and the deletion of a name that was left out under `P.confine(fsId)`, a lock on the id, which does not wait for a commit. With the watcher at 300 ms the target indexes the directories it just made while it places the files, and the commit of that stage set overlaps the distribution; with 3 s it comes after.
+
+Fix: `copyFile` writes under the lock of the fs table, as the move of the last place did already; the copy itself is made without it. `updateFs` leaves an entry alone that is gone or wants other content by then. The bin's `deleteFsFile` deletes from both tables for the same reason (it runs inside commits).
+
+Test: `DistributionDuringCommitTest` holds the lock and the copy of the table as a commit does while the distribution makes a copy; the entry must be synced afterwards. Fails with `P.confine(fsId)`. `DumpFlowTest` runs with the short timers now (`FileSyncInstances.useShortTimers()`): 5 of 5 runs green with the fix (about 48 s a run).
+
+Noticed, not changed: `FileDistributor.stop()` sets `stopped = false`, so the `stop()` at the start of `commitStage` does nothing. Making it stop would leave tasks lying until the next job starts the distributor; with the lock it is not needed.

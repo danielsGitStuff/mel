@@ -160,7 +160,7 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
             val fsId = targetIds.pop()
             val target = targetStack.pop()
             if (!target.exists()) {
-                copyFile(sourceFile, target, targetPathStack.pop(), fsId, fileSyncService.fsConvenience.copiesAreOptional)
+                copyFile(sourceFile, target, targetPathStack.pop(), fsId, fileSyncService.fsConvenience.copiesAreOptional, distributionTask.sourceHash)
             }
         }
         if (!lastFile.exists()) {
@@ -173,17 +173,25 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
                 // update synced flag
                 if (lastId != null)
                     de.mel.auth.tools.lock2.P.confine(fsDao).run {
-                        updateFs(lastId, lastFile)
+                        updateFs(lastId, lastFile, distributionTask.sourceHash)
                     }.end()
 
             } else {
-                copyFile(sourceFile, lastFile, lastPath, lastId)
+                copyFile(sourceFile, lastFile, lastPath, lastId, hash = distributionTask.sourceHash)
             }
         }
     }
 
-    protected fun updateFs(fsId: Long?, target: T): FsFile {
+    /**
+     * Call with the lock of the fs table: a stage set that is committed meanwhile puts its copy of the table in place at its end and would undo this.
+     * @return null if the entry is gone or wants other content now (changed while the file was moved or copied): it is not this file's any more
+     */
+    protected fun updateFs(fsId: Long?, target: T, hash: String?): FsFile? {
         val fsTarget = fsDao.getFile(fsId)
+        if (fsTarget == null || (hash != null && hash != fsTarget.contentHash.v())) {
+            Lok.debug("fs entry $fsId gone or changed while ${target.absolutePath} was placed")
+            return null
+        }
         // the time of the sender was applied to the file (FsConvenience), if the file system took it. What the disk says is what the fs table gets.
         val fsBashDetails = BashTools.getFsBashDetails(target)
                 ?: throw IOException("could not read FsBashDetails from ${target.absolutePath}")
@@ -204,23 +212,26 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
     }
 
     @Throws(IOException::class)
-    protected fun copyFile(source: T, target: T, targetPath: String, fsId: Long?, mayBeLeftOut: Boolean = false) {
+    protected fun copyFile(source: T, target: T, targetPath: String, fsId: Long?, mayBeLeftOut: Boolean = false, hash: String? = null) {
         if (target.exists())
             throw  IOException("file already exists")
         val convenience = fileSyncService.fsConvenience
+        // the copy is made without a lock (it may take a while), what the fs table gets is written with the lock of the table (see updateFs)
         if (convenience.copy(source, target) == CopyResult.NOT_DONE) {
             if (!mayBeLeftOut)
                 throw IOException("could not copy ${source.absolutePath} to ${target.absolutePath}")
             // this place was only wanted if it costs nothing
             Lok.debug("no copy for ${target.absolutePath}: left out")
             if (fsId != null)
-                de.mel.auth.tools.lock2.P.confine(fsId).run { fsDao.deleteById(fsId) }.end()
+                de.mel.auth.tools.lock2.P.confine(fsDao).run { fsDao.deleteById(fsId) }.end()
             return
         }
         if (fsId != null) {
-            de.mel.auth.tools.lock2.P.confine(fsId).run {
-                convenience.applyModified(target, fsDao.getFile(fsId))
-                updateFs(fsId, target)
+            de.mel.auth.tools.lock2.P.confine(fsDao).run {
+                val fsFile = fsDao.getFile(fsId)
+                if (fsFile != null)
+                    convenience.applyModified(target, fsFile)
+                updateFs(fsId, target, hash)
             }.end()
         }
     }

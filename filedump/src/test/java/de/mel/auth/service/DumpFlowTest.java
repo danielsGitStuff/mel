@@ -1,5 +1,6 @@
 package de.mel.auth.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -43,6 +44,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class DumpFlowTest {
     @TempDir
     File dir;
+
+    /**
+     * the watcher of the target indexes what the distribution places while it places it: with the app's 3 s that race did not show
+     */
+    @BeforeEach
+    public void shortTimers() {
+        FileSyncInstances.useShortTimers();
+    }
 
     /**
      * A file system that makes references: here a physical copy that says it is none, so the bookkeeping can be tested on any file system.
