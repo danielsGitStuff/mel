@@ -44,7 +44,7 @@ public class OthersSettingsFX extends AuthSettingsFX {
     private void showCerts() {
         N.r(() -> {
             selectedCert = null;
-            listCerts.getItems().addAll(melAuthService.getTrustedCertificates());
+            listCerts.getItems().setAll(melAuthService.getTrustedCertificates());
         });
     }
 

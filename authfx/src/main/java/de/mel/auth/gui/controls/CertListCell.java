@@ -10,11 +10,11 @@ public class CertListCell extends ListCell<Certificate> {
     @Override
     protected void updateItem(Certificate certificate, boolean empty) {
         super.updateItem(certificate, empty);
-        if (!empty) {
-            if (certificate != null)
-                setText(certificate.getName().v());
-            else
-                setText("cert is null");
-        }
+        if (empty)
+            setText(null);
+        else if (certificate != null)
+            setText(certificate.getName().v());
+        else
+            setText("cert is null");
     }
 }
