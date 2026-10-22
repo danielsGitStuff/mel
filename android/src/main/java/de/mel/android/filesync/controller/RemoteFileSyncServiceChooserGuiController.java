@@ -108,20 +108,16 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
     }
 
     private void launchDirChooser() {
-        /**
-         * found no other sophisticated way that delivers {@link File}s when choosing a storage location on android.
-         * also backwards compatibility is a problem (storage access framework, SFA available in kitkat+ only).
-         * other option would (probably) be to adapt all the file handling and tools and workers and so on to work with SFA.
-         * this works around it.
-         *
-         * this relies on work done by the Archos people. they found a neat way to maneuver around SFA.
-         * then start the directory chooser with the preselected storage (chooser cannot change the storage device itself)
-         */
+        de.mel.android.boot.AndroidBootLoader bootloader = new AndroidFileSyncBootloader();
+        de.mel.android.permissions.PermissionsManager2 pm = new de.mel.android.permissions.PermissionsManager2(activity, fun.with.Lists.wrap(java.util.Arrays.asList(bootloader.getPermissions())).get());
+        if (!pm.hasPermissions()) {
+            pm.startPermissionsActivity();
+            return;
+        }
 
-        IFile[] rootDirs = StoragesManager.getStorageFiles(Tools.getApplicationContext());// N.arr.fromCollection(paths, N.converter(AFile.class, element -> AFile.instance(AFile.instance(element))));
+        IFile[] rootDirs = StoragesManager.getStorageFiles(Tools.getApplicationContext());
         Promise<IFile, Void> result = DirectoryChooserDialog.showDialog(activity, rootDirs);
         result.onDone(chosenDir -> {
-//            activity.runOnUiThread(() -> setPath(chosenDir.getAbsolutePath()));
             setPath(chosenDir.getAbsolutePath());
         });
     }

@@ -498,6 +498,9 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
     protected void onResume() {
         super.onResume();
         updateBarColor();
+        if (this.guiController != null) {
+            this.guiController.onResume();
+        }
     }
 
     public void showMenuServices() {

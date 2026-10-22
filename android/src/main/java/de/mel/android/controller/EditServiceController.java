@@ -63,6 +63,9 @@ public class EditServiceController extends GuiController {
         activity.runOnUiThread(() -> N.r(() -> {
             MelAuthService melAuthService = androidService.getMelAuthService();
             embedded = rootView.findViewById(R.id.embedded);
+            if (embedded != null) {
+                embedded.removeAllViews();
+            }
             AndroidBootLoader bootLoader = (AndroidBootLoader) melAuthService.getMelBoot().getBootLoader(service.getType().v());
             currentController = bootLoader.inflateEmbeddedView(embedded, activity, melAuthService, runningInstance);
             btnApply.setOnClickListener(v -> N.r(() -> {

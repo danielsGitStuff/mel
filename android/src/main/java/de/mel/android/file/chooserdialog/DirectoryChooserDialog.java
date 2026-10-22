@@ -24,6 +24,7 @@ import de.mel.R;
 import de.mel.android.MelActivity;
 import de.mel.android.Notifier;
 import de.mel.android.PopupActivity;
+import de.mel.android.file.StoragesManager;
 import de.mel.android.filesync.data.AndroidFileSyncStrings;
 import de.mel.auth.MelNotification;
 import de.mel.auth.MelStrings;
@@ -65,10 +66,39 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
     }
 
     private void init() {
-        FilesActivityPayload payload = N.rte(() -> (FilesActivityPayload) SerializableEntityDeserializer.deserialize(this.payloadJson));
+        FilesActivityPayload payload = null;
+        if (this.payloadJson != null) {
+            try {
+                payload = (FilesActivityPayload) SerializableEntityDeserializer.deserialize(this.payloadJson);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         FileAdapter adapter = new FileAdapter(this, list);
-        List<IFile> directories = Lists.wrap(payload.getPaths()).map(AbstractFile::instance).get();
-        adapter.setDirectories(directories);
+        List<IFile> directories = new ArrayList<>();
+        if (payload != null && payload.getPaths() != null && !payload.getPaths().isEmpty()) {
+            directories = Lists.wrap(payload.getPaths()).map(AbstractFile::instance).get();
+        } else {
+            IFile[] storageFiles = StoragesManager.getStorageFiles(this);
+            directories = java.util.Arrays.asList(storageFiles);
+        }
+
+        rootDirs = directories.toArray(new IFile[0]);
+
+        if (directories.size() == 1) {
+            currentDir = directories.get(0);
+            txtPath.setText(currentDir.getAbsolutePath());
+            IFile[] subDirs = currentDir.listDirectories();
+            if (subDirs != null && subDirs.length > 0) {
+                adapter.setDirectories(subDirs);
+            } else {
+                adapter.setDirectories(directories);
+            }
+        } else {
+            txtPath.setText(R.string.dirChooserTitle);
+            adapter.setDirectories(directories);
+        }
+
         adapter.setOnClicked(clickedDir -> {
             parentDirs.push(currentDir);
             currentDir = clickedDir;
@@ -76,31 +106,44 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
             if (currentDir != null) {
                 txtPath.setText(currentDir.getAbsolutePath());
             }
-            Lok.debug("DirectoryChooserDialog.init.depth " + depth);
             IFile[] subDirs = clickedDir.listDirectories();
-            adapter.setDirectories(subDirs);
+            if (subDirs == null || subDirs.length == 0) {
+                Notifier.toast(this, R.string.toastDrivePermissionsRequired);
+            }
+            adapter.setDirectories(subDirs != null ? subDirs : new IFile[0]);
             DirectoryChooserDialog.this.runOnUiThread(adapter::notifyDataSetChanged);
-            Lok.debug("DirectoryChooserDialog.init");
         });
+
         list.setLayoutManager(new LinearLayoutManager(this));
         list.setAdapter(adapter);
+
         btnUp.setOnClickListener(v -> {
             if (depth > 0) {
                 depth--;
-                Lok.debug("DirectoryChooserDialog.init.depth " + depth);
-                currentDir = parentDirs.pop();
+                if (!parentDirs.isEmpty()) {
+                    currentDir = parentDirs.pop();
+                } else {
+                    currentDir = null;
+                }
                 IFile[] subDirs;
                 if (currentDir != null) {
                     subDirs = currentDir.listDirectories();
                     txtPath.setText(currentDir.getAbsolutePath());
                 } else {
                     subDirs = rootDirs;
-                    txtPath.setText(R.string.invalidDirectory);
+                    txtPath.setText(R.string.dirChooserTitle);
                 }
-                adapter.setDirectories(subDirs);
+                adapter.setDirectories(subDirs != null ? subDirs : new IFile[0]);
+                DirectoryChooserDialog.this.runOnUiThread(adapter::notifyDataSetChanged);
+            } else if (currentDir != null && currentDir.getParentFile() != null) {
+                currentDir = currentDir.getParentFile();
+                txtPath.setText(currentDir.getAbsolutePath());
+                IFile[] subDirs = currentDir.listDirectories();
+                adapter.setDirectories(subDirs != null ? subDirs : new IFile[0]);
                 DirectoryChooserDialog.this.runOnUiThread(adapter::notifyDataSetChanged);
             }
         });
+
         btnOk.setOnClickListener(v -> {
             if (currentDir != null) {
                 Intent result = new Intent();
@@ -112,6 +155,7 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
                 Notifier.toast(this, R.string.invalidDirectory);
             }
         });
+
         btnCancel.setOnClickListener(v -> finish());
 
         runOnUiThread(adapter::notifyDataSetChanged);

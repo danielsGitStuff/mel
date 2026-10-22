@@ -5,45 +5,49 @@ import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.BaseAdapter
 import android.widget.Button
 import android.widget.TextView
-import androidx.core.view.setPadding
+import androidx.recyclerview.widget.RecyclerView
 import de.mel.AndroidPermission
 import de.mel.R
 
-// todo clean
 class PermissionsListAdapter(
-    context: Context,
-    val permissions: List<AndroidPermission>,
+    private val context: Context,
+    private val permissions: List<AndroidPermission>,
     private val permissionListAdapterClickListener: (AndroidPermission) -> Unit
-) :
-    BaseAdapter() {
-    private val layoutInflater =
-        context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+) : RecyclerView.Adapter<PermissionsListAdapter.ViewHolder>() {
 
-    private val padding = context.resources.getDimension(R.dimen.text_margin).toInt()
-
-
-    override fun getCount() = permissions.size
-    override fun getItem(position: Int) = permissions[position]
-
-    override fun getItemId(position: Int) = position.toLong()
-
-    override fun getView(position: Int, oldeView: View?, parent: ViewGroup?): View {
-        val permission = permissions[position]
-        val view = oldeView ?: layoutInflater.inflate(R.layout.listitem_permission_grant, null)
-//        val view = layoutInflater.inflate(R.layout.listitem_permission_grant, null)
-        val textTitle = view.findViewById<TextView>(R.id.textTitle)
-        textTitle.setText(permission.titleInt)
-        textTitle.setTypeface(textTitle.typeface, Typeface.BOLD)
-        textTitle.setPadding(padding, padding, padding, 0)
-        val textText = view.findViewById<TextView>(R.id.textText)
-        textText.setText(permission.textInt)
-        textText.setPadding(padding, 0, padding, padding)
-        val btn = view.findViewById<Button>(R.id.btnGrant)
-        btn.setOnClickListener { permissionListAdapterClickListener(permission) }
-        return view
+    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val textTitle: TextView = view.findViewById(R.id.textTitle)
+        val textText: TextView = view.findViewById(R.id.textText)
+        val btnGrant: Button = view.findViewById(R.id.btnGrant)
     }
 
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(context).inflate(R.layout.listitem_permission_grant, parent, false)
+        return ViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val permission = permissions[position]
+
+        if (permission.titleInt != 0) {
+            holder.textTitle.setText(permission.titleInt)
+        } else {
+            holder.textTitle.text = permission.permission
+        }
+        holder.textTitle.setTypeface(holder.textTitle.typeface, Typeface.BOLD)
+
+        if (permission.textInt != 0) {
+            holder.textText.setText(permission.textInt)
+        } else {
+            holder.textText.text = ""
+        }
+
+        holder.btnGrant.setOnClickListener {
+            permissionListAdapterClickListener(permission)
+        }
+    }
+
+    override fun getItemCount(): Int = permissions.size
 }

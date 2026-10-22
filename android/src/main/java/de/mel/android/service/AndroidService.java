@@ -14,6 +14,8 @@ import android.os.IBinder;
 
 import androidx.core.app.NotificationCompat;
 
+import de.mel.android.contacts.AndroidContactsBootloader;
+import de.mel.android.filedump.AndroidDumpBootloader;
 import fun.with.promise.Promise;
 import fun.with.promise.PromiseImpl;
 
@@ -352,8 +354,8 @@ public class AndroidService extends Service {
 
         AndroidAdmin admin = new AndroidAdmin(getApplicationContext());
         AndroidPowerManager powerManager = new AndroidPowerManager(melAuthSettings, (android.os.PowerManager) getSystemService(POWER_SERVICE));
-//        melBoot = new MelBoot(melAuthSettings, powerManager, AndroidFileSyncBootloader.class, AndroidContactsBootloader.class, AndroidDumpBootloader.class);
-        melBoot = new MelBoot(melAuthSettings, powerManager, AndroidFileSyncBootloader.class);
+        melBoot = new MelBoot(melAuthSettings, powerManager, AndroidFileSyncBootloader.class, AndroidContactsBootloader.class, AndroidDumpBootloader.class);
+//        melBoot = new MelBoot(melAuthSettings, powerManager, AndroidFileSyncBootloader.class);
         melBoot.addMelAuthAdmin(admin);
         Promise<MelAuthService, Exception> promise = melBoot.boot().onDone(melAuthService -> {
             N.r(() -> {

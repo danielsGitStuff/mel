@@ -27,7 +27,8 @@
         tools:replace="android:theme">
         <activity
             android:name=".android.permissions.PermissionsActivity"
-            android:exported="false">
+            android:exported="false"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="de.mel.permissions.request" />
                 <category android:name="android.intent.category.DEFAULT" />

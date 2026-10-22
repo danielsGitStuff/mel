@@ -8,77 +8,109 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
 import android.view.MenuItem
-import android.widget.ListView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import de.mel.AndroidPermission
 import de.mel.R
 import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer
 
-// todo clean
 class PermissionsActivity : AppCompatActivity() {
 
     companion object {
         const val PERMISSIONS_PAYLOAD = "permissionsPayload"
     }
 
+    private var allPermissions: List<AndroidPermission> = emptyList()
 
     private val genericPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissionsMap ->
-            permissionsMap.forEach { entry ->
-                if (entry.value) permissionsGranted.add(entry.key) else permissionsGranted.remove(
-                    entry.key
-                )
+            permissionsMap.forEach { (permission, isGranted) ->
+                if (isGranted) permissionsGranted.add(permission) else permissionsGranted.remove(permission)
             }
             updateList()
         }
+
     private val managerStoragePermissionLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Environment.isExternalStorageManager()) {
                 permissionsGranted.add(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
             } else {
-                permissionsGranted.remove(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    permissionsGranted.remove(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
+                }
             }
             updateList()
         }
-    lateinit var permissionsPayload: PermissionsPayload
-    lateinit var ls: ListView
+
+    lateinit var ls: RecyclerView
     private val permissionsGranted = mutableSetOf<String>()
 
     private fun updateList() {
         val pm = PermissionsManager2(this, emptyList())
         val permissionsNotGranted =
-            permissionsPayload.androidPermissions.filter { !pm.hasPermission(it) }
-        if (permissionsNotGranted.isEmpty)
+            allPermissions.filter { !pm.hasPermission(it) }
+        if (permissionsNotGranted.isEmpty()) {
             finish()
+            return
+        }
         ls.adapter = PermissionsListAdapter(
             this,
-            permissionsNotGranted.get(),
+            permissionsNotGranted,
             onBtnGrantClicked
         )
     }
 
     private val onBtnGrantClicked: (androidPermission: AndroidPermission) -> Unit = {
-        when (it.permission) {
-            Manifest.permission.MANAGE_EXTERNAL_STORAGE -> {
-                val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
-                val uri: Uri = Uri.fromParts("package", packageName, null)
-                intent.data = uri
-                managerStoragePermissionLauncher.launch(intent)
-            }
-            else -> genericPermissionLauncher.launch(arrayOf(it.permission))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && it.permission == Manifest.permission.MANAGE_EXTERNAL_STORAGE) {
+            val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+            val uri: Uri = Uri.fromParts("package", packageName, null)
+            intent.data = uri
+            managerStoragePermissionLauncher.launch(intent)
+        } else {
+            genericPermissionLauncher.launch(arrayOf(it.permission))
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_permissions)
+
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        val json = intent.getStringExtra(PERMISSIONS_PAYLOAD);
-        permissionsPayload = SerializableEntityDeserializer.deserialize(json) as PermissionsPayload
-        ls = findViewById<ListView>(R.id.ls)
+        supportActionBar?.setTitle(R.string.permissionRequiredTitle)
+
+        val permissionStrings = intent.getStringArrayListExtra("permission_strings")
+        val titleInts = intent.getIntArrayExtra("title_ints")
+        val textInts = intent.getIntArrayExtra("text_ints")
+
+        if (permissionStrings != null && titleInts != null && textInts != null &&
+            permissionStrings.size == titleInts.size && permissionStrings.size == textInts.size
+        ) {
+            allPermissions = permissionStrings.indices.map { i ->
+                AndroidPermission(permissionStrings[i], titleInts[i], textInts[i])
+            }
+        } else {
+            val json = intent.getStringExtra(PERMISSIONS_PAYLOAD)
+            allPermissions = if (json != null) {
+                try {
+                    val payload =
+                        SerializableEntityDeserializer.deserialize(json) as? PermissionsPayload
+                    payload?.androidPermissions?.get() ?: emptyList()
+                } catch (_: Exception) {
+                    emptyList()
+                }
+            } else {
+                emptyList()
+            }
+        }
+
+        ls = findViewById(R.id.ls)
+        ls.layoutManager = LinearLayoutManager(this)
         updateList()
-        permissionsPayload.androidPermissions.forEach { println("--- ${it.permission}") }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

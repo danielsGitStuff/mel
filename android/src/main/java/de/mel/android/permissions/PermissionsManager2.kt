@@ -10,7 +10,7 @@ import android.os.Environment
 import androidx.core.content.ContextCompat
 import de.mel.AndroidPermission
 import de.mel.auth.tools.N
-// todo clean
+
 class PermissionsManager2(
     private val context: Context, val permissions: List<AndroidPermission>
 ) {
@@ -29,6 +29,16 @@ class PermissionsManager2(
         if (hasPermissions())
             return
         val bundle = Bundle()
+        val permissionStrings = ArrayList(permissions.map { it.permission })
+        val titleInts = permissions.map { it.titleInt }.toIntArray()
+        val textInts = permissions.map { it.textInt }.toIntArray()
+
+        val intent = Intent(context, PermissionsActivity::class.java).apply {
+            putStringArrayListExtra("permission_strings", permissionStrings)
+            putExtra("title_ints", titleInts)
+            putExtra("text_ints", textInts)
+        }
+
         val payload = PermissionsPayload()
         permissions.forEach {
             payload.addEntry(
@@ -36,8 +46,8 @@ class PermissionsManager2(
                     .setText(it.textInt)
             )
         }
-        val intent = Intent(context, PermissionsActivity::class.java)
         intent.putExtra(PermissionsActivity.PERMISSIONS_PAYLOAD, N.r<String> { payload.toJSON() })
+
         context.startActivity(intent, bundle)
     }
 }

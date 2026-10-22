@@ -45,6 +45,17 @@ public class CreateServiceController extends WakelockedGuiController implements 
         btnCreate.setText(R.string.btnCreate);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (bootLoader != null) {
+            PermissionsManager2 permissionsManager = new PermissionsManager2(mainActivity, Lists.wrap(java.util.Arrays.asList(bootLoader.getPermissions())).get());
+            if (permissionsManager.hasPermissions()) {
+                onPermissionsGranted();
+            }
+        }
+    }
+
     private final Spinner spinner;
     private final EditText txtName;
     private LinearLayout embedded;

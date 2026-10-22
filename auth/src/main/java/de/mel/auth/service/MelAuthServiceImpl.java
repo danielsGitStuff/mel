@@ -639,12 +639,19 @@ public class MelAuthServiceImpl extends MelAuthService {
     @Override
     public void deleteService(String uuid) throws SqlQueriesException, InstantiationException, IllegalAccessException {
         Service service = databaseManager.getServiceByUuid(uuid);
-        ServiceType serviceType = databaseManager.getServiceTypeByName(service.getName().v());
-        MelService melService = getMelService(uuid);
-        N.r(melService::stop);
-        Bootloader bootloader = melBoot.getBootLoader(serviceType.getType().v());
-        N.r(() -> bootloader.cleanUpDeletedService(melService, uuid));
-        databaseManager.deleteService(service.getId().v());
+        if (service != null) {
+            ServiceType serviceType = databaseManager.getServiceTypeById(service.getTypeId().v());
+            MelService melService = getMelService(uuid);
+            if (melService != null) {
+                N.r(melService::stop);
+                Bootloader bootloader = melBoot.getBootLoader(serviceType.getType().v());
+                N.r(() -> bootloader.cleanUpDeletedService(melService, uuid));
+            }
+            if (serviceType != null) {
+
+            }
+            databaseManager.deleteService(service.getId().v());
+        }
     }
 
     @Override

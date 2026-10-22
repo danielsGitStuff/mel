@@ -50,6 +50,13 @@ public abstract class GuiController implements AndroidServiceBind {
 
     }
 
+    /**
+     * called when the app resumes
+     */
+    public void onResume() {
+
+    }
+
     public abstract Integer getTitle();
 
     @Override
