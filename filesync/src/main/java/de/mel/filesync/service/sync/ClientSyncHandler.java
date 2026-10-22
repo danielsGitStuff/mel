@@ -14,6 +14,7 @@ import de.mel.auth.tools.lock2.BunchOfLocks;
 import de.mel.auth.tools.lock2.P;
 import de.mel.filesync.FileSyncSyncListener;
 import de.mel.filesync.data.*;
+import de.mel.filesync.data.conflict.Conflict;
 import de.mel.filesync.data.conflict.ConflictSolver;
 import de.mel.filesync.data.conflict.StageSetMerger;
 import de.mel.filesync.jobs.CommitJob;
@@ -387,13 +388,18 @@ public class ClientSyncHandler extends SyncHandler {
             } else {
                 Lok.debug("debug solved 33dddd");
                 try {
+                    // what the user kept of this side must not be replaced by the other side's version: it is the one in the merged set
+                    for (Conflict conflict : solver.getConflictMap().values()) {
+                        if (conflict.getChosenLocal() && conflict.getRemoteStage() != null)
+                            stageDao.deleteStageById(conflict.getRemoteStage().getId());
+                    }
                     this.commitStage(solver.getRemoteStageSet().getId().v(), bunchOfLocks, null);
                     this.minimizeStage(solver.getMergedStageSet().getId().v());
                     this.stageDao.deleteStageSet(solver.getLocalStageSet().getId().v());
                     if (stageDao.stageSetHasContent(solver.getMergedStageSet().getId().v()))
                         melDriveService.addJob(new CommitJob());
                     else
-                        stageDao.deleteStageById(solver.getMergedStageSet().getId().v());
+                        stageDao.deleteStageSet(solver.getMergedStageSet().getId().v());
                     this.deleteObsolete(solver);
                 } catch (OutOfSpaceException e) {
                     e.printStackTrace();
