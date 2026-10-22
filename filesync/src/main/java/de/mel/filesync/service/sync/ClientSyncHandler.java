@@ -56,7 +56,19 @@ public class ClientSyncHandler extends SyncHandler {
     private FileSyncSyncListener syncListener;
     private MelFileSyncClientService melDriveService;
     private Map<String, ConflictSolver> conflictSolverMap = new keks<>();
-    private Map<Long, Set<ConflictSolver>> relatedSolvers = new HashMap<>();
+    /**
+     * Questions that were replaced by a newer one (the stage sets are new after each pull). A dialog may still show one of them: what the user answers there counts.
+     */
+    private final java.util.ArrayDeque<ConflictSolver> supersededSolvers = new java.util.ArrayDeque<>();
+    /**
+     * what the user decided so far, by what is in conflict (see {@link ConflictSolver#decisions()})
+     */
+    private final Map<String, Boolean> decisions = new java.util.LinkedHashMap<String, Boolean>() {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, Boolean> eldest) {
+            return size() > 1000;
+        }
+    };
 
     public void updateHashes(Set<String> hashes) {
         FsDao fsDao = fileSyncDatabaseManager.getFsDao();
@@ -189,6 +201,9 @@ public class ClientSyncHandler extends SyncHandler {
                         for (Long stageId : answer.getStageIdFsIdMap().keySet()) {
                             Long fsId = answer.getStageIdFsIdMap().get(stageId);
                             Stage stage = stageDao.getStageById(stageId);
+                            // the server made a new entry for what we knew by another id (it had deleted it, the user kept our change): the old row is stale
+                            if (stage.getFsId() != null && !stage.getFsId().equals(fsId))
+                                fileSyncDatabaseManager.getFsDao().deleteById(stage.getFsId());
                             stage.setFsId(fsId);
                             if (stage.getParentId() != null && stage.getFsParentId() == null) {
                                 Long fsParentId = answer.getStageIdFsIdMap().get(stage.getParentId());
@@ -214,6 +229,9 @@ public class ClientSyncHandler extends SyncHandler {
                                     latestVersion = stageDao.getLatestStageSetVersion();
                                     if (latestVersion == null || latestVersion < tooOldVersionException.getNewVersion()) {
                                         melDriveService.addJob(new SyncClientJob(tooOldVersionException.getNewVersion()));
+                                    } else {
+                                        // the news are here already, as a stage set that nobody has looked at yet: nothing would. (Else we wait for something that does not come)
+                                        melDriveService.addJob(new CommitJob());
                                     }
                                 }
                                 Lok.debug("ClientSyncHandler.syncWithServer");
@@ -363,18 +381,20 @@ public class ClientSyncHandler extends SyncHandler {
         Lok.debug();
         if (conflictSolverMap.containsKey(identifier)) {
             solver = conflictSolverMap.get(identifier);
-            if (solver.isSolved()) {
-                Lok.debug("debug solved");
-                solver.merge();
-                // restore order
-                new BfsToDfsConverter(stageDao).convert(solver.mergedStageSet);
-//                reorderStageSet(solver.mergedStageSet);
-                solver.setSolving(false);
-            } else {
-                Lok.debug("debug not solved");
-            }
         } else {
             solver.findConflicts();
+        }
+        // answers to questions that were asked before (about the same versions) count, even if the question was replaced by a newer one since
+        harvestDecisions();
+        solver.applyDecisions(decisions);
+        if (!solver.getConflictMap().isEmpty() && solver.isSolved() && !solver.isMerged()) {
+            Lok.debug("debug solved");
+            solver.merge();
+            // restore order
+            new BfsToDfsConverter(stageDao).convert(solver.mergedStageSet);
+            solver.setSolving(false);
+        } else {
+            Lok.debug("debug not solved");
         }
 
         if (!solver.isSolving()) {
@@ -394,7 +414,7 @@ public class ClientSyncHandler extends SyncHandler {
                             stageDao.deleteStageById(conflict.getRemoteStage().getId());
                     }
                     this.commitStage(solver.getRemoteStageSet().getId().v(), bunchOfLocks, null);
-                    this.minimizeStage(solver.getMergedStageSet().getId().v());
+                    stageDao.deleteIdenticalToFs(solver.getMergedStageSet().getId().v(), solver.getMustBeSent());
                     this.stageDao.deleteStageSet(solver.getLocalStageSet().getId().v());
                     if (stageDao.stageSetHasContent(solver.getMergedStageSet().getId().v()))
                         melDriveService.addJob(new CommitJob());
@@ -457,38 +477,34 @@ public class ClientSyncHandler extends SyncHandler {
 //        }
     }
 
+    /**
+     * The conflict is solved and committed. The solver and the questions it replaced are not needed any more: they were about stage sets that are gone.
+     * What was decided stays: while the result travels to the server another pull can bring the old state of the server back, the same two versions meet again,
+     * and the user has answered that already.
+     */
     private void deleteObsolete(ConflictSolver conflictSolver) throws SqlQueriesException, IOException {
-
+        conflictSolverMap.clear();
+        supersededSolvers.clear();
     }
 
     private void putConflictSolver(ConflictSolver conflictSolver) {
-        // search for related ConflictSolvers before. they deprecate as we insert the new one.
-        deleteRelated(conflictSolver.getRemoteStageSet().getId().v());
-        deleteRelated(conflictSolver.getLocalStageSet().getId().v());
-        addRelated(conflictSolver, conflictSolver.getLocalStageSet().getId().v());
-        addRelated(conflictSolver, conflictSolver.getRemoteStageSet().getId().v());
+        // the new question is about the current stage sets: the older ones deprecate
+        for (ConflictSolver old : conflictSolverMap.values()) {
+            if (old != conflictSolver) {
+                supersededSolvers.addLast(old);
+                while (supersededSolvers.size() > 20)
+                    supersededSolvers.removeFirst();
+            }
+        }
+        conflictSolverMap.clear();
         conflictSolverMap.put(conflictSolver.getConflictIdentifier(), conflictSolver);
     }
 
-    private void addRelated(ConflictSolver solver, Long stageSetId) {
-        if (relatedSolvers.containsKey(stageSetId)) {
-            relatedSolvers.get(stageSetId).add(solver);
-        } else {
-            Set<ConflictSolver> set = new HashSet<>();
-            set.add(solver);
-            relatedSolvers.put(stageSetId, set);
-        }
-    }
-
-    private void deleteRelated(Long stageSetId) {
-        if (relatedSolvers.containsKey(stageSetId)) {
-            Set<ConflictSolver> solvers = relatedSolvers.remove(stageSetId);
-            for (ConflictSolver solver : solvers) {
-                ConflictSolver relatedSolver = conflictSolverMap.remove(solver.getConflictIdentifier());
-                Lok.debug("debug conflict solver cleanup missing");
-//                N.r(relatedSolver::cleanup);
-            }
-        }
+    private void harvestDecisions() {
+        for (ConflictSolver old : supersededSolvers)
+            decisions.putAll(old.decisions());
+        for (ConflictSolver current : conflictSolverMap.values())
+            decisions.putAll(current.decisions());
     }
 
     private void minimizeStage(Long stageSetId) throws SqlQueriesException {

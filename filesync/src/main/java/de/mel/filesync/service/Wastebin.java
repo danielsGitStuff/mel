@@ -170,8 +170,20 @@ public class Wastebin {
                             // it changed :(
                             System.err.println("Wastebin.deleteFilr5436t34e");
                         }
-                    } else if (fsFile.getSynced().v()) {
+                    } else {
+                        // the fs table knows what the file was when it was synced. If the user changed it since, the bin must name it by what it holds now
+                        // (and a file that is not synced yet is in the way of something else: it must not be lost either)
                         waste = wasteDao.fsToWaste(fsFile);
+                        boolean asInTable = Boolean.TRUE.equals(fsFile.getSynced().v())
+                                && java.util.Objects.equals(fsBashDetails.getModified(), fsFile.getModified().v())
+                                && java.util.Objects.equals(f.length(), fsFile.getSize().v());
+                        if (!asInTable) {
+                            waste.getHash().v(Hash.md5(f.inputStream()));
+                            waste.getSize().v(f.length());
+                            waste.getModified().v(fsBashDetails.getModified());
+                            waste.getInode().v(fsBashDetails.getiNode());
+                            wasteDao.update(waste);
+                        }
                         moveToBin(waste, f);
                     }
 

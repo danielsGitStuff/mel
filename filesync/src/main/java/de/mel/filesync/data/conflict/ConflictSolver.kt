@@ -211,6 +211,40 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
 
     fun hasConflicts(): Boolean = !conflictMap.all { it.value.hasChoice }
 
+    /**
+     * every conflict this solver knows, with the ones below directories
+     */
+    fun allConflicts(): List<Conflict> {
+        val all = LinkedHashSet<Conflict>()
+        fun add(conflict: Conflict) {
+            if (all.add(conflict))
+                conflict.children.forEach { add(it) }
+        }
+        conflictMap.values.forEach { add(it) }
+        return all.toList()
+    }
+
+    /**
+     * Names a conflict by what is in conflict, not by the ids of the stages, which are new each time the server's stage set is pulled again.
+     */
+    private fun decisionKey(conflict: Conflict): String = listOf(conflict.localStage, conflict.remoteStage).joinToString("|") { stage ->
+        if (stage == null) "-" else "${stage.path}${stage.name}:${stage.contentHash}:${stage.deleted}"
+    }
+
+    /**
+     * @return what was decided so far: conflict -> true if the local side was chosen
+     */
+    fun decisions(): Map<String, Boolean> = allConflicts().filter { it.hasChoice }.associate { decisionKey(it) to it.chosenLocal }
+
+    /**
+     * Takes over answers given to the same conflict (the same versions of the same file on both sides) when the question was asked before.
+     */
+    fun applyDecisions(decisions: Map<String, Boolean>) {
+        allConflicts().filter { !it.hasChoice }.forEach { conflict ->
+            decisions[decisionKey(conflict)]?.let { local -> if (local) conflict.decideLocal() else conflict.decideRemote() }
+        }
+    }
+
 
     /**
      * Adds the stage to the database and creates an entry in the according idMap{Local/Remote)}.
@@ -265,6 +299,76 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
         }
     }
 
+    /**
+     * directories the other side deleted and we make again because we keep something below them: path of the directory -> its stage in the merged set
+     */
+    private val recreatedDirectories = mutableMapOf<String, Stage>()
+
+    /**
+     * Stages of the merged set that look like what the client has on its disk, but not like what the other side has (it deleted them): minimizing the set must keep them.
+     */
+    val mustBeSent = mutableSetOf<Long>()
+
+    /**
+     * @param path of a directory as in [Stage.path] ("/" for the root, else "/a/b/")
+     */
+    private fun fsIdOfDirectoryAt(path: String): Long? {
+        val names = path.split("/").filter { it.isNotEmpty() }
+        if (names.isEmpty())
+            return fsDao.rootDirectory.id.v()
+        val parentPath = "/" + names.dropLast(1).joinToString("") { "$it/" }
+        return fsDao.getGenericByPathAndName(parentPath, names.last())?.id?.v()
+    }
+
+    /**
+     * @return the topmost directory above [rejected] (or [rejected] itself) that is deleted in its stage set
+     */
+    private fun deletedDirectoryAbove(rejected: Stage): Stage? {
+        var top: Stage? = if (rejected.deleted && rejected.isDirectory) rejected else null
+        var parentId = rejected.parentId
+        while (parentId != null) {
+            val parent = stageDao.getStageById(parentId) ?: break
+            if (parent.deleted && parent.isDirectory)
+                top = parent
+            parentId = parent.parentId
+        }
+        return top
+    }
+
+    /**
+     * The other side deleted the directory [deleted], we keep [kept] somewhere below it: the directories down to the one that holds [kept] are made again.
+     * The other side has no entry for them any more, so they are new there.
+     *
+     * @return the stage of the directory that holds [kept] in the merged set
+     */
+    private fun recreateDirectories(deleted: Stage, kept: Stage): Stage {
+        val below = kept.path.removePrefix(deleted.path + deleted.name + "/").split("/").filter { it.isNotEmpty() }
+        var path = deleted.path
+        var depth = deleted.depth
+        var parent: Stage? = null
+        for (name in listOf(deleted.name) + below) {
+            val key = path + name + "/"
+            val made = recreatedDirectories.getOrPut(key) {
+                val directory = if (parent == null) {
+                    Stage(mergedStageSet.id.v(), deleted).setDeleted(false).setParentId(null).setFsParentId(fsIdOfDirectoryAt(deleted.path))
+                } else {
+                    Stage().setStageSet(mergedStageSet.id.v()).setIsDirectory(true).setName(name).setPath(path).setDepth(depth).setDeleted(false).setFsParentId(null)
+                        .setParentId(parent!!.id).setVersion(mergedStageSet.version.v())
+                }
+                directory.setOrder(0L).setMerged(false)
+                stageDao.insert(directory)
+                // the lookup of parents in insertToMerged finds it by its own id
+                idMapLocal[directory.id] = directory.id
+                mustBeSent.add(directory.id)
+                directory
+            }
+            parent = made
+            path = key
+            depth += 1
+        }
+        return parent!!
+    }
+
     override fun foundLocal(local: Stage, remote: Stage?) {
         /**
          * check whether the conflict is a sub conflict of another one. In this case one stage set has no entry
@@ -272,10 +376,26 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
          * This occurs when one side deletes a directory while the other changes its contents.
          */
         localStageConflictMap[local.id]?.let { conflict ->
+            // a stage the other side does not have has nothing to be rejected, and the side that does not have it has no stage to be chosen
+            val decision = conflict.decision ?: return
+            val rejection = conflict.rejection
             // only apply the top
-            if (conflict.decision!!.depth >= conflict.rejection!!.depth) {
-                insertToMerged(conflict.decision!!, conflict.rejection)
-            } else if (conflict.decision!!.deleted && conflict.decision!!.depth <= conflict.rejection!!.depth)
+            if (rejection == null || decision.depth >= rejection.depth) {
+                if (rejection != null && conflict.chosenLocal && !decision.deleted && decision.parentId == null) {
+                    // the other side may have deleted a directory above what we keep, and our stage set does not hold that directory (it only changed the file)
+                    deletedDirectoryAbove(rejection)?.let { deletedDirectory ->
+                        if (decision.depth > deletedDirectory.depth) {
+                            val directory = recreateDirectories(deletedDirectory, decision)
+                            decision.parentId = directory.id
+                            decision.fsParentId = null
+                        }
+                    }
+                }
+                insertToMerged(decision, rejection)
+            } else if (conflict.chosenLocal) {
+                // our stage is above the one we rejected (we deleted a directory, they changed a file in it): it has to be sent, else the other side never learns of it
+                insertToMerged(decision, rejection)
+            } else if (decision.deleted && decision.depth <= rejection.depth)
                 return
             return
         }
@@ -286,6 +406,9 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
             remoteStageConflictMap[remote.id]?.let { conflict ->
                 if (conflict.decision!!.depth == conflict.rejection!!.depth) {
                     insertToMerged(conflict.decision!!, conflict.rejection)
+                } else if (conflict.chosenLocal && !local.deleted && remote.deleted) {
+                    // the other side deleted this directory, we keep something below it: the directory has to be there again
+                    insertToMerged(local, remote)
                 } else if (conflict.decision!!.deleted && conflict.decision!!.depth <= conflict.rejection!!.depth)
                     return
                 return

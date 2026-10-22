@@ -18,6 +18,9 @@ abstract class StageSetMerger(protected val conflictDao: ConflictDao, val localS
 
     lateinit var mergedStageSet: StageSet
 
+    val isMerged: Boolean
+        get() = ::mergedStageSet.isInitialized
+
     /**
      * is called with two Stages which reference the same logical File or Directory
      *

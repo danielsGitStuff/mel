@@ -45,7 +45,14 @@ class ConflictDao(val stageDao: StageDao, val fsDao: FsDao) : Dao(stageDao.sqlQu
     }
 
     fun getRemoteDeletedByLocal(localStageSetId: Long, remoteStageSetId: Long): List<DbConflict> {
-        return getLocalDeletedByRemote(remoteStageSetId, localStageSetId)
+        // the query is made for "local deleted by remote": with the sets swapped its "local" columns hold the stages of the remote set
+        return getLocalDeletedByRemote(remoteStageSetId, localStageSetId).map {
+            val remoteSide = it.localStageId.v()
+            val localSide = it.remoteStageId.v()
+            it.localStageId.v(localSide)
+            it.remoteStageId.v(remoteSide)
+            it
+        }
     }
 
     fun flagLocalModifiedInRemote(localStageSetId: Long, remoteStageSetId: Long) {

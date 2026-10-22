@@ -488,12 +488,20 @@ public class StageDao extends Dao.LockingDao {
     }
 
     public void deleteIdenticalToFs(long stageSetId) throws SqlQueriesException {
+        deleteIdenticalToFs(stageSetId, java.util.Collections.emptySet());
+    }
+
+    /**
+     * @param keep ids of stages that stay even if they look like the fs entry
+     */
+    public void deleteIdenticalToFs(long stageSetId, java.util.Set<Long> keep) throws SqlQueriesException {
         FsFile f = new FsFile();
         Stage s = new Stage();
         //DELETE FROM stage where  id in (select s.id from stage s left join fsentry f on s.fsid=f.id where s.stageset=244 and s.contenthash=f.contenthash and s.deleted=false)
         String statement = "delete from " + s.getTableName() + " where id in (select s." + s.getIdPair().k() + " from " + s.getTableName() + " s left join " + f.getTableName()
                 + " f on f." + f.getId().k() + "=s." + s.getFsIdPair().k()
-                + " where s." + s.getStageSetPair().k() + "=? and s." + s.getContentHashPair().k() + "=f." + f.getContentHash().k() + " and s." + s.getDeletedPair().k() + "=?)";
+                + " where s." + s.getStageSetPair().k() + "=? and s." + s.getContentHashPair().k() + "=f." + f.getContentHash().k() + " and s." + s.getDeletedPair().k() + "=?"
+                + (keep.isEmpty() ? "" : " and s." + s.getIdPair().k() + " not in (" + keep.stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(",")) + ")") + ")";
         sqlQueries.execute(statement, ISQLQueries.args(stageSetId, false));
     }
 
@@ -518,10 +526,13 @@ public class StageDao extends Dao.LockingDao {
         sqlQueries.execute(stmt, ISQLQueries.args(synced, id));
     }
 
+    /**
+     * @return the highest version of a stage set that came from the server (the sets we made ourselves get a version too, and say nothing about what the server has)
+     */
     public Long getLatestStageSetVersion() throws SqlQueriesException {
         StageSet stageSet = new StageSet();
-        String query = "select max(" + stageSet.getVersion().k() + ") from " + stageSet.getTableName();
-        Long version = sqlQueries.queryValue(query, Long.class);
+        String query = "select max(" + stageSet.getVersion().k() + ") from " + stageSet.getTableName() + " where " + stageSet.getSource().k() + "=?";
+        Long version = sqlQueries.queryValue(query, Long.class, ISQLQueries.args(FileSyncStrings.STAGESET_SOURCE_SERVER));
         return version;
     }
 

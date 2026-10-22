@@ -67,6 +67,11 @@ public class ServerSyncHandler extends SyncHandler {
             if (stage.getParentId() != null && oldStageIdStageIdMap.containsKey(stage.getParentId())) {
                 stage.setParentId(oldStageIdStageIdMap.get(stage.getParentId()));
             }
+            // the client knows an entry this server has deleted meanwhile (the user kept the client's change in a conflict): it is a new entry here
+            if (stage.getFsIdPair().notNull() && this.fsDao.getFsEntryById(stage.getFsId()) == null)
+                stage.setFsId(null);
+            if (stage.getFsParentIdPair().notNull() && this.fsDao.getFsEntryById(stage.getFsParentId()) == null)
+                stage.setFsParentId(null);
             if (stage.getFsIdPair().notNull()) {
                 FsEntry fsEntry = this.fsDao.getFsEntryById(stage.getFsId());
                 stage.setDepth(fsEntry.getDepth().v());
