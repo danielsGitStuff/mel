@@ -31,6 +31,10 @@ public abstract class FileSyncStrings {
     public static final String STAGESET_SOURCE_CLIENT = "client";
     public static final String STAGESET_STATUS_STAGING = "staging";
     public static final String STAGESET_STATUS_STAGED = "staged";
+    /**
+     * the merged stage set a sync session sends: never the input of a session, gone when the session ends
+     */
+    public static final String STAGESET_STATUS_RESULT = "result";
     public static final String STAGESET_STATUS_SERVER_COMMITED = "server.com.done";
     public static final String STAGESET_STATUS_DELETE = "del";
     public static final String TRANSFER_DIR = ".mel.filesync.transfer";

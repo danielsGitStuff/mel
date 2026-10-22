@@ -14,6 +14,7 @@ import de.mel.filesync.jobs.CommitJob;
 import de.mel.filesync.service.MelFileSyncClientService;
 import de.mel.filesync.service.Wastebin;
 import de.mel.filesync.service.sync.ClientSyncHandler;
+import de.mel.filesync.service.sync.LocalStageSetMerger;
 import de.mel.filesync.sql.Stage;
 import de.mel.filesync.sql.StageSet;
 import de.mel.sql.SqlQueriesException;
@@ -88,7 +89,7 @@ public class SingleServiceTest extends MergeTest {
     @Test
     public void commitJob() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, SqlQueriesException {
         makeStageSetsFromFs();
-        MergeTestTools.callWorkOnJob(syncClientService,new CommitJob());
+        new LocalStageSetMerger(stageDao).mergeAll(stageDao.getStagedStageSetsFromFS());
 
         // check if matches the entries stored in memory
         StageSet mergedSet = stageDao.getStagedStageSetsFromFS().stream().findFirst().get();
@@ -113,7 +114,7 @@ public class SingleServiceTest extends MergeTest {
     @Test
     public void mergeFsLocalEqual() throws SqlQueriesException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         makeStageSetsFromFs();
-        MergeTestTools.callWorkOnJob(syncClientService,new CommitJob());
+        new LocalStageSetMerger(stageDao).mergeAll(stageDao.getStagedStageSetsFromFS());
 
         // check if all stages of the local stageset live in the merged one
         StageSet mergedStageSet = stageDao.getStagedStageSetsFromFS().stream().findFirst().get();
@@ -135,7 +136,7 @@ public class SingleServiceTest extends MergeTest {
         creationRemoteDao.delete("bbb.txt");
         stageDao.update(creationRemoteDao.get("bb").setDeleted(true).setContentHash(contentHashBB));
         stageDao.update(creationRemoteDao.get("b").setContentHash(contentHashB));
-        MergeTestTools.callWorkOnJob(syncClientService,new CommitJob());
+        new LocalStageSetMerger(stageDao).mergeAll(stageDao.getStagedStageSetsFromFS());
 
         // check if all stages of the local stageset live in the merged one
         StageSet mergedStageSet = stageDao.getStagedStageSetsFromFS().stream().findFirst().get();

@@ -110,7 +110,7 @@ public class MelFileSyncClientService extends MelFileSyncService<ClientSyncHandl
             }
             return true;
         } else if (unknownJob instanceof CommitJob) {
-            syncHandler.execCommitJob((CommitJob) unknownJob);
+            syncHandler.requestSession();
             return true;
         } else if (unknownJob instanceof Job.ConnectionAuthenticatedJob) {
             Job.ConnectionAuthenticatedJob authenticatedJob = (Job.ConnectionAuthenticatedJob) unknownJob;
@@ -119,23 +119,21 @@ public class MelFileSyncClientService extends MelFileSyncService<ClientSyncHandl
             }
             return true;
         } else if (unknownJob instanceof SyncClientJob) {
-            syncJobCount.decrementAndGet();
-            N.r(() -> syncHandler.syncFromServer());
+            syncHandler.requestSession();
+            return true;
         }
         return false;
     }
 
-    private AtomicInteger syncJobCount = new AtomicInteger(0);
-
+    /**
+     * Both jobs only ask for a sync session (see {@link ClientSyncHandler#requestSession()}): that returns at once, the worker stays free.
+     * Asked before the service has booted, the session runs when it has.
+     */
     @Override
     public void addJob(Job job) {
-        if (job instanceof SyncClientJob) {
-            int count = syncJobCount.incrementAndGet();
-            if (count > 1) {
-                Lok.debug("MelDriveClientService.addJob: SyncJob already in progress. skipping.");
-                syncJobCount.decrementAndGet();
-                return;
-            }
+        if ((job instanceof CommitJob || job instanceof SyncClientJob) && syncHandler != null) {
+            syncHandler.requestSession();
+            return;
         }
         super.addJob(job);
     }
@@ -219,6 +217,8 @@ public class MelFileSyncClientService extends MelFileSyncService<ClientSyncHandl
     @Override
     public void onBootLevel2Finished() {
         Lok.debug("MelDriveClientService.onServiceRegistered");
+        if (syncHandler != null)
+            syncHandler.onBooted();
         N.r(() -> {
             Long serverId = fileSyncSettings.getClientSettings().getServerCertId();
             if (serverId != null) {

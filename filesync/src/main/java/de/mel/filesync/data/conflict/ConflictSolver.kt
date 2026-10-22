@@ -74,9 +74,9 @@ open class ConflictSolver(conflictDao: ConflictDao, localStageSet: StageSet, rem
         }
         // reset merged flag
         stageDao.flagMergedStageSet(mergedStageSet.id.v(), false)
-        // make it from fs again.
+        // from fs again (what is applied of it when the server accepted it is in place), but the result of a session, not the input of the next one
         mergedStageSet.setSource(FileSyncStrings.STAGESET_SOURCE_FS);
-        mergedStageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED)
+        mergedStageSet.setStatus(FileSyncStrings.STAGESET_STATUS_RESULT)
         stageDao.updateStageSet(mergedStageSet)
         // empty stage sets must be removed
         if (!stageDao.stageSetHasContent(mergedStageSet.id.v())) {

@@ -203,6 +203,14 @@ public class StageDao extends Dao.LockingDao {
         return AbstractFile.instance(path.toString());
     }
 
+    /**
+     * deletes the stage sets with that status (and their stages)
+     */
+    public void deleteStageSetsWithStatus(String status) throws SqlQueriesException {
+        StageSet stageSet = new StageSet();
+        sqlQueries.delete(stageSet, stageSet.getStatus().k() + "=?", ISQLQueries.args(status));
+    }
+
     public void deleteServerStageSets() throws SqlQueriesException {
         StageSet stageSet = new StageSet();
         String where = stageSet.getSource().k() + "=? and " + stageSet.getStatus().k() + "=?";

@@ -9,7 +9,6 @@ import de.mel.auth.socket.MelValidationProcess;
 import de.mel.auth.socket.process.val.Request;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.Order;
-import de.mel.auth.tools.WaitLock;
 import de.mel.auth.tools.lock2.BunchOfLocks;
 import de.mel.auth.tools.lock2.P;
 import de.mel.filesync.FileSyncSyncListener;
@@ -40,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -55,7 +55,7 @@ public class ClientSyncHandler extends SyncHandler {
     private final ConflictDao conflictDao;
     private FileSyncSyncListener syncListener;
     private MelFileSyncClientService melDriveService;
-    private Map<String, ConflictSolver> conflictSolverMap = new keks<>();
+    private final Map<String, ConflictSolver> conflictSolverMap = new java.util.concurrent.ConcurrentHashMap<>();
     /**
      * Questions that were replaced by a newer one (the stage sets are new after each pull). A dialog may still show one of them: what the user answers there counts.
      */
@@ -141,13 +141,6 @@ public class ClientSyncHandler extends SyncHandler {
         }
     }
 
-    private class keks<K, V> extends HashMap<K, V> {
-        @Override
-        public V put(K key, V value) {
-            return super.put(key, value);
-        }
-    }
-
     public void setSyncListener(FileSyncSyncListener syncListener) {
         this.syncListener = syncListener;
     }
@@ -171,320 +164,432 @@ public class ClientSyncHandler extends SyncHandler {
         return new ClientSyncHandler(melAuthService, melDriveService, false);
     }
 
+    // ------------------------------------------------------------------------------------------------------------------------------------------------
+    // The sync session: one at a time, on a thread of its own, see SYNC_SESSION_PLAN.md.
+    // Its goal is to commit one version (or, without local changes, to take over the server's). It owns the whole exchange: stage data back and forth
+    // with the server and the questions to the user. It waits for both; the service worker does not, it stays free for messages and transfer requests.
+    // ------------------------------------------------------------------------------------------------------------------------------------------------
+
     /**
-     * Sends the StageSet to the server and updates it with the FsIds provided by the server.
-     * blocks until server has answered or the attempt failed.
-     *
-     * @param stageSetId
-     * @throws SqlQueriesException
+     * a commit that is not answered by then is given up (the request times out earlier: this is the last resort)
      */
-    @SuppressWarnings("unchecked")
-    private void syncToServerLocked(Long stageSetId) throws SqlQueriesException, InterruptedException {
-        // stage is complete. first lock on FS
-        StageDao stageDao = fileSyncDatabaseManager.getStageDao();
-        BunchOfLocks bunchOfLocks = P.confine(P.read(stageDao));
-        try {
-            if (stageDao.stageSetHasContent(stageSetId)) {
-                //all other stages we can find at this point are complete/valid and wait at this point.
-                //todo conflict checking goes here - has to block
-                Promise<MelValidationProcess, Exception> connected = melAuthService.connect(clientSettings.getServerCertId());
-                connected.onDone(mvp -> bunchOfLocks.run(() -> {
-                    // load to cached data structure
-                    StageSet stageSet = stageDao.getStageSetById(stageSetId);
-                    Commit commit = new Commit(melDriveService.getCacheDirectory(), CachedInitializer.randomId(), FileSyncSettings.CACHE_LIST_SIZE, melDriveService.getUuid());
-                    N.readSqlResource(fileSyncDatabaseManager.getStageDao().getStagesByStageSetForCommitResource(stageSetId), (sqlResource, stage) -> commit.add(stage));
-                    commit.setBasedOnVersion(stageSet.getBasedOnVersion().v());
-                    commit.setIntent(FileSyncStrings.INTENT_COMMIT);
-                    Request committed = mvp.request(clientSettings.getServerServiceUuid(), commit);
-                    committed.onDone(res -> bunchOfLocks.run(() -> {
-                        CommitAnswer answer = (CommitAnswer) res;
-                        for (Long stageId : answer.getStageIdFsIdMap().keySet()) {
-                            Long fsId = answer.getStageIdFsIdMap().get(stageId);
-                            Stage stage = stageDao.getStageById(stageId);
-                            // the server made a new entry for what we knew by another id (it had deleted it, the user kept our change): the old row is stale
-                            if (stage.getFsId() != null && !stage.getFsId().equals(fsId))
-                                fileSyncDatabaseManager.getFsDao().deleteById(stage.getFsId());
-                            stage.setFsId(fsId);
-                            if (stage.getParentId() != null && stage.getFsParentId() == null) {
-                                Long fsParentId = answer.getStageIdFsIdMap().get(stage.getParentId());
-                                stage.setFsParentId(fsParentId);
-                            }
-                            stageDao.update(stage);
-                        }
-                        stageSet.setStatus(FileSyncStrings.STAGESET_STATUS_STAGED);
-                        stageSet.setSource(FileSyncStrings.STAGESET_SOURCE_SERVER);
-                        commitStage(stageSetId, bunchOfLocks, null);
-                        researchTransfers();
-                        transferManager.research();
-                        bunchOfLocks.end();
-                    })).onError(result -> bunchOfLocks.run(() -> {
-                        if (result instanceof TooOldVersionException) {
-                            Lok.debug("ClientSyncHandler.syncWithServer");
-                            N.r(() -> {
-                                // check if the new server version is already present
-                                TooOldVersionException tooOldVersionException = (TooOldVersionException) result;
-                                Lok.debug("ClientSyncHandler.syncWithServer.TooOldVersionException");
-                                Long latestVersion = fileSyncDatabaseManager.getLatestVersion();
-                                if (latestVersion < tooOldVersionException.getNewVersion()) {
-                                    latestVersion = stageDao.getLatestStageSetVersion();
-                                    if (latestVersion == null || latestVersion < tooOldVersionException.getNewVersion()) {
-                                        melDriveService.addJob(new SyncClientJob(tooOldVersionException.getNewVersion()));
-                                    } else {
-                                        // the news are here already, as a stage set that nobody has looked at yet: nothing would. (Else we wait for something that does not come)
-                                        melDriveService.addJob(new CommitJob());
-                                    }
-                                }
-                                Lok.debug("ClientSyncHandler.syncWithServer");
-                            });
-                        }
-                        bunchOfLocks.end();
-                    }));
-                    bunchOfLocks.after(commit::cleanUp);
-                })).onError(result -> bunchOfLocks.run(() -> {
-                    // todo server did not commit. it probably had a local change. have to solve it here
-                    Exception ex = result;
-                    System.err.println("MelDriveClientService.startIndexer.could not connect :( due to: " + ex.getMessage());
-                    bunchOfLocks.end();
-                    melDriveService.onSyncFailed();
-                }));
-            } else {
-                stageDao.deleteStageSet(stageSetId);
-            }
-        } finally {
-//            bunchOfLocks.end();
+    private static final long COMMIT_WAIT_MS = 5 * 60_000L;
+    /**
+     * a pull that did not end by then is given up (requests time out earlier)
+     */
+    private static final long PULL_WAIT_MS = 10 * 60_000L;
+    private static final long TOO_OLD_RETRY_BASE_MS = 100;
+    private static final long TOO_OLD_RETRY_MAX_MS = 5_000;
+
+    private final ExecutorService sessionExecutor = Executors.newSingleThreadExecutor(runnable -> {
+        Thread thread = new Thread(runnable, "sync session " + melAuthService.getName());
+        thread.setDaemon(true);
+        return thread;
+    });
+    private final Object sessionLock = new Object();
+    /**
+     * somebody asked for a session that has not started yet
+     */
+    private boolean sessionRequested;
+    private boolean sessionRunning;
+    /**
+     * the service has booted: before, requests are kept
+     */
+    private boolean booted;
+    private boolean stopped;
+    private Thread sessionThread;
+    private int tooOldInARow;
+    private volatile boolean pullFailed;
+
+    /**
+     * Asks for a sync session. Returns at once: the session runs now, or after the one that runs, or when the service has booted. Several requests make one session.
+     * Also tells a session that waits for the user to look again.
+     */
+    public void requestSession() {
+        synchronized (sessionLock) {
+            sessionRequested = true;
+            sessionLock.notifyAll();
+            startIfDue();
         }
     }
 
     /**
-     * Merges all staged StageSets (from file system) and checks the result for conflicts
-     * with the stage from the server (if it exists).
-     * If conflicts are resolved, server StageSet is committed.
-     * if a single staged StageSet from file system remains it is send to the server
-     * and a new CommitJob added to the MelDriveServices working queue.
-     *
-     * @param commitJob
+     * the service has booted: sessions that were asked for may run
      */
-    public void execCommitJob(CommitJob commitJob) {
-        Lok.debug("ClientSyncHandler.execCommitJob");
-        BunchOfLocks warden = P.confine(P.read(fsDao));
-        try {
-            // first wait until every staging stuff is finished.
-
-            List<StageSet> stagedFromFs = stageDao.getStagedStageSetsFromFS();
-            Lok.debug("ClientSyncHandler.execCommitJob");
-
-            // first: merge everything which has been analysed by the indexer
-            new LocalStageSetMerger(stageDao).mergeAll(stagedFromFs);
-
-            stagedFromFs = stageDao.getStagedStageSetsFromFS();
-            if (stagedFromFs.size() > 1) {
-                melDriveService.addJob(new CommitJob());
-                return;
-            } else if (stagedFromFs.size() == 0 && commitJob.getSyncAnyway()) {
-                melDriveService.addJob(new SyncClientJob());
-                return;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            warden.end();
+    public void onBooted() {
+        synchronized (sessionLock) {
+            booted = true;
+            startIfDue();
         }
-        warden = P.confine(fsDao);
+    }
+
+    /**
+     * holds the session lock
+     */
+    private void startIfDue() {
+        if (booted && !stopped && sessionRequested && !sessionRunning) {
+            sessionRunning = true;
+            sessionExecutor.execute(this::runSessions);
+        }
+    }
+
+    private void runSessions() {
+        synchronized (sessionLock) {
+            sessionThread = Thread.currentThread();
+        }
         try {
-
-            // conflict check
-
-            // if no conflict occurred, commit if we all staged StageSets have been merged
-            List<StageSet> updateSets = stageDao.getUpdateStageSetsFromServer();
-            List<StageSet> stagedFromFs = stageDao.getStagedStageSetsFromFS();
-            // List<StageSet> committedStageSets = stageDao.getCommittedStageSets();
-            if (updateSets.size() > 1) {
-                System.err.println("ClientSyncHandler.execCommitJob.something went seriously wrong");
-                stageDao.deleteServerStageSets();
-                melDriveService.addJob(new SyncClientJob());
-                return;
-            }
-            if (updateSets.size() == 1 && stagedFromFs.size() == 1) {
-                // method should create a new CommitJob with conflict solving details
-                handleConflict(updateSets.get(0), stagedFromFs.get(0), warden);
-                Lok.debug("setupTransfers() was here before");
-                transferManager.research();
-                return;
-            } else if (stagedFromFs.size() == 1) {
-                //method should create a new CommitJob ? method blocks
-                syncToServerLocked(stagedFromFs.get(0).getId().v());
-                return;
-            } else if (stagedFromFs.size() > 1) {
-                // merge again
-                melDriveService.addJob(new CommitJob());
-                return;
-            } else if (commitJob.getSyncAnyway() && stagedFromFs.size() == 0 && updateSets.size() == 0) {
-                syncFromServer();
-                return;
-            } else if (updateSets.size() == 1) {
-                StageSet stageSet = updateSets.get(0);
-                if (stageSet.getSource().equalsValue(FileSyncStrings.STAGESET_SOURCE_SERVER)) {
-                    BunchOfLocks finalWarden = warden;
-                    N.r(() -> commitStage(stageSet.getId().v(), finalWarden, null));
-                    researchTransfers();
-                    transferManager.research();
+            while (true) {
+                synchronized (sessionLock) {
+                    if (!sessionRequested || stopped)
+                        return;
+                    sessionRequested = false;
+                }
+                try {
+                    runSession();
+                } catch (InterruptedException e) {
+                    return;
+                } catch (Exception e) {
+                    Lok.error("the sync session failed: " + e);
+                    e.printStackTrace();
+                    melDriveService.onSyncFailed();
                 }
             }
-
-
-            // lets assume that everything went fine!
-            boolean hasCommitted = false;
-            for (StageSet stageSet : updateSets) {
-                if (stageDao.stageSetHasContent(stageSet.getId().v())) {
-                    try {
-                        commitStage(stageSet.getId().v(), warden, null);
-                        researchTransfers();
-                        hasCommitted = true;
-                    } catch (OutOfSpaceException e) {
-                        e.printStackTrace();
-                        melDriveService.onInsufficientSpaceAvailable(stageSet.getId().v());
-                    }
-                } else
-                    stageDao.deleteStageSet(stageSet.getId().v());
+        } finally {
+            synchronized (sessionLock) {
+                sessionRunning = false;
+                sessionThread = null;
+                Thread.interrupted();
+                // a request that came while this was ending
+                startIfDue();
             }
-            // new job in case we have solved conflicts in this run.
-            // they must be committed to the server
-            if (hasCommitted)
-                melDriveService.addJob(new CommitJob());
-            // we are done here
-            melDriveService.onSyncDone();
-        } catch (SqlQueriesException | InterruptedException e) {
-            e.printStackTrace();
-            melDriveService.onSyncFailed();
+        }
+    }
+
+    @Override
+    public void suspend() {
+        super.suspend();
+        synchronized (sessionLock) {
+            stopped = true;
+            sessionLock.notifyAll();
+            if (sessionThread != null)
+                sessionThread.interrupt();
+        }
+    }
+
+    @Override
+    public void resume() {
+        super.resume();
+        synchronized (sessionLock) {
+            stopped = false;
+            startIfDue();
+        }
+    }
+
+    @Override
+    public void onShutDown() {
+        suspend();
+        sessionExecutor.shutdownNow();
+        super.onShutDown();
+    }
+
+    private void checkStopped() throws InterruptedException {
+        synchronized (sessionLock) {
+            if (stopped || Thread.currentThread().isInterrupted())
+                throw new InterruptedException("the sync session was stopped");
+        }
+    }
+
+    /**
+     * One session: merge what the indexer found, pull, ask the user if there are conflicts, commit, and apply what the server accepted.
+     * Nothing is applied before the server accepted the commit; the local stage sets stay until then, the result is never kept.
+     */
+    private void runSession() throws Exception {
+        // a result left over by a session that did not end (the service stopped in the middle) is not needed: results are made again
+        stageDao.deleteStageSetsWithStatus(FileSyncStrings.STAGESET_STATUS_RESULT);
+        StageSet local = mergeLocal();
+        checkStopped();
+        StageSet server = pull();
+        if (pullFailed)
+            return; // syncFromServerFailed() asks again later
+        checkStopped();
+        if (local == null) {
+            if (server != null)
+                apply(server);
+            endSession();
+            return;
+        }
+        StageSet toSend;
+        long basedOn;
+        if (server == null) {
+            // only local changes: on top of what we have of the server
+            toSend = local;
+            basedOn = fileSyncDatabaseManager.getLatestVersion();
+        } else {
+            ConflictSolver solver = solve(local, server);
+            toSend = stageDao.getStageSetById(solver.getMergedStageSet().getId().v());
+            basedOn = server.getVersion().v();
+            // what the user kept of this side must not be replaced by the other side's version
+            for (Conflict conflict : solver.getConflictMap().values())
+                if (conflict.getChosenLocal() && conflict.getRemoteStage() != null)
+                    stageDao.deleteStageById(conflict.getRemoteStage().getId());
+            if (toSend != null) {
+                deleteKnownToServer(toSend, server, solver.getMustBeSent());
+                stageDao.deleteIdenticalToFs(toSend.getId().v(), solver.getMustBeSent());
+            }
+        }
+        if (toSend == null || !stageDao.stageSetHasContent(toSend.getId().v())) {
+            // nothing the server does not have already
+            if (server != null)
+                apply(server);
+            deleteStageSetIfThere(toSend);
+            deleteStageSetIfThere(local);
+            endSession();
+            return;
+        }
+        checkStopped();
+        CommitResult result = commit(toSend, basedOn);
+        checkStopped();
+        switch (result.outcome) {
+            case ACCEPTED:
+                tooOldInARow = 0;
+                if (server != null)
+                    apply(server);
+                applyAnswer(toSend, result.answer);
+                deleteStageSetIfThere(local);
+                endSession();
+                break;
+            case TOO_OLD:
+                // the server moved on meanwhile: the next session pulls again and resolves again (the answers of the user are remembered)
+                deleteStageSetIfThere(toSend == local ? null : toSend);
+                deleteStageSetIfThere(server);
+                long delay = Math.min(TOO_OLD_RETRY_BASE_MS << Math.min(tooOldInARow++, 10), TOO_OLD_RETRY_MAX_MS);
+                syncRetryExecutor.schedule(this::requestSession, delay, TimeUnit.MILLISECONDS);
+                break;
+            case FAILED:
+                deleteStageSetIfThere(toSend == local ? null : toSend);
+                deleteStageSetIfThere(server);
+                melDriveService.onSyncFailed();
+                syncFromServerFailed(result.reason);
+                break;
+        }
+    }
+
+    /**
+     * @return the one local stage set with content, null if there is none
+     */
+    private StageSet mergeLocal() throws SqlQueriesException {
+        BunchOfLocks warden = P.confine(P.read(fsDao));
+        try {
+            StageSet local = new LocalStageSetMerger(stageDao).mergeAll(stageDao.getStagedStageSetsFromFS());
+            if (local != null && !stageDao.stageSetHasContent(local.getId().v())) {
+                stageDao.deleteStageSet(local.getId().v());
+                return null;
+            }
+            return local;
         } finally {
             warden.end();
         }
-
     }
-
-    public void handleConflict(StageSet serverStageSet, StageSet stagedFromFs, BunchOfLocks bunchOfLocks) throws SqlQueriesException {
-        handleConflict(serverStageSet, stagedFromFs, bunchOfLocks, null);
-    }
-
 
     /**
-     * check whether or not there are any conflicts between stuff that happened on this computer and stuff
-     * that happened on the server. this will block until all conflicts are resolved.
-     *
-     * @param serverStageSet
-     * @param stagedFromFs
+     * @return the server's changes since our version, null if there are none or the pull failed (then {@link #pullFailed} is set)
      */
-    public void handleConflict(StageSet serverStageSet, StageSet stagedFromFs, BunchOfLocks bunchOfLocks, String conflictHelperUuid) throws SqlQueriesException {
-        Lok.debug("debug handleConflict");
-        ConflictSolver solver = new ConflictSolver(this.conflictDao, stagedFromFs, serverStageSet);
-        String identifier = solver.getConflictIdentifier();
-        Lok.debug();
-        if (conflictSolverMap.containsKey(identifier)) {
-            solver = conflictSolverMap.get(identifier);
-        } else {
-            solver.findConflicts();
+    private StageSet pull() {
+        pullFailed = false;
+        try {
+            syncFromServer();
+            List<StageSet> serverSets = stageDao.getUpdateStageSetsFromServer();
+            if (serverSets.isEmpty())
+                return null;
+            // there is only one (one pull at a time): anything else would be left over
+            for (int i = 0; i < serverSets.size() - 1; i++)
+                stageDao.deleteStageSet(serverSets.get(i).getId().v());
+            StageSet server = serverSets.get(serverSets.size() - 1);
+            if (!stageDao.stageSetHasContent(server.getId().v())) {
+                stageDao.deleteStageSet(server.getId().v());
+                return null;
+            }
+            return server;
+        } catch (Exception e) {
+            Lok.error("pull failed: " + e);
+            pullFailed = true;
+            syncFromServerFailed(e);
+            return null;
         }
+    }
+
+    /**
+     * Finds the conflicts between our changes and the server's, asks the user about those that were not answered before and waits for the answers.
+     *
+     * @return the solver, merged: its merged stage set is what we send (it may be gone when nothing is left of it)
+     */
+    private ConflictSolver solve(StageSet local, StageSet server) throws SqlQueriesException, InterruptedException {
+        ConflictSolver solver = new ConflictSolver(conflictDao, local, server);
+        solver.findConflicts();
         // answers to questions that were asked before (about the same versions) count, even if the question was replaced by a newer one since
         harvestDecisions();
         solver.applyDecisions(decisions);
-        if (!solver.getConflictMap().isEmpty() && solver.isSolved() && !solver.isMerged()) {
-            Lok.debug("debug solved");
-            solver.merge();
-            // restore order
-            new BfsToDfsConverter(stageDao).convert(solver.mergedStageSet);
-            solver.setSolving(false);
-        } else {
-            Lok.debug("debug not solved");
-        }
-
-        if (!solver.isSolving()) {
-            if (solver.hasConflicts()) {
-                Lok.error("got conflicts!!!");
-                if (conflictHelperUuid != null)
-                    solver.setConflictHelperUuid(conflictHelperUuid);
-                putConflictSolver(solver);
-                solver.setSolving(true);
-                melDriveService.onConflicts(solver);
-            } else {
-                Lok.debug("debug solved 33dddd");
-                try {
-                    // what the user kept of this side must not be replaced by the other side's version: it is the one in the merged set
-                    for (Conflict conflict : solver.getConflictMap().values()) {
-                        if (conflict.getChosenLocal() && conflict.getRemoteStage() != null)
-                            stageDao.deleteStageById(conflict.getRemoteStage().getId());
-                    }
-                    this.commitStage(solver.getRemoteStageSet().getId().v(), bunchOfLocks, null);
-                    stageDao.deleteIdenticalToFs(solver.getMergedStageSet().getId().v(), solver.getMustBeSent());
-                    this.stageDao.deleteStageSet(solver.getLocalStageSet().getId().v());
-                    if (stageDao.stageSetHasContent(solver.getMergedStageSet().getId().v()))
-                        melDriveService.addJob(new CommitJob());
-                    else
-                        stageDao.deleteStageSet(solver.getMergedStageSet().getId().v());
-                    this.deleteObsolete(solver);
-                } catch (OutOfSpaceException e) {
-                    e.printStackTrace();
-                    melDriveService.onInsufficientSpaceAvailable(solver.mergedStageSet.getId().v());
-                } catch (IOException e) {
-                    e.printStackTrace();
+        if (solver.hasConflicts()) {
+            Lok.debug("conflicts: asking " + solver.getConflictIdentifier());
+            putConflictSolver(solver);
+            solver.setSolving(true);
+            melDriveService.onConflicts(solver);
+            synchronized (sessionLock) {
+                while (!solver.isSolved()) {
+                    if (stopped)
+                        throw new InterruptedException("the sync session was stopped while it waited for the user");
+                    // woken by requestSession() (the user answered and the job to go on came), looks again now and then anyway
+                    sessionLock.wait(1000);
                 }
             }
+            harvestDecisions();
         }
-//        String identifier = ConflictSolver.createIdentifier(serverStageSet.getId().v(), stagedFromFs.getId().v());
-//        ConflictSolver conflictSolver;
-//        // check if there is a solved ConflictSolver available. if so, use it. if not, make a new one.
-//        if (conflictSolverMap.containsKey(identifier)) {
-//            conflictSolver = conflictSolverMap.get(identifier);
-//            if (conflictSolver.isSolved()) {
-//                iterateStageSets(serverStageSet, stagedFromFs, null, conflictSolver);
-//                conflictSolver.setSolving(false);
-//            } else {
-//                System.err.println(getClass().getSimpleName() + ".handleConflict(): conflict " + identifier + " was not resolved");
-//            }
-//        } else {
-//            conflictSolver = new ConflictSolver(fileSyncDatabaseManager.getConflictDao(), stagedFromFs, serverStageSet);
-//            conflictSolver.findConflicts();
-//        }
-//        // only remember the conflict solver if it actually has conflicts
-//        if (!conflictSolver.isSolving()) {
-//            if (conflictSolver.hasConflicts()) {
-//                System.err.println("conflicts!!!!1!");
-//                if (conflictHelperUuid != null)
-//                    conflictSolver.setConflictHelperUuid(conflictHelperUuid);
-//                putConflictSolver(conflictSolver);
-//                conflictSolver.setSolving(true);
-//                melDriveService.onConflicts();
-//            } else {
-//                // todo FsDir hash conflicts
-//                conflictSolver.directoryStuff();
-//                try {
-//                    this.commitStage(serverStageSet.getId().v(), warden);
-//                    this.deleteObsolete(conflictSolver);
-//                } catch (OutOfSpaceException e) {
-//                    e.printStackTrace();
-//                    melDriveService.onInsufficientSpaceAvailable(serverStageSet.getId().v());
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//                conflictSolver.cleanup();
-//                Long mergedId = conflictSolver.getMergeStageSet().getId().v();
-//                this.minimizeStage(mergedId);
-//                if (stageDao.stageSetHasContent(mergedId))
-//                    melDriveService.addJob(new CommitJob());
-//                else {
-//                    stageDao.deleteStageSet(mergedId);
-//                }
-//            }
-//        }
+        solver.merge();
+        StageSet merged = stageDao.getStageSetById(solver.getMergedStageSet().getId().v());
+        if (merged != null)
+            new BfsToDfsConverter(stageDao).convert(merged);
+        return solver;
     }
 
     /**
-     * The conflict is solved and committed. The solver and the questions it replaced are not needed any more: they were about stage sets that are gone.
-     * What was decided stays: while the result travels to the server another pull can bring the old state of the server back, the same two versions meet again,
-     * and the user has answered that already.
+     * Removes files from the set that the server has like that already (in its stage set): the user chose the server's version, or both sides did the same.
      */
-    private void deleteObsolete(ConflictSolver conflictSolver) throws SqlQueriesException, IOException {
+    private void deleteKnownToServer(StageSet stageSet, StageSet server, Set<Long> keep) throws SqlQueriesException {
+        for (Stage stage : stageDao.getStagesByStageSetAsList(stageSet.getId().v())) {
+            if (stage.getIsDirectory() || keep.contains(stage.getId()))
+                continue;
+            Stage known = stageDao.getStageByPathAndName(server.getId().v(), stage.getPath(), stage.getName());
+            if (known != null && !known.getIsDirectory() && java.util.Objects.equals(known.getContentHash(), stage.getContentHash())
+                    && java.util.Objects.equals(known.getDeleted(), stage.getDeleted()))
+                stageDao.deleteStageById(stage.getId());
+        }
+    }
+
+    /**
+     * Takes over the server's changes (the set is gone afterwards). A file that is wanted and lies in the bin (we had it and it was binned in a step before)
+     * is taken out right away instead of being fetched.
+     */
+    private void apply(StageSet server) throws SqlQueriesException, OutOfSpaceException, IOException {
+        if (stageDao.getStageSetById(server.getId().v()) == null)
+            return;
+        BunchOfLocks warden = P.confine(fsDao);
+        try {
+            commitStage(server.getId().v(), warden, null);
+            researchTransfers();
+        } catch (OutOfSpaceException e) {
+            melDriveService.onInsufficientSpaceAvailable(server.getId().v());
+            throw e;
+        } finally {
+            warden.end();
+        }
+        // takes the lock of the fs table itself
+        wastebin.restoreFsFiles();
+        transferManager.research();
+    }
+
+    /**
+     * The server accepted the set: it gets the fs ids the server gave and is put in place (the set is gone afterwards).
+     */
+    private void applyAnswer(StageSet sent, CommitAnswer answer) throws SqlQueriesException, OutOfSpaceException {
+        BunchOfLocks warden = P.confine(fsDao);
+        try {
+            for (Long stageId : answer.getStageIdFsIdMap().keySet()) {
+                Long fsId = answer.getStageIdFsIdMap().get(stageId);
+                Stage stage = stageDao.getStageById(stageId);
+                if (stage == null)
+                    continue;
+                // the server made a new entry for what we knew by another id (it had deleted it, the user kept our change): the old row is stale
+                if (stage.getFsId() != null && !stage.getFsId().equals(fsId))
+                    fileSyncDatabaseManager.getFsDao().deleteById(stage.getFsId());
+                stage.setFsId(fsId);
+                if (stage.getParentId() != null && stage.getFsParentId() == null)
+                    stage.setFsParentId(answer.getStageIdFsIdMap().get(stage.getParentId()));
+                stageDao.update(stage);
+            }
+            commitStage(sent.getId().v(), warden, null);
+            researchTransfers();
+            transferManager.research();
+        } finally {
+            warden.end();
+        }
+    }
+
+    private void deleteStageSetIfThere(StageSet stageSet) throws SqlQueriesException {
+        if (stageSet != null)
+            stageDao.deleteStageSet(stageSet.getId().v());
+    }
+
+    /**
+     * The session is over: the questions it asked are answered and gone (what was decided stays, see {@link #decisions}).
+     * If the indexer found something meanwhile, the next session takes it.
+     */
+    private void endSession() throws SqlQueriesException {
         conflictSolverMap.clear();
         supersededSolvers.clear();
+        if (!stageDao.getStagedStageSetsFromFS().isEmpty())
+            synchronized (sessionLock) {
+                sessionRequested = true;
+            }
+        melDriveService.onSyncDone();
+    }
+
+    private enum Outcome {ACCEPTED, TOO_OLD, FAILED}
+
+    private static class CommitResult {
+        final Outcome outcome;
+        final CommitAnswer answer;
+        final Object reason;
+
+        CommitResult(Outcome outcome, CommitAnswer answer, Object reason) {
+            this.outcome = outcome;
+            this.answer = answer;
+            this.reason = reason;
+        }
+    }
+
+    /**
+     * Sends the set to the server and waits for the answer. The network threads only hand the answer over: it is handled by the session.
+     */
+    @SuppressWarnings("unchecked")
+    private CommitResult commit(StageSet stageSet, long basedOn) throws InterruptedException {
+        java.util.concurrent.CompletableFuture<CommitResult> result = new java.util.concurrent.CompletableFuture<>();
+        Commit[] sent = {null};
+        Promise<MelValidationProcess, Exception> connected;
+        try {
+            connected = melAuthService.connect(clientSettings.getServerCertId());
+        } catch (Exception e) {
+            return new CommitResult(Outcome.FAILED, null, e);
+        }
+        connected.onDone(mvp -> {
+            try {
+                Commit commit = new Commit(melDriveService.getCacheDirectory(), CachedInitializer.randomId(), FileSyncSettings.CACHE_LIST_SIZE, melDriveService.getUuid());
+                sent[0] = commit;
+                N.readSqlResource(stageDao.getStagesByStageSetForCommitResource(stageSet.getId().v()), (sqlResource, stage) -> commit.add(stage));
+                commit.setBasedOnVersion(basedOn);
+                commit.setIntent(FileSyncStrings.INTENT_COMMIT);
+                Request committed = mvp.request(clientSettings.getServerServiceUuid(), commit);
+                committed.onDone(answer -> result.complete(new CommitResult(Outcome.ACCEPTED, (CommitAnswer) answer, null)))
+                        .onError(e -> result.complete(new CommitResult(e instanceof TooOldVersionException ? Outcome.TOO_OLD : Outcome.FAILED, null, e)));
+            } catch (Exception e) {
+                result.complete(new CommitResult(Outcome.FAILED, null, e));
+            }
+        }).onError(e -> result.complete(new CommitResult(Outcome.FAILED, null, e)));
+        try {
+            return result.get(COMMIT_WAIT_MS, TimeUnit.MILLISECONDS);
+        } catch (java.util.concurrent.ExecutionException | java.util.concurrent.TimeoutException e) {
+            return new CommitResult(Outcome.FAILED, null, e);
+        } finally {
+            if (sent[0] != null)
+                N.r(() -> sent[0].cleanUp());
+        }
+    }
+
+    /**
+     * The client found unknown files in places where it expected files of the server when it first indexed. Not reached at the moment:
+     * {@link de.mel.filesync.index.InitialIndexConflictHelper#check} is never called, so its stage set is always empty. A session finds such conflicts anyway.
+     */
+    public void handleInitialConflicts() {
+        requestSession();
     }
 
     private void putConflictSolver(ConflictSolver conflictSolver) {
@@ -507,11 +612,6 @@ public class ClientSyncHandler extends SyncHandler {
             decisions.putAll(current.decisions());
     }
 
-    private void minimizeStage(Long stageSetId) throws SqlQueriesException {
-        if (stageSetId == 9)
-            Lok.warn("debug");
-        stageDao.deleteIdenticalToFs(stageSetId);
-    }
 
     private static final int MAX_SYNC_FAILURES = 10;
     private static final long SYNC_RETRY_BASE_MS = 300;
@@ -540,67 +640,79 @@ public class ClientSyncHandler extends SyncHandler {
     }
 
     /**
-     * pulls StageSet from the Server. locks.
-     *
-     * @throws SqlQueriesException
+     * Pulls the server's changes since our version into a server stage set (staged when it is complete). Blocks until that is done or failed
+     * (then {@link #pullFailed} is set and another attempt is scheduled). Called by the sync session only.
      */
     public void syncFromServer() throws SqlQueriesException, InterruptedException {
-        Lok.debug();
-        WaitLock waitLock = new WaitLock();
-        runner.runTry(() -> {
-            stageDao.deleteServerStageSets();
-            waitLock.unlock();
-        });
+        java.util.concurrent.CountDownLatch done = new java.util.concurrent.CountDownLatch(1);
+        stageDao.deleteServerStageSets();
         Certificate serverCert = melAuthService.getCertificateManager().getTrustedCertificateById(clientSettings.getServerCertId());
         Promise<MelValidationProcess, Exception> connected = melAuthService.connect(serverCert.getId().v());
-        connected.onDone(mvp -> runner.runTry(() -> {
-            long oldeSyncedVersion = fileSyncDatabaseManager.getFileSyncSettings().getLastSyncedVersion();
-            StageSet stageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_SERVER, clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), null, oldeSyncedVersion);
-            SyncRequest sentSyncRequest = new SyncRequest()
-                    .setOldVersion(oldeSyncedVersion);
-            sentSyncRequest.setIntent(FileSyncStrings.INTENT_SYNC);
-            Request<SyncAnswer> request = mvp.request(clientSettings.getServerServiceUuid(), sentSyncRequest);
-            request.onDone(syncAnswer -> runner.runTry(() -> {
-                try {
-                    syncFailures.set(0);
-                    syncAnswer.setStageSet(stageSet);
-                    //server might have got a new version in the meantime and sent us that
-                    stageSet.setVersion(syncAnswer.getNewVersion());
-                    stageSet.setBasedOnVersion(syncAnswer.getOldVersion());
-                    stageDao.updateStageSet(stageSet);
-                    Promise<Long, Void> promise = this.sync2Stage(syncAnswer);
-                    promise.onDone(nil -> runner.runTry(() -> {
-                        try {
-                            melDriveService.addJob(new CommitJob());
-                            if (syncListener != null)
-                                syncListener.onSyncDone();
-                        } finally {
-                            waitLock.unlock();
-                        }
-                    })).onError(result -> {
-                                try {
-                                    System.err.println("ClientSyncHandler.syncFromServer.j99f49459f54");
-                                    N.r(() -> stageDao.deleteStageSet(stageSet.getId().v()));
-                                } finally {
-                                    waitLock.unlock();
-                                }
+        connected.onDone(mvp -> {
+            boolean handedOn = false;
+            try {
+                long oldeSyncedVersion = fileSyncDatabaseManager.getFileSyncSettings().getLastSyncedVersion();
+                StageSet stageSet = stageDao.createStageSet(FileSyncStrings.STAGESET_SOURCE_SERVER, clientSettings.getServerCertId(), clientSettings.getServerServiceUuid(), null, oldeSyncedVersion);
+                SyncRequest sentSyncRequest = new SyncRequest()
+                        .setOldVersion(oldeSyncedVersion);
+                sentSyncRequest.setIntent(FileSyncStrings.INTENT_SYNC);
+                Request<SyncAnswer> request = mvp.request(clientSettings.getServerServiceUuid(), sentSyncRequest);
+                request.onDone(syncAnswer -> {
+                    boolean staging = false;
+                    try {
+                        syncFailures.set(0);
+                        syncAnswer.setStageSet(stageSet);
+                        //server might have got a new version in the meantime and sent us that
+                        stageSet.setVersion(syncAnswer.getNewVersion());
+                        stageSet.setBasedOnVersion(syncAnswer.getOldVersion());
+                        stageDao.updateStageSet(stageSet);
+                        Promise<Long, Void> promise = this.sync2Stage(syncAnswer);
+                        staging = true;
+                        promise.onDone(nil -> {
+                            try {
+                                if (syncListener != null)
+                                    syncListener.onSyncDone();
+                            } finally {
+                                done.countDown();
                             }
-                    );
-                } finally {
-                    waitLock.unlock();
-                }
-            })).onError(result -> {
-                syncFromServerFailed(result);
-                waitLock.unlock();
-            });
-        })).onError(result -> {
+                        }).onError(result -> {
+                            // also when there is nothing new
+                            try {
+                                N.r(() -> stageDao.deleteStageSet(stageSet.getId().v()));
+                            } finally {
+                                done.countDown();
+                            }
+                        });
+                    } catch (Exception e) {
+                        Lok.error("could not stage what the server sent: " + e);
+                        pullFailed = true;
+                    } finally {
+                        if (!staging)
+                            done.countDown();
+                    }
+                }).onError(result -> {
+                    pullFailed = true;
+                    syncFromServerFailed(result);
+                    N.r(() -> stageDao.deleteStageSet(stageSet.getId().v()));
+                    done.countDown();
+                });
+                handedOn = true;
+            } catch (Exception e) {
+                Lok.error("could not ask the server: " + e);
+                pullFailed = true;
+            } finally {
+                if (!handedOn)
+                    done.countDown();
+            }
+        }).onError(result -> {
+            pullFailed = true;
             syncFromServerFailed(result);
-            waitLock.unlock();
+            done.countDown();
         });
-
-        Lok.debug("waiting to finish");
-        waitLock.lock().lock();
-        Lok.debug("done waiting");
+        if (!done.await(PULL_WAIT_MS, TimeUnit.MILLISECONDS)) {
+            Lok.error("the pull did not end in time");
+            pullFailed = true;
+        }
     }
 
     private void insertWithParentId(Map<Long, Long> entryIdStageIdMap, GenericFSEntry genericFSEntry, Stage stage) throws SqlQueriesException {

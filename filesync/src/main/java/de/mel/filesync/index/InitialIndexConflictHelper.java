@@ -110,7 +110,7 @@ public class InitialIndexConflictHelper {
         }
         RWLock lock = new RWLock();
         // give it the uuid so it can unlock the wait lock
-        driveClientService.getSyncHandler().handleConflict(serverStageSet, fsStageSet, bunchOfLocks, uuid);
+        driveClientService.getSyncHandler().handleInitialConflicts();
 //        if (conflictSolvers.iterator().hasNext())
 
 //        ConflictSolver conflictSolver = new ConflictSolver(driveClientService.getDriveDatabaseManager(), serverStageSet, fsStageSet);
