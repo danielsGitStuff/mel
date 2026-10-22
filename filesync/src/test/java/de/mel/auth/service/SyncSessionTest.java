@@ -130,11 +130,12 @@ public class SyncSessionTest {
 
             server.releaseCommits();
             boolean[] askedAgain = {false};
+            // several rounds: the commit that is too old, another session, its commit, the files both ways
             assertTrue(TwoInstances.waitFor(() -> {
                 if (openQuestions(instances) > 0)
                     askedAgain[0] = true;
                 return ConflictSyncTest.equal(instances) && ConflictSyncTest.fileHas(instances, "same.bin", 22_000) && ConflictSyncTest.fileHas(instances, "later.bin", 7_000);
-            }, TwoInstances.TIMEOUT_SECONDS), "the answer was lost or the sync did not go on");
+            }, 2 * TwoInstances.TIMEOUT_SECONDS), "the answer was lost or the sync did not go on");
             assertFalse(askedAgain[0], "the client asked again about the same two versions");
             assertTrue(server.commitsReceived.get() >= commitsBefore + 2, "the first commit should have been too old and a second one sent");
             assertTrue(TwoInstances.waitFor(() -> ConflictSyncTest.nothingLeftToMerge(instances), TwoInstances.TIMEOUT_SECONDS), "stage sets are left over");

@@ -96,7 +96,7 @@ public class MelFileSyncServerService extends MelFileSyncService<ServerSyncHandl
                         request.resolveOk(null);
                         return true;
                     } else if (request.hasIntent(FileSyncStrings.INTENT_COMMIT)) {
-                        syncHandler.handleCommit(request);
+                        syncHandler.queueCommit(request);
                         return true;
                     } else if (request.hasIntent(FileSyncStrings.INTENT_ASK_HASHES_AVAILABLE)) {
                         syncHandler.handleAvailableHashesRequest(request);

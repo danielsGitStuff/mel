@@ -85,7 +85,7 @@ The server never asks anyone, so its sessions are the short form.
 2. ~~Wastebin (section 9): tests, one lock, entries from the disk, restore updates the fs entry.~~ Done.
 3. ~~Client session worker; the old job paths go; look in the bin first when applying.~~ Done (and the transfer fix it needed, `6d3ae12c`).
 4. ~~Tests 2 to 4, re-enable the seven, cold cycles.~~ Done (plus the transfer, auth and version fixes they needed).
-5. Server version worker.
+5. ~~Server version worker.~~ Done as far as it makes sense: client commits on a thread of their own; the version paths already take turns under the fs table's lock (REWORK_LOG.md).
 6. Full build; update `REWORK_LOG.md`, mark `CLIENT_SYNC_RACE.md` as solved.
 
 ## 9. The wastebin

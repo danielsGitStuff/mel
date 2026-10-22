@@ -41,6 +41,38 @@ public class ServerSyncHandler extends SyncHandler {
         super(melAuthService, melFileSyncService);
     }
 
+    /**
+     * Commits of clients are handled one after another on a thread of their own: the service worker stays free for messages and transfer requests while
+     * a commit is put in place. Versions change under the lock of the fs table, so also in turn with the server's own index (it commits on its thread).
+     */
+    private final java.util.concurrent.ExecutorService commitExecutor = java.util.concurrent.Executors.newSingleThreadExecutor(runnable -> {
+        Thread thread = new Thread(runnable, "commits " + melAuthService.getName());
+        thread.setDaemon(true);
+        return thread;
+    });
+
+    /**
+     * handles the commit on the commit thread, returns at once
+     */
+    public void queueCommit(Request request) {
+        commitExecutor.execute(() -> {
+            try {
+                handleCommit(request);
+            } catch (Exception e) {
+                Lok.error("commit failed: " + e);
+                e.printStackTrace();
+                if (request.isPending())
+                    request.resolveError(e);
+            }
+        });
+    }
+
+    @Override
+    public void onShutDown() {
+        commitExecutor.shutdownNow();
+        super.onShutDown();
+    }
+
     @Override
     protected void setupTransferAvailable(DbTransferDetails details, StageSet stageSet, Stage stage) {
         if (stageSet.getSource().equalsValue(FileSyncStrings.STAGESET_SOURCE_CLIENT))
