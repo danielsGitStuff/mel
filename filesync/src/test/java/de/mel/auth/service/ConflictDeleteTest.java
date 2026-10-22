@@ -1,6 +1,5 @@
 package de.mel.auth.service;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -102,7 +101,6 @@ public class ConflictDeleteTest {
     }
 
     @Test
-    @Disabled("intermittent after a cold start (about one run in three): pull, resolve and commit of the client interleave over the same stage sets, see REWORK_LOG.md")
     public void clientDeletesWhileServerChangesTheDeletionWins() throws Exception {
         try (FileSyncInstances instances = synced(24700)) {
             ConflictSyncTest.bothChange(instances, root -> ConflictSyncTest.write(root, "same.bin", 21_000, 11), () -> serverChanged(instances),
@@ -131,7 +129,6 @@ public class ConflictDeleteTest {
     }
 
     @Test
-    @Disabled("intermittent after a cold start (about one run in three): pull, resolve and commit of the client interleave over the same stage sets, see REWORK_LOG.md")
     public void serverDeletesWhileClientChangesTheChangeWins() throws Exception {
         try (FileSyncInstances instances = synced(24720)) {
             ConflictSyncTest.bothChange(instances, root -> assertTrue(new File(root, "same.bin").delete()), () -> serverEntryGone(instances, "/", "same.bin"),
@@ -176,7 +173,6 @@ public class ConflictDeleteTest {
     }
 
     @Test
-    @Disabled("intermittent after a cold start (about one run in three): pull, resolve and commit of the client interleave over the same stage sets, see REWORK_LOG.md")
     public void serverDeletesDirectoryWhileClientChangesAFileInItTheChangeWins() throws Exception {
         try (FileSyncInstances instances = synced(24750)) {
             ConflictSyncTest.bothChange(instances, root -> deleteTree(new File(root, "dir")), () -> serverEntryGone(instances, "/", "dir"),
@@ -188,7 +184,6 @@ public class ConflictDeleteTest {
     }
 
     @Test
-    @Disabled("intermittent after a cold start (about one run in three): pull, resolve and commit of the client interleave over the same stage sets, see REWORK_LOG.md")
     public void serverDeletesDirectoryWhileClientChangesAFileInItTheDeletionWins() throws Exception {
         try (FileSyncInstances instances = synced(24760)) {
             ConflictSyncTest.bothChange(instances, root -> deleteTree(new File(root, "dir")), () -> serverEntryGone(instances, "/", "dir"),

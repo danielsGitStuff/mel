@@ -1,6 +1,5 @@
 package de.mel.auth.service;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -124,6 +123,7 @@ public class ConflictSyncTest {
                     conflict.decideRemote();
             }
             answered++;
+            assertTrue(solver.isSolved(), "Some conflicts had not been solved");
         }
         if (answered > 0)
             instances.clientService.addJob(new CommitJob());
@@ -177,7 +177,6 @@ public class ConflictSyncTest {
     }
 
     @Test
-    @Disabled("intermittent after a cold start (about one run in three): pull, resolve and commit of the client interleave over the same stage sets, see REWORK_LOG.md")
     public void sameFileChangedOnBothSidesTheClientsVersionWins() throws Exception {
         try (FileSyncInstances instances = synced(24610)) {
             bothChange(instances, root -> write(root, "same.bin", 21_000, 11), root -> write(root, "same.bin", 22_000, 12));
@@ -240,7 +239,6 @@ public class ConflictSyncTest {
     }
 
     @Test
-    @Disabled("intermittent after a cold start (about one run in three): pull, resolve and commit of the client interleave over the same stage sets, see REWORK_LOG.md")
     public void directoryWhereBothAddedFilesAndChangedOneTheClientsVersionWins() throws Exception {
         directoryWithConflictAndNewFiles(24640, true);
     }
@@ -288,7 +286,6 @@ public class ConflictSyncTest {
     }
 
     @Test
-    @Disabled("intermittent after a cold start (about one run in three): pull, resolve and commit of the client interleave over the same stage sets, see REWORK_LOG.md")
     public void anAnswerSurvivesThatTheClientChangesAgainBeforeTheSyncGoesOn() throws Exception {
         try (FileSyncInstances instances = synced(24660)) {
             bothChange(instances, root -> write(root, "same.bin", 21_000, 11), root -> write(root, "same.bin", 22_000, 12));

@@ -468,3 +468,9 @@ Found with `ConflictDeleteTest.serverDeletesDirectoryWhileClientChangesAFileInIt
 - **An entry below a directory that got a new id kept the old parent id.** When the server made the directory new (it had deleted it, the user kept a file in it), the client deleted its stale row of the directory, and `commitStage` skipped the file because its parent was gone ("skip if parent was deleted"): the file never got into the fs table and could not be sent. The parent id comes from the answer as well now.
 
 After this and the transfer fixes: the seven conflict tests that were disabled pass 6 of 6 cold cycles (with `SyncSessionTest`, 108 of 108 test runs).
+
+## Sessions proven; the seven conflict tests are on again
+
+- `SyncSessionTest` (2): the test server holds back its answers to commits (`RecordingServerService.holdCommits`/`releaseCommits`, counts `pullsReceived`/`commitsReceived`), so the window of the old race is as long as the test wants. While a commit waits: another change, `SyncClientJob`, `CommitJob`s and a request to the client's worker (answered at once), and no second pull or commit (before the sessions: 4 commits). TooOld while the user's answer waits for the server: the next session resolves again with the same answer, without asking (before the sessions the client did not even ask: it committed before it pulled).
+- `ConflictDecisionsTest` (5, database only): an answer counts again only for the same two versions; a file changed again on either side, or a directory with other names in it, is asked again. With a key of path and name only, 3 fail.
+- The seven `@Disabled` tests of `ConflictSyncTest` and `ConflictDeleteTest` are on again (and the author's check that answering every conflict of a question solves it). Cold cycles: 6 of 6.

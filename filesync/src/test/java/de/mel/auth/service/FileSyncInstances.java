@@ -161,6 +161,47 @@ public class FileSyncInstances implements AutoCloseable {
         }
 
         /**
+         * pulls (sync requests) and commits of clients this server got
+         */
+        public final java.util.concurrent.atomic.AtomicInteger pullsReceived = new java.util.concurrent.atomic.AtomicInteger();
+        public final java.util.concurrent.atomic.AtomicInteger commitsReceived = new java.util.concurrent.atomic.AtomicInteger();
+        /**
+         * commits of clients are not handled (and not answered) until {@link #releaseCommits()}
+         */
+        public volatile boolean holdCommits = false;
+        private final List<de.mel.auth.jobs.ServiceRequestHandlerJob> heldCommits = new CopyOnWriteArrayList<>();
+
+        /**
+         * handles the commits that were held back, in the order they came
+         */
+        public void releaseCommits() {
+            holdCommits = false;
+            for (de.mel.auth.jobs.ServiceRequestHandlerJob job : heldCommits)
+                addJob(job);
+            heldCommits.clear();
+        }
+
+        @Override
+        protected void onSyncReceived(de.mel.auth.socket.process.val.Request request) {
+            pullsReceived.incrementAndGet();
+            super.onSyncReceived(request);
+        }
+
+        @Override
+        protected boolean workWorkWork(de.mel.auth.jobs.Job unknownJob) {
+            if (unknownJob instanceof de.mel.auth.jobs.ServiceRequestHandlerJob job && job.isRequest()
+                    && job.getRequest().hasIntent(de.mel.filesync.data.FileSyncStrings.INTENT_COMMIT)) {
+                if (!heldCommits.contains(job))
+                    commitsReceived.incrementAndGet();
+                if (holdCommits) {
+                    heldCommits.add(job);
+                    return true;
+                }
+            }
+            return super.workWorkWork(unknownJob);
+        }
+
+        /**
          * the connection a file asked for would be sent on
          */
         public Promise<de.mel.auth.socket.process.transfer.MelIsolatedFileProcess, Exception> connectionToSendOnFor(Long partnerCertId, de.mel.auth.socket.process.transfer.FileTransferDetailSet detailSet) throws Exception {
