@@ -1,5 +1,7 @@
 # The seven disabled conflict tests: what is known, what is guessed, what could be done
 
+> **Solved (2026-10-22).** The client syncs in sessions, one at a time (`SYNC_SESSION_PLAN.md`); the seven tests run again and pass in cold cycles. What was done, step by step, is in `REWORK_LOG.md` (from "Wastebin: a binned file is always found again" on). This document is the analysis as it was before; two of its assumptions were wrong: the pull did not block either (the `WaitLock` returned at once), and `holdBackCommit` holds back the server's own index, not its answers to commits (`RecordingServerService.holdCommits` does that now).
+
 Written 2026-10-22 on branch `rework2026` (commit `0bd7d222`). Everything marked **seen** was observed in a log, a trace or a test result. Everything marked **guess** is reasoning from the code and has not been shown.
 
 ## 1. The tests
