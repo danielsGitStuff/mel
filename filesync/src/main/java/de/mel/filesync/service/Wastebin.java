@@ -39,6 +39,11 @@ public class Wastebin {
     private final StageDao stageDao;
     private final IFile deferredDir;
     private SyncHandler syncHandler;
+    /**
+     * Moving a file into or out of the bin and writing its row is one step: the sync bins while the transfer manager restores.
+     * Taken after the lock on the fs table (commitStage holds that when it bins), never the other way round.
+     */
+    private final java.util.concurrent.locks.ReentrantLock binLock = new java.util.concurrent.locks.ReentrantLock();
 
     public Wastebin(MelFileSyncService melFileSyncService) {
         this.fileSyncDatabaseManager = melFileSyncService.getFileSyncDatabaseManager();
@@ -112,11 +117,16 @@ public class Wastebin {
      * @param waste
      */
     public void rm(Waste waste) throws SqlQueriesException {
-        IFile target = getWasteFile(waste);
-        target.delete();
-        if (target.exists())
-            N.r(() -> BashTools.Companion.rmRf(target));
-        wasteDao.flagDeleted(waste.getId().v(), true);
+        binLock.lock();
+        try {
+            IFile target = getWasteFile(waste);
+            target.delete();
+            if (target.exists())
+                N.r(() -> BashTools.Companion.rmRf(target));
+            wasteDao.flagDeleted(waste.getId().v(), true);
+        } finally {
+            binLock.unlock();
+        }
     }
 
     private void deleteDirectory(FsDirectory fsDirectory) throws SqlQueriesException, IOException, InterruptedException {
@@ -141,52 +151,61 @@ public class Wastebin {
      * @param waste
      * @param file
      */
-    public IFile moveToBin(Waste waste, IFile file) throws SqlQueriesException {
+    public IFile moveToBin(Waste waste, IFile file) throws SqlQueriesException, IOException {
+        binLock.lock();
         try {
-            IFile target = AbstractFile.instance(wasteDir, waste.getHash().v() + "." + waste.getId().v());
-            syncHandler.getFileDistributor().moveBlocking(file, target, null);
+            IFile target = getWasteFile(waste);
+            try {
+                syncHandler.getFileDistributor().moveBlocking(file, target, null);
+            } catch (IOException e) {
+                // the row must not claim a file that is not there
+                wasteDao.delete(waste.getId().v());
+                throw e;
+            }
             waste.getInplace().v(true);
             wasteDao.update(waste);
             return target;
-        } catch (Exception e) {
-            e.printStackTrace();
+        } finally {
+            binLock.unlock();
         }
-        return null;
+    }
+
+    /**
+     * Writes the row of a file that goes to the bin, named by what the disk says about it. A row with the same inode is stale: that file is here, not in the bin.
+     *
+     * @param hash of the content of the file
+     */
+    private Waste insertWaste(IFile file, String hash, FsBashDetails fsBashDetails) throws SqlQueriesException {
+        Waste stale = wasteDao.getWasteByInode(fsBashDetails.getiNode());
+        if (stale != null)
+            wasteDao.delete(stale.getId().v());
+        Waste waste = new Waste();
+        waste.getHash().v(hash);
+        waste.getInode().v(fsBashDetails.getiNode());
+        waste.getModified().v(fsBashDetails.getModified());
+        waste.getSize().v(file.length());
+        waste.getName().v(file.getName());
+        waste.getInplace().v(false);
+        waste.getFlagDelete().v(false);
+        return wasteDao.insert(waste);
     }
 
     public void deleteFsFile(FsFile fsFile) {
+        binLock.lock();
         try {
             IFile f = fsDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsFile);
             if (f.exists()) {
                 indexer.ignorePath(f.getAbsolutePath(), 1);
                 if (f.isFile()) {
                     FsBashDetails fsBashDetails = BashTools.Companion.getFsBashDetails(f);
-                    Waste waste = wasteDao.getWasteByInode(fsBashDetails.getiNode());
-                    if (waste != null) {
-                        // we once wanted this file to be deleted. check if it did not change in the meantime
-                        if (waste.getInode().v().equals(fsFile.getiNode().v()) && waste.getModified().v().equals(fsFile.getModified().v())) {
-                            moveToBin(waste, f);
-                        } else {
-                            // it changed :(
-                            System.err.println("Wastebin.deleteFilr5436t34e");
-                        }
-                    } else {
-                        // the fs table knows what the file was when it was synced. If the user changed it since, the bin must name it by what it holds now
-                        // (and a file that is not synced yet is in the way of something else: it must not be lost either)
-                        waste = wasteDao.fsToWaste(fsFile);
-                        boolean asInTable = Boolean.TRUE.equals(fsFile.getSynced().v())
-                                && java.util.Objects.equals(fsBashDetails.getModified(), fsFile.getModified().v())
-                                && java.util.Objects.equals(f.length(), fsFile.getSize().v());
-                        if (!asInTable) {
-                            waste.getHash().v(Hash.md5(f.inputStream()));
-                            waste.getSize().v(f.length());
-                            waste.getModified().v(fsBashDetails.getModified());
-                            waste.getInode().v(fsBashDetails.getiNode());
-                            wasteDao.update(waste);
-                        }
-                        moveToBin(waste, f);
-                    }
-
+                    // the fs table knows what the file was when it was synced. If the user changed it since, the bin must name it by what it holds now
+                    // (and a file that is not synced yet, or an entry that came from elsewhere, does not tell what is on this disk)
+                    boolean asInTable = Boolean.TRUE.equals(fsFile.getSynced().v())
+                            && java.util.Objects.equals(fsBashDetails.getiNode(), fsFile.getiNode().v())
+                            && java.util.Objects.equals(fsBashDetails.getModified(), fsFile.getModified().v())
+                            && java.util.Objects.equals(f.length(), fsFile.getSize().v());
+                    String hash = asInTable ? fsFile.getContentHash().v() : Hash.md5(f.inputStream());
+                    moveToBin(insertWaste(f, hash, fsBashDetails), f);
                 } else {
                     //todo file might have been replaced by a directory
                     //we do not know about its contents and therefore will delete it
@@ -199,8 +218,11 @@ public class Wastebin {
             // while a stage set is committed the fs table is replaced by fswrite in the end: the entry has to go there as well (it is empty at any other time)
             fileSyncDatabaseManager.getFsWriteDao().deleteById(fsFile.getId().v());
         } catch (Exception e) {
+            // the file stays where it is, and so does its fs entry
             System.err.println("Wastebin.deleteFsFile.failed");
             e.printStackTrace();
+        } finally {
+            binLock.unlock();
         }
     }
 
@@ -215,21 +237,15 @@ public class Wastebin {
         return null;
     }
 
-    private void moveToBin(IFile file, String contentHash, FsBashDetails fsBashDetails) throws SqlQueriesException {
-        if (file.getName().equals("i0")) {
-            Lok.debug("debug move to bin");
+    private void moveToBin(IFile file, String contentHash, FsBashDetails fsBashDetails) throws SqlQueriesException, IOException {
+        binLock.lock();
+        try {
+            Waste waste = insertWaste(file, contentHash, fsBashDetails);
+            indexer.ignorePath(file.getAbsolutePath(), 1);
+            moveToBin(waste, file);
+        } finally {
+            binLock.unlock();
         }
-        Waste waste = new Waste();
-        waste.getModified().v(fsBashDetails.getModified());
-        waste.getHash().v(contentHash);
-        waste.getInode().v(fsBashDetails.getiNode());
-        waste.getInplace().v(false);
-        waste.getName().v(file.getName());
-        waste.getSize().v(file.length());
-        waste.getFlagDelete().v(false);
-        wasteDao.insert(waste);
-        indexer.ignorePath(file.getAbsolutePath(), 1);
-        moveToBin(waste, file);
     }
 
     private void recursiveDelete(IFile dir) throws SqlQueriesException, IOException, InterruptedException {
@@ -289,17 +305,17 @@ public class Wastebin {
         BunchOfLocks bunchOfLocks = P.confine(fsDao, wasteDao);
         try {
             for (String hash : availableHashes) {
-                List<FsFile> fsFiles = fsDao.getNonSyncedFilesByHash(hash);
-                for (FsFile fsFile : fsFiles) {
-                    Waste waste = wasteDao.getWasteByHash(fsFile.getContentHash().v());
-                    if (waste != null) {
-                        IFile wasteFile = AbstractFile.instance(wasteDir.getAbsolutePath() + File.separator + waste.getHash().v() + "." + waste.getId().v());
-                        wasteDao.delete(waste.getId().v());
-                        fsDao.setSynced(fsFile.getId().v(), true);
-                        syncHandler.getFileDistributor().moveBlocking(wasteFile, fsDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsFile), fsFile.getId().v());
-                    } else {
-                        Lok.error("Wastebin.restoreFsFiles");
+                binLock.lock();
+                try {
+                    // read again under the lock: the sync may have binned or deleted something since
+                    for (FsFile fsFile : fsDao.getNonSyncedFilesByHash(hash)) {
+                        Waste waste = wasteDao.getWasteByHash(hash);
+                        if (waste == null)
+                            break;
+                        restore(waste, fsFile);
                     }
+                } finally {
+                    binLock.unlock();
                 }
             }
         } finally {
@@ -308,12 +324,45 @@ public class Wastebin {
 
     }
 
+    /**
+     * Puts the file of the bin in the place of the fs entry, which then says what the disk says about it.
+     */
+    private void restore(Waste waste, FsFile fsFile) throws SqlQueriesException, IOException {
+        IFile wasteFile = getWasteFile(waste);
+        IFile target = fsDao.getFileByFsFile(fileSyncSettings.getRootDirectory(), fsFile);
+        if (!wasteFile.exists()) {
+            Lok.error("the bin lost " + wasteFile.getAbsolutePath() + ", forgetting it");
+            wasteDao.delete(waste.getId().v());
+            return;
+        }
+        if (target.exists()) {
+            // something else is in the way: it is not ours to replace
+            Lok.error("cannot restore " + target.getAbsolutePath() + ": there is something");
+            return;
+        }
+        indexer.ignorePath(target.getAbsolutePath(), 1);
+        syncHandler.getFileDistributor().moveBlocking(wasteFile, target, fsFile.getId().v());
+        wasteDao.delete(waste.getId().v());
+        FsBashDetails fsBashDetails = BashTools.Companion.getFsBashDetails(target);
+        fsFile.getiNode().v(fsBashDetails.getiNode());
+        fsFile.getModified().v(fsBashDetails.getModified());
+        fsFile.getCreated().v(fsBashDetails.getCreated());
+        fsFile.getSize().v(target.length());
+        fsFile.getSynced().v(true);
+        fsDao.update(fsFile);
+    }
+
 
     public IFile getByHash(String hash) throws SqlQueriesException {
-        Waste waste = wasteDao.getWasteByHash(hash);
-        if (waste != null)
-            return getWasteFile(waste);
-        return null;
+        binLock.lock();
+        try {
+            Waste waste = wasteDao.getWasteByHash(hash);
+            if (waste != null)
+                return getWasteFile(waste);
+            return null;
+        } finally {
+            binLock.unlock();
+        }
     }
 
     private IFile getWasteFile(Waste waste) {
@@ -329,13 +378,22 @@ public class Wastebin {
      * @throws IOException
      */
     public void deleteUnknown(IFile file) throws SqlQueriesException, IOException, InterruptedException {
+        binLock.lock();
+        try {
+            deleteUnknownLocked(file);
+        } finally {
+            binLock.unlock();
+        }
+    }
+
+    private void deleteUnknownLocked(IFile file) throws SqlQueriesException, IOException, InterruptedException {
         FsBashDetails fsBashDetails = BashTools.Companion.getFsBashDetails(file);
         IFile target = AbstractFile.instance(deferredDir, fsBashDetails.getiNode().toString());
         syncHandler.getFileDistributor().moveBlocking(file, target, null);
         //if dir?!?!
         if (target.isDirectory()) {
             for (IFile f : target.listContent()) {
-                deleteUnknown(f);
+                deleteUnknownLocked(f);
             }
             target.delete();
             return;
@@ -343,15 +401,10 @@ public class Wastebin {
 
         //todo hashing is blocking yet!
         String hash = Hash.md5(target.inputStream());
-        Waste waste = new Waste();
-        waste.getHash().v(hash);
-        waste.getInode().v(fsBashDetails.getiNode());
-        waste.getModified().v(fsBashDetails.getModified());
-        waste.getInplace().v(false);
-        waste.getSize().v(target.length());
+        // the name is the one it had in its place, the rest is what the disk says
+        Waste waste = insertWaste(target, hash, fsBashDetails);
         waste.getName().v(file.getName());
-        waste.getFlagDelete().v(false);
-        wasteDao.insert(waste);
+        wasteDao.update(waste);
         IFile movedTo = this.moveToBin(waste, target);
         //todo tell a worker to investigate the deferred directory
         //todo worker has to tell the drive service or transfermanager that a file has been found

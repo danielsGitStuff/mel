@@ -388,3 +388,16 @@ Not changed:
   Making this right means one place that decides what the client does next (pull, resolve, commit) and does it one at a time. That is a change of the sync cycle, not of the conflict code. The other 11 tests of the two classes passed in 4 of 4 cold cycles; in the full build the 8th test above failed once, so it is disabled as well.
 
 The open problem behind the seven disabled tests is described in `CLIENT_SYNC_RACE.md` (what was seen, probable causes, solutions worth considering, how to test it deterministically). It is meant to be solved in its own session.
+
+## Wastebin: a binned file is always found again
+
+Binning a file the sync wants gone is fine, it is taken back out when it is wanted again (`restoreFsFiles`, `findFileByHash`). A trace of the client sync race showed the client's own file binned, restored and binned again, and then not found by anybody: the file lay in the bin as `<hash>.null`. Test: `WastebinTest` (5) works on the bin of a synced, stopped client; 4 failed before, the one that bins and restores at the same time fails 3 of 3 without the lock in `restoreFsFiles`.
+
+Found and fixed:
+- `WasteDao.fsToWaste` filled the bin entry from the fs table and swallowed a failed insert (`waste.inode` is `NOT NULL UNIQUE`; an fs entry that came from the server has no inode of this disk, a stale one may have the inode of a file in the bin). The file was moved anyway, to `<hash>.null`, where no lookup finds it. The entry is made from what the disk says (inode, time, size; the hash of the fs table only if the fs entry matches the disk), a stale entry with the same inode goes first, a failed insert is not swallowed.
+- `restoreFsFiles` set `synced` but left inode and time of the fs entry as they came from the server, so the next decision about the file worked on wrong values. The fs entry gets what the disk says. A restore does not replace something that is in the way.
+- Bin and restore run on two threads (the sync in `commitStage`, the transfer manager). One lock in `Wastebin` makes "move the file and write the row" one step for binning, restoring, `rm` and lookups; the restore reads its fs entries again under it. Taken after the lock on the fs table, never the other way round.
+- `FileDistributor.moveBlocking` ignored a failed rename. It throws when the file is not at the target afterwards or still at the source (also for the Android distributors, which override `moveFile`). Inside `commitStage` that makes the step fail instead of recording what is not on the disk.
+- The branch "a bin entry with this inode exists but the file changed: do not bin" is gone; it left the file in place and deleted its fs entry anyway.
+
+`ConflictSyncTest` passed 6 of 6 cold cycles afterwards (before: 3 of 6 failed, twice). The race itself is still there (duplicate sends, parallel pulls); it no longer loses the file. The plan for the race: `SYNC_SESSION_PLAN.md`.

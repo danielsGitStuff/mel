@@ -225,8 +225,14 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
         }
     }
 
+    /**
+     * @throws IOException if the file is not at the target afterwards, or still at the source
+     */
+    @Throws(IOException::class)
     fun moveBlocking(source: T, target: T, fsId: Long?) {
         moveFile(source, target, target.absolutePath, fsId)
+        if (!target.exists() || source.exists())
+            throw IOException("could not move ${source.absolutePath} to ${target.absolutePath}")
     }
 
     fun stop() {
