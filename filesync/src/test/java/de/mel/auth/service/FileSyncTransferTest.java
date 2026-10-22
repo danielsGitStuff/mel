@@ -13,6 +13,8 @@ import java.util.concurrent.TimeUnit;
 import de.mel.filesync.sql.TransferState;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -88,6 +90,65 @@ public class FileSyncTransferTest {
             instances.createClient();
             assertClientGets(instances, expected, 120);
         }
+    }
+
+    /**
+     * Client and server each have an isolated connection of their own to the other (both fetched a file at the same time, seen in ConflictSyncTest).
+     * A file the client asked for has to go on the connection the client asked on: the server ends its own when its fetch is done, and the client,
+     * waiting on its own, would not notice that the file was cut off (it gave up only after the stall timeout).
+     */
+    @Test
+    public void aFileGoesOnTheConnectionTheClientAskedOn() throws Exception {
+        FileSyncInstances.writeFile(serverRoot(), "first.bin", 1000, 1);
+        try (FileSyncInstances instances = new FileSyncInstances(dir, 24180)) {
+            instances.createServer();
+            instances.createClient();
+            Long clientAtServer = TwoInstances.idOf(instances.two.client, instances.two.server);
+            de.mel.auth.socket.process.transfer.MelIsolatedFileProcess clientsOwn = openIsolated(instances.clientService, instances.serverIdAtClient(), instances.serverService.getUuid());
+            de.mel.auth.socket.process.transfer.MelIsolatedFileProcess serversOwn = openIsolated(instances.serverService, clientAtServer, instances.clientService.getUuid());
+            assertNotEquals(clientsOwn.getIsolatedUuid(), serversOwn.getIsolatedUuid());
+            for (int i = 0; i < 10; i++) {
+                de.mel.auth.socket.process.transfer.FileTransferDetailSet askedOnClients = new de.mel.auth.socket.process.transfer.FileTransferDetailSet()
+                        .setServiceUuid(instances.clientService.getUuid()).setIsolatedUuid(clientsOwn.getIsolatedUuid());
+                assertEquals(clientsOwn.getIsolatedUuid(), chosen(instances.serverService.connectionToSendOnFor(clientAtServer, askedOnClients)).getIsolatedUuid(),
+                        "the file would go on another connection than the client asked on");
+            }
+            // the connection the client asked on is gone: the client hears that its request failed (and asks again), nothing goes elsewhere
+            clientsOwn.stop();
+            assertTrue(TwoInstances.waitFor(() -> instances.serverService.getEstablishedIsolatedProcesses().stream().noneMatch(p -> p.getIsolatedUuid().equals(clientsOwn.getIsolatedUuid())), TwoInstances.TIMEOUT_SECONDS));
+            de.mel.auth.socket.process.transfer.FileTransferDetailSet askedOnGone = new de.mel.auth.socket.process.transfer.FileTransferDetailSet()
+                    .setServiceUuid(instances.clientService.getUuid()).setIsolatedUuid(clientsOwn.getIsolatedUuid());
+            assertNull(chosen(instances.serverService.connectionToSendOnFor(clientAtServer, askedOnGone)), "a file for a closed connection would go elsewhere");
+        }
+    }
+
+    /**
+     * @return the connection, null if there is none
+     */
+    private static de.mel.auth.socket.process.transfer.MelIsolatedFileProcess chosen(fun.with.promise.Promise<de.mel.auth.socket.process.transfer.MelIsolatedFileProcess, Exception> promise) throws Exception {
+        java.util.concurrent.atomic.AtomicReference<de.mel.auth.socket.process.transfer.MelIsolatedFileProcess> result = new java.util.concurrent.atomic.AtomicReference<>();
+        java.util.concurrent.CountDownLatch done = new java.util.concurrent.CountDownLatch(1);
+        promise.onDone(process -> {
+            result.set(process);
+            done.countDown();
+        }).onError(e -> done.countDown());
+        assertTrue(done.await(TwoInstances.TIMEOUT_SECONDS, TimeUnit.SECONDS));
+        return result.get();
+    }
+
+    /**
+     * opens a new isolated connection of the service to the partner (a second one if there is one already)
+     */
+    private static de.mel.auth.socket.process.transfer.MelIsolatedFileProcess openIsolated(de.mel.auth.service.MelService service, Long partnerCertId, String partnerServiceUuid) throws Exception {
+        java.util.concurrent.atomic.AtomicReference<de.mel.auth.socket.process.transfer.MelIsolatedFileProcess> opened = new java.util.concurrent.atomic.AtomicReference<>();
+        java.util.concurrent.CountDownLatch done = new java.util.concurrent.CountDownLatch(1);
+        service.getMelAuthService().connectToService(de.mel.auth.socket.process.transfer.MelIsolatedFileProcess.class, partnerCertId, partnerServiceUuid, service.getUuid(), null, null, null)
+                .onDone(process -> {
+                    opened.set((de.mel.auth.socket.process.transfer.MelIsolatedFileProcess) process);
+                    done.countDown();
+                });
+        assertTrue(done.await(TwoInstances.TIMEOUT_SECONDS, TimeUnit.SECONDS), "could not open an isolated connection");
+        return opened.get();
     }
 
     private static final int MIB = 1024 * 1024;

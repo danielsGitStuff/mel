@@ -161,6 +161,13 @@ public class FileSyncInstances implements AutoCloseable {
         }
 
         /**
+         * the connection a file asked for would be sent on
+         */
+        public Promise<de.mel.auth.socket.process.transfer.MelIsolatedFileProcess, Exception> connectionToSendOnFor(Long partnerCertId, de.mel.auth.socket.process.transfer.FileTransferDetailSet detailSet) throws Exception {
+            return connectionToSendOn(partnerCertId, detailSet);
+        }
+
+        /**
          * requests are not answered, as if the server did not hear them
          */
         public volatile boolean ignoreRequests = false;

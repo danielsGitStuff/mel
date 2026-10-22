@@ -7,6 +7,7 @@ import de.mel.filesync.index.InitialIndexConflictHelper;
 import de.mel.filesync.index.watchdog.FileWatcherFactory;
 import fun.with.promise.PromiseImpl;
 import fun.with.promise.Promise;
+import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
 
 import java.io.File;
 import java.io.IOException;
@@ -247,7 +248,7 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
         PromiseImpl<Void, Exception> queued = PromiseImpl.withoutThrowingOnException();
         FileTransferDetailSet detailSet = payload.getFileTransferDetailSet();
         try {
-            getIsolatedProcess(MelIsolatedFileProcess.class, partnerCertId, detailSet.getServiceUuid())
+            connectionToSendOn(partnerCertId, detailSet)
                     .onDone(fileProcess -> {
                         try {
                             for (FileTransferDetail detail : detailSet.getDetails())
@@ -270,6 +271,25 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
             queued.resolveError(e);
         }
         return queued;
+    }
+
+    /**
+     * The files go on the connection the partner waits on (it says which). On another one, which we may have to it as well, it would never see them,
+     * and we end ours when we are done with it. Partners that do not say get any connection to them.
+     */
+    protected Promise<MelIsolatedFileProcess, Exception> connectionToSendOn(Long partnerCertId, FileTransferDetailSet detailSet) throws Exception {
+        if (detailSet.getIsolatedUuid() == null)
+            return getIsolatedProcess(MelIsolatedFileProcess.class, partnerCertId, detailSet.getServiceUuid());
+        for (MelIsolatedProcess process : getEstablishedIsolatedProcesses())
+            if (process instanceof MelIsolatedFileProcess && detailSet.getIsolatedUuid().equals(process.getIsolatedUuid()) && process.isOpen()) {
+                PromiseImpl<MelIsolatedFileProcess, Exception> found = PromiseImpl.withoutThrowingOnException();
+                found.resolveOk((MelIsolatedFileProcess) process);
+                return found;
+            }
+        // it is closed already: the partner hears that its request failed and asks again
+        PromiseImpl<MelIsolatedFileProcess, Exception> gone = PromiseImpl.withoutThrowingOnException();
+        gone.resolveError(new java.io.IOException("the connection " + detailSet.getIsolatedUuid() + " the partner asked on is gone"));
+        return gone;
     }
 
     /**

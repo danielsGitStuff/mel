@@ -352,6 +352,8 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MelIs
         val payload = FileTransferDetailsPayload()
         val requestedFiles = FileTransferDetailSet()
         requestedFiles.serviceUuid = fileSyncService.uuid
+        // the files have to come on this connection, the one this waits on: the partner may have others to us
+        requestedFiles.isolatedUuid = fileProcess.isolatedUuid
         payload.fileTransferDetailSet = requestedFiles
         for (dbDetail in dbTransfers) {
             if (stopped)

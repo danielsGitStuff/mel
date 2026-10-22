@@ -12,6 +12,19 @@ import java.util.List;
 public class FileTransferDetailSet implements SerializableEntity {
     private List<FileTransferDetail> details = new ArrayList<>();
     private String serviceUuid;
+    /**
+     * the isolated connection the asking side waits on for the files: they have to come there (null from partners that do not say)
+     */
+    private String isolatedUuid;
+
+    public String getIsolatedUuid() {
+        return isolatedUuid;
+    }
+
+    public FileTransferDetailSet setIsolatedUuid(String isolatedUuid) {
+        this.isolatedUuid = isolatedUuid;
+        return this;
+    }
 
     public List<FileTransferDetail> getDetails() {
         return details;
