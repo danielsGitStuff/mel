@@ -449,3 +449,7 @@ Replaces the jobs that called each other (`execCommitJob`, `syncFromServer`, `sy
 - `SingleServiceTest` merged through a `CommitJob`; it calls the merger now.
 
 Known limits: the pull still asks for everything since `lastSyncedVersion` (the version of the fs table, as before). A directory's content hash in the result is computed by `ConflictSolver.after` as before.
+
+## Auth: no new connections while an instance shuts down
+
+`MelAuthServiceImpl.shutDown()` stops the services (asynchronously) and then closes the sockets from a copy of the set. A connection a service started meanwhile (a pull, a transfer) was not in the copy and stayed open; in one process (the tests restart instances in the same JVM) the partner kept it as its connection to us, also against the connections of the next instance. Seen in the logs of the conflict tests that restart client and server ("a socket started while this instance shuts down"). Now: `connect` and `connectToService` refuse once the shutdown began, and a socket that starts after that is closed at once. It was not the cause of the failures that led there (see "Client: versions and parent ids from the answer"), but it happens.

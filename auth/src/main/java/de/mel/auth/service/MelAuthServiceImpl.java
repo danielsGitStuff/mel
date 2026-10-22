@@ -22,6 +22,7 @@ import de.mel.auth.data.db.ServiceType;
 import de.mel.auth.jobs.IsolatedConnectJob;
 import de.mel.auth.jobs.NetworkEnvDiscoveryJob;
 import de.mel.auth.service.power.PowerManager;
+import de.mel.auth.socket.CannotConnectException;
 import de.mel.auth.socket.ConnectWorker;
 import de.mel.auth.socket.CloseReason;
 import de.mel.auth.socket.MelAuthSocket;
@@ -81,6 +82,11 @@ public class MelAuthServiceImpl extends MelAuthService {
     private List<IRegisteredHandler> registeredHandlers = new ArrayList<>();
     private NetworkEnvironment networkEnvironment = new NetworkEnvironment();
     private final Set<MelSocket> sockets = ConcurrentHashMap.newKeySet();
+    /**
+     * Set when the shutdown begins. A connection that a service starts meanwhile would not be closed with the others (they are closed from a copy):
+     * it stays open, and the partner keeps it as the connection to us, also against the connections of the instance that runs next in the same process.
+     */
+    private volatile boolean shuttingDown = false;
     private ConnectedEnvironment connectedEnvironment;
     private WaitLock uuidServiceMapSemaphore = new WaitLock();
     private Map<String, MelService> uuidServiceMap = new HashMap<>();
@@ -332,6 +338,10 @@ public class MelAuthServiceImpl extends MelAuthService {
         if (portCert == null)
             portCert = certificate.getCertDeliveryPort().v();
         IsolatedConnectJob<T> job = new IsolatedConnectJob<>(certId, address, port, portCert, remoteServiceUuid, ownServiceUuid, isolatedServiceClass);
+        if (shuttingDown) {
+            job.resolveError(new CannotConnectException(new Exception("shutting down"), address, port));
+            return job;
+        }
         execute(new ConnectWorker(this, job));
         return job;
     }
@@ -346,6 +356,8 @@ public class MelAuthServiceImpl extends MelAuthService {
         if (certificate == null) {
             return deferred.resolveError(new Exception("no certificate found for id: " + certificate));
         }
+        if (shuttingDown)
+            return deferred.resolveError(new CannotConnectException(new Exception("shutting down"), certificate.getAddress().v(), certificate.getPort().v()));
         return connectedEnvironment.connect(certificate);
     }
 
@@ -489,6 +501,7 @@ public class MelAuthServiceImpl extends MelAuthService {
 
     @Override
     public Promise<Void, Void> shutDown() {
+        shuttingDown = true;
         List<Promise<?, ?>> shutdownManager = new ArrayList<>();
         uuidServiceMapSemaphore.lock();
         for (IMelService service : uuidServiceMap.values()) {
@@ -564,6 +577,10 @@ public class MelAuthServiceImpl extends MelAuthService {
     @Override
     public void addMelSocket(MelSocket melSocket) {
         sockets.add(melSocket);
+        if (shuttingDown) {
+            Lok.debug("a socket started while this instance shuts down, closing it");
+            N.r(melSocket::shutDown);
+        }
     }
 
     @Override
