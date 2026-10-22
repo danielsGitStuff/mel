@@ -425,3 +425,5 @@ Found and fixed:
 - All sets are merged at once, oldest first.
 
 Not changed: the content hash of a directory is the one of its newest entry, not computed again from what the merge put in it (as before).
+
+Fix (same day): the short timers were set when `FileSyncInstances` was loaded, so the dump tests got them too (`DumpFlowTest` writes its files with `FileSyncInstances.writeFile`). With the watcher's quiet time at 300 ms, the three tests after `nothingOfTheTargetComesBackToTheSource` got nothing at the target, every time (with only the margin or only the `HashAvailTimer` short they pass). The timers are set when instances are made now. **Open**: a dump whose watcher indexes after 300 ms loses what the source has; not looked into (the app keeps 3 s).

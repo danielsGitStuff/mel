@@ -59,7 +59,11 @@ public class FileSyncInstances implements AutoCloseable {
      */
     static final long SCAN_MARGIN_MS = 200;
 
-    static {
+    /**
+     * Set when instances are made, before their services boot. Not when the class is loaded: other tests use its static helpers (the dump tests write their
+     * files with {@link #writeFile}) and keep the app's timers.
+     */
+    private static void useShortTimers() {
         de.mel.filesync.index.IndexerRunnable.marginMs = SCAN_MARGIN_MS;
         de.mel.filesync.index.watchdog.FileWatcher.quietRepetitions = 2;
         de.mel.filesync.index.watchdog.FileWatcher.quietPeriodMs = 100;
@@ -218,6 +222,7 @@ public class FileSyncInstances implements AutoCloseable {
      * @param portBase takes 10 ports from here on
      */
     public FileSyncInstances(File dir, int portBase) throws Exception {
+        useShortTimers();
         two = new TwoInstances(dir, portBase, TwoInstances.ACCEPT_ALL, TwoInstances.ACCEPT_ALL, RecordingFileSyncBootloader.class);
         serverRoot = new File(dir, "serverRoot");
         clientRoot = new File(dir, "clientRoot");
