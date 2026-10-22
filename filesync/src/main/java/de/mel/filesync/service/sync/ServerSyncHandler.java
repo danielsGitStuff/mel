@@ -114,7 +114,7 @@ public class ServerSyncHandler extends SyncHandler {
                 newIdMap.put(oldeStageId, newFsId);
             }
         }
-        CommitAnswer answer = new CommitAnswer().setStageIdFsIdMap(newIdMap);
+        CommitAnswer answer = new CommitAnswer().setStageIdFsIdMap(newIdMap).setNewVersion(fileSyncDatabaseManager.getLatestVersion());
         request.resolveOk(answer);
         // TODO setup transfers
         List<GenericFSEntry> delta = fsDao.getDelta(oldVersion);

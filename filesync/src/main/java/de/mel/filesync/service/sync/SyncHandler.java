@@ -369,10 +369,8 @@ public abstract class SyncHandler {
                                 FsEntry fsEntry = stageDao.stage2FsEntry(stage);
                                 if (stage.getName().equals("i0"))
                                     Lok.debug("debug i0112");
-                                if (fsEntry.getVersion().isNull()) {
-                                    Lok.debug("//pe, should not be called");
-                                    fsEntry.getVersion().v(localVersion);
-                                }
+                                // what is committed is of this version, also an entry that was there before: else a pull since the last version would not find the change
+                                fsEntry.getVersion().v(localVersion);
                                 FsEntry oldeEntry = fsWriteDao.getGenericById(fsEntry.getId().v());
                                 // only copy modified & inode if it is not present in the new entry (it came from remote then)
                                 if (oldeEntry != null && oldeEntry.getIsDirectory().v() && fsEntry.getIsDirectory().v() && fsEntry.getModified().isNull()) {

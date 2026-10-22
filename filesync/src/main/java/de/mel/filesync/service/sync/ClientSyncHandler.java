@@ -489,10 +489,16 @@ public class ClientSyncHandler extends SyncHandler {
 
     /**
      * The server accepted the set: it gets the fs ids the server gave and is put in place (the set is gone afterwards).
+     * It is put in place as of the version the server is at with it: our fs table gets that, so that the next pull does not bring our own commit back as news
+     * of the server (that has not got the content yet, so the file would look missing here).
      */
     private void applyAnswer(StageSet sent, CommitAnswer answer) throws SqlQueriesException, OutOfSpaceException {
         BunchOfLocks warden = P.confine(fsDao);
         try {
+            if (answer.getNewVersion() != null) {
+                sent.setVersion(answer.getNewVersion());
+                stageDao.updateStageSet(sent);
+            }
             for (Long stageId : answer.getStageIdFsIdMap().keySet()) {
                 Long fsId = answer.getStageIdFsIdMap().get(stageId);
                 Stage stage = stageDao.getStageById(stageId);
@@ -502,9 +508,15 @@ public class ClientSyncHandler extends SyncHandler {
                 if (stage.getFsId() != null && !stage.getFsId().equals(fsId))
                     fileSyncDatabaseManager.getFsDao().deleteById(stage.getFsId());
                 stage.setFsId(fsId);
-                if (stage.getParentId() != null && stage.getFsParentId() == null)
-                    stage.setFsParentId(answer.getStageIdFsIdMap().get(stage.getParentId()));
                 stageDao.update(stage);
+            }
+            // the parent may have got a new id as well (the server made it new: it had deleted it, the user kept something in it); the old one is gone
+            for (Stage stage : stageDao.getStagesByStageSetAsList(sent.getId().v())) {
+                Long parentFsId = stage.getParentId() == null ? null : answer.getStageIdFsIdMap().get(stage.getParentId());
+                if (parentFsId != null && !parentFsId.equals(stage.getFsParentId())) {
+                    stage.setFsParentId(parentFsId);
+                    stageDao.update(stage);
+                }
             }
             commitStage(sent.getId().v(), warden, null);
             researchTransfers();
