@@ -413,3 +413,15 @@ The two integration suites (`:filesync:integrationTest`, `:auth:integrationTest`
 - **Production timers, settable for tests, defaults unchanged** (author's decision): `FileWatcher.quietRepetitions/quietPeriodMs` (quiet time before indexing, about 3 s), `HashAvailTimer.quietRepetitions/quietPeriodMs` (about 10 s before the server tells about available files), `IndexerRunnable.marginMs` (2 s the start looks back). `FileSyncInstances` sets 300 ms, 300 ms and 200 ms; `SyncedStateTest` waits a few quiet periods (was 15 s), `IncrementalBootTest` margin plus rounding (was 3.5 s).
 
 What is left is structural: every test boots two instances (1 to 2 s). Faster would be running test classes in parallel (each uses its own ports and directories) or sharing instances within a class.
+
+## Merging local stage sets
+
+The indexer makes one stage set per run; before a sync they are merged into one (first step of a sync session, see `SYNC_SESSION_PLAN.md`). The merge was a private method of `ClientSyncHandler` (two sets at a time, another `CommitJob` for more) with three weak tests (`SingleServiceTest`: nearly identical sets). It is `LocalStageSetMerger` now. Test: `LocalStageSetMergerTest` (9, database only); 6 failed with the old merge, moved unchanged into the class first.
+
+Found and fixed:
+- **A deletion in the newer set dropped unrelated older changes.** `ConflictDao.flagLocalChildrenDeletedInRemote` compared `path LIKE path||'%'` with the path of the *parent* of the deleted entry: deleting `/a.txt` dropped every older change in `/`, deleting `/d/` every older change next to it. Those changes were never sent.
+- **New directories lost their tree.** For an entry only the newer set has, the parent was looked up with `Stage.toIFile`, which gives the entry's own path (with the name twice); the entry was inserted without a parent.
+- **The result counted as newer than a set made meanwhile.** It was a new stage set, and `getStagedStageSetsFromFS` sorted by `created`, which has seconds only. The older set is merged *into* the newer one now (the result keeps its id), and the sets are sorted by id, the order they were made in.
+- All sets are merged at once, oldest first.
+
+Not changed: the content hash of a directory is the one of its newest entry, not computed again from what the merge put in it (as before).

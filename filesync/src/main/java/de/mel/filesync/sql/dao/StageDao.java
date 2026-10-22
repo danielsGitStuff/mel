@@ -125,13 +125,14 @@ public class StageDao extends Dao.LockingDao {
     /**
      * gets you StageSets that have their origin in things happened on your file system.
      * this also includes previously merged StageSets
+     * Oldest first: by id, which is the order they were made in (created has seconds only).
      *
      * @return
      * @throws SqlQueriesException
      */
     public List<StageSet> getStagedStageSetsFromFS() throws SqlQueriesException {
         StageSet dummy = new StageSet();
-        String where = "(" + dummy.getSource().k() + "=? or " + dummy.getSource().k() + "=?) and " + dummy.getStatus().k() + "=? order by " + dummy.getCreated().k();
+        String where = "(" + dummy.getSource().k() + "=? or " + dummy.getSource().k() + "=?) and " + dummy.getStatus().k() + "=? order by " + dummy.getId().k();
         return sqlQueries.load(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(FileSyncStrings.STAGESET_SOURCE_FS, FileSyncStrings.STAGESET_SOURCE_MERGED, FileSyncStrings.STAGESET_STATUS_STAGED));
     }
 
