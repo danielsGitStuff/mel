@@ -272,6 +272,14 @@ class TransferDao : Dao {
     //        sqlQueries.execute(stmt, ISQLQueries.whereArgs(partnerCertificateId, partnerServiceUuid, TransferState.DONE));
     //    }
 
+    /**
+     * transfers that were cut off (suspended) are to be done again
+     */
+    fun resumeAllSuspended() {
+        val stmt = "update " + dummy.tableName + " set " + dummy.state.k() + "=? where " + dummy.state.k() + "=?"
+        sqlQueries.execute(stmt, ISQLQueries.args(TransferState.NOT_STARTED, TransferState.SUSPENDED))
+    }
+
     @Throws(SqlQueriesException::class)
     fun flagStateForRemainingTransfers(certId: Long, serviceuuid: String, state: TransferState) {
         val stmt = ("update " + dummy.tableName + " set " + dummy.state.k() + "=?"

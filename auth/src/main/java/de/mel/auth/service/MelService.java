@@ -108,14 +108,66 @@ public abstract class MelService extends MelWorker implements IMelService {
      */
     private final Map<String, MelIsolatedProcess> establishedIsolated = new HashMap<>();
 
+    /**
+     * who waits for an isolated connection to be registered here, by its uuid
+     */
+    private final Map<String, List<PromiseImpl<MelIsolatedProcess, Exception>>> waitingForIsolated = new HashMap<>();
+
     @Override
     public void onIsolatedConnectionEstablished(MelIsolatedProcess isolatedProcess) {
+        List<PromiseImpl<MelIsolatedProcess, Exception>> waiting;
         isolatedLock.lock();
         try {
             establishedIsolated.put(isolatedProcess.getIsolatedUuid(), isolatedProcess);
+            waiting = waitingForIsolated.remove(isolatedProcess.getIsolatedUuid());
         } finally {
             isolatedLock.unlock();
         }
+        if (waiting != null)
+            for (PromiseImpl<MelIsolatedProcess, Exception> promise : waiting)
+                if (promise.isPending())
+                    promise.resolveOk(isolatedProcess);
+    }
+
+    /**
+     * The isolated connection with that uuid, as soon as it is registered here. The side that accepted a connection registers it after it answered,
+     * so the partner may already use it (ask for files on it) a moment before.
+     *
+     * @param timeoutMs fails if there is none by then
+     */
+    public Promise<MelIsolatedProcess, Exception> whenIsolatedEstablished(String isolatedUuid, long timeoutMs) {
+        PromiseImpl<MelIsolatedProcess, Exception> promise = PromiseImpl.withoutThrowingOnException();
+        isolatedLock.lock();
+        try {
+            MelIsolatedProcess established = establishedIsolated.get(isolatedUuid);
+            if (established != null && established.isOpen())
+                return promise.resolveOk(established);
+            waitingForIsolated.computeIfAbsent(isolatedUuid, k -> new ArrayList<>()).add(promise);
+        } finally {
+            isolatedLock.unlock();
+        }
+        try {
+            melAuthService.getTimeoutScheduler().schedule(() -> {
+                isolatedLock.lock();
+                try {
+                    List<PromiseImpl<MelIsolatedProcess, Exception>> list = waitingForIsolated.get(isolatedUuid);
+                    if (list != null) {
+                        list.remove(promise);
+                        if (list.isEmpty())
+                            waitingForIsolated.remove(isolatedUuid);
+                    }
+                } finally {
+                    isolatedLock.unlock();
+                }
+                if (promise.isPending())
+                    promise.resolveError(new java.io.IOException("no isolated connection " + isolatedUuid));
+            }, timeoutMs, java.util.concurrent.TimeUnit.MILLISECONDS);
+        } catch (RuntimeException e) {
+            // shutting down
+            if (promise.isPending())
+                promise.resolveError(e);
+        }
+        return promise;
     }
 
     /**

@@ -346,8 +346,13 @@ class TManager(
         wakeUp()
     }
 
+    /**
+     * Runs (again). What a stop cut off is taken up: a stop suspends the transfers that run, and their retry is not scheduled while stopped
+     * (commitStage stops and starts this every time it applied a stage set, also while the partner fetches from us or we from it).
+     */
     fun start() {
         synchronized(this) {
+            N.r { de.mel.auth.tools.lock2.P.confine(transferDao).run { transferDao.resumeAllSuspended() }.end() }
             restart()
             melFileSyncService.execute(this)
             research()

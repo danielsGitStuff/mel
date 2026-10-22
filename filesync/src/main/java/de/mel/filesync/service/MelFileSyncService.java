@@ -277,19 +277,24 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
      * The files go on the connection the partner waits on (it says which). On another one, which we may have to it as well, it would never see them,
      * and we end ours when we are done with it. Partners that do not say get any connection to them.
      */
+    /**
+     * how long a request for files waits for the connection it names to be registered here
+     */
+    private static final long ISOLATED_WAIT_MS = 5_000;
+
     protected Promise<MelIsolatedFileProcess, Exception> connectionToSendOn(Long partnerCertId, FileTransferDetailSet detailSet) throws Exception {
         if (detailSet.getIsolatedUuid() == null)
             return getIsolatedProcess(MelIsolatedFileProcess.class, partnerCertId, detailSet.getServiceUuid());
-        for (MelIsolatedProcess process : getEstablishedIsolatedProcesses())
-            if (process instanceof MelIsolatedFileProcess && detailSet.getIsolatedUuid().equals(process.getIsolatedUuid()) && process.isOpen()) {
-                PromiseImpl<MelIsolatedFileProcess, Exception> found = PromiseImpl.withoutThrowingOnException();
-                found.resolveOk((MelIsolatedFileProcess) process);
-                return found;
-            }
-        // it is closed already: the partner hears that its request failed and asks again
-        PromiseImpl<MelIsolatedFileProcess, Exception> gone = PromiseImpl.withoutThrowingOnException();
-        gone.resolveError(new java.io.IOException("the connection " + detailSet.getIsolatedUuid() + " the partner asked on is gone"));
-        return gone;
+        // a connection the partner opened is registered here only after it was answered: the request may come a moment before. If it is gone,
+        // the partner hears that its request failed and asks again
+        PromiseImpl<MelIsolatedFileProcess, Exception> connection = PromiseImpl.withoutThrowingOnException();
+        whenIsolatedEstablished(detailSet.getIsolatedUuid(), ISOLATED_WAIT_MS).onDone(process -> {
+            if (process instanceof MelIsolatedFileProcess && process.isOpen())
+                connection.resolveOk((MelIsolatedFileProcess) process);
+            else
+                connection.resolveError(new java.io.IOException("the connection " + detailSet.getIsolatedUuid() + " the partner asked on is gone"));
+        }).onError(connection::resolveError);
+        return connection;
     }
 
     /**
