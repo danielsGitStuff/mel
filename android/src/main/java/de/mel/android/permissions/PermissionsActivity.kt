@@ -11,6 +11,8 @@ import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import de.mel.AndroidPermission
@@ -82,6 +84,30 @@ class PermissionsActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setTitle(R.string.permissionRequiredTitle)
+
+        ls = findViewById(R.id.ls)
+        ls.layoutManager = LinearLayoutManager(this)
+
+        val contentView = findViewById<android.view.View>(android.R.id.content)
+        if (contentView != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(contentView) { _, windowInsets ->
+                val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+                val appBar = (toolbar.parent as? android.view.View) ?: toolbar
+                appBar.setPadding(
+                    appBar.paddingLeft,
+                    insets.top,
+                    appBar.paddingRight,
+                    appBar.paddingBottom
+                )
+                ls.setPadding(
+                    ls.paddingLeft,
+                    ls.paddingTop,
+                    ls.paddingRight,
+                    insets.bottom
+                )
+                windowInsets
+            }
+        }
 
         val permissionStrings = intent.getStringArrayListExtra("permission_strings")
         val titleInts = intent.getIntArrayExtra("title_ints")

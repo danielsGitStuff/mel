@@ -27,7 +27,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -298,6 +301,30 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
 
         navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        ViewCompat.setOnApplyWindowInsetsListener(navigationView, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(
+                v.getPaddingLeft(),
+                insets.top,
+                v.getPaddingRight(),
+                insets.bottom
+            );
+            return windowInsets;
+        });
+
+        if (content != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(content, (v, windowInsets) -> {
+                Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(
+                    v.getPaddingLeft(),
+                    v.getPaddingTop(),
+                    v.getPaddingRight(),
+                    insets.bottom
+                );
+                return windowInsets;
+            });
+        }
         enableGuiController(new InfoController(this, content));
         // turn the help button into something useful
         btnHelp.setOnClickListener(v -> {

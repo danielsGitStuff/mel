@@ -2,6 +2,11 @@ package de.mel.android;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.view.View;
+
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import java.util.List;
 
@@ -36,6 +41,14 @@ public abstract class PopupActivity<T extends IMelService> extends MelActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(layout());
+        View contentView = findViewById(android.R.id.content);
+        if (contentView != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(contentView, (v, windowInsets) -> {
+                Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(insets.left, insets.top, insets.right, insets.bottom);
+                return windowInsets;
+            });
+        }
         Bundle extra = getIntent().getExtras();
         if (extra != null) {
             requestCode = extra.getInt(MelStrings.Notifications.REQUEST_CODE);

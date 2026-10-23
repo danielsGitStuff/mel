@@ -8,6 +8,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.widget.AppCompatImageButton;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import java.util.List;
 
@@ -45,6 +48,11 @@ public class IntroWrapper extends RelativeLayout implements AndroidServiceBind {
 
     private void init(Context context) {
         inflate(context, R.layout.intro_wrapper, this);
+        ViewCompat.setOnApplyWindowInsetsListener(this, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(insets.left, insets.top, insets.right, insets.bottom);
+            return windowInsets;
+        });
         lblTitle = findViewById(R.id.lblTitle);
         container = findViewById(R.id.container);
         btnForward = findViewById(R.id.btnForward);
