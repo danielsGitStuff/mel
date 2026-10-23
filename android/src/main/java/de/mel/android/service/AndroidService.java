@@ -8,7 +8,6 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
-import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
@@ -76,7 +75,6 @@ public class AndroidService extends Service {
     private MelBoot melBoot;
     private NetworkChangeListener networkChangeReceiver;
     private PowerChangeReceiver powerChangeReceiver;
-    private WifiManager.MulticastLock multicastLock;
     private PowerManager.CommunicationsListener communicationsListener = new PowerManager.CommunicationsListener() {
         @Override
         public void onCommunicationsEnabled() {
@@ -109,8 +107,6 @@ public class AndroidService extends Service {
     public void onDestroy() {
         super.onDestroy();
         AndroidService.instance = null;
-        if (multicastLock != null && multicastLock.isHeld())
-            multicastLock.release();
         if (melAuthService != null)
             melAuthService.shutDown();
         if (networkChangeReceiver != null)
@@ -235,13 +231,6 @@ public class AndroidService extends Service {
         super.onCreate();
         Lok.debug("AndroidService.onCreate()");
         createPermanentSticky();
-        // without it Android drops the multicast that arrives over wifi: discovery would never be heard
-        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
-        if (wifiManager != null) {
-            multicastLock = wifiManager.createMulticastLock("mel discovery");
-            multicastLock.setReferenceCounted(false);
-            multicastLock.acquire();
-        }
         // configure MelAuth
         File workingDir = new File(getAndroidPath() + File.separator + "melauth.workingdir");
         workingDir.mkdirs();
