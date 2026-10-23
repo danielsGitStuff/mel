@@ -26,11 +26,11 @@
                         blog: cbBlog.checked,
                         release: cbRelease.checked,
                         test: cbTest.checked,
-                        pw: document.getElementById("pw").value,
                         keepBinaries:
                         cbKeep.checked
                     }
                 ;
+                // the session cookie goes along by itself
                 fetch("/api/build", {
                     method: 'POST', // or 'PUT'
                     body: JSON.stringify(req), // data can be `string` or {object}!
@@ -38,8 +38,12 @@
                         'Content-Type': 'application/json'
                     }
                 }).then(function (res) {
-                    alert(JSON.stringify(res));
-                }).alert(JSON.stringify(req))
+                    return res.text().then(function (text) {
+                        alert(res.status + ": " + text);
+                    });
+                }).catch(function (e) {
+                    alert(e);
+                })
             }
         }
     </script>
@@ -53,20 +57,16 @@
 </head>
 <body>
 
-<form method="post" action="/build.html">
-    <input name="pw" id="pw" value="<§=pw/>" hidden>
+<form method="get" action="/build.html">
     <button type="submit">Refresh</button>
 </form>
 <!--<form method="post" action="/build.html build">-->
-<input name="pw" value="<§=pw/>" hidden>
 <button onclick="build()">Build</button>
 <!--</form>-->
 <form method="post" action="/build.html reboot">
-    <input name="pw" value="<§=pw/>" hidden>
     <button onclick="return warning()" type="submit">Reboot</button>
 </form>
 <form method="post" action="/build.html shutDown">
-    <input name="pw" value="<§=pw/>" hidden>
     <button onclick="return warning()" type="submit">Shut Down</button>
 </form>
 <br>

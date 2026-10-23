@@ -2,59 +2,19 @@ package de.mel.web.miniserver
 
 import de.mel.Lok
 import de.mel.LokImpl
-import de.mel.MelRunnable
-import de.mel.MelThread
 import de.mel.auth.data.access.CertificateManager
-import de.mel.auth.data.access.DatabaseManager
-import de.mel.execute.SqliteExecutor
 import de.mel.konsole.Konsole
 import de.mel.sql.RWLock
-import de.mel.sql.SQLQueries
-import de.mel.sql.SqlQueriesException
-import de.mel.sql.conn.SQLConnector
-import de.mel.sql.transform.SqlResultTransformer
-import de.mel.web.miniserver.socket.EncSocketOpener
+import de.mel.web.serverparts.HttpThingy
+import de.mel.web.serverparts.SetupHelper
 import java.io.File
-import java.util.*
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.Semaphore
 
 class StaticServer(val config: StaticConfig){
     private var httpsSocketOpener: StaticHttpsThingy? = null
-    private var httpSocketOpener: StaticHttpThingy? = null
-    private var encSocketOpener: EncSocketOpener? = null
-    internal var executorService: ExecutorService? = null
+    private var httpSocketOpener: HttpThingy? = null
     private val socketCertificateManager: CertificateManager
     val httpCertificateManager: CertificateManager
     val workingDirectory: File = config.workingDirectory!!
-
-
-    private val threadFactory = { r: Runnable ->
-        var melThread: MelThread? = null
-
-        try {
-            threadSemaphore.acquire()
-            melThread = threadQueue.poll()
-            threadSemaphore.release()
-        } catch (e: InterruptedException) {
-            e.printStackTrace()
-        }
-        melThread
-    }
-
-    fun execute(runnable: MelRunnable) {
-        try {
-            if (executorService == null || executorService != null && (executorService!!.isShutdown || executorService!!.isTerminated))
-                executorService = Executors.newCachedThreadPool(threadFactory)
-            threadSemaphore.acquire()
-            threadQueue.add(MelThread(runnable))
-            threadSemaphore.release()
-            executorService!!.execute(runnable)
-        } catch (e: InterruptedException) {
-            e.printStackTrace()
-        }
-    }
 
 
     init {
@@ -68,26 +28,8 @@ class StaticServer(val config: StaticConfig){
         secretHttpDir.mkdirs()
         secretSocketDir.mkdirs()
 
-        fun setupSql(dir: File): SQLQueries {
-            val dbFile = File(dir, "db.db")
-            val sqlQueries = SQLQueries(SQLConnector.createSqliteConnection(dbFile), true, RWLock(), SqlResultTransformer.sqliteResultSetTransformer())
-            // turn on foreign keys
-            try {
-                sqlQueries.execute("PRAGMA foreign_keys = ON;", null)
-            } catch (e: SqlQueriesException) {
-                e.printStackTrace()
-            }
-            val sqliteExecutor = SqliteExecutor(sqlQueries.sqlConnection)
-            if (!sqliteExecutor.checkTablesExist("servicetype", "service", "approval", "certificate")) {
-                //find sql file in workingdir
-                val resourceStream = DatabaseManager::class.java.getResourceAsStream("/de/mel/auth/sql.sql")
-                sqliteExecutor.executeStream(resourceStream)
-            }
-            return sqlQueries
-        }
-
         //setup socket certificate manager first
-        val socketSqlQueries = setupSql(secretSocketDir)
+        val socketSqlQueries = SetupHelper.setupMelAuthSqlqueries(secretSocketDir)
         socketCertificateManager = CertificateManager(secretSocketDir, socketSqlQueries, config.keySize)
 
         if (socketCertificateManager.hadToInitialize()) {
@@ -97,7 +39,7 @@ class StaticServer(val config: StaticConfig){
                     Processor("cp", File(secretSocketDir, "pk.key").absolutePath, secretHttpDir.absolutePath),
                     Processor("cp", File(secretSocketDir, "pub.key").absolutePath, secretHttpDir.absolutePath))
         }
-        val httpSqlQueries = setupSql(secretHttpDir)
+        val httpSqlQueries = SetupHelper.setupMelAuthSqlqueries(secretHttpDir)
         httpCertificateManager = CertificateManager(secretHttpDir, httpSqlQueries, config.keySize)
 
     }
@@ -114,7 +56,7 @@ class StaticServer(val config: StaticConfig){
             httpsSocketOpener?.start()
         }
         config.httpPort?.let {
-            httpSocketOpener = StaticHttpThingy(it)
+            httpSocketOpener = HttpThingy(it, null)
             httpSocketOpener?.start()
         }
 
@@ -123,8 +65,6 @@ class StaticServer(val config: StaticConfig){
 
     companion object {
         const val DIR_HTML_NAME = "html"
-        private val threadSemaphore = Semaphore(1, true)
-        private val threadQueue = LinkedList<MelThread>()
 
 
         @JvmStatic

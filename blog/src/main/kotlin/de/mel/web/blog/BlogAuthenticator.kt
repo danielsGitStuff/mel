@@ -2,16 +2,16 @@ package de.mel.web.blog
 
 import com.sun.net.httpserver.HttpExchange
 import de.mel.Lok
-import de.mel.auth.tools.N
+import de.mel.web.serverparts.Sessions
 
-class BlogAuthenticator(val blogThingy: BlogThingy) {
-    companion object {
-        val HEADER_AUTH = "Authorization"
-    }
+/**
+ * checks user and password once and remembers the login in a session cookie that is only sent for the blog's URLs
+ */
+class BlogAuthenticator(private val blogSettings: BlogSettings, secure: Boolean) {
+    private val sessions = Sessions("blogsession", "/${blogSettings.subUrl}", secure)
 
     private fun checkCredentials(user: String?, pw: String?): Boolean {
-        val settings = blogThingy.blogSettings
-        val result = settings.user == user && settings.password == pw
+        val result = user == blogSettings.user && Sessions.passwordMatches(pw, blogSettings.password)
         if (result)
             Lok.debug("auth=true")
         else
@@ -19,79 +19,15 @@ class BlogAuthenticator(val blogThingy: BlogThingy) {
         return result
     }
 
-    private fun sendFail(exchange: HttpExchange) {
-        with(exchange) {
-            val response = "auth failed".toByteArray()
-            sendResponseHeaders(403, response.size.toLong())
-            responseBody.write(response)
-            responseBody.close()
-        }
+    /**
+     * starts a session if [user] and [pw] are right. call before the response headers are sent.
+     */
+    fun login(exchange: HttpExchange, user: String?, pw: String?): Boolean {
+        if (!checkCredentials(user, pw))
+            return false
+        sessions.start(exchange)
+        return true
     }
 
-    fun check(exchange: HttpExchange, user: String?, pw: String?, onSuccess: N.INoTryRunnable, onFail: N.INoTryRunnable?) {
-        var authenticated = checkCredentials(user, pw)
-        if (authenticated) {
-            N.r(onSuccess)
-        } else if (onFail != null) {
-            N.r(onFail)
-        } else {
-            sendFail(exchange)
-        }
-    }
-
-    fun check(exchange: HttpExchange, onSuccess: N.INoTryRunnable, onFail: N.INoTryRunnable?) {
-        val authInfo = exchange.requestHeaders.get(HEADER_AUTH)
-        var authenticated = false
-        if (authInfo != null) {
-            val user = authInfo[0]
-            val pw = "p"
-            authenticated = checkCredentials(user, pw)
-        }
-        if (authenticated) {
-            N.r(onSuccess)
-        } else if (onFail != null) {
-            N.r(onFail)
-        } else {
-            sendFail(exchange)
-        }
-    }
-
-    fun authenticate(exchange: HttpExchange, user: String?, pw: String?, onSuccess: N.INoTryRunnable, onFail: N.INoTryRunnable?) {
-        if (checkCredentials(user, pw)) {
-            val headers = exchange.responseHeaders
-//            val authList = mutableListOf("u=$user", "p=$pw")
-//            headers.set(HEADER_AUTH, authList)
-            headers.set(HEADER_AUTH, "Basic kekse")
-            N.r(onSuccess)
-        } else if (onFail != null) {
-            N.r(onFail)
-        } else {
-            sendFail(exchange)
-        }
-    }
-
-//    fun checkAuth(exchange: HttpExchange, user: String?, pw: String?, onSuccess: N.INoTryRunnable, onFail: N.INoTryRunnable?) {
-//        var authenticated = checkCredentials(user, pw)
-//        if (!authenticated)
-//            authenticated = authenticate(exchange)::class.java == Success::class.java
-//
-//        val test = authenticate(exchange)::class.java == Success::class.java
-////        var authenticated = this.authenticate(exchange)::class.java == Success::class.java
-////
-////        if (!authenticated)
-////            authenticated = checkCredentials(user, pw)
-//
-//        if (authenticated) {
-//            N.r(onSuccess)
-//        } else if (onFail != null) {
-//            N.r(onFail)
-//        } else {
-//            with(exchange) {
-//                val response = "auth failed".toByteArray()
-//                sendResponseHeaders(403, response.size.toLong())
-//                responseBody.write(response)
-//                responseBody.close()
-//            }
-//        }
-//    }
+    fun isLoggedIn(exchange: HttpExchange): Boolean = sessions.isValid(exchange)
 }

@@ -1,24 +1,37 @@
 package de.mel.web.serverparts
 
 import com.sun.net.httpserver.HttpExchange
-import de.mel.Lok
 import java.net.URLDecoder
-import java.util.regex.Matcher
-import java.util.regex.Pattern
 
 /**
  * parses URL query arguments
  */
 class QueryMap {
 
-    fun fillFromGet(httpExchange: HttpExchange): QueryMap {
-        val string = httpExchange.requestURI.query ?: return this
-        val pat: Pattern = Pattern.compile("([^&=]+)=([^&]*)")
-        val matcher: Matcher = pat.matcher(string)
-        while (matcher.find()) {
-            map.put(matcher.group(1), matcher.group(2))
+    companion object {
+        /**
+         * parses "a=1&b=x%20y" (a GET query or a form POST body). Keys and values are URL-decoded,
+         * a pair without '=' has an empty value.
+         */
+        fun parse(text: String?): MutableMap<String, String> {
+            val map = mutableMapOf<String, String>()
+            if (text == null)
+                return map
+            text.split("&").filter { it.isNotEmpty() }.forEach {
+                val splitIndex = it.indexOf("=")
+                if (splitIndex < 0)
+                    map[decode(it)] = ""
+                else
+                    map[decode(it.substring(0, splitIndex))] = decode(it.substring(splitIndex + 1))
+            }
+            return map
         }
-        Lok.debug()
+
+        private fun decode(s: String): String = URLDecoder.decode(s, Charsets.UTF_8)
+    }
+
+    fun fillFromGet(httpExchange: HttpExchange): QueryMap {
+        map.putAll(parse(httpExchange.requestURI.rawQuery))
         return this
     }
 
@@ -33,12 +46,7 @@ class QueryMap {
 
     fun fillFomPost(ex: HttpExchange): QueryMap {
         requestBody = ex.requestBody.reader().readText()
-        requestBody?.split("&")?.map { URLDecoder.decode(it) }?.forEach {
-            val splitIndex = it.indexOf("=")
-            val k = it.substring(0, splitIndex)
-            val v = it.substring(splitIndex + 1, it.length)
-            map[k] = v
-        }
+        map.putAll(parse(requestBody))
         return this
     }
 
@@ -49,5 +57,7 @@ class QueryMap {
     operator fun get(key: String): String? {
         return map[key]
     }
+
+    override fun toString(): String = map.toString()
 
 }

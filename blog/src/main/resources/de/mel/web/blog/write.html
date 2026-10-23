@@ -51,15 +51,11 @@
     <textarea id="txtText" name="text"><§=text/></textarea><br>
      <label><input type="checkbox" name="publish" id="publish" <§=publish/>> publish</label><br>
 
-    <input name="user" value="<§=user/>" hidden>
-    <input name="pw" value="<§=pw/>" hidden>
     <input name="id" value="<§=id/>" hidden>
     <input name="action" value="save" hidden>
     <button onclick="return warning()" type="submit">Save</button>
 </form>
 <form method="post" action="/blog/write.html delete">
-    <input name="user" value="<§=user/>" hidden>
-    <input name="pw" value="<§=pw/>" hidden>
     <input name="id" value="<§=id/>" hidden>
     <input name="action" value="delete" hidden>
     <button onclick="return warning()" type="submit">Delete</button>

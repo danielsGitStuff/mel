@@ -4,7 +4,7 @@ import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import com.sun.net.httpserver.HttpsServer
 import de.mel.Lok
-import de.mel.auth.tools.N
+import java.io.IOException
 
 /**
  *     Creates contexts for an HttpsServer and provides methods for easy access to the provided parameters for GET and POST requests.
@@ -78,18 +78,8 @@ class HttpContextCreator(val server: HttpServer) {
         private var errorFunction: ((HttpExchange, Exception) -> Unit)? = null
 
 
-        private val fallbackErrorFunction: ((HttpExchange, Exception) -> Unit) = { httpExchange, exception ->
-            try {
-                with(httpExchange) {
-                    val text = "something went wrong"
-                    de.mel.Lok.debug("sending error to $remoteAddress")
-                    sendResponseHeaders(400, text.toByteArray().size.toLong())
-                    responseBody.write(text.toByteArray())
-                    responseBody.close()
-                }
-            } finally {
-                httpExchange.close()
-            }
+        private val fallbackErrorFunction: ((HttpExchange, Exception) -> Unit) = { httpExchange, _ ->
+            sendText(httpExchange, 500, "something went wrong")
         }
 
 
@@ -100,43 +90,36 @@ class HttpContextCreator(val server: HttpServer) {
              * if an exception is thrown, result is null.
              */
             var result: Boolean? = null
-                Lok.debug("handling request(${httpExchange.requestMethod}) for ${httpExchange.requestURI}")
-                try {
-                    if (httpExchange.requestMethod == "POST") {
-                        N.oneLine { queryMap.fillFomPost(httpExchange) }
-                        result = runRequestHandlers(postHandlers, queryMap, httpExchange)
-                    } else if (httpExchange.requestMethod == "GET") {
-                        N.oneLine { queryMap.fillFromGet(httpExchange) }
-                        result = runRequestHandlers(getHandlers, queryMap, httpExchange)
-                    } else {
-                        Lok.error("unknown request method; ${httpExchange.requestMethod}")
-                        result = false
-                    }
-                } catch (e: Exception) {
-                    // exception, result stays null
-                    onExceptionThrown(httpExchange, e)
+            Lok.debug("handling request(${httpExchange.requestMethod}) for ${httpExchange.requestURI}")
+            try {
+                if (httpExchange.requestMethod == "POST") {
+                    queryMap.fillFomPost(httpExchange)
+                    result = runRequestHandlers(postHandlers, queryMap, httpExchange)
+                } else if (httpExchange.requestMethod == "GET") {
+                    queryMap.fillFromGet(httpExchange)
+                    result = runRequestHandlers(getHandlers, queryMap, httpExchange)
+                } else {
+                    Lok.error("unknown request method; ${httpExchange.requestMethod}")
+                    result = false
                 }
-                // no match occured
-                if (result != null && !result) {
-                    // no custum function available
-                    if (noMatchFunction == null) {
-                        try {
-                            with(httpExchange) {
-                                val text = "I just don't know what to do with myself! DADADA!"
-                                de.mel.Lok.debug("sending error to $remoteAddress")
-                                sendResponseHeaders(400, text.toByteArray().size.toLong())
-                                responseBody.write(text.toByteArray())
-                                responseBody.close()
-                            }
-                        } finally {
-                            httpExchange.close()
-                        }
-                    } else {
-                        // someone told me to do something, so I do it
+            } catch (e: Exception) {
+                // exception, result stays null
+                onExceptionThrown(httpExchange, e)
+            }
+            // no match occured
+            if (result != null && !result) {
+                // no custum function available
+                if (noMatchFunction == null) {
+                    sendText(httpExchange, 404, "I just don't know what to do with myself! DADADA!")
+                } else {
+                    // someone told me to do something, so I do it
+                    try {
                         noMatchFunction!!.invoke(httpExchange, queryMap)
-
+                    } catch (e: Exception) {
+                        onExceptionThrown(httpExchange, e)
                     }
                 }
+            }
         }
 
         private fun runRequestHandlers(requestHandlers: List<RequestHandler>, queryMap: QueryMap, httpExchange: HttpExchange): Boolean {
@@ -147,9 +130,8 @@ class HttpContextCreator(val server: HttpServer) {
                             httpExchange.close()
                         return true
                     }
-                }catch (e:Exception){
-                    Lok.error("request handling failed for ")
-                    requestHandler.closeWhenHandled
+                } catch (e: Exception) {
+                    onExceptionThrown(httpExchange, e)
                     return true
                 }
             }
@@ -157,15 +139,36 @@ class HttpContextCreator(val server: HttpServer) {
         }
 
 
+        /**
+         * answers with the function given to [onError] or a plain 500. The exchange is closed afterwards in any case.
+         */
         internal fun onExceptionThrown(httpExchange: HttpExchange, e: Exception) {
-            Lok.debug("error happened")
+            Lok.error("request handling failed for ${httpExchange.requestURI}")
             e.printStackTrace()
-            if (errorFunction != null) {
-                try {
-                    errorFunction!!.invoke(httpExchange, e)
-                } catch (ee: Exception) {
-                    onErrorFunctionNullorFailed(httpExchange, ee)
+            try {
+                (errorFunction ?: fallbackErrorFunction).invoke(httpExchange, e)
+            } catch (ee: Exception) {
+                fallbackErrorFunction.invoke(httpExchange, ee)
+            } finally {
+                httpExchange.close()
+            }
+        }
+
+        /**
+         * if the handler already answered before it failed, the headers are out and nothing more can be sent
+         */
+        private fun sendText(httpExchange: HttpExchange, status: Int, text: String) {
+            try {
+                with(httpExchange) {
+                    de.mel.Lok.debug("sending $status to $remoteAddress")
+                    responseHeaders.set("Content-Type", ContentType.PLAIN)
+                    sendResponseHeaders(status, text.toByteArray().size.toLong())
+                    responseBody.write(text.toByteArray())
                 }
+            } catch (e: IOException) {
+                Lok.debug("could not send $status: ${e.message}")
+            } finally {
+                httpExchange.close()
             }
         }
 
@@ -187,10 +190,6 @@ class HttpContextCreator(val server: HttpServer) {
         fun onError(onErrorFunction: (HttpExchange, Exception) -> Unit): ContextInit {
             this.errorFunction = onErrorFunction
             return this
-        }
-
-        private fun onErrorFunctionNullorFailed(httpExchange: HttpExchange, ee: Exception) {
-            fallbackErrorFunction.invoke(httpExchange, ee)
         }
 
         fun onNoMatch(noMatchFunction: (HttpExchange, QueryMap) -> Unit): ContextInit {

@@ -2,11 +2,14 @@ package de.mel.web.serverparts
 
 import de.mel.auth.tools.N
 import java.io.File
+import java.io.FileNotFoundException
+import java.util.concurrent.ConcurrentHashMap
 
 
 class Page {
     companion object {
-        val staticPagesCache = hashMapOf<String, Page>()
+        // the server answers on many threads at once
+        val staticPagesCache = ConcurrentHashMap<String, Page>()
         val replaceTagRegex = "<§=[a-zA-Z]+[\\w]*\\/>".toRegex()
 
     }
@@ -37,20 +40,25 @@ class Page {
         this.bytes = file.readBytes()
         this.path = path
         this.contentType = MimeTypeReader.readMimeType(file) ?: ContentType.TEXT
-        if (!staticPagesCache.containsKey(path)) {
-            staticPagesCache[path] = this
-        }
+        staticPagesCache.putIfAbsent(path, this)
     }
 
 
+    /**
+     * loads the resource at [path] and fills in its <§=tag/>s.
+     * @throws FileNotFoundException if there is no such resource
+     */
     constructor(path: String, vararg replacers: Replacer) {
-        if (staticPagesCache.containsKey(path) && replacers.isEmpty()) {
-            this.path = path
-            this.bytes = staticPagesCache[path]!!.bytes
+        this.path = path
+        this.contentType = MimeTypeReader.forName(path) ?: ContentType.TEXT
+        val cached = staticPagesCache[path]
+        if (cached != null && replacers.isEmpty()) {
+            this.bytes = cached.bytes
             return
         }
 //        Lok.debug("loading $path")
-        val resourceBytes = javaClass.getResourceAsStream(path).readBytes()
+        val resourceBytes = javaClass.getResourceAsStream(path)?.use { it.readBytes() }
+                ?: throw FileNotFoundException("no resource at $path")
         var html = String(resourceBytes)
         val tags = replaceTagRegex.findAll(html).toList()
         N.forEach(tags) { matchResult ->
@@ -62,18 +70,18 @@ class Page {
                 if (replacement == null)
                     html = html.replace(replacementRegex, "")
                 else {
+                    if (it.escapeHtml)
+                        replacement = Html.escape(replacement)
                     //escape double quotes
-                    if (it.escapeQuotes)
+                    else if (it.escapeQuotes)
                         replacement = replacement.replace("\"", "&quot;")
                     html = html.replace(replacementRegex, Regex.escapeReplacement(replacement))
                 }
             }
         }
-        this.path = path
         this.bytes = html.toByteArray()
-        if (!staticPagesCache.containsKey(path) && replacers.isEmpty()) {
-            staticPagesCache[path] = this
-        }
+        if (replacers.isEmpty())
+            staticPagesCache.putIfAbsent(path, this)
     }
 }
 

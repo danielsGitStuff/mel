@@ -24,4 +24,10 @@ Content explained:
   - folder "socket": certificates for sockets (the Mel apps use these)
 - output.log: log file
 - stop.input: write something into this file and the server shuts down
-  
+
+## Build page
+`/private/loginz.html` asks for `buildPassword` from secret.properties. A right password starts a session (cookie `session`, 12 h, in memory: a restart of the server logs you out) and redirects to `/build.html`. The build page, `/api/build`, reboot and shut down check the session; the password is not put into any page.
+The blog (`/blog/write.html`) works the same way with its own cookie `blogsession` and the user/password from `blog/blog.json`.
+
+## Static server
+`StaticServer` (`-static <dir>`) publishes every file below the directory; `/` answers with `index.html` if there is one, everything unknown gets a 404.

@@ -232,7 +232,7 @@ AUTHENTICATING, REGISTERING; they need a way to set short timeouts in tests), cl
 - Git identity is not configured: commit with `-c user.name=xor -c user.email=mrkeule@gmail.com`.
 - Test ports: each test class takes its own port range (18000 handshake, 19000 registration, 20000 boot, 21000 boot failure, 22000 concurrent send, 23000 duplicate
   connections, 24000 protocol violations, 25000 registration commit; later: 26000 instance bookkeeping, 27000 close events, 28000 frame limit,
-  29000 partner identity, 30000 isolated connections, 31000 file transfer, 32000 connecting, 33000/33500 requests/settle once, 34000 discovery).
+  29000 partner identity, 30000 isolated connections, 31000 file transfer, 32000 connecting, 33000/33500 requests/settle once, 34000 discovery; web: 35100 serverparts, 35200 blog).
 - The new test classes have a 3 minute timeout each (`@Timeout`, separate thread): a hang fails instead of blocking the build.
 - `.gitignore` is a whitelist: new directories and files outside the listed modules are ignored (a `docs/` folder is). Root `*.md` files are fine.
 - Already fixed on the branch (do not redo): the register request is sent before the register handlers are asked; a rejection by the local user

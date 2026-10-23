@@ -3,14 +3,10 @@ package de.mel.web.serverparts
 import com.sun.net.httpserver.HttpServer
 import de.mel.DeferredRunnable
 import de.mel.Lok
-import de.mel.MelThread
 import `fun`.with.promise.Promise
 import java.net.InetSocketAddress
-import java.net.ServerSocket
-import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
-import java.util.concurrent.Semaphore
 
 
 class HttpThingy(private val port: Int, val redirectPort: Int?) : DeferredRunnable() {
@@ -23,27 +19,8 @@ class HttpThingy(private val port: Int, val redirectPort: Int?) : DeferredRunnab
     override fun getRunnableName(): String = "HTTP"
 
 
-    private lateinit var serverSocket: ServerSocket
-    private val threadSemaphore = Semaphore(1, true)
-    private val threadQueue = LinkedList<MelThread>()
-
     private lateinit var server: HttpServer
-    private val threadFactory = { r: Runnable ->
-        var melThread: MelThread? = null
-
-        try {
-            threadSemaphore.acquire()
-            melThread = threadQueue.poll()
-            threadSemaphore.release()
-        } catch (e: InterruptedException) {
-            e.printStackTrace()
-        }
-
-        melThread
-    }
     private val executor: Executor = Executors.newFixedThreadPool(2)
-
-    private lateinit var pageBytes: ByteArray
 
 
     fun start() {
@@ -71,7 +48,8 @@ class HttpThingy(private val port: Int, val redirectPort: Int?) : DeferredRunnab
     }
 
     override fun stop() {
-        server.stop(0)
+        if (::server.isInitialized)
+            server.stop(0)
         super.stop()
     }
 

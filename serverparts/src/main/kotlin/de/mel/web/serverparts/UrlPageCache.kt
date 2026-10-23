@@ -2,6 +2,9 @@ package de.mel.web.serverparts
 
 import com.sun.net.httpserver.HttpExchange
 
+/**
+ * the server answers on many threads at once: everything that touches the maps is synchronized
+ */
 class UrlPageCache(private val abstractHttpsThingy: AbstractHttpsThingy, val size: Int) {
     @Synchronized
     operator fun set(url: String, page: Page) {
@@ -31,6 +34,7 @@ class UrlPageCache(private val abstractHttpsThingy: AbstractHttpsThingy, val siz
         }
     }
 
+    @Synchronized
     operator fun get(path: String): Page? {
         if (pageCache.containsKey(path)) {
             getCounts[path] = getCounts[path]!! + 1
@@ -50,11 +54,13 @@ class UrlPageCache(private val abstractHttpsThingy: AbstractHttpsThingy, val siz
         abstractHttpsThingy.respondPage(ex, page)
     }
 
+    @Synchronized
     fun clear() {
         pageCache.clear()
         getCounts.clear()
     }
 
+    @Synchronized
     fun constructOrGet(url: String, path: String, vararg replacers: Replacer): Page? {
         if (pageCache.containsKey(url))
             return get(url)

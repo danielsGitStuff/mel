@@ -22,6 +22,7 @@ import java.time.format.DateTimeFormatter
 class HttpsThingy(private val port: Int, private val miniServer: MiniServer, private val fileRepository: FileRepository) : AbstractHttpsThingy(port, miniServer.httpCertificateManager.sslContext) {
     var blogThingy: BlogThingy
     var visitors: Visitors
+    private val sessions = Sessions("session", secure = sslContext != null)
 
     init {
         val blogDir = File(miniServer.workingDirectory, "blog")
@@ -32,39 +33,44 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
 
     companion object {
         const val PARAM_PW = "pw"
+        const val LOGIN = "/private/loginz.html"
     }
+
+    private val buildPassword: String?
+        get() = miniServer.secretProperties["buildPassword"] as String?
 
     fun pageHello(): Page {
         return Page("/de/mel/web/miniserver/index.html",
                 Replacer("files") {
                     val s = StringBuilder()
                     miniServer.fileRepository.sortedFileEntries.forEach { fileEntry ->
+                        val name = Html.escape(fileEntry.file.name)
                         s.append("<tr>")
-                        s.append("<td><a href=\"files/${fileEntry.hash}\" download=\"${fileEntry.file.name}\">${fileEntry.file.name}</a></td>") //name
+                        s.append("<td><a href=\"files/${Html.escape(fileEntry.hash)}\" download=\"$name\">$name</a></td>") //name
                         if (fileEntry.mirrors.isNotEmpty()) {
-                            s.append("<td><a href=\"${fileEntry.mirrors[0]}\" download=\"${fileEntry.file.name}\">Download</a></td>")
+                            s.append("<td><a href=\"${Html.escape(fileEntry.mirrors[0])}\" download=\"$name\">Download</a></td>")
                         } else {
                             s.append("<td></td>")
                         }
-                        s.append("<td>${fileEntry.variant}</td>") //variant
+                        s.append("<td>${Html.escape(fileEntry.variant)}</td>") //variant
                         s.append("<td>${String.format("%.2f", fileEntry.size.toFloat() / 1024 / 1024)} mb</td>") //size
-                        s.append("<td>${fileEntry.version}</td>") //build date
-                        s.append("<td>${fileEntry.commit}</td>")
-                        s.append("<td>${fileEntry.hash}</td>")//hash
+                        s.append("<td>${Html.escape(fileEntry.version)}</td>") //build date
+                        s.append("<td>${Html.escape(fileEntry.commit)}</td>")
+                        s.append("<td>${Html.escape(fileEntry.hash)}</td>")//hash
                         s.append("</tr>")
                     }
                     return@Replacer s.toString()
                 })
     }
 
-    fun pageBuild(pw: String): Page {
+    fun pageBuild(): Page {
         return Page("/de/mel/web/miniserver/private/build.html",
-                Replacer(PARAM_PW, pw),
                 Replacer("time", miniServer.startTime.toString()),
                 Replacer("lok") {
                     val sb = StringBuilder().append("<p>")
+                    // log lines contain request URLs: anyone can put markup in there
                     Lok.getLines().forEach {
-                        sb.append(it).append("<br>")
+                        sb.append(Html.escape(it)).append("<br>")
                     }
                     sb.append("</p>")
                     sb.toString()
@@ -138,16 +144,23 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
         contextCreator.createContext("/api/")
                 .withPOST()
                 .handle { it, queryMap ->
+                    if (!sessions.isValid(it)) {
+                        Lok.info("build denied")
+                        respond(it, 403, "log in first".toByteArray(), ContentType.PLAIN)
+                        return@handle
+                    }
                     val json = queryMap.requestBody
                     val buildRequest = SerializableEntityDeserializer.deserialize(json) as BuildRequest
+                    if (!buildRequest.valid) {
+                        respond(it, 400, "incomplete build request".toByteArray(), ContentType.PLAIN)
+                        return@handle
+                    }
                     Lok.info("launching build")
-                    if (buildRequest.pw == miniServer.secretProperties["buildPassword"] && buildRequest.valid)
-                        GlobalScope.launch {
-                            val deploy = Deploy(miniServer, File(miniServer.secretPropFile.absolutePath), buildRequest)
-                            deploy.run()
-                        }
-                    else
-                        Lok.info("build denied")
+                    GlobalScope.launch {
+                        val deploy = Deploy(miniServer, File(miniServer.secretPropFile.absolutePath), buildRequest)
+                        deploy.run()
+                    }
+                    respond(it, 202, "build started".toByteArray(), ContentType.PLAIN)
                 }
         contextCreator.createContext("/css.css")
                 .withGET()
@@ -156,24 +169,37 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                 }
         contextCreator.createContext("/private/loggedIn")
                 .withPOST()
-                .expect(PARAM_PW) { pw -> pw == miniServer.secretProperties["buildPassword"] }
-                .handle { it, queryMap -> respondPage(it, pageBuild(queryMap[PARAM_PW]!!)) }
+                .expect(PARAM_PW) { pw -> Sessions.passwordMatches(pw, buildPassword) }
+                .handle { it, queryMap ->
+                    sessions.start(it)
+                    redirect(it, "/build.html")
+                }
                 .withPOST()
                 .expect(PARAM_PW) { pw -> pw != null }
                 .handle { it, queryMap ->
                     Lok.info("## password did not match")
-                    redirect(it, "/private/loginz.html")
+                    redirect(it, LOGIN)
                 }
                 .withPOST()
                 .handle { it, queryMap -> respondPage(it, pageHello()) }
                 .withGET()
                 .handle { it, queryMap ->
-                    respondText(it, "/de/mel/web/miniserver/private/loginz.html")
+                    redirect(it, if (sessions.isValid(it)) "/build.html" else LOGIN)
                 }
         contextCreator.createContext("/build.html")
-                .withPOST()
-                .expect(PARAM_PW) { pw -> pw == miniServer.secretProperties["buildPassword"] }
+                .withGET()
                 .handle { it, queryMap ->
+                    if (sessions.isValid(it))
+                        respondPage(it, pageBuild())
+                    else
+                        redirect(it, LOGIN)
+                }
+                .withPOST()
+                .handle { it, queryMap ->
+                    if (!sessions.isValid(it)) {
+                        redirect(it, LOGIN)
+                        return@handle
+                    }
                     val uri = it.requestURI
                     val command = uri.path.substring("/build.html".length, uri.path.length).trim()
                     when (command) {
@@ -186,8 +212,8 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
                             val jarFile = File(miniServer.workingDirectory, "miniserver.jar")
                             miniServer.reboot(miniServer.workingDirectory, jarFile)
                         }
+                        else -> redirect(it, "/build.html")
                     }
-                    respondPage(it, pageBuild(queryMap[PARAM_PW]!!))
                 }
         // add files context
         contextCreator.createContext("/files/")
@@ -227,7 +253,6 @@ class HttpsThingy(private val port: Int, private val miniServer: MiniServer, pri
 //        buildRequest.apk = false
 //        buildRequest.blog = false
 //        buildRequest.jar = false
-//        buildRequest.pw = "a"
 //        buildRequest.server = false
 //        buildRequest.keepBinaries = true
 //        val deploy = Deploy(miniServer, File(miniServer.secretPropFile.absolutePath), buildRequest)

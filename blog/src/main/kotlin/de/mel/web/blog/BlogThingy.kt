@@ -19,13 +19,15 @@ import javax.net.ssl.SSLContext
  * currently this mixes both POST and GET simultaneously to deal with authentication and parameters the user sends you.
  * I wanted to plant the authentication info in the response header but the browser somehow does not send it back.
  */
-class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : AbstractHttpsThingy(blogSettings.port!!, sslContext) {
+class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext?) : AbstractHttpsThingy(blogSettings.port!!, sslContext) {
     val blogDatabaseManager: BlogDatabaseManager
     val blogDao: BlogDao
-    val blogAuthenticator = BlogAuthenticator(this)
+    val blogAuthenticator = BlogAuthenticator(blogSettings, sslContext != null)
     val subUrl = blogSettings.subUrl
     var visitors: Visitors? = null
     val pageCache = UrlPageCache(this, 100)
+
+    override val errorPagePath = "/de/mel/web/blog/error.html"
 
     init {
         blogDatabaseManager = BlogDatabaseManager(blogSettings.blogDir!!)
@@ -62,7 +64,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                 if (entry.title.isNull)
                     ""
                 else
-                    "<span class=\"title\">${entry.title.v()}</span><br>"
+                    "<span class=\"title\">${Html.escape(entry.title.v())}</span><br>"
             }
                     , Replacer("text") {
                 if (entry.title.isNull)
@@ -176,83 +178,80 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext) : Abstr
                 .withPOST()
                 .expect(PARAM_ACTION, ACTION_SAVE).and(PARAM_ID) { a -> a != null }
                 .handle { httpExchange, queryMap ->
-                    val user = queryMap[PARAM_USER]
-                    val pw = queryMap[PARAM_PW]
-                    blogAuthenticator.check(httpExchange, user, pw, N.INoTryRunnable {
-                        val id = N.result({ queryMap[PARAM_ID]!!.toLong() }, null)
-                        val publish = queryMap[PARAM_PUBLISH] == "on"
-                        //edit
-                        if (id != null) {
-                            val entry = blogDao.getById(id)
-                            if (entry != null) {
-                                entry.title.v(queryMap[PARAM_TITLE])
-                                entry.text.v(queryMap[PARAM_TEXT])
-                                entry.published.v(publish)
-                                blogDao.update(entry)
-                                respondPage(httpExchange, pageWrite(user, pw, id))
-                            }
-                        } else {
-                            //create
-                            val entry = BlogEntry()
-                            entry.title.v(queryMap[PARAM_TITLE])
-                            entry.text.v(queryMap[PARAM_TEXT])
-                            entry.timestamp.v(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
-                            entry.published.v(publish)
-                            blogDao.insert(entry)
-                            respondPage(httpExchange, pageWrite(user, pw, entry.id.v()))
+                    if (!blogAuthenticator.isLoggedIn(httpExchange)) {
+                        respondError(httpExchange, "log in first", 403)
+                        return@handle
+                    }
+                    val id = queryMap[PARAM_ID]!!.toLongOrNull()
+                    val publish = queryMap[PARAM_PUBLISH] == "on"
+                    //edit
+                    if (id != null) {
+                        val entry = blogDao.getById(id)
+                        if (entry == null) {
+                            respondError(httpExchange, "there is no entry $id", 404)
+                            return@handle
                         }
-                        //show what is new
-                        pageCache.clear()
-                    }, null)
+                        entry.title.v(queryMap[PARAM_TITLE])
+                        entry.text.v(queryMap[PARAM_TEXT])
+                        entry.published.v(publish)
+                        blogDao.update(entry)
+                        respondPage(httpExchange, pageWrite(id))
+                    } else {
+                        //create
+                        val entry = BlogEntry()
+                        entry.title.v(queryMap[PARAM_TITLE])
+                        entry.text.v(queryMap[PARAM_TEXT])
+                        entry.timestamp.v(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
+                        entry.published.v(publish)
+                        blogDao.insert(entry)
+                        respondPage(httpExchange, pageWrite(entry.id.v()))
+                    }
+                    //show what is new
+                    pageCache.clear()
                 }
                 .withPOST().expect(PARAM_ACTION, ACTION_DELETE).and(PARAM_ID) { it != null }
                 .handle { httpExchange, queryMap ->
+                    if (!blogAuthenticator.isLoggedIn(httpExchange)) {
+                        respondError(httpExchange, "log in first", 403)
+                        return@handle
+                    }
                     val id = queryMap[PARAM_ID]!!.toLong()
                     blogDao.deleteById(id)
                     pageCache.clear()
-                    respondPage(httpExchange, pageLogin(httpExchange))
+                    respondPage(httpExchange, pageWrite(null))
                 }
                 .withPOST().expect(PARAM_USER) { it != null }.and(PARAM_PW) { it != null }
                 .handle { httpExchange, queryMap ->
-                    val user = queryMap[PARAM_USER]
-                    val pw = queryMap[PARAM_PW]
-                    val id = N.result({ queryMap[PARAM_ID]?.toLong() }, null)
-                    blogAuthenticator.check(httpExchange, user, pw, N.INoTryRunnable {
-                        respondPage(httpExchange, pageWrite(user, pw, id))
-                    }, N.INoTryRunnable {
+                    val id = queryMap[PARAM_ID]?.toLongOrNull()
+                    if (blogAuthenticator.login(httpExchange, queryMap[PARAM_USER], queryMap[PARAM_PW]))
+                        respondPage(httpExchange, pageWrite(id))
+                    else
                         respondPage(httpExchange, pageLogin(httpExchange, id))
-                    })
-                }
-                .withGET().expect(PARAM_ID) { it != null }
-                .handle { httpExchange, queryMap ->
-                    Lok.debug("AAAA")
-                    val idString = queryMap[PARAM_ID]
-                    if (idString != null) {
-                        val id = idString.toLong()
-                        respondPage(httpExchange, pageLogin(httpExchange, id))
-                    }
                 }
                 .withGET().handle { httpExchange, queryMap ->
-                    respondPage(httpExchange, pageLogin(httpExchange, null))
-
+                    val id = queryMap[PARAM_ID]?.toLongOrNull()
+                    if (blogAuthenticator.isLoggedIn(httpExchange))
+                        respondPage(httpExchange, pageWrite(id))
+                    else
+                        respondPage(httpExchange, pageLogin(httpExchange, id))
                 }
                 .onError { httpExchange, exception -> respondError(httpExchange, "Ebola?!") }
-                .onNoMatch { httpExchange, queryMap -> respondError(httpExchange, "I just don't know what to do<br> with myself! DADADA!") }
+                .onNoMatch { httpExchange, queryMap -> respondError(httpExchange, "I just don't know what to do<br> with myself! DADADA!", 404) }
 
 
     }
 
 
-    private fun pageWrite(user: String?, pw: String?, id: Long?): Page {
+    private fun pageWrite(id: Long?): Page {
         var entry: BlogEntry? = null
         if (id != null)
             entry = blogDao.getById(id)
         val mode = if (id == null) "Write new Entry" else "Edit Entry"
-        return Page("/de/mel/web/blog/write.html", Replacer("pw", pw),
-                Replacer("user", user).escapeQuotes(),
-                Replacer("id", id?.toString()).escapeQuotes(),
-                Replacer("title", entry?.title?.v()).escapeQuotes(),
-                Replacer("text", entry?.text?.v()),
+        return Page("/de/mel/web/blog/write.html",
+                Replacer("id", id?.toString()).escapeHtml(),
+                Replacer("title", entry?.title?.v()).escapeHtml(),
+                // the text is HTML, but inside the textarea it has to stay text
+                Replacer("text", entry?.text?.v()).escapeHtml(),
                 Replacer("publish", if (entry != null && entry.published.v()) "checked" else ""),
                 Replacer("mode", mode),
                 Replacer("preview", if (entry != null) embedEntry(entry) else null)

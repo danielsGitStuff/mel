@@ -525,3 +525,23 @@ Tests: `BootFailureTest` (6, was 4 that pinned "never settles"): taken connectio
 Not covered by a test: services booted before the failure being shut down (needs an active service row before the first boot), the FX dialog and the Android toast (not run).
 
 On the way: `DiscoveryTest` (added with the discovery attempt) used port base 26000 like `InstanceBookkeepingTest`. In a full run the suspend/resume test then found nothing (the client never got an answer; alone it passed). It has 34000 now, and waits for the resumed brotcaster to listen instead of sleeping 500 ms. The list of port ranges is in `SOCKET_PROCESS_REWORK.md`.
+
+## Web server (miniserver, serverparts, blog)
+
+A review (2026-10-23) found these; all fixed (not committed yet):
+- **The blog's Delete needed no login**: `POST action=delete&id=N` to `/blog/write.html` deleted any entry. Save and Delete now check the session (403 without).
+- **Password in every page**: the build password (miniserver) and the blog's user/password were written back as hidden fields and re-posted by every form. Now `Sessions` (serverparts): a login sets a random token cookie (`HttpOnly; SameSite=Strict`, `Secure` on HTTPS, 12 h, memory only), pages and `/api/build` check it, no password in any page. Passwords compared in constant time.
+- **Requests without answer**: a handler that threw, no `onError`, `respondPage(null)`, a missing resource, `/api/build` (never answered), a second answer after shut down. Now one `respond(...)` that always closes; throw = 500 (or `onError`), no match = 404 (or `onNoMatch`), missing = 404.
+- **Error page**: `respondError` loaded `/de/web/blog/error.html` (no `mel`), so every blog error ended without an answer. Now `errorPagePath`, set by `BlogThingy`; plain text without one.
+- **Escaping**: `Html.escape` and `Replacer.escapeHtml()`. Escaped: file table and log lines on the build page (log lines contain request URLs: markup from anyone onto the admin page), blog titles, the text in the write page's textarea. The entry text on the public blog stays HTML on purpose.
+- **Parsing**: one `QueryMap.parse`, URL-decoded for GET too; a field without `=` threw.
+- **Thread safety**: `Page.staticPagesCache` is a `ConcurrentHashMap`, `UrlPageCache` synchronized.
+- **TLS**: the HTTPS server offers 1.3 again (the JDK 11/12 bug is gone on 21). `CertificateManager` (Mel sockets) still pins 1.2.
+- **Duplicates removed**: `StaticPage` (its extension map moved to `MimeTypeReader`, so CSS goes out as `text/css`), `StaticHttpThingy` (= `HttpThingy`), the unused thread-queue fields, the serverparts copies of `Test.java`/`DateTest.java`. `StaticHttpsThingy` extends `AbstractHttpsThingy`; that also fixed a crash: it registered `/` twice when the folder had an `index.html`.
+
+Tests: `ServerPartsTest` (10, port 35100: 500/404 instead of hanging, decoding, sessions, escaping, MIME types) and `BlogThingyTest` (6, port 35200: Save/Delete refused without login, login, no password and escaped entry in the write page, the error page). Mutation check: Delete without the session check and `runRequestHandlers` without the error answer each fail one test. Not tried in a browser.
+
+Seen, not changed: `MiniServer` calls `Processor.runProcesses("copying ...")` without processes, so the socket keys are never copied to `secret/http/` and HTTPS uses its own certificate (fixing it changes the live certificate). `write.html` calls an undefined `warning()`, so Delete does not ask. `Blog.kt` has its own database setup with `auth.db` (`SetupHelper` uses `db.db`).
+
+Templates: considered jte (`.kte`, typed parameters, escaping by default, IntelliJ plugin) instead of `<§=tag/>`; not started.
+
