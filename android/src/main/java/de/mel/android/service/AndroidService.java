@@ -31,6 +31,7 @@ import de.mel.R;
 import de.mel.android.AndroidInjector;
 import de.mel.android.AndroidRegHandler;
 import de.mel.android.MainActivity;
+import de.mel.R;
 import de.mel.android.Notifier;
 import de.mel.android.filesync.AndroidFileSyncBootloader;
 import de.mel.auth.MelAuthAdmin;
@@ -132,6 +133,9 @@ public class AndroidService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (melAuthService == null) {
             Notifier.toast(getApplicationContext(), "booting auth service");
+            // a boot that failed before settled the old one; this is a new try
+            if (!startedDeferred.isPending())
+                startedDeferred = PromiseImpl.withoutThrowingOnException();
             RWLock lock = new RWLock();
             try {
                 Promise<MelAuthService, Exception> bootedPromise = setup(null);
@@ -155,12 +159,20 @@ public class AndroidService extends Service {
                     powerChangeReceiver = new PowerChangeReceiver(this);
                     this.registerReceiver(powerChangeReceiver, powIntentFilter);
                     startedDeferred.resolveOk(melAuthService);
+                }).onError(e -> {
+                    // the instance was shut down already, the next start command tries again
+                    String why = e == null ? "?" : e.getMessage();
+                    Lok.error("AndroidService: boot failed: " + why);
+                    Notifier.toast(getApplicationContext(), getString(R.string.bootFailed, why));
+                    startedDeferred.resolveError(e);
+                    stopSelf();
                 });
                 lock.lockWrite();
 
             } catch (Exception e) {
                 e.printStackTrace();
-                startedDeferred.resolveError(e);
+                if (startedDeferred.isPending())
+                    startedDeferred.resolveError(e);
             }
             lock.unlockWrite();
         }

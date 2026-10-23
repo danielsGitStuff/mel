@@ -18,7 +18,7 @@ Steps 1-10 of `SOCKET_REWORK_PLAN.md` are done, details and decisions in `REWORK
 4. `send` without a lock / `writeUTF` chunks: fixed, one lock, typed frames (steps 3, 4).
 5. `synchronized` handlers: fixed (step 5).
 6. register socket not closed, missing commit: fixed, S persists before `Final`, C persists and closes (step 7).
-7. start failures never reach the caller of `MelBoot.boot()`: NOT part of this rework, still pinned by `BootFailureTest`.
+7. start failures never reach the caller of `MelBoot.boot()`: NOT part of this rework; solved afterwards (REWORK_LOG.md, "Boot failures reach the caller").
 8. `suspend()`/`resume()` "without callers": wrong, `AndroidPowerManager` calls them. They stay (with `restart()` of the services and the worker).
 
 Open: the JDeferred replacement (`REWORK_RUNBOOK.md`, P3/P4). The sections below describe the problems and decisions as they were before the work.
@@ -183,7 +183,7 @@ Integration tests on the branch:
 - `AuthHandshakeTest`: pairing, auth over real TLS, impostors, isolated connections, suspend/resume.
 - `RegistrationTest` (12): accept/reject on both sides in both orders, instant handlers, who is told what on a rejection, trust only after
   both confirmed (a late accept after a rejection leaves nothing behind), the server trusts the client when the client is done.
-- `BootAndShutdownTest` (11), `BootFailureTest` (4): boot levels, shutdown, startup failures.
+- `BootAndShutdownTest` (11), `BootFailureTest` (6): boot levels, shutdown, startup failures.
 - Known flake, cause found: it is not the multicast discovery. The certificate delivery (`MelAuthCertDelivery`) answers and hangs
   up at once; on the client (`MelCertRetriever`) the end of stream shuts the socket worker down while the answer is still queued,
   so the pairing silently never starts. Same bug as "a close by the peer cuts off queued messages" (see the decision that a
@@ -231,7 +231,8 @@ AUTHENTICATING, REGISTERING; they need a way to set short timeouts in tests), cl
 - `./gradlew build` (unit and integration tests included) passes; `build -x test -x integrationTest` is the fast variant.
 - Git identity is not configured: commit with `-c user.name=xor -c user.email=mrkeule@gmail.com`.
 - Test ports: each test class takes its own port range (18000 handshake, 19000 registration, 20000 boot, 21000 boot failure, 22000 concurrent send, 23000 duplicate
-  connections, 24000 protocol violations, 25000 registration commit).
+  connections, 24000 protocol violations, 25000 registration commit; later: 26000 instance bookkeeping, 27000 close events, 28000 frame limit,
+  29000 partner identity, 30000 isolated connections, 31000 file transfer, 32000 connecting, 33000/33500 requests/settle once, 34000 discovery).
 - The new test classes have a 3 minute timeout each (`@Timeout`, separate thread): a hang fails instead of blocking the build.
 - `.gitignore` is a whitelist: new directories and files outside the listed modules are ignored (a `docs/` folder is). Root `*.md` files are fine.
 - Already fixed on the branch (do not redo): the register request is sent before the register handlers are asked; a rejection by the local user

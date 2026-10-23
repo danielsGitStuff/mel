@@ -27,9 +27,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * What the boot promise does when a part of the auth worker (socket opener, certificate delivery, brotcaster) does not start.
- * MelAuthWorker waits for the three of them. This pins down the current behaviour, which is not what one would design:
- * a failing start does not reach the caller of {@link MelBoot#boot()}, the promise just stays pending.
- * Whoever changes that, changes these tests on purpose.
+ * MelAuthWorker waits for the three of them. A part that does not start rejects {@link MelBoot#boot()} with a
+ * {@link MelAuthStartException} that names the port, after the half started instance was shut down: whatever it had bound is
+ * free again and the same instance can boot again right away.
  */
 @Tag("integration")
 public class BootFailureTest {
@@ -37,10 +37,6 @@ public class BootFailureTest {
      * how long a boot that should settle may take (a healthy one takes a few hundred milliseconds)
      */
     private static final int WAIT_FOR_BOOT_MILLIS = TwoInstances.TIMEOUT_SECONDS * 1000;
-    /**
-     * how long a boot that must not settle is watched: several times a healthy boot, also a cold one
-     */
-    private static final int NEVER_SETTLES_MILLIS = 2000;
     private static final AtomicInteger nextPortBase = new AtomicInteger(21000);
 
     @TempDir
@@ -49,6 +45,7 @@ public class BootFailureTest {
     private MelBoot melBoot;
     private ServerSocket blocker;
     private MelAuthServiceImpl directService;
+    private Outcome lastOutcome;
 
     @BeforeEach
     public void before() {
@@ -64,8 +61,8 @@ public class BootFailureTest {
             directService.shutDown().onDone(r -> latch.countDown()).onError(r -> latch.countDown());
             latch.await(TwoInstances.TIMEOUT_SECONDS, TimeUnit.SECONDS);
         }
-        if (melBoot != null) {
-            // the instance never reached the caller of boot(), so get it from where MelBoot keeps it
+        if (melBoot != null && (lastOutcome == null || lastOutcome.failure.get() == null)) {
+            // a failed boot shut its instance down already; the others never reached this test, so get them from where MelBoot keeps them
             Field field = MelBoot.class.getDeclaredField("melAuthService");
             field.setAccessible(true);
             MelAuthService service = (MelAuthService) field.get(melBoot);
@@ -84,7 +81,11 @@ public class BootFailureTest {
     }
 
     private Outcome boot(int port, int deliveryPort, int brotcastListenerPort, int brotcastPort) throws Exception {
-        File dir = new File(tempDir, "bootfailure");
+        return boot("bootfailure", port, deliveryPort, brotcastListenerPort, brotcastPort);
+    }
+
+    private Outcome boot(String dirName, int port, int deliveryPort, int brotcastListenerPort, int brotcastPort) throws Exception {
+        File dir = new File(tempDir, dirName);
         dir.mkdirs();
         MelAuthSettings settings = new MelAuthSettings().setPort(port).setDeliveryPort(deliveryPort)
                 .setBrotcastListenerPort(brotcastListenerPort).setBrotcastPort(brotcastPort)
@@ -92,6 +93,7 @@ public class BootFailureTest {
         settings.setJsonFile(new File(dir, MelBoot.Companion.getDEFAULT_SETTINGS_FILE_NAME()));
         melBoot = new MelBoot(settings, new PowerManager(settings));
         Outcome outcome = new Outcome();
+        lastOutcome = outcome;
         Promise<MelAuthService, Exception> promise = melBoot.boot();
         promise.onDone(service -> {
             outcome.booted.set(service);
@@ -112,28 +114,80 @@ public class BootFailureTest {
         assertNull(outcome.failure.get());
     }
 
-    @Test
-    public void bootNeverSettlesWhenThePortIsTaken() throws Exception {
-        int base = nextPortBase.getAndAdd(10);
-        // somebody else (another Mel instance, for example) listens on our port
-        blocker = new ServerSocket();
-        blocker.bind(new InetSocketAddress(base));
-        Outcome outcome = boot(base, base + 1, base + 4, base + 5);
+    private static boolean isFree(int port) {
+        try (ServerSocket probe = new ServerSocket()) {
+            probe.bind(new InetSocketAddress(port));
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
-        // the socket opener only logs that it failed, it neither resolves nor rejects its start
-        assertFalse(outcome.settled.await(NEVER_SETTLES_MILLIS, TimeUnit.MILLISECONDS),
-                "boot settled although the port was taken: booted=" + outcome.booted.get() + " failure=" + outcome.failure.get());
+    private static ServerSocket take(int port) throws Exception {
+        ServerSocket socket = new ServerSocket();
+        socket.bind(new InetSocketAddress(port));
+        return socket;
+    }
+
+    private void assertRejected(Outcome outcome, String expectedInMessage) throws Exception {
+        assertTrue(outcome.settled.await(WAIT_FOR_BOOT_MILLIS, TimeUnit.MILLISECONDS), "boot never settled");
+        assertNull(outcome.booted.get(), "boot resolved although a part could not start");
+        Exception failure = outcome.failure.get();
+        assertInstanceOf(MelAuthStartException.class, failure);
+        assertTrue(failure.getMessage().contains(expectedInMessage),
+                "the reason does not say '" + expectedInMessage + "': " + failure.getMessage());
     }
 
     @Test
-    public void bootNeverSettlesWhenABrotcasterCannotStart() throws Exception {
+    public void bootFailsWhenThePortIsTaken() throws Exception {
         int base = nextPortBase.getAndAdd(10);
-        // not a port at all: the brotcaster rejects its start, the worker rejects its own ("keinen plan von nix"),
-        // but MelBoot only listens for success
+        // somebody else (another Mel instance, for example) listens on our port
+        blocker = take(base);
+        Outcome outcome = boot(base, base + 1, base + 4, base + 5);
+
+        assertRejected(outcome, "port " + base);
+        // the certificate delivery did start; the shut down freed it before the caller was told
+        assertTrue(isFree(base + 1), "the certificate delivery port is still bound");
+    }
+
+    @Test
+    public void bootFailsWhenTheCertificateDeliveryPortIsTaken() throws Exception {
+        int base = nextPortBase.getAndAdd(10);
+        blocker = take(base + 1);
+        Outcome outcome = boot(base, base + 1, base + 4, base + 5);
+
+        assertRejected(outcome, "port " + (base + 1));
+        assertTrue(isFree(base), "the connection port is still bound");
+    }
+
+    @Test
+    public void bootFailsWhenABrotcasterCannotStart() throws Exception {
+        int base = nextPortBase.getAndAdd(10);
+        // not a port at all: the brotcaster rejects its start
         Outcome outcome = boot(base, base + 1, 70000, base + 5);
 
-        assertFalse(outcome.settled.await(NEVER_SETTLES_MILLIS, TimeUnit.MILLISECONDS),
-                "boot settled although the brotcaster could not start: booted=" + outcome.booted.get() + " failure=" + outcome.failure.get());
+        assertRejected(outcome, "port 70000");
+        assertTrue(isFree(base), "the connection port is still bound");
+        assertTrue(isFree(base + 1), "the certificate delivery port is still bound");
+    }
+
+    /**
+     * After a failed boot the same working directory (database, keys) and the same ports can be used again: the user closes the
+     * other program and starts Mel again.
+     */
+    @Test
+    public void aFailedBootCanBeRepeatedOnceThePortIsFree() throws Exception {
+        int base = nextPortBase.getAndAdd(10);
+        blocker = take(base);
+        Outcome failed = boot("again", base, base + 1, base + 4, base + 5);
+        assertRejected(failed, "port " + base);
+
+        blocker.close();
+        blocker = null;
+        Outcome again = boot("again", base, base + 1, base + 4, base + 5);
+        assertTrue(again.settled.await(WAIT_FOR_BOOT_MILLIS, TimeUnit.MILLISECONDS), "the second boot never settled");
+        assertNull(again.failure.get(), "the second boot failed");
+        assertNotNull(again.booted.get());
     }
 
     private static class ThrowsWhenToldAuthIsUp extends MelTestService {

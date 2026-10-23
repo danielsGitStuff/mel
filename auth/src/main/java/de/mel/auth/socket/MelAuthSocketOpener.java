@@ -6,6 +6,7 @@ import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.auth.tools.N;
 import fun.with.promise.Promise;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -26,16 +27,23 @@ public class MelAuthSocketOpener extends DeferredRunnable {
 
     @Override
     public Promise<Void, Void> onShutDown() {
-        N.r(() -> serverSocket.close());
+        // with runImpl's bind: either the port was bound and is closed here, or it is never bound
+        synchronized (this) {
+            N.r(() -> serverSocket.close());
+        }
         return DeferredRunnable.ResolvedDeferredObject();
     }
 
     @Override
     public void runImpl() {
         try {
-            serverSocket = melAuthService.getCertificateManager().createServerSocket();
-            Lok.debug("binding to " + port);
-            serverSocket.bind(new InetSocketAddress(port));
+            synchronized (this) {
+                if (isStopped())
+                    return;
+                serverSocket = melAuthService.getCertificateManager().createServerSocket();
+                Lok.debug("binding to " + port);
+                serverSocket.bind(new InetSocketAddress(port));
+            }
             Lok.debug("binding to " + port + " successful");
             resolveStarted();
             while (!Thread.currentThread().isInterrupted()) {
@@ -47,10 +55,13 @@ public class MelAuthSocketOpener extends DeferredRunnable {
             if (!isStopped()) {
                 Lok.error("MelAuthSocketOpener.runTry.FAAAAAIL!");
                 e.printStackTrace();
+                // a bind that failed is the end of the start (after the start this does nothing)
+                rejectStarted(new IOException("port " + port + " (connections): " + e.getMessage(), e));
             }
         } finally {
             try {
-                serverSocket.close();
+                if (serverSocket != null)
+                    serverSocket.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }

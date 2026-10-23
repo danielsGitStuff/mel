@@ -26,7 +26,10 @@ import de.mel.sql.*;
 import de.mel.sql.deserialize.PairDeserializerFactory;
 import de.mel.sql.serialize.PairSerializerFactory;
 import de.mel.update.CurrentJar;
+import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.web.WebView;
 
 import java.io.File;
@@ -44,6 +47,27 @@ public class Main {
         CurrentJar.initCurrentJarClass(Main.class);
         AbstractFile.configure(new DefaultFileConfiguration());
         BashTools.Companion.init();
+    }
+
+    /**
+     * Mel could not start (mostly: a port is taken, another instance runs). Says why and ends the program,
+     * with a dialog if there is a display.
+     */
+    private static void bootFailed(Exception e, boolean showDialog) {
+        String why = e == null ? "unknown reason" : e.getMessage();
+        Lok.error("Mel could not start: " + why);
+        if (e != null)
+            e.printStackTrace();
+        if (!showDialog)
+            System.exit(1);
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR, "Mel could not start:\n" + why
+                    + "\n\nIs another instance of Mel running?", ButtonType.OK);
+            alert.setTitle("Mel");
+            alert.setHeaderText(null);
+            alert.showAndWait();
+            System.exit(1);
+        });
     }
 
     public static void main(String[] args) throws Exception {
@@ -73,7 +97,7 @@ public class Main {
             melBoot.boot().onDone(melAuthService -> {
                 Lok.debug("Main.main.booted (headless)");
                 lock.unlockWrite();
-            }).onError(Throwable::printStackTrace);
+            }).onError(e -> bootFailed(e, false));
         } else {
             MelBoot melBoot = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncFXBootloader.class, ContactsFXBootloader.class, DumpFxBootloader.class);
             MelAuthFxLoader fxLoader = new MelAuthFxLoader();
@@ -84,7 +108,7 @@ public class Main {
                 melAuthService.addRegisterHandler(registerHandlerFX);
                 Lok.debug("Main.main.booted");
                 lock.unlockWrite();
-            }).onError(Throwable::printStackTrace);
+            }).onError(e -> bootFailed(e, true));
         }
         lock.lockWrite();
         Lok.debug("Main.main.end");

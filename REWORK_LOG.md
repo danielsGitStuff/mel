@@ -21,7 +21,7 @@
 **Remaining risks / not done:**
 - Android was only compiled/assembled/linted, nothing was run on a device (foreground service, TLS client certificates on Android with the new partner-from-TLS check, the register dialog with the known-partner text).
 - `ConnectWorker`/`MelRegisterProcess` etc. block a thread per connect job; unchanged in spirit.
-- Boot failures still never reach the caller of `MelBoot.boot()` (problem 7 of the brief, pinned by `BootFailureTest`), not part of this run.
+- Boot failures still never reach the caller of `MelBoot.boot()` (problem 7 of the brief, pinned by `BootFailureTest`), not part of this run. Solved later, see "Boot failures reach the caller".
 - Certificates still travel unencrypted at pairing (users compare nothing); a fingerprint comparison string is still a later idea.
 - No keep-alive in ESTABLISHED (decided): a half open connection is only noticed when the next send fails or the partner reconnects (the "same initiator, newer wins" rule then replaces it).
 - Timing: the integration tests were run 5 times in a row after steps 2/3, 6, 7, 8, 9 and after P4; earlier flaky tests were test races, each explained in its step.
@@ -508,3 +508,20 @@ Reported 2026-10-23: auto discovery finds nothing between a Pixel 9 Pro (Graphen
 Tried, did not help on the device, parked on branch `discovery-multicast` (1a375e42): a `WifiManager.MulticastLock` while `AndroidService` runs (with `CHANGE_WIFI_MULTICAST_STATE`), and `BrotCaster` joining the group and sending on every interface that is up and can do multicast instead of the one the system picks. Not on `rework2026` (e0a3c308 took the lock out again; it had gone in with f52cc63f).
 
 Next time first logs of both sides (`adb logcat | grep -i brot` on the phone, `MelAuthBrotCaster.handleMessage` on the PC) to see whether a discover arrives at all. Not ruled out: client isolation of the access point, the PC's firewall, the PC instance in a container. The group is 224.0.0.1 (all hosts), which access points and phones may filter; another group would not be compatible with older instances.
+
+## Boot failures reach the caller
+
+Before: a part of the auth worker that did not start never reached the caller of `MelBoot.boot()`, whose promise stayed pending (problem 7 of the brief). The socket opener and the certificate delivery only logged a failed bind; the worker's own rejection lost the reason (`Promise.fusedAnd` rejects with null) and `MelBoot` only listened for success. The FX `Main` then waited on its lock forever, Android showed nothing.
+
+Now:
+- `MelAuthSocketOpener`, `MelAuthCertDelivery` and `BrotCaster` reject their start when they cannot bind, with the port and what it is for in the message (`port 8888 (connections): Address already in use`). A `SocketException` of the brotcaster (network down) still counts as started: discovery is no condition for being up.
+- `MelAuthWorker` keeps the reason of the first part that failed and rejects with `MelAuthStartException` (message = that reason, cause = the part's exception).
+- `MelBoot` rejects `boot()`, also for anything thrown before the start (which it did before as well), but first shuts the half started instance down (ports, database, the services booted so far) on a thread of its own, so the caller can boot again at once. Nothing goes to the long boot level after a failure. `boot()` settles once: a failure after the instance was handed out is not a boot failure.
+- Shutting down while a part is about to bind left the port bound (the shut down saw no socket yet, the part bound afterwards): the three parts now bind and close under one lock and do not bind once stopped. `MelAuthWorker.onShutDown` copes with parts that were never made.
+- Callers: FX `Main` logs and exits with 1 (headless) or shows a dialog first ("Is another instance of Mel running?"). Android toasts the reason (new string `bootFailed`, en/de), rejects its started promise and stops the service; the next start command tries again with a new promise.
+
+Tests: `BootFailureTest` (6, was 4 that pinned "never settles"): taken connection port, taken certificate delivery port, brotcaster that cannot start (each: rejected with `MelAuthStartException` naming the port, the other ports free again), a failed boot repeated on the same working directory once the port is free. Mutation check: without the `onError` in `MelBoot` the four failure tests fail; without the bind lock two of them failed (port still bound).
+
+Not covered by a test: services booted before the failure being shut down (needs an active service row before the first boot), the FX dialog and the Android toast (not run).
+
+On the way: `DiscoveryTest` (added with the discovery attempt) used port base 26000 like `InstanceBookkeepingTest`. In a full run the suspend/resume test then found nothing (the client never got an answer; alone it passed). It has 34000 now, and waits for the resumed brotcaster to listen instead of sleeping 500 ms. The list of port ranges is in `SOCKET_PROCESS_REWORK.md`.

@@ -63,6 +63,8 @@ class MelBoot(private val melAuthSettings: MelAuthSettings, private val powerMan
         return deferredObject
     }
 
+    @Volatile
+    private var startFailed = false
     private val outstandingBootloaders = Collections.synchronizedSet(mutableSetOf<Bootloader<out MelService>>())!!
     override fun run() {
         try {
@@ -72,21 +74,69 @@ class MelBoot(private val melAuthSettings: MelAuthSettings, private val powerMan
             melAuthService = MelAuthServiceImpl(melAuthSettings, powerManager)
             melAuthService!!.melBoot = this
             val promiseAuthIsUp = melAuthService!!.prepareStart()
-            promiseAuthIsUp.onDone { result -> deferredObject.resolveOk(melAuthService) }
+            promiseAuthIsUp.onDone { result -> settle { deferredObject.resolveOk(melAuthService) } }
             for (bootClass in this.bootloaderClasses) {
                 createBootLoader(melAuthService, bootClass)
             }
             melAuthService!!.addAllMelAuthAdmin(melAuthAdmins)
             melAuthService!!.start()
             bootServices()
+            // attached after the services were booted, so the shut down below gets them too
+            promiseAuthIsUp.onError { e -> failed(e) }
         } catch (e: Exception) {
             e.printStackTrace()
-            deferredObject.resolveError(e)
+            failed(e)
         }
+    }
+
+    /**
+     * Settles the boot promise once: a failure after the instance was handed out is not a boot failure any more.
+     */
+    private fun settle(how: () -> Unit) {
+        synchronized(deferredObject) {
+            if (deferredObject.isPending)
+                how()
+        }
+    }
+
+    /**
+     * The instance did not come up. It is shut down (whatever was bound is freed, the database is closed, booted services stop)
+     * before the caller of [boot] learns why, so the caller can start again right away.
+     */
+    private fun failed(e: Exception) {
+        if (!deferredObject.isPending)
+            return
+        Lok.error("MelBoot: the instance could not start: ${e.message}")
+        synchronized(this) {
+            // bootStage2 is synchronized on this as well: nothing gets to the long boot level from here on
+            startFailed = true
+            outstandingBootloaders.clear()
+        }
+        val service = melAuthService
+        if (service == null) {
+            settle { deferredObject.resolveError(e) }
+            return
+        }
+        // not on a thread of the instance, its executors are shut down
+        Thread({
+            val shutDown = try {
+                service.shutDown()
+            } catch (t: Exception) {
+                Lok.error("MelBoot: shutting down the instance that could not start failed: $t")
+                null
+            }
+            if (shutDown == null)
+                settle { deferredObject.resolveError(e) }
+            else
+                shutDown.onDone { settle { deferredObject.resolveError(e) } }
+                        .onError { settle { deferredObject.resolveError(e) } }
+        }, "MelBoot failed start of ${melAuthSettings.name}").start()
     }
 
     @Synchronized
     private fun bootStage2() {
+        if (startFailed)
+            return
         if (melAuthService!!.powerManager.heavyWorkAllowed()) {
             outstandingBootloaders.forEach { bootloader ->
                 try {

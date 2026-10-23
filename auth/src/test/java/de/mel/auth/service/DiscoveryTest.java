@@ -1,6 +1,7 @@
 package de.mel.auth.service;
 
 import de.mel.auth.MelStrings;
+import de.mel.auth.broadcast.MelAuthBrotCaster;
 import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.data.NetworkEnvironment;
 import de.mel.auth.file.AbstractFile;
@@ -29,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Tag("integration")
 public class DiscoveryTest {
     private static final int TIMEOUT_SECONDS = 20;
-    private static final int BASE = 26000;
+    private static final int BASE = 34000;
 
     @TempDir
     File tempDir;
@@ -88,12 +89,22 @@ public class DiscoveryTest {
     @Test
     public void anUnknownInstanceIsFoundAfterSuspendAndResume() throws Exception {
         start(BASE + 10);
+        MelAuthBrotCaster beforeSuspend = client.getBrotCaster();
         client.suspend();
         client.resume();
-        Thread.sleep(500);
+        // resume makes a new brotcaster; an answer that comes before it listens is lost
+        long end = System.nanoTime() + TimeUnit.SECONDS.toNanos(TIMEOUT_SECONDS);
+        while (!resumedBrotCasterListens(beforeSuspend) && System.nanoTime() < end)
+            Thread.sleep(50);
+        assertTrue(resumedBrotCasterListens(beforeSuspend), "the client's discovery did not start again");
         client.getNetworkEnvironment().clear();
         client.discoverNetworkEnvironment();
         assertServerFound(BASE + 10);
+    }
+
+    private boolean resumedBrotCasterListens(MelAuthBrotCaster beforeSuspend) {
+        MelAuthBrotCaster current = client.getBrotCaster();
+        return current != null && current != beforeSuspend && current.getStartedDeferred().hasResult();
     }
 
     private void start(int base) throws Exception {

@@ -33,16 +33,21 @@ public abstract class BrotCaster extends DeferredRunnable {
 
     @Override
     public Promise<Void, Void> onShutDown() {
-        N.s(() -> socket.close());
-        socket = null;
+        // with runImpl's bind: either the port was bound and is closed here, or it is never bound
+        synchronized (this) {
+            N.s(() -> socket.close());
+            socket = null;
+        }
         return null;
     }
 
     @Override
     public void stop() {
         super.stop();
-        N.s(() -> socket.close());
-        socket = null;
+        synchronized (this) {
+            N.s(() -> socket.close());
+            socket = null;
+        }
     }
 
     public void resume() {
@@ -62,10 +67,14 @@ public abstract class BrotCaster extends DeferredRunnable {
         if (listenerPort != null) {
             try {
 
-                if (socket == null) {
-                    socket = new MulticastSocket(listenerPort);
+                synchronized (this) {
+                    if (isStopped())
+                        return;
+                    if (socket == null) {
+                        socket = new MulticastSocket(listenerPort);
 //            InetAddress group = InetAddress.getByName("localhost");
-                    socket.joinGroup(group);
+                        socket.joinGroup(group);
+                    }
                 }
                 resolveStarted();
                 while (!Thread.currentThread().isInterrupted()) {
@@ -85,7 +94,7 @@ public abstract class BrotCaster extends DeferredRunnable {
             } catch (Exception e) {
                 if (!isStopped()) {
                     e.printStackTrace();
-                    rejectStarted(e);
+                    rejectStarted(new IOException("port " + listenerPort + " (discovery): " + e.getMessage(), e));
                 }
             } finally {
                 try {

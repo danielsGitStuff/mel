@@ -22,6 +22,7 @@ import javax.net.ServerSocketFactory;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -111,20 +112,27 @@ public class MelAuthCertDelivery extends DeferredRunnable {
 
     @Override
     public Promise<Void, Void> onShutDown() {
-        N.r(() -> {
-            Lok.debug("unbinding " + port);
-            serverSocket.close();
-        });
+        // with runImpl's bind: either the port was bound and is closed here, or it is never bound
+        synchronized (this) {
+            N.r(() -> {
+                Lok.debug("unbinding " + port);
+                serverSocket.close();
+            });
+        }
         return DeferredRunnable.ResolvedDeferredObject();
     }
 
     @Override
     public void runImpl() {
         try {
-            serverSocket = serverSocketFactory.createServerSocket();
-            serverSocket.setReuseAddress(true);
-            Lok.debug("binding " + port);
-            serverSocket.bind(new InetSocketAddress(port));
+            synchronized (this) {
+                if (isStopped())
+                    return;
+                serverSocket = serverSocketFactory.createServerSocket();
+                serverSocket.setReuseAddress(true);
+                Lok.debug("binding " + port);
+                serverSocket.bind(new InetSocketAddress(port));
+            }
             resolveStarted();
             while (!Thread.currentThread().isInterrupted()) {
                 Socket socket = serverSocket.accept();
@@ -137,6 +145,8 @@ public class MelAuthCertDelivery extends DeferredRunnable {
         } catch (Exception e) {
             if (!isStopped()) {
                 e.printStackTrace();
+                // a bind that failed is the end of the start (after the start this does nothing)
+                rejectStarted(new IOException("port " + port + " (certificate delivery): " + e.getMessage(), e));
             } else
                 Lok.debug("MelAuthCertDelivery.runImpl.interrupted");
         } finally {

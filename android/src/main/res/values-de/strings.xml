@@ -9,6 +9,7 @@
     <string name="coupleNotificationCertTitle">Kopplungsversuch!</string>
     <string name="coupleNotificationCertText">Eine andere Driveinstanz möchte diese hier kennenlernen.</string>
     <string name="coupleNotificationCertTextKnown">Diese Instanz ist bereits bekannt. Annehmen behält ihre Zugriffsrechte.</string>
+    <string name="bootFailed">Mel konnte nicht starten: %1$s</string>
     <string name="slogan">Mit ohne Wolken!</string>
     <string name="permanentNotification">Die Notification soll das Beenden durch Android verhindern.</string>
     <string name="btnOk">Ok</string>

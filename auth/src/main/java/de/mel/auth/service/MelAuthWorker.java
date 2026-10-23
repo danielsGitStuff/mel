@@ -15,6 +15,9 @@ import de.mel.auth.tools.Promises;
 import fun.with.promise.Promise;
 import fun.with.promise.PromiseImpl;
 
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+
 /**
  * Created by xor on 05.09.2016.
  */
@@ -45,6 +48,10 @@ public class MelAuthWorker extends MelWorker implements PowerManager.IPowerState
         PromiseImpl<DeferredRunnable, Exception> certDeliveryPromise = certDelivery.getStartedDeferred();
         socketOpener = new MelAuthSocketOpener(melAuthService, port);
         PromiseImpl<DeferredRunnable, Exception> socketOpenerPromise = socketOpener.getStartedDeferred();
+        // fusedAnd drops the reason, so the first part that fails keeps it here
+        AtomicReference<Exception> firstFailure = new AtomicReference<>();
+        for (PromiseImpl<DeferredRunnable, Exception> part : List.of(socketOpenerPromise, certDeliveryPromise, brotcasterPromise))
+            part.onError(e -> firstFailure.compareAndSet(null, e));
         melAuthService.execute(brotCaster);
         melAuthService.execute(certDelivery);
         melAuthService.execute(socketOpener);
@@ -62,8 +69,9 @@ public class MelAuthWorker extends MelWorker implements PowerManager.IPowerState
             // saying hello is no condition for being up
             resolveStarted();
         }).onError(result -> {
-            Lok.debug("MelAuthWorker.runTry.STRANGE");
-            rejectStarted(new Exception("a part of the worker could not start"));
+            Exception reason = firstFailure.get();
+            Lok.error("MelAuthWorker: could not start: " + (reason == null ? "unknown reason" : reason.getMessage()));
+            rejectStarted(new MelAuthStartException(reason));
         });
         // wait for work
         super.run();
@@ -90,7 +98,11 @@ public class MelAuthWorker extends MelWorker implements PowerManager.IPowerState
 
     @Override
     public Promise<Void, Void> onShutDown() {
-        return Promises.allSettled(certDelivery.shutDown(), brotCaster.shutDown(), socketOpener.shutDown(), super.onShutDown());
+        // the parts are null if run() never came (a boot that failed before the start)
+        return Promises.allSettled(certDelivery == null ? null : certDelivery.shutDown(),
+                brotCaster == null ? null : brotCaster.shutDown(),
+                socketOpener == null ? null : socketOpener.shutDown(),
+                super.onShutDown());
     }
 
 
