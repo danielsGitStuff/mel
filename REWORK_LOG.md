@@ -496,3 +496,15 @@ Noticed, not changed: `FileDistributor.stop()` sets `stopped = false`, so the `s
 ## File distribution: stop stops
 
 `FileDistributor.stop()` set `stopped = false`. Now it sets it, the thread ends after the task it works on, and a job that comes meanwhile waits in the database: `startIfIdle` no longer clears the flag, `resume()` does and starts the distributor if there is work (`SyncHandler.resume()` calls it, so the service's `stop`/`resume` covers the distributor too). The `stop()` at the start of `commitStage` is gone (not needed with the lock, see above).
+
+## Connected instances (FX): a deleted instance leaves the list
+
+Deleting a known instance in the "Connected instances" view of fxbundle deleted the certificate (the database did its part), but the view kept showing it: `OthersSettingsFX.showCerts()` appended all trusted certificates to the list instead of replacing them, and `CertListCell` left the text of a cell that became empty. Both fixed (1ae8a600). Android's `ConnectedController` clears its adapter first and was fine.
+
+## Discovery between phone and PC: open
+
+Reported 2026-10-23: auto discovery finds nothing between a Pixel 9 Pro (GrapheneOS) and a PC on the same wifi, in neither direction; a manual address works. Between two instances in one JVM it works: `DiscoveryTest` (two tests: an unknown instance is found, also after `suspend()`/`resume()` as Android's power manager does it).
+
+Tried, did not help on the device, parked on branch `discovery-multicast` (1a375e42): a `WifiManager.MulticastLock` while `AndroidService` runs (with `CHANGE_WIFI_MULTICAST_STATE`), and `BrotCaster` joining the group and sending on every interface that is up and can do multicast instead of the one the system picks. Not on `rework2026` (e0a3c308 took the lock out again; it had gone in with f52cc63f).
+
+Next time first logs of both sides (`adb logcat | grep -i brot` on the phone, `MelAuthBrotCaster.handleMessage` on the PC) to see whether a discover arrives at all. Not ruled out: client isolation of the access point, the PC's firewall, the PC instance in a container. The group is 224.0.0.1 (all hosts), which access points and phones may filter; another group would not be compatible with older instances.
