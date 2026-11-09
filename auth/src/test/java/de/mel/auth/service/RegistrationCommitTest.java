@@ -251,8 +251,8 @@ public class RegistrationCommitTest {
         assertFalse(instances.pairAgain(), "a registration nobody decided on completed");
         assertTrue(waitFor(() -> {
             try {
-                return socketsOf(server).stream().noneMatch(s -> s instanceof de.mel.auth.socket.MelAuthSocket a && a.getState().kind() == de.mel.auth.socket.SocketState.Kind.REGISTERING)
-                        && socketsOf(client).stream().noneMatch(s -> s instanceof de.mel.auth.socket.MelAuthSocket a && a.getState().kind() == de.mel.auth.socket.SocketState.Kind.REGISTERING);
+                return socketsOf(server).stream().noneMatch(s -> s.getOwner() instanceof de.mel.auth.socket.MelAuthSocket a && a.getState().kind() == de.mel.auth.socket.SocketState.Kind.REGISTERING)
+                        && socketsOf(client).stream().noneMatch(s -> s.getOwner() instanceof de.mel.auth.socket.MelAuthSocket a && a.getState().kind() == de.mel.auth.socket.SocketState.Kind.REGISTERING);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

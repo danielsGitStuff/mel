@@ -309,7 +309,7 @@ public class TwoInstances implements AutoCloseable {
         List<MelSocket> copy = new ArrayList<>(sockets);
         List<MelAuthSocket> result = new ArrayList<>();
         for (MelSocket socket : copy) {
-            if (!(socket instanceof MelAuthSocket authSocket))
+            if (!(socket.getOwner() instanceof MelAuthSocket authSocket))
                 continue;
             if (!(authSocket.getState() instanceof SocketState.Established established))
                 continue;

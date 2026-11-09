@@ -48,8 +48,7 @@ public class MelAuthSocketOpener extends DeferredRunnable {
             resolveStarted();
             while (!Thread.currentThread().isInterrupted()) {
                 Socket socket = this.serverSocket.accept();
-                MelSocket melSocket = new MelAuthSocket(melAuthService, socket);
-                melSocket.start();
+                new MelAuthSocket(melAuthService, socket).start();
             }
         } catch (Exception e) {
             if (!isStopped()) {

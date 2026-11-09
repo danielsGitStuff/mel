@@ -102,7 +102,7 @@ public class InstanceBookkeepingTest {
         for (MelAuthService instance : new MelAuthService[]{instances.server, instances.client}) {
             boolean clean = waitFor(() -> {
                 try {
-                    return socketsOf(instance).stream().noneMatch(s -> s.isStopped() || (s.getClass() == MelSocket.class));
+                    return socketsOf(instance).stream().noneMatch(s -> s.isStopped() || (s.getOwner() == null));
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }

@@ -32,6 +32,10 @@ public class MelSocket extends DeferredRunnable {
     protected SocketFactory socketFactory;
     protected Socket socket;
     private volatile MelSocketListener listener;
+    /**
+     * Whoever uses this socket for something bigger, null for a plain socket.
+     */
+    private volatile Object owner;
     private final int v;
     private static AtomicInteger vv = new AtomicInteger(0);
 
@@ -276,6 +280,14 @@ public class MelSocket extends DeferredRunnable {
             }
             events.putUnlimited(new SocketEvent.PeerClosed(e));
         }
+    }
+
+    public Object getOwner() {
+        return owner;
+    }
+
+    void setOwner(Object owner) {
+        this.owner = owner;
     }
 
     public int getV() {

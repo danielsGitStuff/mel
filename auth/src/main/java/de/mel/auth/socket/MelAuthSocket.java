@@ -26,7 +26,12 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Created by xor on 10.08.2016.
  */
-public class MelAuthSocket extends MelSocket {
+public class MelAuthSocket {
+
+    /**
+     * Reads and writes frames and closes exactly once. This class decides what the frames mean.
+     */
+    private final MelSocket transport;
 
     private final AtomicReference<SocketState> state = new AtomicReference<>(new SocketState.New());
     private final Transitions.Role role;
@@ -37,28 +42,84 @@ public class MelAuthSocket extends MelSocket {
      * a socket that we will connect
      */
     public MelAuthSocket(MelAuthService melAuthService) {
-        super(melAuthService, null);
-        this.role = Transitions.Role.CLIENT;
-        setListener(new AuthSocketListener(this));
+        this(melAuthService, new MelSocket(melAuthService), null, Transitions.Role.CLIENT);
     }
 
     /**
      * a socket that somebody connected to us
      */
     public MelAuthSocket(MelAuthService melAuthService, Socket socket) {
-        super(melAuthService, socket);
-        this.role = Transitions.Role.SERVER;
-        setListener(new AuthSocketListener(this));
+        this(melAuthService, new MelSocket(melAuthService, socket), null, Transitions.Role.SERVER);
     }
 
     /**
      * a socket that we will connect
      */
     public MelAuthSocket(MelAuthService melAuthService, AConnectJob connectJob) {
-        super(melAuthService, null);
+        this(melAuthService, new MelSocket(melAuthService), connectJob, Transitions.Role.CLIENT);
+    }
+
+    private MelAuthSocket(MelAuthService melAuthService, MelSocket transport, AConnectJob connectJob, Transitions.Role role) {
+        this.transport = transport;
         this.connectJob = connectJob;
-        this.role = Transitions.Role.CLIENT;
-        setListener(new AuthSocketListener(this));
+        this.role = role;
+        transport.setOwner(this);
+        transport.setListener(new AuthSocketListener(this));
+    }
+
+    public MelAuthService getMelAuthService() {
+        return transport.getMelAuthService();
+    }
+
+    public int getV() {
+        return transport.getV();
+    }
+
+    public void send(String json) {
+        transport.send(json);
+    }
+
+    public void sendBlock(byte[] block) {
+        transport.sendBlock(block);
+    }
+
+    public boolean isOpen() {
+        return transport.isOpen();
+    }
+
+    public String getAddress() {
+        return transport.getAddress();
+    }
+
+    public void setRunnableName(String name) {
+        transport.setRunnableName(name);
+    }
+
+    public boolean isStopped() {
+        return transport.isStopped();
+    }
+
+    public Socket getSocket() {
+        return transport.socket;
+    }
+
+    /**
+     * Closes after everything received before is handled, see {@link MelSocket#close(CloseReason)}.
+     */
+    public void close(CloseReason reason) {
+        transport.close(reason);
+    }
+
+    public void close(CloseReason reason, boolean remote) {
+        transport.close(reason, remote);
+    }
+
+    public CloseReason getCloseReason() {
+        return transport.getCloseReason();
+    }
+
+    public boolean isClosedByPeer() {
+        return transport.isClosedByPeer();
     }
 
 
@@ -78,10 +139,10 @@ public class MelAuthSocket extends MelSocket {
     public String getAddressString() {
         int port = N.result(() -> {
             if (connectJob == null)
-                return socket.getLocalPort();
+                return getSocket().getLocalPort();
             return connectJob.getPort();
         });
-        return MelAuthSocket.getAddressString(socket.getInetAddress(), port);
+        return MelAuthSocket.getAddressString(getSocket().getInetAddress(), port);
     }
 
     public SocketState getState() {
@@ -95,7 +156,7 @@ public class MelAuthSocket extends MelSocket {
         SocketState old = state.get();
         if (old.kind() == SocketState.Kind.CLOSED)
             return;
-        Lok.debug(melAuthService.getName() + ".MelAuthSocket(v=" + getV() + "): " + old + " -> " + next);
+        Lok.debug(getMelAuthService().getName() + ".MelAuthSocket(v=" + getV() + "): " + old + " -> " + next);
         state.set(next);
         if (next.kind() == SocketState.Kind.AUTHENTICATING)
             stateTimeout.start(next.kind());
@@ -109,11 +170,10 @@ public class MelAuthSocket extends MelSocket {
         stateTimeout.cancel();
     }
 
-    @Override
     public void start() {
         if (role == Transitions.Role.SERVER && state.get().kind() == SocketState.Kind.NEW)
             stateTimeout.start(SocketState.Kind.NEW);
-        super.start();
+        transport.start();
     }
 
     private final CompletableFuture<SocketState.Closed> closedFuture = new CompletableFuture<>();
@@ -141,7 +201,7 @@ public class MelAuthSocket extends MelSocket {
      * The partner broke the rules: tell it why, then close.
      */
     void protocolViolation(String description) {
-        Lok.error(melAuthService.getName() + ".MelAuthSocket(v=" + getV() + ") protocol violation in state " + state.get() + ": " + description);
+        Lok.error(getMelAuthService().getName() + ".MelAuthSocket(v=" + getV() + ") protocol violation in state " + state.get() + ": " + description);
         N.s(() -> send(SerializableEntitySerializer.serialize(new ProtocolError(CloseReason.PROTOCOL_VIOLATION.name(), description))));
         close(CloseReason.PROTOCOL_VIOLATION);
     }
@@ -152,9 +212,9 @@ public class MelAuthSocket extends MelSocket {
     }
 
     void connectSSL(Long certId, String address, int port) throws SqlQueriesException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
-        Socket socket = melAuthService.getCertificateManager().createSocket();
+        Socket socket = getMelAuthService().getCertificateManager().createSocket();
         Lok.debug("MelAuthSocket.connectSSL: " + address + ":" + port);
-        int timeout = (int) melAuthService.getConnectTimeoutMs();
+        int timeout = (int) getMelAuthService().getConnectTimeoutMs();
         try {
             socket.connect(new InetSocketAddress(address, port), timeout);
             // the handshake is part of connecting: a partner that accepts and then says nothing must not hold us up
@@ -165,7 +225,7 @@ public class MelAuthSocket extends MelSocket {
             N.s(socket::close);
             throw e;
         }
-        setSocket(socket);
+        transport.setSocket(socket);
         start();
     }
 
@@ -173,19 +233,19 @@ public class MelAuthSocket extends MelSocket {
      * @return the certificate the other side showed in the TLS handshake
      */
     X509Certificate getPeerCertificate() throws IOException {
-        SSLSocket sslSocket = (SSLSocket) socket;
+        SSLSocket sslSocket = (SSLSocket) getSocket();
         return (X509Certificate) sslSocket.getSession().getPeerCertificates()[0];
     }
 
     Certificate getTrustedPartnerCertificate() throws IOException, CertificateEncodingException, SqlQueriesException, ShamefulSelfConnectException {
         if (partnerCertificate == null) {
-            SSLSocket sslSocket = (SSLSocket) socket;
+            SSLSocket sslSocket = (SSLSocket) getSocket();
             java.security.cert.Certificate cert = sslSocket.getSession().getPeerCertificates()[0];
             byte[] certBytes = cert.getEncoded();
             String hash = Hash.sha256(certBytes);
-            partnerCertificate = melAuthService.getCertificateManager().getTrustedCertificateByHash(hash);
+            partnerCertificate = getMelAuthService().getCertificateManager().getTrustedCertificateByHash(hash);
             if (partnerCertificate == null) {
-                if (Arrays.equals(melAuthService.getCertificateManager().getPublicKey().getEncoded(), cert.getPublicKey().getEncoded())) {
+                if (Arrays.equals(getMelAuthService().getCertificateManager().getPublicKey().getEncoded(), cert.getPublicKey().getEncoded())) {
                     throw new ShamefulSelfConnectException();
                 }
             }
@@ -204,7 +264,4 @@ public class MelAuthSocket extends MelSocket {
         return state.get().process();
     }
 
-    public Socket getSocket() {
-        return socket;
-    }
 }
