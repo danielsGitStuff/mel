@@ -14,11 +14,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 class SocketWorker extends DeferredRunnable {
 
     private final MelSocket socket;
+    private final SocketEvents events;
     private static final AtomicInteger INDEX = new AtomicInteger(0);
     public final int index;
 
     SocketWorker(MelSocket socket) {
         this.socket = socket;
+        this.events = socket.getEvents();
         this.index = INDEX.getAndIncrement();
     }
 
@@ -26,7 +28,7 @@ class SocketWorker extends DeferredRunnable {
     public void runImpl() {
         try {
             while (true) {
-                SocketEvent event = socket.takeEvent();
+                SocketEvent event = events.take();
                 if (event instanceof SocketEvent.CloseRequested) {
                     socket.finishClose(((SocketEvent.CloseRequested) event).reason, ((SocketEvent.CloseRequested) event).remote);
                     return;
@@ -46,7 +48,7 @@ class SocketWorker extends DeferredRunnable {
                     Lok.error("exception in " + getRunnableName() + ": " + t);
                     t.printStackTrace();
                 } finally {
-                    socket.eventHandled(event);
+                    events.handled(event);
                 }
             }
         } catch (InterruptedException e) {

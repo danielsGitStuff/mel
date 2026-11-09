@@ -6,7 +6,6 @@ import de.mel.auth.jobs.BlockReceivedJob;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.tools.N;
 import fun.with.promise.Promise;
-import fun.with.promise.PromiseImpl;
 
 import javax.net.SocketFactory;
 
@@ -15,8 +14,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -27,22 +24,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MelSocket extends DeferredRunnable {
 
 
-//    public MelSocket setConnectJob(AConnectJob connectJob) {
-//        this.connectJob = connectJob;
-//        return this;
-//    }
-
-
     protected String runnableName = null;
 
-    /**
-     * The reader blocks when the worker has this many messages (or, weighted, blocks) to handle.
-     */
-    private static final int QUEUE_PERMITS = 64;
-    private static final int BLOCK_PERMITS = QUEUE_PERMITS / 2;
-
     protected MelAuthService melAuthService;
-    private MelThread thread;
     protected DataOutputStream out;
     protected DataInputStream in;
     protected SocketFactory socketFactory;
@@ -52,10 +36,9 @@ public class MelSocket extends DeferredRunnable {
     private static AtomicInteger vv = new AtomicInteger(0);
 
     /**
-     * Everything the worker has to do, in the order it happened. Close requests are never held back, only what the reader puts in is limited.
+     * Everything the worker has to do, in the order it happened.
      */
-    private final LinkedBlockingQueue<SocketEvent> events = new LinkedBlockingQueue<>();
-    private final Semaphore queueSpace = new Semaphore(QUEUE_PERMITS, true);
+    private final SocketEvents events = new SocketEvents();
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final AtomicBoolean closed = new AtomicBoolean(false);
     private volatile CloseReason closeReason;
@@ -87,18 +70,6 @@ public class MelSocket extends DeferredRunnable {
         return "#could not determine address#";
     }
 
-    static class MelThread extends Thread {
-
-        public MelThread(MelSocket melSocket) {
-            super(melSocket);
-        }
-
-        @Override
-        public void interrupt() {
-            super.interrupt();
-        }
-    }
-
     /**
      * Starts the worker that handles what is received and the reader that receives it.
      */
@@ -108,10 +79,8 @@ public class MelSocket extends DeferredRunnable {
             return;
         SocketWorker socketWorker = new SocketWorker(this);
         melAuthService.execute(socketWorker);
-        this.thread = new MelThread(this);
-        String name = "THREAD." + (melAuthService == null ? "no service" : melAuthService.getName()) + "." + "id=" + v + "." + getClass().getSimpleName();
-        this.thread.setName(name);
-        this.thread.start();
+        Thread reader = new Thread(this, "THREAD." + serviceName() + ".id=" + v + "." + getClass().getSimpleName());
+        reader.start();
     }
 
     /**
@@ -128,7 +97,7 @@ public class MelSocket extends DeferredRunnable {
             Lok.error(getClass().getSimpleName() + ".send(): message of " + bytes.length + " bytes exceeds the maximum frame size, NOT SENT: " + json.substring(0, Math.min(200, json.length())));
             return;
         }
-        Lok.debug("   " + (melAuthService == null ? "no service" : melAuthService.getName()) + ".MelSocket(v=" + v + ").send to " + (socket == null ? "?" : socket.getInetAddress()) + ": " + json);
+        Lok.debug("   " + serviceName() + ".MelSocket(v=" + v + ").send to " + (socket == null ? "?" : socket.getInetAddress()) + ": " + json);
         write(FrameCodec.MESSAGE, bytes);
     }
 
@@ -170,6 +139,10 @@ public class MelSocket extends DeferredRunnable {
         void onBlockReceived(BlockReceivedJob block);
     }
 
+
+    private String serviceName() {
+        return melAuthService == null ? "no service" : melAuthService.getName();
+    }
 
     public MelSocket(MelAuthService melAuthService, Socket socket) {
         this(melAuthService);
@@ -217,7 +190,7 @@ public class MelSocket extends DeferredRunnable {
      * @param remote whether the partner is the one who ended the connection (it told us so)
      */
     public void close(CloseReason reason, boolean remote) {
-        events.add(new SocketEvent.CloseRequested(reason, remote));
+        events.putUnlimited(new SocketEvent.CloseRequested(reason, remote));
         stopped = true;
         if (!started.get())
             finishClose(reason, remote);
@@ -241,15 +214,8 @@ public class MelSocket extends DeferredRunnable {
         return listener;
     }
 
-    SocketEvent takeEvent() throws InterruptedException {
-        return events.take();
-    }
-
-    void eventHandled(SocketEvent event) {
-        if (event instanceof SocketEvent.MessageReceived)
-            queueSpace.release();
-        else if (event instanceof SocketEvent.BlockReceived)
-            queueSpace.release(BLOCK_PERMITS);
+    SocketEvents getEvents() {
+        return events;
     }
 
     /**
@@ -278,11 +244,6 @@ public class MelSocket extends DeferredRunnable {
         }
     }
 
-    private void enqueue(SocketEvent event, int permits) throws InterruptedException {
-        queueSpace.acquire(permits);
-        events.add(event);
-    }
-
     /**
      * The reader. It only reads and puts what it reads into the queue of the worker, it never calls anybody.
      */
@@ -297,23 +258,23 @@ public class MelSocket extends DeferredRunnable {
             while (!isStopped()) {
                 FrameCodec.Frame frame = FrameCodec.read(in);
                 if (frame.type == FrameCodec.BLOCK) {
-                    enqueue(new SocketEvent.BlockReceived(frame.payload), BLOCK_PERMITS);
+                    events.putBlock(frame.payload);
                 } else {
                     String s = new String(frame.payload, StandardCharsets.UTF_8);
-                    Lok.debug("   " + melAuthService.getName() + "(v=" + v + ")got(" + socket.getInetAddress() + "): " + s);
-                    enqueue(new SocketEvent.MessageReceived(s), 1);
+                    Lok.debug("   " + serviceName() + "(v=" + v + ")got(" + socket.getInetAddress() + "): " + s);
+                    events.putMessage(s);
                 }
             }
         } catch (FrameCodec.ProtocolViolationException e) {
             Lok.error(getClass().getSimpleName() + " v=" + v + " protocol violation: " + e.getMessage());
-            events.add(new SocketEvent.Violation(e.getMessage()));
+            events.putUnlimited(new SocketEvent.Violation(e.getMessage()));
         } catch (Exception e) {
             if (!isStopped()) {
-                String line = (melAuthService == null ? "no service" : melAuthService.getName()) + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")";
+                String line = serviceName() + "." + getClass().getSimpleName() + "." + socket.getClass().getSimpleName() + ".runTry.disconnected(interrupted? " + thread.isInterrupted() + ")";
                 Lok.error(line);
                 Lok.error(e.getClass().getSimpleName() + ": " + e.toString() + " v=" + v);
             }
-            events.add(new SocketEvent.PeerClosed(e));
+            events.putUnlimited(new SocketEvent.PeerClosed(e));
         }
     }
 

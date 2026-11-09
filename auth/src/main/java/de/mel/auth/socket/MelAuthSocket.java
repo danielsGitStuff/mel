@@ -1,23 +1,15 @@
 package de.mel.auth.socket;
 
 import de.mel.Lok;
-import de.mel.auth.MelStrings;
 import de.mel.auth.data.ProtocolError;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.jobs.AConnectJob;
-import de.mel.auth.jobs.BlockReceivedJob;
 import de.mel.auth.service.MelAuthService;
-import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
-import de.mel.auth.socket.process.val.MelServicesPayload;
 import de.mel.auth.tools.N;
-import de.mel.core.serialize.SerializableEntity;
-import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer;
 import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 import de.mel.sql.Hash;
 import de.mel.sql.SqlQueriesException;
 
-import fun.with.promise.Promise;
-import fun.with.promise.PromiseImpl;
 
 import javax.net.ssl.SSLSocket;
 
@@ -37,8 +29,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Created by xor on 10.08.2016.
  */
-@SuppressWarnings("Duplicates")
-public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListener {
+public class MelAuthSocket extends MelSocket {
 
     private final AtomicReference<SocketState> state = new AtomicReference<>(new SocketState.New());
     private final Transitions.Role role;
@@ -51,7 +42,7 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
     public MelAuthSocket(MelAuthService melAuthService) {
         super(melAuthService, null);
         this.role = Transitions.Role.CLIENT;
-        setListener(this);
+        setListener(new AuthSocketListener(this));
     }
 
     /**
@@ -60,7 +51,7 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
     public MelAuthSocket(MelAuthService melAuthService, Socket socket) {
         super(melAuthService, socket);
         this.role = Transitions.Role.SERVER;
-        setListener(this);
+        setListener(new AuthSocketListener(this));
     }
 
     /**
@@ -70,7 +61,7 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
         super(melAuthService, null);
         this.connectJob = connectJob;
         this.role = Transitions.Role.CLIENT;
-        setListener(this);
+        setListener(new AuthSocketListener(this));
     }
 
 
@@ -134,7 +125,7 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
         }
     }
 
-    private void cancelStateTimeout() {
+    void cancelStateTimeout() {
         ScheduledFuture<?> timeout = stateTimeout;
         if (timeout != null)
             timeout.cancel(false);
@@ -177,95 +168,9 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
         close(CloseReason.PROTOCOL_VIOLATION);
     }
 
-    @Override
-    public void onMessage(MelSocket melSocket, String msg) {
-        try {
-            melAuthService.getPowerManager().wakeLock(this);
-            SerializableEntity deserialized = null;
-            Transitions.MessageKind kind;
-            try {
-                deserialized = SerializableEntityDeserializer.deserialize(msg);
-                kind = deserialized == null ? Transitions.MessageKind.UNPARSABLE : Transitions.classify(deserialized);
-            } catch (Exception e) {
-                kind = Transitions.MessageKind.UNPARSABLE;
-            }
-            SocketState current = state.get();
-            Transitions.Verdict verdict = Transitions.onMessage(current.kind(), role, kind);
-            switch (verdict) {
-                case DELIVER:
-                    current.process().onMessageReceived(deserialized, this);
-                    break;
-                case START_REGISTERING: {
-                    MelRegisterProcess melRegisterProcess = new MelRegisterProcess(this);
-                    setState(new SocketState.Registering(melRegisterProcess));
-                    melRegisterProcess.onMessageReceived(deserialized, this);
-                    break;
-                }
-                case START_AUTHENTICATING: {
-                    MelAuthProcess melAuthProcess = new MelAuthProcess(this);
-                    setState(new SocketState.Authenticating(melAuthProcess));
-                    melAuthProcess.onMessageReceived(deserialized, this);
-                    break;
-                }
-                case CLOSE_BY_PARTNER_ERROR:
-                    close(reasonOf((ProtocolError) deserialized), true);
-                    break;
-                case VIOLATION:
-                    protocolViolation(kind + " does not fit state " + current.kind() + " (" + role + ")");
-                    break;
-                case IGNORE:
-                    break;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            melAuthService.getPowerManager().releaseWakeLock(this);
-
-        }
-    }
-
-    private static CloseReason reasonOf(ProtocolError error) {
-        try {
-            return CloseReason.valueOf(error.getReason());
-        } catch (Exception e) {
-            return CloseReason.PROTOCOL_VIOLATION;
-        }
-    }
-
-    @Override
-    public void onOpen() {
-
-    }
-
-    @Override
-    public void onError(Exception ex) {
-
-    }
-
-    @Override
-    public void onClose(CloseReason reason, boolean remote) {
-        MelProcess process = state.get().process();
-        cancelStateTimeout();
-        // the state is left only after the process and the instance have seen the end: they ask the socket what it was
-        try {
-            if (process != null)
-                process.onSocketClosed(reason, remote);
-            melAuthService.onSocketClosed(this);
-        } finally {
-            SocketState.Closed closed = new SocketState.Closed(reason, remote);
-            state.set(closed);
-            closedFuture.complete(closed);
-        }
-    }
-
-    @Override
-    public void onBlockReceived(BlockReceivedJob block) {
-        SocketState current = state.get();
-        Transitions.Verdict verdict = Transitions.onMessage(current.kind(), role, Transitions.MessageKind.BLOCK);
-        if (verdict == Transitions.Verdict.DELIVER)
-            ((MelIsolatedProcess) current.process()).onBlockReceived(block);
-        else if (verdict == Transitions.Verdict.VIOLATION)
-            protocolViolation("a block does not fit state " + current.kind() + " (" + role + ")");
+    void markClosed(SocketState.Closed closed) {
+        state.set(closed);
+        closedFuture.complete(closed);
     }
 
     void connectSSL(Long certId, String address, int port) throws SqlQueriesException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
@@ -321,20 +226,7 @@ public class MelAuthSocket extends MelSocket implements MelSocket.MelSocketListe
         return state.get().process();
     }
 
-    @Override
-    public Promise<Void, Void> onShutDown() {
-        super.onShutDown();
-        return null;
-    }
-
-
-    @Override
-    public void stop() {
-        super.stop();
-    }
-
     public Socket getSocket() {
-        //todo make package private
         return socket;
     }
 }
