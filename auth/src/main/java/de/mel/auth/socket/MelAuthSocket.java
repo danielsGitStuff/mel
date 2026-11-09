@@ -212,20 +212,7 @@ public class MelAuthSocket {
     }
 
     void connectSSL(Long certId, String address, int port) throws SqlQueriesException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
-        Socket socket = getMelAuthService().getCertificateManager().createSocket();
-        Lok.debug("MelAuthSocket.connectSSL: " + address + ":" + port);
-        int timeout = (int) getMelAuthService().getConnectTimeoutMs();
-        try {
-            socket.connect(new InetSocketAddress(address, port), timeout);
-            // the handshake is part of connecting: a partner that accepts and then says nothing must not hold us up
-            socket.setSoTimeout(timeout);
-            ((SSLSocket) socket).startHandshake();
-            socket.setSoTimeout(0);
-        } catch (IOException e) {
-            N.s(socket::close);
-            throw e;
-        }
-        transport.setSocket(socket);
+        transport.setSocket(TlsConnect.connect(getMelAuthService(), address, port));
         start();
     }
 

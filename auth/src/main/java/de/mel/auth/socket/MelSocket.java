@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -44,9 +45,10 @@ public class MelSocket extends DeferredRunnable {
      */
     private final SocketEvents events = new SocketEvents();
     private final AtomicBoolean started = new AtomicBoolean(false);
-    private final AtomicBoolean closed = new AtomicBoolean(false);
-    private volatile CloseReason closeReason;
-    private volatile boolean closedByPeer;
+    /**
+     * null while open, set once by whoever closes first
+     */
+    private final AtomicReference<SocketState.Closed> ended = new AtomicReference<>();
 
     public MelAuthService getMelAuthService() {
         return melAuthService;
@@ -79,7 +81,7 @@ public class MelSocket extends DeferredRunnable {
      */
     public void start() {
         started.set(true);
-        if (closed.get())
+        if (ended.get() != null)
             return;
         SocketWorker socketWorker = new SocketWorker(this);
         melAuthService.execute(socketWorker);
@@ -204,14 +206,16 @@ public class MelSocket extends DeferredRunnable {
      * @return why the socket was closed, null while it is open
      */
     public CloseReason getCloseReason() {
-        return closeReason;
+        SocketState.Closed closed = ended.get();
+        return closed == null ? null : closed.reason();
     }
 
     /**
      * @return whether the partner ended the connection. Only valid once {@link #getCloseReason()} is not null.
      */
     public boolean isClosedByPeer() {
-        return closedByPeer;
+        SocketState.Closed closed = ended.get();
+        return closed != null && closed.remote();
     }
 
     MelSocketListener getListener() {
@@ -227,11 +231,9 @@ public class MelSocket extends DeferredRunnable {
      * Called by the worker, or by {@link #close(CloseReason)} when there is no worker.
      */
     void finishClose(CloseReason reason, boolean remote) {
-        if (!closed.compareAndSet(false, true))
+        if (!ended.compareAndSet(null, new SocketState.Closed(reason, remote)))
             return;
         Lok.debug("closing v=" + v + " reason=" + reason + (remote ? " (by the partner)" : ""));
-        closeReason = reason;
-        closedByPeer = remote;
         stopped = true;
         N.s(() -> in.close());
         N.s(() -> out.close());
