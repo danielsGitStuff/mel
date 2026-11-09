@@ -20,9 +20,6 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -101,40 +98,21 @@ public class MelAuthSocket extends MelSocket {
         Lok.debug(melAuthService.getName() + ".MelAuthSocket(v=" + getV() + "): " + old + " -> " + next);
         state.set(next);
         if (next.kind() == SocketState.Kind.AUTHENTICATING)
-            startStateTimeout(next.kind());
+            stateTimeout.start(next.kind());
         else
             cancelStateTimeout();
     }
 
-    private volatile ScheduledFuture<?> stateTimeout;
-
-    /**
-     * A connection must not stay in NEW (the first message of a connection we accepted) or AUTHENTICATING forever.
-     */
-    private void startStateTimeout(SocketState.Kind kind) {
-        cancelStateTimeout();
-        try {
-            stateTimeout = melAuthService.getTimeoutScheduler().schedule(() -> {
-                if (state.get().kind() == kind) {
-                    Lok.debug(melAuthService.getName() + ".MelAuthSocket(v=" + getV() + "): timeout in state " + kind);
-                    close(CloseReason.TIMEOUT);
-                }
-            }, melAuthService.getStateTimeoutMs(), TimeUnit.MILLISECONDS);
-        } catch (RejectedExecutionException e) {
-            // the instance is shut down
-        }
-    }
+    private final StateTimeout stateTimeout = new StateTimeout(this);
 
     void cancelStateTimeout() {
-        ScheduledFuture<?> timeout = stateTimeout;
-        if (timeout != null)
-            timeout.cancel(false);
+        stateTimeout.cancel();
     }
 
     @Override
     public void start() {
         if (role == Transitions.Role.SERVER && state.get().kind() == SocketState.Kind.NEW)
-            startStateTimeout(SocketState.Kind.NEW);
+            stateTimeout.start(SocketState.Kind.NEW);
         super.start();
     }
 
