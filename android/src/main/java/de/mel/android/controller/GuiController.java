@@ -28,6 +28,7 @@ public abstract class GuiController implements AndroidServiceBind {
     protected final View rootView;
 
     protected AndroidService androidService;
+    private volatile boolean isDestroyed = false;
 
     protected GuiController(MainActivity activity, ViewGroup content, int resourceId) {
         content.removeAllViews();
@@ -40,7 +41,26 @@ public abstract class GuiController implements AndroidServiceBind {
      * called when the controller is removed from the view. you should clean up references to this instance here.
      */
     public void onDestroy() {
+        isDestroyed = true;
         androidService = null;
+    }
+
+    public boolean isDestroyed() {
+        return isDestroyed;
+    }
+
+    /**
+     * Safely executes an action on the UI thread only if the controller is still attached and activity is active.
+     */
+    public void runOnUiThreadSafely(Runnable action) {
+        if (isDestroyed || activity == null || activity.isFinishing() || activity.isDestroyed()) {
+            return;
+        }
+        activity.runOnUiThread(() -> {
+            if (!isDestroyed && !activity.isFinishing() && !activity.isDestroyed()) {
+                action.run();
+            }
+        });
     }
 
     /**

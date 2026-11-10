@@ -138,7 +138,7 @@ public class CreateServiceController extends WakelockedGuiController implements 
     public void onAndroidServiceAvailable(AndroidService androidService) {
         super.onAndroidServiceAvailable(androidService);
         if (bootLoader == null) {
-            activity.runOnUiThread(() -> {
+            runOnUiThreadSafely(() -> {
                 MelAuthService melAuthService = androidService.getMelAuthService();
                 List<Bootloader> bootloaders = new ArrayList<>();
                 for (Class<? extends Bootloader<? extends MelService>> bootloaderClass : melAuthService.getMelBoot().getBootloaderClasses()) {

@@ -186,5 +186,8 @@
     <string name="permissionStateDenied">Denied</string>
     <string name="intro_5_caption_permissions">Required Permissions</string>
     <string name="intro_5_explanation1">Without notifications Mel cannot show you any information about new pairing attempts or conflicts that may occur in one of the services. This also enables Mel to show a notification that prevents it from being shut down while running in the background.</string>
+    <string name="permissionExplainBatteryTitle">Akku-Optimierung</string>
+    <string name="permissionExplainBatteryText">Mel von der Akku-Optimierung ausnehmen, damit die Hintergrund-Synchronisation bei ausgeschaltetem Bildschirm nicht unterbrochen wird.</string>
+    <string name="infoBatteryOptimization">Akku-Optimierung</string>
 
 </resources>

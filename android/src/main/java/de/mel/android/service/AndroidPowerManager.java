@@ -21,6 +21,7 @@ public class AndroidPowerManager extends PowerManager {
     private static final String PREF_NO_POWER_NO_WIFI = "p.npnw";
     private Map<Object, StackTraceElement[]> wakeLockCallers = new HashMap<>();
     private android.os.PowerManager.WakeLock wakeLock;
+    private android.net.wifi.WifiManager.WifiLock wifiLock;
     private WatchDogTimer wakeTimer;
     private ReentrantLock wakeAccessLock = new ReentrantLock(true);
     private boolean powerWifi = false;
@@ -38,6 +39,14 @@ public class AndroidPowerManager extends PowerManager {
         noPowerWifi = Tools.getSharedPreferences().getBoolean(PREF_NO_POWER_WIFI, false);
         noPowerNoWifi = Tools.getSharedPreferences().getBoolean(PREF_NO_POWER_NO_WIFI, false);
         wakeLock = osPowerManager.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
+        android.net.wifi.WifiManager wifiManager = (android.net.wifi.WifiManager) Tools.getApplicationContext().getSystemService(android.content.Context.WIFI_SERVICE);
+        if (wifiManager != null) {
+            int lockType = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
+                    ? android.net.wifi.WifiManager.WIFI_MODE_FULL_LOW_LATENCY
+                    : android.net.wifi.WifiManager.WIFI_MODE_FULL_HIGH_PERF;
+            wifiLock = wifiManager.createWifiLock(lockType, getClass().getName());
+            wifiLock.setReferenceCounted(false);
+        }
         // set this to false cause we do not want to accidentally start boot level 2.
         // the power/wifi listeners will update the values when started
         wifi = false;
@@ -233,6 +242,9 @@ public class AndroidPowerManager extends PowerManager {
                 stackTrace = Arrays.copyOfRange(stackTrace, 3, stackTrace.length);
                 wakeLockCallers.put(caller, stackTrace);
                 wakeLock.acquire();
+                if (wifiLock != null && !wifiLock.isHeld()) {
+                    wifiLock.acquire();
+                }
             }
         } finally {
             wakeAccessLock.unlock();
@@ -245,8 +257,13 @@ public class AndroidPowerManager extends PowerManager {
 //        Lok.debug("release");
         if (wakeLockCallers.containsKey(caller)) {
             wakeLockCallers.remove(caller);
-            if (wakeLockCallers.isEmpty() && wakeLock.isHeld()) {
-                wakeLock.release();
+            if (wakeLockCallers.isEmpty()) {
+                if (wakeLock.isHeld()) {
+                    wakeLock.release();
+                }
+                if (wifiLock != null && wifiLock.isHeld()) {
+                    wifiLock.release();
+                }
 //                N.r(() -> wakeTimer.start());
             }
         } else {

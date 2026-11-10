@@ -318,5 +318,6 @@ public class SettingsController extends GuiController {
     @Override
     public void onDestroy() {
         powerManager = null;
+        super.onDestroy();
     }
 }

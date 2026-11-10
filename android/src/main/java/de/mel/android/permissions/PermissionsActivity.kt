@@ -15,10 +15,12 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import android.annotation.SuppressLint
 import de.mel.AndroidPermission
 import de.mel.R
 import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer
 
+@SuppressLint("BatteryLife")
 class PermissionsActivity : AppCompatActivity() {
 
     companion object {
@@ -71,9 +73,19 @@ class PermissionsActivity : AppCompatActivity() {
             val uri: Uri = Uri.fromParts("package", packageName, null)
             intent.data = uri
             managerStoragePermissionLauncher.launch(intent)
+        } else if (it.permission == Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS) {
+            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                data = Uri.fromParts("package", packageName, null)
+            }
+            managerStoragePermissionLauncher.launch(intent)
         } else {
             genericPermissionLauncher.launch(arrayOf(it.permission))
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateList()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

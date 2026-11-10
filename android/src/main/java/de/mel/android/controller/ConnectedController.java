@@ -63,7 +63,8 @@ public class ConnectedController extends GuiController {
     @Override
     public void onAndroidServiceAvailable(AndroidService androidService) {
         super.onAndroidServiceAvailable(androidService);
-        activity.runOnUiThread(() -> N.r(() -> {
+        runOnUiThreadSafely(() -> N.r(() -> {
+            listCertAdapter.clear();
             listCertAdapter.addAll(androidService.getMelAuthService().getTrustedCertificates());
             listCertAdapter.notifyDataSetChanged();
         }));
@@ -71,7 +72,7 @@ public class ConnectedController extends GuiController {
 
     @Override
     public void onAndroidServiceUnbound() {
-
+        super.onAndroidServiceUnbound();
     }
 
     @Override

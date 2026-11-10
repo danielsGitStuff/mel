@@ -7,12 +7,14 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ServiceInfo;
 import android.content.res.Configuration;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 
 import de.mel.android.contacts.AndroidContactsBootloader;
 import de.mel.android.filedump.AndroidDumpBootloader;
@@ -104,10 +106,13 @@ public class AndroidService extends Service {
         return startedDeferred;
     }
 
+    private boolean isBooting = false;
+
     @Override
     public void onDestroy() {
         super.onDestroy();
         AndroidService.instance = null;
+        isBooting = false;
         if (melAuthService != null)
             melAuthService.shutDown();
         if (networkChangeReceiver != null)
@@ -131,15 +136,16 @@ public class AndroidService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (melAuthService == null) {
+        if (melAuthService == null && !isBooting) {
+            isBooting = true;
             Notifier.toast(getApplicationContext(), "booting auth service");
             // a boot that failed before settled the old one; this is a new try
             if (!startedDeferred.isPending())
                 startedDeferred = PromiseImpl.withoutThrowingOnException();
-            RWLock lock = new RWLock();
             try {
                 Promise<MelAuthService, Exception> bootedPromise = setup(null);
                 bootedPromise.onDone(result -> {
+                    isBooting = false;
                     N.r(() -> {
                         InputStream in = getAssets().open("de/mel/auth/update.server.cert");
                         CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
@@ -149,17 +155,14 @@ public class AndroidService extends Service {
                     melAuthService.addRegisterHandler(new AndroidRegHandler(this, melAuthService));
                     melAuthService.getPowerManager().addCommunicationListener(communicationsListener);
                     // listen for connectivity changes
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-                        networkChangeReceiver = new NetworkChangeListenerOlde(this);
-                    } else {
-                        networkChangeReceiver = new NetworkChangeLollipop(this);
-                    }
+                    networkChangeReceiver = new NetworkChangeLollipop(this);
                     // listen for charging state changes
                     IntentFilter powIntentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
                     powerChangeReceiver = new PowerChangeReceiver(this);
-                    this.registerReceiver(powerChangeReceiver, powIntentFilter);
+                    ContextCompat.registerReceiver(this, powerChangeReceiver, powIntentFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
                     startedDeferred.resolveOk(melAuthService);
                 }).onError(e -> {
+                    isBooting = false;
                     // the instance was shut down already, the next start command tries again
                     String why = e == null ? "?" : e.getMessage();
                     Lok.error("AndroidService: boot failed: " + why);
@@ -167,14 +170,12 @@ public class AndroidService extends Service {
                     startedDeferred.resolveError(e);
                     stopSelf();
                 });
-                lock.lockWrite();
-
             } catch (Exception e) {
+                isBooting = false;
                 e.printStackTrace();
                 if (startedDeferred.isPending())
                     startedDeferred.resolveError(e);
             }
-            lock.unlockWrite();
         }
 
 
@@ -279,12 +280,16 @@ public class AndroidService extends Service {
                 .setContentIntent(pendingIntent)
                 .setTicker("starting...")
                 .build();
-        startForeground(777, notification);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(777, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+        } else {
+            startForeground(777, notification);
+        }
     }
 
     public void shutDown() {
         Notifier.cancel(permanentNotificationIntent, PERMANENT_REQUEST_CODE);
-        this.stopForeground(true);
+        this.stopForeground(STOP_FOREGROUND_REMOVE);
         N.r(() -> melAuthService.shutDown());
         stopSelf();
     }

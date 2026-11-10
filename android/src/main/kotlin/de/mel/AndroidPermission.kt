@@ -12,6 +12,12 @@ open class AndroidPermission(val permission: String, val titleInt: Int, val text
             R.string.permissionExplainNotificationsTitle,
             R.string.permissionExplainNotificationsText
         )
+
+        val batteryOptimizationPermission = AndroidPermission(
+            Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+            R.string.permissionExplainBatteryTitle,
+            R.string.permissionExplainBatteryText
+        )
     }
 }
 

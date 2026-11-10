@@ -32,6 +32,7 @@ import fun.with.Lists;
 public class InfoController extends GuiController implements PowerManager.IPowerStateListener {
     private final AndroidPermission permissionLocation;
     private final AndroidPermission permissionNotifications;
+    private final AndroidPermission permissionBattery;
     private TextView lblStatus, txtSSID, txtIP, txtPermissionNotification;
     private LinearLayout permissionReasonContainer;
     private PowerView powerView;
@@ -42,8 +43,9 @@ public class InfoController extends GuiController implements PowerManager.IPower
     public InfoController(MainActivity activity, LinearLayout content) {
         super(activity, content, R.layout.content_info);
         this.permissionLocation = new AndroidPermission(Manifest.permission.ACCESS_FINE_LOCATION, R.string.permissionExplainLocationTitle, R.string.permissionExplainLocationText);
-        this.permissionNotifications = new AndroidPermission(Manifest.permission.POST_NOTIFICATIONS, R.string.permissionExplainNotificationsTitle, R.string.permissionExplainNotificationsText);
-        this.permissionsManager = new PermissionsManager2(InfoController.this.activity, Lists.of(this.permissionLocation).get());
+        this.permissionNotifications = AndroidPermission.Companion.getNotificationsPermission();
+        this.permissionBattery = AndroidPermission.Companion.getBatteryOptimizationPermission();
+        this.permissionsManager = new PermissionsManager2(InfoController.this.activity, Lists.of(this.permissionLocation, this.permissionBattery).get());
         lblStatus = rootView.findViewById(R.id.lblStatus);
         powerView = rootView.findViewById(R.id.powerView);
         txtPermissionNotification = rootView.findViewById(R.id.txtPermissionNotification);
@@ -105,7 +107,7 @@ public class InfoController extends GuiController implements PowerManager.IPower
     }
 
     private void updateGui() {
-        activity.runOnUiThread(() -> {
+        runOnUiThreadSafely(() -> {
             if (androidService != null && androidService.isRunning()) {
                 lblStatus.setText(R.string.stateRunning);
                 lblStatus.setBackgroundColor(Color.parseColor("#ff99cc00"));
@@ -116,8 +118,7 @@ public class InfoController extends GuiController implements PowerManager.IPower
                 lblStatus.setBackgroundColor(Color.parseColor("#ffcc0000"));
                 powerView.disable();
             }
-            if (this.permissionsManager.hasPermissions())
-                permissionReasonContainer.setVisibility(View.GONE);
+            permissionReasonContainer.setVisibility(this.permissionsManager.hasPermissions() ? View.GONE : View.VISIBLE);
             this.showWifiInfo();
             this.showNotificationPermissionInfo();
         });
@@ -135,7 +136,7 @@ public class InfoController extends GuiController implements PowerManager.IPower
 
     @Override
     public void onAndroidServiceUnbound() {
-        this.androidService = null;
+        super.onAndroidServiceUnbound();
     }
 
     @Override

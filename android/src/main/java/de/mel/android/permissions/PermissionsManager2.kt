@@ -16,9 +16,14 @@ class PermissionsManager2(
 ) {
 
     fun hasPermission(permission: AndroidPermission): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && permission.isOfKind(Manifest.permission.MANAGE_EXTERNAL_STORAGE)) {
-            Environment.isExternalStorageManager()
-        } else ContextCompat.checkSelfPermission(
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && permission.isOfKind(Manifest.permission.MANAGE_EXTERNAL_STORAGE)) {
+            return Environment.isExternalStorageManager()
+        }
+        if (permission.isOfKind(Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)) {
+            val powerManager = context.getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager
+            return powerManager?.isIgnoringBatteryOptimizations(context.packageName) ?: true
+        }
+        return ContextCompat.checkSelfPermission(
             context, permission.permission
         ) == PackageManager.PERMISSION_GRANTED
     }

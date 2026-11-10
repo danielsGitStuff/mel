@@ -47,8 +47,8 @@ public class NetworkDiscoveryController extends WakelockedGuiController {
     private void discover() {
         CertificateManager certificateManager = androidService.getMelAuthService().getCertificateManager();
         environment.deleteObservers();
-        environment.deleteObservers();
         environment.addObserver((observable, o) -> {
+            if (isDestroyed()) return;
             Lok.debug("NetworkDiscoveryController.discover.adds: " + environment.getUnknownAuthInstances().size());
             if (environment.getUnknownAuthInstances().size() == 2)
                 Lok.debug("debug");
@@ -60,7 +60,7 @@ public class NetworkDiscoveryController extends WakelockedGuiController {
                     knownCertListAdapter.add(c);
                 });
             }
-            activity.runOnUiThread(() -> {
+            runOnUiThreadSafely(() -> {
                 unkownListAdapter.notifyDataSetChanged();
                 knownCertListAdapter.notifyDataSetChanged();
             });
@@ -138,7 +138,7 @@ public class NetworkDiscoveryController extends WakelockedGuiController {
                 }
             }
         });
-        activity.runOnUiThread(() -> {
+        runOnUiThreadSafely(() -> {
             listUnkown.setAdapter(unkownListAdapter);
             listKnown.setAdapter(knownCertListAdapter);
         });
@@ -147,7 +147,7 @@ public class NetworkDiscoveryController extends WakelockedGuiController {
 
     @Override
     public void onAndroidServiceUnbound() {
-
+        super.onAndroidServiceUnbound();
     }
 
     @Override

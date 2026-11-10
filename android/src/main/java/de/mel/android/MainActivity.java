@@ -91,6 +91,42 @@ import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntity
 
 public class MainActivity extends MelActivity implements PowerManager.IPowerStateListener<AndroidPowerManager> {
     private static final String SHOW_INTRO = "shwntr";
+    private static final String KEY_CURRENT_NAV_ID = "current_nav_id";
+    private static final String KEY_CURRENT_SERVICE_UUID = "current_service_uuid";
+    private static final String KEY_BACKSTACK_NAV_IDS = "backstack_nav_ids";
+    private static final String KEY_BACKSTACK_SERVICE_UUIDS = "backstack_service_uuids";
+    private static final int NAV_EDIT_SERVICE = -1;
+
+    public static class NavDestination {
+        public final int navId;
+        public final String serviceUuid;
+
+        public NavDestination(int navId) {
+            this(navId, null);
+        }
+
+        public NavDestination(int navId, String serviceUuid) {
+            this.navId = navId;
+            this.serviceUuid = serviceUuid;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            NavDestination that = (NavDestination) o;
+            return navId == that.navId && java.util.Objects.equals(serviceUuid, that.serviceUuid);
+        }
+
+        @Override
+        public int hashCode() {
+            return java.util.Objects.hash(navId, serviceUuid);
+        }
+    }
+
+    private NavDestination currentDestination = new NavDestination(R.id.nav_general);
+    private final java.util.ArrayDeque<NavDestination> backStack = new java.util.ArrayDeque<>();
+
     private LinearLayout content;
     private Toolbar toolbar;
     private boolean mBound = false;
@@ -196,6 +232,20 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            int navId = savedInstanceState.getInt(KEY_CURRENT_NAV_ID, R.id.nav_general);
+            String serviceUuid = savedInstanceState.getString(KEY_CURRENT_SERVICE_UUID);
+            currentDestination = new NavDestination(navId, serviceUuid);
+
+            ArrayList<Integer> navIds = savedInstanceState.getIntegerArrayList(KEY_BACKSTACK_NAV_IDS);
+            ArrayList<String> serviceUuids = savedInstanceState.getStringArrayList(KEY_BACKSTACK_SERVICE_UUIDS);
+            if (navIds != null && serviceUuids != null && navIds.size() == serviceUuids.size()) {
+                backStack.clear();
+                for (int i = navIds.size() - 1; i >= 0; i--) {
+                    backStack.push(new NavDestination(navIds.get(i), serviceUuids.get(i)));
+                }
+            }
+        }
         registerBackHandler();
 //        dev();
         Tools.init(this.getApplicationContext());
@@ -315,7 +365,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
 
         if (content != null) {
             ViewCompat.setOnApplyWindowInsetsListener(content, (v, windowInsets) -> {
-                Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+                Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.ime());
                 v.setPadding(
                     v.getPaddingLeft(),
                     v.getPaddingTop(),
@@ -325,7 +375,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
                 return windowInsets;
             });
         }
-        enableGuiController(new InfoController(this, content));
+        navigateTo(currentDestination, false);
         // turn the help button into something useful
         btnHelp.setOnClickListener(v -> {
             if (guiController != null && guiController.getHelp() != null) {
@@ -390,7 +440,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
 
 
     /**
-     * Closes the navigation drawer on back, otherwise lets the system handle it. Works with predictive back gestures.
+     * Closes the navigation drawer on back, otherwise pops back stack or lets the system handle it.
      */
     private void registerBackHandler() {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
@@ -399,9 +449,13 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
                 DrawerLayout drawer = findViewById(R.id.drawer_layout);
                 if (drawer != null && drawer.isDrawerOpen(GravityCompat.START)) {
                     drawer.closeDrawer(GravityCompat.START);
+                } else if (!backStack.isEmpty()) {
+                    NavDestination prev = backStack.pop();
+                    navigateTo(prev, false);
                 } else {
                     setEnabled(false);
                     getOnBackPressedDispatcher().onBackPressed();
+                    setEnabled(true);
                 }
             }
         });
@@ -431,7 +485,69 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
     }
 
     public void showInfo() {
-        enableGuiController(new InfoController(this, content));
+        backStack.clear();
+        navigateTo(new NavDestination(R.id.nav_general), false);
+    }
+
+    public void navigateTo(NavDestination dest, boolean addToBackStack) {
+        if (dest == null || content == null) return;
+
+        if (dest.navId == R.id.nav_general) {
+            backStack.clear();
+        } else if (addToBackStack && currentDestination != null && !currentDestination.equals(dest)) {
+            backStack.push(currentDestination);
+        }
+        currentDestination = dest;
+
+        GuiController newController = createControllerFor(dest);
+        if (newController != null) {
+            enableGuiController(newController);
+            updateDrawerSelection(dest.navId);
+        }
+    }
+
+    private GuiController createControllerFor(NavDestination dest) {
+        if (dest.navId == R.id.nav_general) {
+            return new InfoController(this, content);
+        } else if (dest.navId == R.id.nav_discover) {
+            return new NetworkDiscoveryController(this, content);
+        } else if (dest.navId == R.id.nav_access) {
+            return new AccessController(this, content);
+        } else if (dest.navId == R.id.nav_new_service) {
+            return new CreateServiceController(this, content);
+        } else if (dest.navId == R.id.nav_connected) {
+            return new ConnectedController(this, content);
+        } else if (dest.navId == R.id.nav_settings) {
+            return new SettingsController(this, content);
+        } else if (dest.navId == R.id.nav_logcat) {
+            return new LogCatController(this, content);
+        } else if (dest.navId == NAV_EDIT_SERVICE && dest.serviceUuid != null) {
+            if (getAndroidService() != null && getAndroidService().getMelAuthService() != null) {
+                MelAuthService melAuthService = getAndroidService().getMelAuthService();
+                try {
+                    List<ServiceJoinServiceType> services = melAuthService.getDatabaseManager().getAllServices();
+                    for (ServiceJoinServiceType s : services) {
+                        if (dest.serviceUuid.equals(s.getUuid().v())) {
+                            IMelService runningInstance = melAuthService.getMelService(s.getUuid().v());
+                            toolbar.setTitle("Edit Service: " + s.getName().v());
+                            return new EditServiceController(this, content, s, runningInstance);
+                        }
+                    }
+                } catch (Exception e) {
+                    Lok.error("Failed to load service for edit: " + dest.serviceUuid);
+                    e.printStackTrace();
+                }
+            }
+            currentDestination = new NavDestination(R.id.nav_general);
+            return new InfoController(this, content);
+        }
+        return new InfoController(this, content);
+    }
+
+    private void updateDrawerSelection(int navId) {
+        if (navigationView != null && navId > 0) {
+            navigationView.setCheckedItem(navId);
+        }
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -439,21 +555,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-        if (id == R.id.nav_general) {
-            enableGuiController(new InfoController(this, content));
-        } else if (id == R.id.nav_discover) {
-            enableGuiController(new NetworkDiscoveryController(this, content));
-        } else if (id == R.id.nav_access) {
-            enableGuiController(new AccessController(this, content));
-        } else if (id == R.id.nav_new_service) {
-            enableGuiController(new CreateServiceController(this, content));
-        } else if (id == R.id.nav_connected) {
-            enableGuiController(new ConnectedController(this, content));
-        } else if (id == R.id.nav_settings) {
-            enableGuiController(new SettingsController(this, content));
-        } else if (id == R.id.nav_logcat) {
-            enableGuiController(new LogCatController(this, content));
-        } else if (id == R.id.nav_exit) {
+        if (id == R.id.nav_exit) {
             Lok.debug("exiting...");
             if (getAndroidService() != null) {
                 Lok.debug("shutting down android service...");
@@ -461,7 +563,13 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
             }
             Lok.debug("bye...");
             finish();
+            return true;
         }
+        if (currentDestination != null && currentDestination.navId == id) {
+            closeDrawer();
+            return true;
+        }
+        navigateTo(new NavDestination(id), true);
         closeDrawer();
         return true;
     }
@@ -493,6 +601,23 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
             this.serviceBind.onAndroidServiceAvailable(getAndroidService());
         boolean offersHelp = guiController.getHelp() != null;
         btnHelp.setVisibility(offersHelp ? View.VISIBLE : View.INVISIBLE);
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (currentDestination != null) {
+            outState.putInt(KEY_CURRENT_NAV_ID, currentDestination.navId);
+            outState.putString(KEY_CURRENT_SERVICE_UUID, currentDestination.serviceUuid);
+        }
+        ArrayList<Integer> navIds = new ArrayList<>();
+        ArrayList<String> serviceUuids = new ArrayList<>();
+        for (NavDestination dest : backStack) {
+            navIds.add(dest.navId);
+            serviceUuids.add(dest.serviceUuid);
+        }
+        outState.putIntegerArrayList(KEY_BACKSTACK_NAV_IDS, navIds);
+        outState.putStringArrayList(KEY_BACKSTACK_SERVICE_UUIDS, serviceUuids);
     }
 
     @Override
@@ -566,17 +691,11 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
                 if (melAuthService != null) {
                     List<ServiceJoinServiceType> services = melAuthService.getDatabaseManager().getAllServices();
                     for (ServiceJoinServiceType service : services) {
-                        IMelService runningInstance = melAuthService.getMelService(service.getUuid().v());
                         MenuItem mService = subServices.add(service.getName().v());
-                        mService.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-                            @Override
-                            public boolean onMenuItemClick(MenuItem item) {
-                                content.removeAllViews();
-                                toolbar.setTitle("Edit Service: " + service.getName().v());
-                                enableGuiController(new EditServiceController(MainActivity.this, content, service, runningInstance));
-                                closeDrawer();
-                                return true;
-                            }
+                        mService.setOnMenuItemClickListener(item -> {
+                            navigateTo(new NavDestination(NAV_EDIT_SERVICE, service.getUuid().v()), true);
+                            closeDrawer();
+                            return true;
                         });
                         // get icon from AndroidBootLoader
                         Bootloader bootLoader = melAuthService.getMelBoot().getBootLoader(service.getType().v());
