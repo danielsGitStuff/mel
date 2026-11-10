@@ -5,7 +5,6 @@ import org.gradle.api.tasks.testing.Test // Import the Test task for configurati
 // 1. Apply core plugins (No java-library)
 plugins {
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
 }
 
 // 2. Get libs and versions (unchanged)
