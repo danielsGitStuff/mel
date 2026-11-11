@@ -112,11 +112,32 @@ public class NetworkEnvironment extends Observable {
         return certificateServicesMap.keySet();
     }
 
-    public NetworkEnvironment clear() {
+    public NetworkEnvironment clearServices() {
         serviceMap.clear();
         certificateServicesMap.clear();
         serviceCertificateMap.clear();
+        return this;
+    }
+
+    public NetworkEnvironment clear() {
+        clearServices();
+        unknownInstancesLock.lockWrite();
         unknownAuthInstances.clear();
+        unknownInstancesLock.unlockWrite();
+        setChanged();
+        notifyObservers();
+        return this;
+    }
+
+    public NetworkEnvironment removeUnknown(String address) {
+        if (address == null) return this;
+        unknownInstancesLock.lockWrite();
+        boolean removed = unknownAuthInstances.values().removeIf(ins -> address.equals(ins.getAddress()));
+        unknownInstancesLock.unlockWrite();
+        if (removed) {
+            setChanged();
+            notifyObservers();
+        }
         return this;
     }
 

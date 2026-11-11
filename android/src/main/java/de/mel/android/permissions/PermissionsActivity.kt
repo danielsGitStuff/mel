@@ -3,7 +3,6 @@ package de.mel.android.permissions
 import android.Manifest
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
@@ -39,12 +38,10 @@ class PermissionsActivity : AppCompatActivity() {
 
     private val managerStoragePermissionLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Environment.isExternalStorageManager()) {
+            if (Environment.isExternalStorageManager()) {
                 permissionsGranted.add(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
             } else {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    permissionsGranted.remove(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
-                }
+                permissionsGranted.remove(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
             }
             updateList()
         }
@@ -68,7 +65,7 @@ class PermissionsActivity : AppCompatActivity() {
     }
 
     private val onBtnGrantClicked: (androidPermission: AndroidPermission) -> Unit = {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && it.permission == Manifest.permission.MANAGE_EXTERNAL_STORAGE) {
+        if (it.permission == Manifest.permission.MANAGE_EXTERNAL_STORAGE) {
             val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
             val uri: Uri = Uri.fromParts("package", packageName, null)
             intent.data = uri
@@ -78,6 +75,8 @@ class PermissionsActivity : AppCompatActivity() {
                 data = Uri.fromParts("package", packageName, null)
             }
             managerStoragePermissionLauncher.launch(intent)
+        } else if (it.permission == Manifest.permission.ACCESS_FINE_LOCATION) {
+            genericPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
         } else {
             genericPermissionLauncher.launch(arrayOf(it.permission))
         }

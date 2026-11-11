@@ -68,9 +68,7 @@ public class Tools {
     }
 
 
-    @SuppressLint("ObsoleteSdkInt")
     private static String getVolumePath(final String volumeId, Context context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return null;
         try {
             StorageManager mStorageManager =
                     (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);

@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.provider.Settings
 import androidx.appcompat.app.AlertDialog
@@ -36,7 +35,7 @@ class PermissionsManager(private val melActivity: MelActivity) {
     }
 
     private fun hasPermission(permission: AndroidPermission): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && permission.isOfKind(Manifest.permission.MANAGE_EXTERNAL_STORAGE)) {
+        return if (permission.isOfKind(Manifest.permission.MANAGE_EXTERNAL_STORAGE)) {
             Environment.isExternalStorageManager()
         } else
             ContextCompat.checkSelfPermission(
@@ -56,7 +55,7 @@ class PermissionsManager(private val melActivity: MelActivity) {
                 val builder = AlertDialog.Builder(melActivity)
                 builder.setMessage(permission.textInt).setTitle(permission.titleInt)
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && permission.isOfKind(Manifest.permission.MANAGE_EXTERNAL_STORAGE)) {
+                if (permission.isOfKind(Manifest.permission.MANAGE_EXTERNAL_STORAGE)) {
                     // todo start activity and so on
                     println("bla debug 59kg")
                     builder.setPositiveButton(R.string.btnOk) { dialog, which ->

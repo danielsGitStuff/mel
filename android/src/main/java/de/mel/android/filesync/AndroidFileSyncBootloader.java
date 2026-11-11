@@ -6,13 +6,10 @@ import android.content.Context;
 
 import androidx.core.app.NotificationCompat;
 
-import android.os.Build;
 import android.view.ViewGroup;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
 
 import de.mel.AndroidPermission;
 import de.mel.R;
@@ -101,20 +98,10 @@ public class AndroidFileSyncBootloader extends FileSyncBootloader implements And
 
     @Override
     public AndroidPermission[] getPermissions() {
-
-        // todo WRITE_EXTERNAL_STORAGE does not do anything in android >=11
-        List<AndroidPermission> permissions = new ArrayList<>();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            permissions.add(new AndroidPermission(Manifest.permission.MANAGE_EXTERNAL_STORAGE, R.string.permissionsExplainAllTitle, R.string.permissionExplainAllText));
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                permissions.add(new AndroidPermission(Manifest.permission.POST_NOTIFICATIONS, R.string.permissionExplainNotificationsTitle, R.string.permissionExplainNotificationsText));
-            }
-        } else {
-            permissions.add(new AndroidPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, R.string.permissionRequiredTitle, R.string.permissionDriveWriteMessage));
-            permissions.add(new AndroidPermission(Manifest.permission.READ_EXTERNAL_STORAGE, R.string.permissionRequiredTitle, R.string.permissionDriveWriteMessage));
-        }
-//        permissions.add(new AndroidPermission(Manifest.permission.ACCESS_FINE_LOCATION, R.string.permissionsDebugTitle, R.string.permissionsDebugText));
-        return permissions.toArray(permissions.toArray(new AndroidPermission[0]));
+        return new AndroidPermission[]{
+                new AndroidPermission(Manifest.permission.MANAGE_EXTERNAL_STORAGE, R.string.permissionsExplainAllTitle, R.string.permissionExplainAllText),
+                new AndroidPermission(Manifest.permission.POST_NOTIFICATIONS, R.string.permissionExplainNotificationsTitle, R.string.permissionExplainNotificationsText)
+        };
     }
 
     @Override

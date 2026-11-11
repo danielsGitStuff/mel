@@ -11,21 +11,21 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_alignParentTop="true"
         android:layout_above="@+id/llBottom"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             android:layout_weight="1"
             android:baselineAligned="false"
             android:orientation="horizontal">
 
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:orientation="vertical">
 
@@ -36,14 +36,15 @@
 
                 <ListView
                     android:id="@+id/listUnknown"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"></ListView>
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
 
             </LinearLayout>
 
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:orientation="vertical">
 
@@ -54,48 +55,53 @@
 
                 <ListView
                     android:id="@+id/listKnown"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"></ListView>
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
-    <LinearLayout
+    <ScrollView
         android:id="@+id/llBottom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:orientation="vertical">
+        android:layout_alignParentBottom="true">
 
-        <EditText
-            android:id="@+id/txtAddress"
-            android:text="10.0.2.2"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="IP Address" />
+            android:orientation="vertical">
 
-        <EditText
-            android:id="@+id/txtPort"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Port"
-            android:text="8888"
-            android:inputType="number" />
+            <EditText
+                android:id="@+id/txtAddress"
+                android:text="10.0.2.2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="IP Address" />
 
-        <EditText
-            android:id="@+id/txtDeliveryPort"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Cert Delivery Port"
-            android:text="8889"
-            android:inputType="number" />
+            <EditText
+                android:id="@+id/txtPort"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Port"
+                android:text="8888"
+                android:inputType="number" />
 
-        <Button
-            android:id="@+id/btnConnect"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/discoverBtnCouple"/>
-    </LinearLayout>
+            <EditText
+                android:id="@+id/txtDeliveryPort"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Cert Delivery Port"
+                android:text="8889"
+                android:inputType="number" />
+
+            <Button
+                android:id="@+id/btnConnect"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/discoverBtnCouple"/>
+        </LinearLayout>
+    </ScrollView>
 
 </RelativeLayout>

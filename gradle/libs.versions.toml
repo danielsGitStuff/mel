@@ -24,9 +24,8 @@ androidxMaterial = "1.14.0"
 androidxGridlayout = "1.1.0"
 androidxDocumentfile = "1.1.0"
 androidxConstraintlayout = "2.2.2"
-androidxNavigation = "2.10.2"
 androidCompileSdk = "36"
-androidMinSdk = "26"
+androidMinSdk = "35"
 androidTargetSdk = "36"
 
 [libraries]
@@ -59,8 +58,6 @@ androidx-material = { module = "com.google.android.material:material", version.r
 androidx-documentfile = { module = "androidx.documentfile:documentfile", version.ref = "androidxDocumentfile" }
 androidx-gridlayout = { module = "androidx.gridlayout:gridlayout", version.ref = "androidxGridlayout" }
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "androidxConstraintlayout" }
-androidx-navigation-fragment = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "androidxNavigation" }
-androidx-navigation-ui = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "androidxNavigation" }
 
 [bundles]
-androidx = ["androidx-core", "androidx-appcompat", "androidx-material", "androidx-documentfile", "androidx-gridlayout", "androidx-constraintlayout", "androidx-navigation-fragment", "androidx-navigation-ui"]
+androidx = ["androidx-core", "androidx-appcompat", "androidx-material", "androidx-documentfile", "androidx-gridlayout", "androidx-constraintlayout"]

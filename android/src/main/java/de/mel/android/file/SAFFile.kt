@@ -94,31 +94,8 @@ class SAFFile : AbstractFile<SAFFile> {
         }
 
 
-    private fun listImplPie(filterOutDirs: Boolean?): Array<SAFFile>? {
-        val directory = file
-
-        // File not found error
-
-
-        if (!directory.exists()) {
-            return emptyArray()
-        }
-        if (!directory.canRead()) {
-            return emptyArray()
-        }
-        val listFiles: Array<File> = (if (filterOutDirs != null) if (filterOutDirs) directory.listFiles { obj: File -> obj.isFile } else directory.listFiles { obj: File -> obj.isDirectory } else directory.listFiles())
-                ?: emptyArray()
-
-
-        // Check Error in reading the directory (java.io.File do not allow any details about the error...).
-
-
-        Arrays.sort(listFiles) { o1: File?, o2: File? -> o1!!.name.compareTo(o2!!.name) }
-        return listFiles.map { SAFFile(fileConfig, it) }.toTypedArray()
-    }
-
     private fun list(filterOutDirs: Boolean?): Array<SAFFile>? {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) listImplQ(filterOutDirs) else listImplPie(filterOutDirs)
+        return listImplQ(filterOutDirs)
     }
 
 

@@ -9,8 +9,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ServiceInfo;
 import android.content.res.Configuration;
+import android.net.wifi.WifiManager;
 import android.os.Binder;
-import android.os.Build;
 import android.os.IBinder;
 
 import androidx.core.app.NotificationCompat;
@@ -78,6 +78,7 @@ public class AndroidService extends Service {
     private MelBoot melBoot;
     private NetworkChangeListener networkChangeReceiver;
     private PowerChangeReceiver powerChangeReceiver;
+    private WifiManager.MulticastLock multicastLock;
     private PowerManager.CommunicationsListener communicationsListener = new PowerManager.CommunicationsListener() {
         @Override
         public void onCommunicationsEnabled() {
@@ -119,6 +120,9 @@ public class AndroidService extends Service {
             networkChangeReceiver.onDestroy();
         if (powerChangeReceiver != null)
             unregisterReceiver(powerChangeReceiver);
+        if (multicastLock != null && multicastLock.isHeld()) {
+            multicastLock.release();
+        }
     }
 
     @Override
@@ -264,6 +268,12 @@ public class AndroidService extends Service {
         }
         Lok.debug("AndroidService.onCreate");
         AndroidService.instance = this;
+        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+        if (wifiManager != null) {
+            multicastLock = wifiManager.createMulticastLock("mel discovery");
+            multicastLock.setReferenceCounted(false);
+            multicastLock.acquire();
+        }
     }
 
     /**
@@ -280,11 +290,7 @@ public class AndroidService extends Service {
                 .setContentIntent(pendingIntent)
                 .setTicker("starting...")
                 .build();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            startForeground(777, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
-        } else {
-            startForeground(777, notification);
-        }
+        startForeground(777, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
     }
 
     public void shutDown() {

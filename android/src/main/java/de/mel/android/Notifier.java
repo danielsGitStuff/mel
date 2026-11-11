@@ -40,24 +40,22 @@ public class Notifier {
     public static final String CHANNEL_ID_SILENT = "d44op";
 
     public static NotificationManagerCompat createNotificationManager(Context context) {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            NotificationChannel channel = manager.getNotificationChannel(CHANNEL_ID_SOUND);
-            if (channel == null) {
-                channel = new NotificationChannel(CHANNEL_ID_SOUND, "bla", NotificationManager.IMPORTANCE_DEFAULT);
-                channel.setDescription("mel description goes here");
-                channel.enableLights(true);
-                channel.setLightColor(Color.GREEN);
-                manager.createNotificationChannel(channel);
-            }
-            channel = manager.getNotificationChannel(CHANNEL_ID_SILENT);
-            if (channel == null) {
-                channel = new NotificationChannel(CHANNEL_ID_SILENT, "blubb", NotificationManager.IMPORTANCE_DEFAULT);
-                channel.setDescription("mel description goes here");
-                channel.enableLights(false);
-                channel.setSound(null, null);
-                manager.createNotificationChannel(channel);
-            }
+        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationChannel channel = manager.getNotificationChannel(CHANNEL_ID_SOUND);
+        if (channel == null) {
+            channel = new NotificationChannel(CHANNEL_ID_SOUND, "bla", NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setDescription("mel description goes here");
+            channel.enableLights(true);
+            channel.setLightColor(Color.GREEN);
+            manager.createNotificationChannel(channel);
+        }
+        channel = manager.getNotificationChannel(CHANNEL_ID_SILENT);
+        if (channel == null) {
+            channel = new NotificationChannel(CHANNEL_ID_SILENT, "blubb", NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setDescription("mel description goes here");
+            channel.enableLights(false);
+            channel.setSound(null, null);
+            manager.createNotificationChannel(channel);
         }
         return NotificationManagerCompat.from(context);
     }

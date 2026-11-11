@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.Build;
 
 import android.text.format.Formatter;
 import android.view.View;
@@ -45,23 +44,19 @@ public class InfoController extends GuiController implements PowerManager.IPower
         this.permissionLocation = new AndroidPermission(Manifest.permission.ACCESS_FINE_LOCATION, R.string.permissionExplainLocationTitle, R.string.permissionExplainLocationText);
         this.permissionNotifications = AndroidPermission.Companion.getNotificationsPermission();
         this.permissionBattery = AndroidPermission.Companion.getBatteryOptimizationPermission();
-        this.permissionsManager = new PermissionsManager2(InfoController.this.activity, Lists.of(this.permissionLocation, this.permissionBattery).get());
+        this.permissionsManager = new PermissionsManager2(InfoController.this.activity, Lists.of(this.permissionLocation, this.permissionBattery, this.permissionNotifications).get());
         lblStatus = rootView.findViewById(R.id.lblStatus);
         powerView = rootView.findViewById(R.id.powerView);
         txtPermissionNotification = rootView.findViewById(R.id.txtPermissionNotification);
         permissionReasonContainer = rootView.findViewById(R.id.permissionReasonContainer);
+        permissionReasonContainer.setOnClickListener(v -> {
+            this.permissionsManager.startPermissionsActivity();
+        });
+        permissionReasonContainer.setVisibility(this.permissionsManager.hasPermission(this.permissionLocation) ? View.GONE : View.VISIBLE);
         Lok.debug("InfoController.InfoController");
 
         txtSSID = rootView.findViewById(R.id.txtSSID);
         txtIP = rootView.findViewById(R.id.txtIP);
-        //if we are on android O or higher we should request the coarse location to get WiFi info.
-        //else this message is just wasting space.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !this.permissionsManager.hasPermissions()) {
-            permissionReasonContainer.setVisibility(View.VISIBLE);
-            permissionReasonContainer.setOnClickListener(v -> {
-                this.permissionsManager.startPermissionsActivity();
-            });
-        }
         showWifiInfo();
     }
 
@@ -118,10 +113,16 @@ public class InfoController extends GuiController implements PowerManager.IPower
                 lblStatus.setBackgroundColor(Color.parseColor("#ffcc0000"));
                 powerView.disable();
             }
-            permissionReasonContainer.setVisibility(this.permissionsManager.hasPermissions() ? View.GONE : View.VISIBLE);
+            permissionReasonContainer.setVisibility(this.permissionsManager.hasPermission(this.permissionLocation) ? View.GONE : View.VISIBLE);
             this.showWifiInfo();
             this.showNotificationPermissionInfo();
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateGui();
     }
 
 

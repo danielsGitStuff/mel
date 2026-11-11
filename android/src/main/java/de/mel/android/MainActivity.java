@@ -160,12 +160,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
     protected void startService() {
         if (getAndroidService() == null) {
             Intent intent = new Intent(getBaseContext(), AndroidService.class);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent);
-            } else {
-                startService(intent);
-            }
-
+            startForegroundService(intent);
         } else {
             Lok.debug("MainActivity.startService(): AndroidService already running");
         }
@@ -187,6 +182,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
         if (powerManager != null) {
             powerManager.addStateListener(this);
         }
+        showMenuServices();
     }
 
     private void dev() {
@@ -342,8 +338,11 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
             @Override
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
-                // refresh currently available service list
-                N.r(() -> showMenuServices());
+                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                if (imm != null && content != null) {
+                    imm.hideSoftInputFromWindow(content.getWindowToken(), 0);
+                }
+                showMenuServices();
             }
         };
         drawer.setDrawerListener(toggle);
@@ -657,65 +656,56 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
 
     public void showMenuServices() {
         if (getAndroidService() != null) {
-            runOnUiThread(() -> N.r(() -> {
-                //hide keyboard
-                InputMethodManager imm = (InputMethodManager) getSystemService(this.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(this.content.getWindowToken(), 0);
-                MelAuthService melAuthService = getAndroidService().getMelAuthService();
-                Menu menu = navigationView.getMenu();
-                menu.clear();
-                SubMenu subMelAuth = menu.addSubMenu(getText(R.string.drawerTitle));
-                //general
-                MenuItem mGeneral = subMelAuth.add(5, R.id.nav_general, 0, getText(R.string.infoTitle));
-                mGeneral.setIcon(R.drawable.icon_info);
-                MenuItem mOthers = subMelAuth.add(5, R.id.nav_connected, 1, getText(R.string.connectedTitle));
-                mOthers.setIcon(R.drawable.icon_connected);
-                //discover ic_menu_search
-                MenuItem mDiscover = subMelAuth.add(5, R.id.nav_discover, 2, getText(R.string.discoverTitle));
-                mDiscover.setIcon(R.drawable.icon_wifi);
-                //approvals ic_menu_approval
-                MenuItem mApprovals = subMelAuth.add(5, R.id.nav_access, 3, getText(R.string.accessTitle));
-                mApprovals.setIcon(R.drawable.icon_permissions);
-                //settings
-                MenuItem mSettings = subMelAuth.add(5, R.id.nav_settings, 4, R.string.settingsTitle);
-                mSettings.setIcon(R.drawable.icon_settings);
-                //logcat
-                int order = 5;
-                if (Lok.isLineStorageActive()) {
-                    MenuItem mLogCat = subMelAuth.add(5, R.id.nav_logcat, order++, getText(R.string.logcatTitle));
-                    mLogCat.setIcon(R.drawable.icon_fail);
+            MelAuthService melAuthService = getAndroidService().getMelAuthService();
+            if (melAuthService == null) return;
+            N.r(() -> {
+                List<ServiceJoinServiceType> services;
+                try {
+                    services = melAuthService.getDatabaseManager().getAllServices();
+                } catch (Exception e) {
+                    services = java.util.Collections.emptyList();
                 }
-                MenuItem mExit = subMelAuth.add(5, R.id.nav_exit, order, getText(R.string.exit));
-                mExit.setIcon(R.drawable.icon_exit);
-                SubMenu subServices = menu.addSubMenu(getText(R.string.drawerServices));
-                if (melAuthService != null) {
-                    List<ServiceJoinServiceType> services = melAuthService.getDatabaseManager().getAllServices();
-                    for (ServiceJoinServiceType service : services) {
-                        MenuItem mService = subServices.add(service.getName().v());
-                        mService.setOnMenuItemClickListener(item -> {
-                            navigateTo(new NavDestination(NAV_EDIT_SERVICE, service.getUuid().v()), true);
-                            closeDrawer();
-                            return true;
-                        });
-                        // get icon from AndroidBootLoader
-                        Bootloader bootLoader = melAuthService.getMelBoot().getBootLoader(service.getType().v());
-                        if (bootLoader instanceof AndroidBootLoader) {
-                            AndroidBootLoader androidBootLoader = (AndroidBootLoader) bootLoader;
-                            Drawable drawableIcon = MainActivity.this.getResources().getDrawable(androidBootLoader.getMenuIcon());
-                            if (!service.getActive().v()) {
-                                drawableIcon.mutate();
-                                int tint = MainActivity.this.getResources().getColor(R.color.tintDeactive);
-                                drawableIcon.setColorFilter(tint, PorterDuff.Mode.MULTIPLY);
+                final List<ServiceJoinServiceType> finalServices = services;
+                runOnUiThread(() -> {
+                    Menu menu = navigationView.getMenu();
+                    MenuItem servicesItem = menu.findItem(R.id.menu_services);
+                    if (servicesItem != null && servicesItem.getSubMenu() != null) {
+                        SubMenu subServices = servicesItem.getSubMenu();
+                        subServices.clear();
+                        for (ServiceJoinServiceType service : finalServices) {
+                            MenuItem mService = subServices.add(service.getName().v());
+                            mService.setOnMenuItemClickListener(item -> {
+                                navigateTo(new NavDestination(NAV_EDIT_SERVICE, service.getUuid().v()), true);
+                                closeDrawer();
+                                return true;
+                            });
+                            Bootloader bootLoader = null;
+                            try {
+                                bootLoader = melAuthService.getMelBoot().getBootLoader(service.getType().v());
+                            } catch (Exception ignored) {
                             }
-                            mService.setIcon(drawableIcon);
+                            if (bootLoader instanceof AndroidBootLoader) {
+                                AndroidBootLoader androidBootLoader = (AndroidBootLoader) bootLoader;
+                                Drawable drawableIcon = androidx.core.content.ContextCompat.getDrawable(MainActivity.this, androidBootLoader.getMenuIcon());
+                                if (drawableIcon != null) {
+                                    if (!service.getActive().v()) {
+                                        drawableIcon = drawableIcon.mutate();
+                                        int tint = androidx.core.content.ContextCompat.getColor(MainActivity.this, R.color.tintDeactive);
+                                        drawableIcon.setColorFilter(tint, PorterDuff.Mode.MULTIPLY);
+                                    }
+                                    mService.setIcon(drawableIcon);
+                                }
+                            }
                         }
+                        MenuItem mNewService = subServices.add(5, R.id.nav_new_service, 0, getText(R.string.drawerCreateNewService));
+                        mNewService.setIcon(R.drawable.ic_menu_add);
                     }
-                }
-                MenuItem mNewService = subServices.add(5, R.id.nav_new_service, 0, getText(R.string.drawerCreateNewService));
-                mNewService.setIcon(R.drawable.ic_menu_add);
-                navigationView.refreshDrawableState();
-                Lok.debug("");
-            }));
+                    MenuItem mLogCat = menu.findItem(R.id.nav_logcat);
+                    if (mLogCat != null) {
+                        mLogCat.setVisible(Lok.isLineStorageActive());
+                    }
+                });
+            });
         }
     }
 
@@ -753,9 +743,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
                             onSuccess.run();
                         }).onError(result -> {
                             Set<String> failedPermissions = new HashSet<>(result);
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                                failedPermissions.remove(Manifest.permission.MANAGE_EXTERNAL_STORAGE);
-                            }
+                            failedPermissions.remove(Manifest.permission.MANAGE_EXTERNAL_STORAGE);
                             result = new ArrayList<>(failedPermissions);
                             if (result.isEmpty())
                                 onSuccess.run();
@@ -779,9 +767,6 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
     public void askUserForPermissionToManageAllFiles(
             Runnable onSuccess,
             ActionConsumer<Void> onFail) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-            return;
-        }
         if (!SAFAccessor.canManageAll()) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setMessage(R.string.permissionExplainAllText)

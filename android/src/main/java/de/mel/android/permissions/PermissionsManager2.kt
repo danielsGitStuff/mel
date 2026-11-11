@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import androidx.core.content.ContextCompat
@@ -16,7 +15,7 @@ class PermissionsManager2(
 ) {
 
     fun hasPermission(permission: AndroidPermission): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && permission.isOfKind(Manifest.permission.MANAGE_EXTERNAL_STORAGE)) {
+        if (permission.isOfKind(Manifest.permission.MANAGE_EXTERNAL_STORAGE)) {
             return Environment.isExternalStorageManager()
         }
         if (permission.isOfKind(Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)) {

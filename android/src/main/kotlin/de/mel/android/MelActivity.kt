@@ -5,7 +5,6 @@ import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.IBinder
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
@@ -216,31 +215,27 @@ abstract class MelActivity : AppCompatActivity(), NavigationView.OnNavigationIte
     @Deprecated("")
     fun annoyWithPermissions(vararg permissions: String): Promise<Void?, List<String>> {
         val deferred: PromiseImpl<Void?, List<String>> = PromiseImpl.withoutThrowingOnException()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            var request = false
-            for (permission in permissions) {
-                val result = ContextCompat.checkSelfPermission(this, permission)
-                if (result != PackageManager.PERMISSION_GRANTED) {
-                    request = true
-                    break
-                }
+        var request = false
+        for (permission in permissions) {
+            val result = ContextCompat.checkSelfPermission(this, permission)
+            if (result != PackageManager.PERMISSION_GRANTED) {
+                request = true
+                break
             }
-            var id = SecureRandom().nextInt(65536)
-            id = if (id > 0) id else -1 * id //make positive
-            if (request) {
+        }
+        var id = SecureRandom().nextInt(65536)
+        id = if (id > 0) id else -1 * id //make positive
+        if (request) {
 //                permissionManagers.append(id, deferred)
-                ActivityCompat.requestPermissions(
-                    this,
-                    permissions,
-                    id
-                )
-            } else {
-                deferred.resolveOk(null)
-            }
-            Lok.debug(".askForPermission()?: $request")
+            ActivityCompat.requestPermissions(
+                this,
+                permissions,
+                id
+            )
         } else {
             deferred.resolveOk(null)
         }
+        Lok.debug(".askForPermission()?: $request")
         return deferred
     }
 
@@ -277,31 +272,27 @@ abstract class MelActivity : AppCompatActivity(), NavigationView.OnNavigationIte
             vararg permissions: String
         ): Promise<Void?, List<String>> {
             val deferred: PromiseImpl<Void?, List<String>> = PromiseImpl.withoutThrowingOnException()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                var request = false
-                for (permission in permissions) {
-                    val result = ContextCompat.checkSelfPermission(activity, permission)
-                    if (result != PackageManager.PERMISSION_GRANTED) {
-                        request = true
-                        break
-                    }
+            var request = false
+            for (permission in permissions) {
+                val result = ContextCompat.checkSelfPermission(activity, permission)
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    request = true
+                    break
                 }
-                var id = SecureRandom().nextInt(65536)
-                id = if (id > 0) id else -1 * id //make positive
-                if (request) {
+            }
+            var id = SecureRandom().nextInt(65536)
+            id = if (id > 0) id else -1 * id //make positive
+            if (request) {
 //                permissionManagers.append(id, deferred)
-                    ActivityCompat.requestPermissions(
-                        activity,
-                        permissions,
-                        id
-                    )
-                } else {
-                    deferred.resolveOk(null)
-                }
-                Lok.debug(".askForPermission()?: $request")
+                ActivityCompat.requestPermissions(
+                    activity,
+                    permissions,
+                    id
+                )
             } else {
                 deferred.resolveOk(null)
             }
+            Lok.debug(".askForPermission()?: $request")
             return deferred
         }
     }

@@ -28,6 +28,8 @@ import de.mel.auth.socket.CloseReason;
 import de.mel.auth.socket.MelAuthSocket;
 import de.mel.auth.socket.MelSocket;
 import de.mel.auth.socket.ShamefulSelfConnectException;
+import de.mel.auth.socket.UntrustedPartnerException;
+import de.mel.auth.socket.WrongPartnerException;
 import de.mel.auth.socket.process.reg.IRegisterHandler;
 import de.mel.auth.socket.process.reg.IRegisteredHandler;
 import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
@@ -391,6 +393,13 @@ public class MelAuthServiceImpl extends MelAuthService {
         for (ServiceJoinServiceType service : melServicesPayload.getServices()) {
             networkEnvironment.add(certId, service);
         }
+        try {
+            Certificate c = certificateManager.getTrustedCertificateById(certId);
+            if (c != null && c.getAddress().v() != null) {
+                networkEnvironment.removeUnknown(c.getAddress().v());
+            }
+        } catch (Exception ignored) {
+        }
     }
 
     @Override
@@ -408,7 +417,18 @@ public class MelAuthServiceImpl extends MelAuthService {
                     });
                 });
             }).onError(result -> {
-                Lok.error("MelAuthService.connectAndCollect.onError() for: " + address + "");
+                Lok.error("MelAuthService.connectAndCollect.onError() for: " + address + ": " + result);
+                if (result instanceof ShamefulSelfConnectException || (result != null && result.getCause() instanceof ShamefulSelfConnectException)) {
+                    return;
+                }
+                if (result instanceof UntrustedPartnerException
+                        || result instanceof WrongPartnerException
+                        || (result != null && result.getCause() instanceof UntrustedPartnerException)
+                        || (result != null && result.getCause() instanceof WrongPartnerException)) {
+                    networkEnvironment.addUnkown(intendedCertificate.getAddress().v(), intendedCertificate.getPort().v(), intendedCertificate.getCertDeliveryPort().v());
+                } else {
+                    checkedAddresses.remove(address);
+                }
             });
         }
     }
@@ -417,7 +437,7 @@ public class MelAuthServiceImpl extends MelAuthService {
     void discoverNetworkEnvironmentImpl() {
         Lok.debug("discovering network");
         N runner = new N(Throwable::printStackTrace);
-        networkEnvironment.clear();
+        networkEnvironment.clearServices();
         Map<String, Boolean> checkedAddresses = new ConcurrentHashMap<>();
         runner.runTry(() -> {
             // check active connections
@@ -438,7 +458,8 @@ public class MelAuthServiceImpl extends MelAuthService {
             melAuthWorker.getBrotCaster().setBrotCasterListener((inetAddress, port, portCert) -> {
                 runner.runTry(() -> {
                     String address = MelAuthSocket.getAddressString(inetAddress, port);
-                    checkedAddresses.put(address, true);
+                    if (checkedAddresses.put(address, true) != null)
+                        return;
                     Promise<MelValidationProcess, Exception> promise = this.connect(inetAddress.getHostAddress(), port, portCert, false);
                     promise.onDone(melValidationProcess -> {
                         runner.runTry(() -> {

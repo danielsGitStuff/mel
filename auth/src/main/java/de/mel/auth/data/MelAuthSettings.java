@@ -4,7 +4,6 @@ import de.mel.KResult;
 import de.mel.Lok;
 import de.mel.auth.MelStrings;
 import de.mel.auth.service.MelAuthServiceImpl;
-import de.mel.auth.service.MelBoot;
 import de.mel.core.serialize.JsonIgnore;
 
 import java.io.File;
@@ -15,6 +14,8 @@ import java.io.File;
 public class MelAuthSettings extends JsonSettings implements KResult {
     public static final File DEFAULT_FILE = new File("mel.settings.json");
     public static final File DEFAULT_FILE_2 = new File("mel.settings.2.json");
+    public static final File DEFAULT_WORKING_DIR_1 = new File("mel.data.1");
+    public static final File DEFAULT_WORKING_DIR_2 = new File("mel.data.2");
     public static final int BROTCAST_PORT = 9966;
     public static final Integer UPDATE_MSG_PORT = 8448;
     public static final int UPDATE_BINARY_PORT = 8449;
@@ -77,7 +78,7 @@ public class MelAuthSettings extends JsonSettings implements KResult {
                 .setName("Mel on PC")
                 .setBrotcastListenerPort(BROTCAST_PORT)
                 .setBrotcastPort(BROTCAST_PORT)
-                .setWorkingDirectory(MelBoot.Companion.getDefaultWorkingDir1())
+                .setWorkingDirectory(DEFAULT_WORKING_DIR_1)
                 .setUpdateMessagePort(UPDATE_MSG_PORT)
                 .setUpdateBinaryPort(UPDATE_BINARY_PORT)
                 .setUpdateUrl(UPDATE_DEFAULT_URL)

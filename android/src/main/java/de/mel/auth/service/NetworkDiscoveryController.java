@@ -20,6 +20,10 @@ import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.tools.N;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Observer;
+
 /**
  * Created by xor on 3/7/17.
  */
@@ -43,48 +47,44 @@ public class NetworkDiscoveryController extends WakelockedGuiController {
 
     }
 
+    private void updateLists() {
+        if (isDestroyed() || environment == null || androidService == null) return;
+        CertificateManager certificateManager = androidService.getMelAuthService().getCertificateManager();
+        List<NetworkEnvironment.UnknownAuthInstance> unknowns = new ArrayList<>(environment.getUnknownAuthInstances());
+        List<Certificate> knowns = new ArrayList<>();
+        for (Long certId : environment.getCertificateIds()) {
+            try {
+                Certificate c = certificateManager.getTrustedCertificateById(certId);
+                if (c != null) knowns.add(c);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        runOnUiThreadSafely(() -> {
+            if (unkownListAdapter != null) {
+                unkownListAdapter.clear().addAll(unknowns);
+                unkownListAdapter.notifyDataSetChanged();
+            }
+            if (knownCertListAdapter != null) {
+                knownCertListAdapter.clear().addAll(knowns);
+                knownCertListAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    private final Observer envObserver = (observable, o) -> updateLists();
 
     private void discover() {
-        CertificateManager certificateManager = androidService.getMelAuthService().getCertificateManager();
-        environment.deleteObservers();
-        environment.addObserver((observable, o) -> {
-            if (isDestroyed()) return;
-            Lok.debug("NetworkDiscoveryController.discover.adds: " + environment.getUnknownAuthInstances().size());
-            if (environment.getUnknownAuthInstances().size() == 2)
-                Lok.debug("debug");
-            unkownListAdapter.clear().addAll(environment.getUnknownAuthInstances());
-            knownCertListAdapter.clear();
-            for (Long certId : environment.getCertificateIds()) {
-                N.r(() -> {
-                    Certificate c = certificateManager.getTrustedCertificateById(certId);
-                    knownCertListAdapter.add(c);
-                });
-            }
-            runOnUiThreadSafely(() -> {
-                unkownListAdapter.notifyDataSetChanged();
-                knownCertListAdapter.notifyDataSetChanged();
-            });
-        });
-//        environment.deleteObservers();
-//        environment.deleteObservers();
-//        environment.addObserver((o, arg) -> {
-//            Lok.debug("NetworkDiscoveryController.observed something!!!!!!!!");
-//            listUnkown.removeAllViews();
-//            listAll.getItems().clear();
-//            listAll.getItems().setPaths(environment.getUnknownAuthInstances());
-//            listKnown.getItems().clear();
-//            for (Long certId : environment.getCertificateIds()) {
-//                try {
-//                    Lok.debug("NetworkDiscoveryController.discover");
-//                    Certificate certificate = melAuthService.getCertificateManager().getTrustedCertificateById(certId);
-//                    listKnown.getItems().add(certificate);
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
-        androidService.getMelAuthService().discoverNetworkEnvironment();
+        if (environment != null) {
+            environment.deleteObserver(envObserver);
+            environment.addObserver(envObserver);
+            updateLists();
+        }
+        if (androidService != null && androidService.getMelAuthService() != null) {
+            androidService.getMelAuthService().discoverNetworkEnvironment();
+        }
     }
+
 
     @Override
     public Integer getTitle() {
@@ -95,14 +95,14 @@ public class NetworkDiscoveryController extends WakelockedGuiController {
     public void onDestroy() {
         super.onDestroy();
         if (environment != null)
-            environment.deleteObservers();
+            environment.deleteObserver(envObserver);
     }
 
     @Override
     public void onStop() {
         super.onStop();
         if (environment != null)
-            environment.deleteObservers();
+            environment.deleteObserver(envObserver);
     }
 
     @Override
@@ -132,7 +132,9 @@ public class NetworkDiscoveryController extends WakelockedGuiController {
                 Integer port = Integer.parseInt(txtPort.getText().toString());
                 Integer portCert = Integer.parseInt(txtDeliveryPort.getText().toString());
                 try {
-                    androidService.getMelAuthService().connect(address, port, portCert, true);
+                    androidService.getMelAuthService().connect(address, port, portCert, true)
+                            .onDone(result -> discover())
+                            .onError(e -> Lok.error("Failed to connect/pair with " + address + ": " + e));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

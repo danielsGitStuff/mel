@@ -1,100 +1,106 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/content_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="?attr/actionBarSize">
-    <!--tools:showIn="@layout/app_bar_main"-->
-    <TableLayout
-        android:id="@+id/table"
-        android:layout_marginTop="10dp"
+    android:paddingRight="@dimen/activity_horizontal_margin">
+
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:stretchColumns="1">
+        android:layout_height="wrap_content">
 
-        <TableRow>
-
-            <TextView
-                android:id="@+id/lStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="5dp"
-                android:text="@string/infoStarted" />
-
-            <TextView
-                android:id="@+id/lblStatus"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@android:color/holo_red_dark"
-                android:padding="5dp"
-                android:text="@string/infoStopped"
-                android:textAlignment="center" />
-        </TableRow>
-
-        <TableRow>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="5dp"
-                android:text="@string/infoSSID" />
-
-            <TextView
-                android:id="@+id/txtSSID"
-                android:layout_gravity="end"
-                android:padding="5dp" />
-        </TableRow>
-
-        <TableRow>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="5dp"
-                android:text="@string/infoNotification" />
-
-            <TextView
-                android:id="@+id/txtPermissionNotification"
-                android:layout_gravity="end"
-                android:padding="5dp" />
-        </TableRow>
-
-        <TableRow>
-
-            <TextView
-                android:padding="5dp"
-                android:text="@string/infoIP" />
-
-            <TextView
-                android:id="@+id/txtIP"
-                android:layout_gravity="end"
-                android:padding="5dp" />
-        </TableRow>
-
-    </TableLayout>
-
-    <LinearLayout
-        android:visibility="gone"
-        android:layout_below="@id/table"
-        android:id="@+id/permissionReasonContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/lblLocationPermissionReason"
+        <TableLayout
+            android:id="@+id/table"
+            android:layout_marginTop="10dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/requestLocationReason" />
-    </LinearLayout>
+            android:stretchColumns="1">
 
-<de.mel.android.view.PowerView
-    android:id="@+id/powerView"
-    android:layout_marginTop="20dp"
-    android:layout_below="@id/permissionReasonContainer"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"/>
-</RelativeLayout>
+            <TableRow>
+
+                <TextView
+                    android:id="@+id/lStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="5dp"
+                    android:text="@string/infoStarted" />
+
+                <TextView
+                    android:id="@+id/lblStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/holo_red_dark"
+                    android:padding="5dp"
+                    android:text="@string/infoStopped"
+                    android:textAlignment="center" />
+            </TableRow>
+
+            <TableRow>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="5dp"
+                    android:text="@string/infoSSID" />
+
+                <TextView
+                    android:id="@+id/txtSSID"
+                    android:layout_gravity="end"
+                    android:padding="5dp" />
+            </TableRow>
+
+            <TableRow>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="5dp"
+                    android:text="@string/infoNotification" />
+
+                <TextView
+                    android:id="@+id/txtPermissionNotification"
+                    android:layout_gravity="end"
+                    android:padding="5dp" />
+            </TableRow>
+
+            <TableRow>
+
+                <TextView
+                    android:padding="5dp"
+                    android:text="@string/infoIP" />
+
+                <TextView
+                    android:id="@+id/txtIP"
+                    android:layout_gravity="end"
+                    android:padding="5dp" />
+            </TableRow>
+
+        </TableLayout>
+
+        <LinearLayout
+            android:visibility="gone"
+            android:layout_below="@id/table"
+            android:id="@+id/permissionReasonContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/lblLocationPermissionReason"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/requestLocationReason" />
+        </LinearLayout>
+
+        <de.mel.android.view.PowerView
+            android:id="@+id/powerView"
+            android:layout_marginTop="20dp"
+            android:layout_below="@id/permissionReasonContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    </RelativeLayout>
+</ScrollView>

@@ -41,10 +41,7 @@ public class AndroidPowerManager extends PowerManager {
         wakeLock = osPowerManager.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
         android.net.wifi.WifiManager wifiManager = (android.net.wifi.WifiManager) Tools.getApplicationContext().getSystemService(android.content.Context.WIFI_SERVICE);
         if (wifiManager != null) {
-            int lockType = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
-                    ? android.net.wifi.WifiManager.WIFI_MODE_FULL_LOW_LATENCY
-                    : android.net.wifi.WifiManager.WIFI_MODE_FULL_HIGH_PERF;
-            wifiLock = wifiManager.createWifiLock(lockType, getClass().getName());
+            wifiLock = wifiManager.createWifiLock(android.net.wifi.WifiManager.WIFI_MODE_FULL_LOW_LATENCY, getClass().getName());
             wifiLock.setReferenceCounted(false);
         }
         // set this to false cause we do not want to accidentally start boot level 2.
