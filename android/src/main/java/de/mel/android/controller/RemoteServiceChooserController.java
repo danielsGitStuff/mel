@@ -1,7 +1,5 @@
 package de.mel.android.controller;
 
-import androidx.core.content.ContextCompat;
-
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
@@ -11,11 +9,11 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observer;
 
 import de.mel.Lok;
 import de.mel.R;
 import de.mel.android.MainActivity;
-import de.mel.android.MelActivity;
 import de.mel.android.view.KnownCertListAdapter;
 import de.mel.android.view.ServicesListAdapter;
 import de.mel.auth.data.NetworkEnvironment;
@@ -23,7 +21,6 @@ import de.mel.auth.data.db.Certificate;
 import de.mel.auth.data.db.ServiceJoinServiceType;
 import de.mel.auth.service.Bootloader;
 import de.mel.auth.service.MelAuthService;
-import de.mel.auth.tools.N;
 
 /**
  * Created by xor on 10/4/17.
@@ -47,6 +44,12 @@ public abstract class RemoteServiceChooserController extends AndroidServiceGuiCo
     private ViewGroup chooserContent;
     private TextView lblKnownMA, lblServices;
 
+    private final Observer networkObserver = (o, arg) -> {
+        if (selectedCertId != null) {
+            showServices(selectedCertId);
+        }
+    };
+
     public RemoteServiceChooserController(MelAuthService melAuthService, MainActivity activity, ViewGroup viewGroup, int embeddedResource, Bootloader bootloader) {
         super(activity, viewGroup, R.layout.embedded_create_service_chooser);
         this.melAuthService = melAuthService;
@@ -54,6 +57,10 @@ public abstract class RemoteServiceChooserController extends AndroidServiceGuiCo
         chooserContent = rootView.findViewById(R.id.chooserContent);
         View root = View.inflate(activity, embeddedResource, chooserContent);
         initEmbedded();
+        if (checkRadioButtons())
+            onRbServerSelected();
+        else
+            onRbClientSelected();
     }
 
     @Override
@@ -64,21 +71,40 @@ public abstract class RemoteServiceChooserController extends AndroidServiceGuiCo
         lblServices = rootView.findViewById(R.id.lblServices);
         knownCertList = rootView.findViewById(R.id.knownCertList);
         knownCertListAdapter = new KnownCertListAdapter(rootView.getContext());
+        knownCertList.setAdapter(knownCertListAdapter);
         knownCertList.setOnItemClickListener((parent, view, position, id) -> {
             selectedCertId = knownCertListAdapter.getItemT(position).getId().v();
-            Lok.debug("RemoteDriveServiceChooserGuiController.init.CLICKED");
+            Lok.debug("RemoteServiceChooserController: cert clicked: " + selectedCertId);
+            knownCertListAdapter.setSelectedCertId(selectedCertId);
+            selectedService = null;
+            drivesListAdapter.setSelectedService(null);
             showServices(selectedCertId);
+            onServiceSelected(selectedCertId, null);
         });
-        knownCertList.setAdapter(knownCertListAdapter);
+
         serviceList = rootView.findViewById(R.id.listDrives);
         drivesListAdapter = new ServicesListAdapter(rootView.getContext());
         serviceList.setAdapter(drivesListAdapter);
         serviceList.setOnItemClickListener((parent, view, position, id) -> {
             selectedService = drivesListAdapter.getItemT(position);
-            int colour = ContextCompat.getColor(rootView.getContext(), R.color.colorListSelected);
-            view.setBackgroundColor(colour);
+            Lok.debug("RemoteServiceChooserController: service clicked: " + (selectedService != null ? selectedService.getName().v() : "null"));
+            drivesListAdapter.setSelectedService(selectedService);
             onServiceSelected(selectedCertId, selectedService);
         });
+
+        rootView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View v) {
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View v) {
+                if (melAuthService != null) {
+                    melAuthService.getNetworkEnvironment().deleteObserver(networkObserver);
+                }
+            }
+        });
+
         RadioGroup radioGroup = rootView.findViewById(R.id.rdgClient);
         if (radioGroup != null) {
             radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
@@ -87,7 +113,6 @@ public abstract class RemoteServiceChooserController extends AndroidServiceGuiCo
                 else
                     onRbClientSelected();
             });
-            checkRadioButtons();
         }
     }
 
@@ -97,17 +122,43 @@ public abstract class RemoteServiceChooserController extends AndroidServiceGuiCo
 
 
     private void showServices(Long selectedCertId) {
-        List<ServiceJoinServiceType> services = melAuthService.getNetworkEnvironment().getServices(selectedCertId);
-        List<ServiceJoinServiceType> filtered = new ArrayList<>();
-        if (services != null) {
-            for (ServiceJoinServiceType service : services) {
-                if (bootloader.isCompatiblePartner(service))
-                    filtered.add(service);
-            }
+        if (melAuthService == null || bootloader == null) {
+            return;
         }
-        drivesListAdapter.clear();
-        drivesListAdapter.addAll(filtered);
-        drivesListAdapter.notifyDataSetChanged();
+        activity.runOnUiThread(() -> {
+            if (this.selectedCertId == null || !this.selectedCertId.equals(selectedCertId)) {
+                return;
+            }
+            if (melAuthService == null || bootloader == null) {
+                return;
+            }
+            List<ServiceJoinServiceType> services = melAuthService.getNetworkEnvironment().getServices(selectedCertId);
+            List<ServiceJoinServiceType> filtered = new ArrayList<>();
+            if (services != null) {
+                for (ServiceJoinServiceType service : services) {
+                    if (bootloader.isCompatiblePartner(service))
+                        filtered.add(service);
+                }
+            }
+            drivesListAdapter.clear();
+            drivesListAdapter.addAll(filtered);
+            if (selectedService != null) {
+                boolean stillPresent = false;
+                for (ServiceJoinServiceType s : filtered) {
+                    if (s.getUuid() != null && selectedService.getUuid() != null &&
+                            s.getUuid().v().equals(selectedService.getUuid().v())) {
+                        stillPresent = true;
+                        selectedService = s;
+                        break;
+                    }
+                }
+                if (!stillPresent) {
+                    selectedService = null;
+                    onServiceSelected(selectedCertId, null);
+                }
+            }
+            drivesListAdapter.setSelectedService(selectedService);
+        });
     }
 
     private void hideServiceChooser() {
@@ -126,9 +177,20 @@ public abstract class RemoteServiceChooserController extends AndroidServiceGuiCo
 
 
     private boolean checkRadioButtons() {
+        if (rdServer == null || melAuthService == null) {
+            return true;
+        }
         if (rdServer.isChecked()) {
             hideServiceChooser();
             selectedCertId = null;
+            selectedService = null;
+            if (knownCertListAdapter != null) {
+                knownCertListAdapter.setSelectedCertId(null);
+            }
+            if (drivesListAdapter != null) {
+                drivesListAdapter.setSelectedService(null);
+            }
+            melAuthService.getNetworkEnvironment().deleteObserver(networkObserver);
             return true;
         } else {
             showServiceChooser();
@@ -136,16 +198,17 @@ public abstract class RemoteServiceChooserController extends AndroidServiceGuiCo
                 selectedCertId = null;
                 selectedService = null;
                 knownCertListAdapter.clear();
+                knownCertListAdapter.setSelectedCertId(null);
                 drivesListAdapter.clear();
+                drivesListAdapter.setSelectedService(null);
                 NetworkEnvironment env = melAuthService.getNetworkEnvironment();
-                env.addObserver((o, arg) -> {
-                    if (selectedCertId != null) {
-                        showServices(selectedCertId);
-                    }
-                });
+                env.deleteObserver(networkObserver);
+                env.addObserver(networkObserver);
                 for (Long certId : melAuthService.getConnectedUserIds()) {
                     Certificate cert = melAuthService.getCertificateManager().getTrustedCertificateById(certId);
-                    knownCertListAdapter.add(cert);
+                    if (cert != null) {
+                        knownCertListAdapter.add(cert);
+                    }
                 }
                 knownCertListAdapter.notifyDataSetChanged();
                 drivesListAdapter.notifyDataSetChanged();
@@ -179,5 +242,12 @@ public abstract class RemoteServiceChooserController extends AndroidServiceGuiCo
 
     public void setCreateServiceController(CreateServiceController createServiceController) {
         this.createServiceController = createServiceController;
+        if (createServiceController != null) {
+            if (isServer()) {
+                onRbServerSelected();
+            } else {
+                onServiceSelected(selectedCertId, selectedService);
+            }
+        }
     }
 }

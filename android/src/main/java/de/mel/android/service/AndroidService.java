@@ -33,8 +33,8 @@ import de.mel.R;
 import de.mel.android.AndroidInjector;
 import de.mel.android.AndroidRegHandler;
 import de.mel.android.MainActivity;
-import de.mel.R;
 import de.mel.android.Notifier;
+import de.mel.android.Tools;
 import de.mel.android.filesync.AndroidFileSyncBootloader;
 import de.mel.auth.MelAuthAdmin;
 import de.mel.auth.MelStrings;
@@ -140,6 +140,7 @@ public class AndroidService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Tools.init(getApplicationContext());
         if (melAuthService == null && !isBooting) {
             isBooting = true;
             Notifier.toast(getApplicationContext(), "booting auth service");
@@ -246,6 +247,7 @@ public class AndroidService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        Tools.init(getApplicationContext());
         Lok.debug("AndroidService.onCreate()");
         createPermanentSticky();
         // configure MelAuth

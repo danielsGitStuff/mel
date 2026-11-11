@@ -30,16 +30,35 @@ public class Tools {
         return value;
     }
 
-    public static void init(Context applicationContext) {
-        Tools.applicationContext = applicationContext;
-        Tools.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext);
+    public static synchronized void init(Context applicationContext) {
+        if (applicationContext != null) {
+            Tools.applicationContext = applicationContext.getApplicationContext();
+            Tools.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(Tools.applicationContext);
+        }
     }
 
-    public static SharedPreferences getSharedPreferences() {
+    public static synchronized SharedPreferences getSharedPreferences() {
+        if (sharedPreferences == null) {
+            Context ctx = getApplicationContext();
+            if (ctx != null) {
+                sharedPreferences = PreferenceManager.getDefaultSharedPreferences(ctx);
+            }
+        }
         return sharedPreferences;
     }
 
-    public static Context getApplicationContext() {
+    public static synchronized Context getApplicationContext() {
+        if (applicationContext == null) {
+            try {
+                Class<?> activityThread = Class.forName("android.app.ActivityThread");
+                Method currentApplication = activityThread.getMethod("currentApplication");
+                Context app = (Context) currentApplication.invoke(null);
+                if (app != null) {
+                    init(app);
+                }
+            } catch (Exception ignored) {
+            }
+        }
         return applicationContext;
     }
 

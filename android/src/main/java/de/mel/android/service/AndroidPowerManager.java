@@ -34,15 +34,26 @@ public class AndroidPowerManager extends PowerManager {
 
     public AndroidPowerManager(MelAuthSettings melAuthSettings, android.os.PowerManager osPowerManager) {
         super(melAuthSettings);
-        powerWifi = Tools.getSharedPreferences().getBoolean(PREF_POWER_WIFI, true);
-        powerNoWifi = Tools.getSharedPreferences().getBoolean(PREF_POWER_NO_WIFI, false);
-        noPowerWifi = Tools.getSharedPreferences().getBoolean(PREF_NO_POWER_WIFI, false);
-        noPowerNoWifi = Tools.getSharedPreferences().getBoolean(PREF_NO_POWER_NO_WIFI, false);
+        android.content.SharedPreferences prefs = Tools.getSharedPreferences();
+        if (prefs != null) {
+            powerWifi = prefs.getBoolean(PREF_POWER_WIFI, true);
+            powerNoWifi = prefs.getBoolean(PREF_POWER_NO_WIFI, false);
+            noPowerWifi = prefs.getBoolean(PREF_NO_POWER_WIFI, false);
+            noPowerNoWifi = prefs.getBoolean(PREF_NO_POWER_NO_WIFI, false);
+        } else {
+            powerWifi = true;
+            powerNoWifi = false;
+            noPowerWifi = false;
+            noPowerNoWifi = false;
+        }
         wakeLock = osPowerManager.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
-        android.net.wifi.WifiManager wifiManager = (android.net.wifi.WifiManager) Tools.getApplicationContext().getSystemService(android.content.Context.WIFI_SERVICE);
-        if (wifiManager != null) {
-            wifiLock = wifiManager.createWifiLock(android.net.wifi.WifiManager.WIFI_MODE_FULL_LOW_LATENCY, getClass().getName());
-            wifiLock.setReferenceCounted(false);
+        android.content.Context appCtx = Tools.getApplicationContext();
+        if (appCtx != null) {
+            android.net.wifi.WifiManager wifiManager = (android.net.wifi.WifiManager) appCtx.getSystemService(android.content.Context.WIFI_SERVICE);
+            if (wifiManager != null) {
+                wifiLock = wifiManager.createWifiLock(android.net.wifi.WifiManager.WIFI_MODE_FULL_LOW_LATENCY, getClass().getName());
+                wifiLock.setReferenceCounted(false);
+            }
         }
         // set this to false cause we do not want to accidentally start boot level 2.
         // the power/wifi listeners will update the values when started
@@ -103,12 +114,15 @@ public class AndroidPowerManager extends PowerManager {
     }
 
     private void savePrefs() {
-        Tools.getSharedPreferences().edit()
-                .putBoolean(PREF_POWER_WIFI, powerWifi)
-                .putBoolean(PREF_POWER_NO_WIFI, powerNoWifi)
-                .putBoolean(PREF_NO_POWER_WIFI, noPowerWifi)
-                .putBoolean(PREF_NO_POWER_NO_WIFI, noPowerNoWifi)
-                .apply();
+        android.content.SharedPreferences prefs = Tools.getSharedPreferences();
+        if (prefs != null) {
+            prefs.edit()
+                    .putBoolean(PREF_POWER_WIFI, powerWifi)
+                    .putBoolean(PREF_POWER_NO_WIFI, powerNoWifi)
+                    .putBoolean(PREF_NO_POWER_WIFI, noPowerWifi)
+                    .putBoolean(PREF_NO_POWER_NO_WIFI, noPowerNoWifi)
+                    .apply();
+        }
     }
 
     /**

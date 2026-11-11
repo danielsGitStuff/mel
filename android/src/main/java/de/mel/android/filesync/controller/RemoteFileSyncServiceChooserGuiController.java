@@ -63,31 +63,66 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
     private RelativeLayout container;
 
     private void showIncompatibleState() {
-        this.createServiceController.setBtnCreateTitle(R.string.incompatible);
-        this.createServiceController.setBtnCreateEnabled(false);
-        lblHint.setVisibility(View.VISIBLE);
-        lblHint.setText(R.string.driveIncompatibleServerService);
-        container.invalidate();
-        createServiceController.invalidateLayout();
+        if (this.createServiceController != null) {
+            this.createServiceController.setBtnCreateTitle(R.string.incompatible);
+            this.createServiceController.setBtnCreateEnabled(false);
+        }
+        if (lblHint != null) {
+            lblHint.setVisibility(View.VISIBLE);
+            lblHint.setText(R.string.driveIncompatibleServerService);
+        }
+        if (container != null) {
+            container.invalidate();
+        }
+        if (createServiceController != null) {
+            createServiceController.invalidateLayout();
+        }
     }
 
     private void showNormalState() {
-        this.createServiceController.setBtnCreateTitle(R.string.btnCreate);
-        this.createServiceController.setBtnCreateEnabled(true);
-        lblHint.setVisibility(View.GONE);
-        container.invalidate();
-        createServiceController.invalidateLayout();
+        if (this.createServiceController != null) {
+            this.createServiceController.setBtnCreateTitle(R.string.btnCreate);
+            this.createServiceController.setBtnCreateEnabled(true);
+        }
+        if (lblHint != null) {
+            lblHint.setVisibility(View.GONE);
+        }
+        if (container != null) {
+            container.invalidate();
+        }
+        if (createServiceController != null) {
+            createServiceController.invalidateLayout();
+        }
     }
 
     @Override
     protected void onServiceSelected(Long selectedCertId, ServiceJoinServiceType selectedService) {
-        if (selectedService.getAdditionalServicePayload() != null) {
+        if (selectedService != null && selectedService.getAdditionalServicePayload() != null) {
             FileSyncDetails fileSyncDetails = (FileSyncDetails) selectedService.getAdditionalServicePayload();
             if (fileSyncDetails.usesSymLinks()) {
                 showIncompatibleState();
             } else {
                 showNormalState();
             }
+        } else if (selectedService != null) {
+            showNormalState();
+        } else {
+            if (createServiceController != null) {
+                createServiceController.setBtnCreateEnabled(false);
+            }
+            if (container != null) {
+                container.invalidate();
+            }
+            if (createServiceController != null) {
+                createServiceController.invalidateLayout();
+            }
+        }
+    }
+
+    @Override
+    protected void onRbClientSelected() {
+        if (getSelectedService() == null && createServiceController != null) {
+            createServiceController.setBtnCreateEnabled(false);
         }
     }
 

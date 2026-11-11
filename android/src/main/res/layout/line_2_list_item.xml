@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/list_selector"
     android:orientation="vertical">
 
     <TextView
@@ -9,8 +10,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingLeft="4dp"
-        android:paddingRight="4dp"
         android:paddingTop="4dp"
+        android:paddingRight="4dp"
         android:text="test name"
         android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
