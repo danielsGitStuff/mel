@@ -1,9 +1,7 @@
 package de.mel.auth.socket.process.transfer;
 
-import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.AbstractFileWriter;
-import de.mel.auth.file.DefaultFileConfiguration;
-import de.mel.auth.file.IFile;
+import de.mel.auth.file.StandardFileWriter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -24,19 +22,14 @@ public class FileTransferDetailTest {
     @TempDir
     File dir;
 
-    @BeforeEach
-    public void configure() {
-        AbstractFile.configure(new DefaultFileConfiguration());
-    }
-
     private static byte[] bytes(int length, long seed) {
         byte[] bytes = new byte[length];
         new Random(seed).nextBytes(bytes);
         return bytes;
     }
 
-    private IFile file(String name) {
-        return AbstractFile.instance(new File(dir, name));
+    private File file(String name) {
+        return new File(dir, name);
     }
 
     private FileTransferDetail receiving(String name, long start, long end, AtomicInteger done, AtomicInteger failed) {
@@ -173,8 +166,8 @@ public class FileTransferDetailTest {
 
     @Test
     public void theWriterWritesExactlyTheBytesItIsToldTo() throws Exception {
-        IFile file = file("writer");
-        try (AbstractFileWriter writer = file.writer()) {
+        File file = file("writer");
+        try (AbstractFileWriter writer = StandardFileWriter.open(file)) {
             // only the first 3 of the 5 bytes
             writer.append(new byte[]{1, 2, 3, 4, 5}, 0, 3);
             writer.append(new byte[]{9, 9, 9, 9, 9}, 3, 2);
@@ -185,7 +178,7 @@ public class FileTransferDetailTest {
     @Test
     public void aWriterThatContinuesKeepsTheBeginning() throws Exception {
         Files.write(new File(dir, "continue").toPath(), new byte[]{1, 2, 3, 4, 5, 6});
-        try (AbstractFileWriter writer = file("continue").writer(4)) {
+        try (AbstractFileWriter writer = StandardFileWriter.open(file("continue"), 4)) {
             writer.append(new byte[]{7, 8}, 4);
         }
         assertArrayEquals(new byte[]{1, 2, 3, 4, 7, 8}, Files.readAllBytes(new File(dir, "continue").toPath()));

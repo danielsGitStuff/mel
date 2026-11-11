@@ -1,8 +1,6 @@
 package de.mel.filesync.index.watchdog;
 
 import de.mel.Lok;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
 import de.mel.filesync.data.PathCollection;
 import de.mel.filesync.service.MelFileSyncService;
 import fun.with.promise.Promise;
@@ -23,7 +21,7 @@ class FileWatcherUnix extends FileWatcherPC {
 
     FileWatcherUnix(MelFileSyncService melFileSyncService, WatchService watchService) {
         super(melFileSyncService, "IndexWatchdogListenerUnix", watchService);
-        unixReferenceFileHandler = new UnixReferenceFileHandler(melFileSyncService.getServiceInstanceWorkingDirectory(), melFileSyncService.getFileSyncSettings().getRootDirectory().getOriginalFile(), AbstractFile.instance(melFileSyncService.getFileSyncSettings().getTransferDirectory().getAbsolutePath()));
+        unixReferenceFileHandler = new UnixReferenceFileHandler(melFileSyncService.getServiceInstanceWorkingDirectory(), melFileSyncService.getFileSyncSettings().getRootDirectory().getOriginalFile(), melFileSyncService.getFileSyncSettings().getTransferDirectory());
     }
 
     @Override
@@ -47,7 +45,7 @@ class FileWatcherUnix extends FileWatcherPC {
                         Path eventPath = (Path) event.context();
                         String absolutePath = keyPath.toString() + File.separator + eventPath.toString();
                         if (!absolutePath.startsWith(transferDirectoryPath)) {
-                            IFile file = AbstractFile.instance(absolutePath);
+                            File file = new File(absolutePath);
                             Lok.debug("IndexWatchdogListener[" + melFileSyncService.getFileSyncSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
                             if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {
                                 // start the timer but do not analyze. Sometimes we get the wrong WatchKey so we cannot trust it.
@@ -83,9 +81,9 @@ class FileWatcherUnix extends FileWatcherPC {
              * we cannot retrieve all newly created things, so we have to do it now.
              * and watching the directories as well
              */
-            List<IFile> paths = unixReferenceFileHandler.stuffModifiedAfter();
+            List<File> paths = unixReferenceFileHandler.stuffModifiedAfter();
             pathCollection.addAll(paths);
-            for (IFile f : paths) {
+            for (File f : paths) {
                 if (f.exists() && f.isDirectory()) {
                     watchDirectory(f);
                 }

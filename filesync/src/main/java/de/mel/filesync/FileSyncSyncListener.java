@@ -1,9 +1,10 @@
 package de.mel.filesync;
 
-import de.mel.auth.file.IFile;
 import de.mel.auth.service.MelAuthService;
 import de.mel.filesync.service.MelFileSyncClientService;
 import de.mel.filesync.service.MelFileSyncServerService;
+
+import java.io.File;
 
 /**
  * Created by xor on 11/13/16.
@@ -25,8 +26,8 @@ public abstract class FileSyncSyncListener {
         public MelAuthService maServer, maClient;
         public MelFileSyncClientService clientDriveService;
         public MelFileSyncServerService serverDriveService;
-        public IFile testdir1;
-        public IFile testdir2;
+        public File testdir1;
+        public File testdir2;
 
         public DTestStructure setClientDriveService(MelFileSyncClientService clientDriveService) {
             this.clientDriveService = clientDriveService;
@@ -48,12 +49,12 @@ public abstract class FileSyncSyncListener {
             return this;
         }
 
-        public DTestStructure setTestdirServer(IFile testdir1) {
+        public DTestStructure setTestdirServer(File testdir1) {
             this.testdir1 = testdir1;
             return this;
         }
 
-        public DTestStructure setTestdirClient(IFile testdir2) {
+        public DTestStructure setTestdirClient(File testdir2) {
             this.testdir2 = testdir2;
             return this;
         }

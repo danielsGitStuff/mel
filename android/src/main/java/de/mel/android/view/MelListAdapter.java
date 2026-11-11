@@ -62,9 +62,9 @@ public abstract class MelListAdapter<T> extends BaseAdapter {
 
     public static View create2LineView(MelListAdapter adapter, String line1, String line2) {
         View v = adapter.layoutInflator.inflate(R.layout.line_2_list_item, null);
-        TextView lbl1 = (TextView) v.findViewById(R.id.lbl1);
+        TextView lbl1 = v.findViewById(R.id.lbl1);
         lbl1.setText(line1);
-        TextView lbl2 = (TextView) v.findViewById(R.id.lbl2);
+        TextView lbl2 = v.findViewById(R.id.lbl2);
         lbl2.setText(line2);
         return v;
     }

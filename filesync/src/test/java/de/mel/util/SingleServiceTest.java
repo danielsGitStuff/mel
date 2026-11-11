@@ -2,7 +2,6 @@ package de.mel.util;
 
 import de.mel.Lok;
 import de.mel.auth.data.MelAuthSettings;
-import de.mel.auth.file.AbstractFile;
 import de.mel.auth.service.DummyMelAuthService;
 import de.mel.auth.service.MelAuthService;
 import de.mel.core.serialize.exceptions.JsonDeserializationException;
@@ -22,7 +21,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -32,7 +31,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-
 
 public class SingleServiceTest extends MergeTest {
 
@@ -50,8 +48,8 @@ public class SingleServiceTest extends MergeTest {
                 .setWorkingDirectory(workingDirectory);
         melAuthService = new DummyMelAuthService(authSettings);
 
-        rootDir = RootDirectory.buildRootDirectory(AbstractFile.instance(workingDirectory));
-        rootDir.setOriginalFile(AbstractFile.instance(AbstractFile.instance(workingDirectory), "rootdir"));
+        rootDir = RootDirectory.buildRootDirectory(workingDirectory);
+        rootDir.setOriginalFile(new File(workingDirectory, "rootdir"));
 
         this.settings = new FileSyncSettings()
                 .setFastBoot(true)
@@ -61,7 +59,7 @@ public class SingleServiceTest extends MergeTest {
                 .setMaxWastebinSize(9999999L)
                 .setRootDirectory(rootDir)
                 .setUseSymLinks(false)
-                .setTransferDirectory(AbstractFile.instance(AbstractFile.instance(workingDirectory), "transfer.dir"));
+                .setTransferDirectory(new File(workingDirectory, "transfer.dir"));
 
         syncClientService = new MelFileSyncClientService(melAuthService, workingDirectory, 1L, "dummy service uuid", this.settings, databaseManager);
         setProperty(syncClientService, "wastebin", new Wastebin(syncClientService));

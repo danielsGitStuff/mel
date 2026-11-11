@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import fun.with.promise.PromiseImpl;
 import fun.with.promise.Promise;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -30,8 +31,6 @@ import de.mel.auth.MelNotification;
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.ServicePayload;
 import de.mel.auth.data.db.Certificate;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
 import de.mel.auth.data.IsolationDetails;
 import de.mel.auth.service.IMelService;
 import de.mel.auth.socket.MelAuthSocket;
@@ -48,9 +47,9 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
     private ImageButton btnUp;
     private RecyclerView list;
     private TextView txtPath;
-    private IFile[] rootDirs;
-    private IFile currentDir;
-    private Stack<IFile> parentDirs = new Stack<>();
+    private File[] rootDirs;
+    private File currentDir;
+    private Stack<File> parentDirs = new Stack<>();
     private int depth = 0;
 
     @Override
@@ -75,20 +74,20 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
             }
         }
         FileAdapter adapter = new FileAdapter(this, list);
-        List<IFile> directories = new ArrayList<>();
+        List<File> directories = new ArrayList<>();
         if (payload != null && payload.getPaths() != null && !payload.getPaths().isEmpty()) {
-            directories = Lists.wrap(payload.getPaths()).map(AbstractFile::instance).get();
+            directories = Lists.wrap(payload.getPaths()).map(File::new).get();
         } else {
-            IFile[] storageFiles = StoragesManager.getStorageFiles(this);
+            File[] storageFiles = StoragesManager.getStorageFiles(this);
             directories = java.util.Arrays.asList(storageFiles);
         }
 
-        rootDirs = directories.toArray(new IFile[0]);
+        rootDirs = directories.toArray(new File[0]);
 
         if (directories.size() == 1) {
             currentDir = directories.get(0);
             txtPath.setText(currentDir.getAbsolutePath());
-            IFile[] subDirs = currentDir.listDirectories();
+            File[] subDirs = currentDir.listFiles(File::isDirectory);
             if (subDirs != null && subDirs.length > 0) {
                 adapter.setDirectories(subDirs);
             } else {
@@ -106,11 +105,11 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
             if (currentDir != null) {
                 txtPath.setText(currentDir.getAbsolutePath());
             }
-            IFile[] subDirs = clickedDir.listDirectories();
+            File[] subDirs = clickedDir.listFiles(File::isDirectory);
             if (subDirs == null || subDirs.length == 0) {
                 Notifier.toast(this, R.string.toastDrivePermissionsRequired);
             }
-            adapter.setDirectories(subDirs != null ? subDirs : new IFile[0]);
+            adapter.setDirectories(subDirs != null ? subDirs : new File[0]);
             DirectoryChooserDialog.this.runOnUiThread(adapter::notifyDataSetChanged);
         });
 
@@ -125,21 +124,21 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
                 } else {
                     currentDir = null;
                 }
-                IFile[] subDirs;
+                File[] subDirs;
                 if (currentDir != null) {
-                    subDirs = currentDir.listDirectories();
+                    subDirs = currentDir.listFiles(File::isDirectory);
                     txtPath.setText(currentDir.getAbsolutePath());
                 } else {
                     subDirs = rootDirs;
                     txtPath.setText(R.string.dirChooserTitle);
                 }
-                adapter.setDirectories(subDirs != null ? subDirs : new IFile[0]);
+                adapter.setDirectories(subDirs != null ? subDirs : new File[0]);
                 DirectoryChooserDialog.this.runOnUiThread(adapter::notifyDataSetChanged);
             } else if (currentDir != null && currentDir.getParentFile() != null) {
                 currentDir = currentDir.getParentFile();
                 txtPath.setText(currentDir.getAbsolutePath());
-                IFile[] subDirs = currentDir.listDirectories();
-                adapter.setDirectories(subDirs != null ? subDirs : new IFile[0]);
+                File[] subDirs = currentDir.listFiles(File::isDirectory);
+                adapter.setDirectories(subDirs != null ? subDirs : new File[0]);
                 DirectoryChooserDialog.this.runOnUiThread(adapter::notifyDataSetChanged);
             }
         });
@@ -162,14 +161,6 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
     }
 
 
-    private static List<String> filesToStrings(AbstractFile[] files, NWrap.BWrap isRoot) {
-        List<String> strings = new ArrayList<>();
-        if (!isRoot.v())
-            strings.add("..");
-        N.forEachAdv(files, (stoppable, index, aFile) -> strings.add(aFile.getName()));
-        return strings;
-    }
-
     public static class FilesActivityPayload implements SerializableEntity {
 
         private List<String> paths;
@@ -186,15 +177,14 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
         }
     }
 
-    public static Promise<IFile, Void> showDialog(MelActivity activity, IFile[] rootDirectories) {
-        final NWrap.BWrap isRoot = new NWrap.BWrap(true);
-        PromiseImpl<IFile, Void> deferred = PromiseImpl.withoutThrowingOnException();
+    public static Promise<File, Void> showDialog(MelActivity activity, File[] rootDirectories) {
+        PromiseImpl<File, Void> deferred = PromiseImpl.withoutThrowingOnException();
         Intent intent = new Intent(activity, DirectoryChooserDialog.class);
-        FilesActivityPayload payload = new FilesActivityPayload(Lists.wrap(java.util.Arrays.asList(rootDirectories)).map(IFile::getAbsolutePath).get());
+        FilesActivityPayload payload = new FilesActivityPayload(Lists.wrap(java.util.Arrays.asList(rootDirectories)).map(File::getAbsolutePath).get());
         activity.launchActivityForResult(intent, (resultCode, result) -> {
             if (resultCode == AppCompatActivity.RESULT_OK) {
                 String path = result.getStringExtra(AndroidFileSyncStrings.DIR_CHOOSER_KEY);
-                deferred.resolveOk(AbstractFile.instance(path));
+                deferred.resolveOk(new File(path));
             }
         }, payload);
         return deferred;

@@ -2,15 +2,11 @@ package de.mel.filesync.serialization;
 
 import de.mel.Lok;
 import de.mel.auth.data.access.CertificateManager;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.DefaultFileConfiguration;
-import de.mel.auth.file.IFile;
 import de.mel.filesync.bash.AutoKlausIterator;
 import de.mel.filesync.bash.BashTools;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 
 import java.io.File;
 import java.util.List;
@@ -22,24 +18,23 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Created by thefa on 7/29/2017.
  */
 public class BashCommandsTest {
-    IFile testDir;
+    File testDir;
     List<String> paths;
-    IFile timeDir;
+    File timeDir;
 
     @BeforeEach
     public void before() throws Exception {
-        AbstractFile.configure(new DefaultFileConfiguration());
-        testDir = AbstractFile.instance("testdir1");
+        testDir = new File("testdir1");
         BashTools.Companion.init();
         CertificateManager.deleteDirectory(testDir);
         paths = TestDirCreator.createTestDir(testDir);
-        timeDir = AbstractFile.instance(testDir.getAbsolutePath() + File.separator + "timetest");
+        timeDir = new File(testDir, "timetest");
 
     }
 
     @Test
     public void bashFind() throws Exception {
-        try (AutoKlausIterator<IFile> iterator = BashTools.Companion.find(testDir, AbstractFile.instance("blaaaa"))) {
+        try (AutoKlausIterator<File> iterator = BashTools.Companion.find(testDir, new File("blaaaa"))) {
             while (iterator.hasNext())
                 Lok.debug(iterator.next());
             Lok.debug("BashCommandsTest.bashtest.end");

@@ -1,11 +1,11 @@
 package de.mel.filesync.nio;
 
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
 import de.mel.auth.tools.N;
 import de.mel.core.serialize.SerializableEntity;
+import de.mel.core.serialize.JsonIgnore;
 import de.mel.filesync.bash.FsBashDetails;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,10 +18,12 @@ public class FileDistributionTask implements SerializableEntity {
     }
 
     private String sourcePath;
-    private IFile sourceFile;
+    @JsonIgnore
+    private File sourceFile;
     private String sourceHash;
     private List<String> targetPaths = new ArrayList<>();
-    private List<IFile> targetFiles = new ArrayList<>();
+    @JsonIgnore
+    private List<File> targetFiles = new ArrayList<>();
     private List<Long> targetFsIds = new ArrayList<>();
     private Boolean deleteSource;
     private boolean hasOptionals = false;
@@ -98,9 +100,9 @@ public class FileDistributionTask implements SerializableEntity {
      */
     public FileDistributionTask initFromPaths() {
         this.targetFiles = new ArrayList<>();
-        N.forEach(targetPaths, path -> targetFiles.add(AbstractFile.instance(path)));
+        N.forEach(targetPaths, path -> targetFiles.add(new File(path)));
         if (sourcePath != null)
-            this.sourceFile = AbstractFile.instance(sourcePath);
+            this.sourceFile = new File(sourcePath);
         return this;
     }
 
@@ -109,24 +111,24 @@ public class FileDistributionTask implements SerializableEntity {
     }
 
 
-    public FileDistributionTask addTargetFile(IFile targetFile, long fsId) {
+    public FileDistributionTask addTargetFile(File targetFile, long fsId) {
         targetFiles.add(targetFile);
         targetPaths.add(targetFile.getAbsolutePath());
         targetFsIds.add(fsId);
         return this;
     }
 
-    public IFile getSourceFile() {
+    public File getSourceFile() {
         return sourceFile;
     }
 
-    public FileDistributionTask setSourceFile(IFile sourceFile) {
+    public FileDistributionTask setSourceFile(File sourceFile) {
         this.sourceFile = sourceFile;
         this.sourcePath = sourceFile.getAbsolutePath();
         return this;
     }
 
-    public List<IFile> getTargetFiles() {
+    public List<File> getTargetFiles() {
         return targetFiles;
     }
 

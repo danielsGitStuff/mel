@@ -10,8 +10,8 @@ import android.content.pm.PackageManager;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.view.Menu;
@@ -37,9 +37,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.android.material.navigation.NavigationView;
 
 import de.mel.AndroidPermission;
-import de.mel.android.file.SAFFileConfiguration;
 import de.mel.android.file.chooserdialog.DirectoryChooserDialog;
-import de.mel.auth.file.IFile;
 
 import fun.with.interfaces.actions.ActionConsumer;
 import fun.with.promise.Promise;
@@ -68,15 +66,10 @@ import de.mel.android.controller.PermissionsGrantedListener;
 import de.mel.android.controller.SettingsController;
 import de.mel.android.controller.intro.IntroWrapper;
 import de.mel.android.controller.intro.LoadingWrapper;
-import de.mel.android.file.AndroidFileConfiguration;
-import de.mel.android.file.AndroidFile;
-import de.mel.android.file.SAFAccessor;
 import de.mel.android.service.AndroidPowerManager;
 import de.mel.android.service.AndroidService;
 import de.mel.android.service.AndroidServiceBind;
 import de.mel.auth.data.db.ServiceJoinServiceType;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.service.Bootloader;
 import de.mel.auth.service.IMelService;
 import de.mel.auth.service.MelAuthService;
@@ -133,7 +126,6 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
     private GuiController guiController;
     private AndroidServiceBind serviceBind;
     private NavigationView navigationView;
-    private IFile driveDir;
     private ImageButton btnHelp;
     private int stoppedColor;
     private int runningColor;
@@ -189,7 +181,6 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
         Lok.warn("DEV DEV DEV DEV DEV START");
         try {
             String[] arr = new String[1];
-            AbstractFile.configure(new DefaultFileConfiguration());
             arr[0] = new File("asd.txt").getAbsolutePath();
             DirectoryChooserDialog.FilesActivityPayload payload = new DirectoryChooserDialog.FilesActivityPayload(List.of(arr));
             String json = SerializableEntitySerializer.serialize(payload);
@@ -198,20 +189,6 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
         } catch (Exception e) {
             e.printStackTrace();
         }
-        annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).onDone(result -> {
-            N.r(() -> {
-                AndroidFile f = new AndroidFile("/storage/emulated/0/Download/mel/kkk.txt");
-                boolean ex = f.exists();
-                DocumentFile srcDoc = f.getDocFile();
-                Lok.debug("asd");
-            });
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//
-//                SAFAccessor.askForExternalRootDirectory(MainActivity.this).onDone(result1 -> N.r(() -> {
-//                    Lok.debug("lel");
-//                }));
-//            }
-        });
         Lok.warn("DEV DEV DEV DEV DEV END");
     }
 
@@ -257,20 +234,6 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
             }
         });
         AndroidLok.setupDbLok(this);
-//        SAFAccessor.setupExternalPath();
-//        SAFAccessor.setupInternalPath();
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-//            AbstractFile.configure(new SAFFileConfiguration(this.getApplicationContext()));
-//        else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-//            AbstractFile.configure(new AndroidFileConfiguration(this.getApplicationContext()));
-//        } else {
-//            AbstractFile.configure(new DefaultFileConfiguration());
-//        }
-        AbstractFile.configure(new DefaultFileConfiguration());
-        //testFileWrite();
-//        annoyWithPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).onDone(result -> {
-//
-//        });
 
         boolean showIntro = Tools.getSharedPreferences().getBoolean(MainActivity.SHOW_INTRO, true);
         if (showIntro) {
@@ -663,46 +626,48 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
                 try {
                     services = melAuthService.getDatabaseManager().getAllServices();
                 } catch (Exception e) {
-                    services = java.util.Collections.emptyList();
+                    services = List.of();
                 }
                 final List<ServiceJoinServiceType> finalServices = services;
                 runOnUiThread(() -> {
-                    Menu menu = navigationView.getMenu();
-                    MenuItem servicesItem = menu.findItem(R.id.menu_services);
-                    if (servicesItem != null && servicesItem.getSubMenu() != null) {
-                        SubMenu subServices = servicesItem.getSubMenu();
-                        subServices.clear();
-                        for (ServiceJoinServiceType service : finalServices) {
-                            MenuItem mService = subServices.add(service.getName().v());
-                            mService.setOnMenuItemClickListener(item -> {
-                                navigateTo(new NavDestination(NAV_EDIT_SERVICE, service.getUuid().v()), true);
-                                closeDrawer();
-                                return true;
-                            });
-                            Bootloader bootLoader = null;
-                            try {
-                                bootLoader = melAuthService.getMelBoot().getBootLoader(service.getType().v());
-                            } catch (Exception ignored) {
-                            }
-                            if (bootLoader instanceof AndroidBootLoader) {
-                                AndroidBootLoader androidBootLoader = (AndroidBootLoader) bootLoader;
-                                Drawable drawableIcon = androidx.core.content.ContextCompat.getDrawable(MainActivity.this, androidBootLoader.getMenuIcon());
-                                if (drawableIcon != null) {
-                                    if (!service.getActive().v()) {
-                                        drawableIcon = drawableIcon.mutate();
-                                        int tint = androidx.core.content.ContextCompat.getColor(MainActivity.this, R.color.tintDeactive);
-                                        drawableIcon.setColorFilter(tint, PorterDuff.Mode.MULTIPLY);
+                    if (navigationView!= null){
+                        Menu menu = navigationView.getMenu();
+                        MenuItem servicesItem = menu.findItem(R.id.menu_services);
+                        if (servicesItem != null && servicesItem.getSubMenu() != null) {
+                            SubMenu subServices = servicesItem.getSubMenu();
+                            subServices.clear();
+                            for (ServiceJoinServiceType service : finalServices) {
+                                MenuItem mService = subServices.add(service.getName().v());
+                                mService.setOnMenuItemClickListener(item -> {
+                                    navigateTo(new NavDestination(NAV_EDIT_SERVICE, service.getUuid().v()), true);
+                                    closeDrawer();
+                                    return true;
+                                });
+                                Bootloader bootLoader = null;
+                                try {
+                                    bootLoader = melAuthService.getMelBoot().getBootLoader(service.getType().v());
+                                } catch (Exception ignored) {
+                                }
+                                if (bootLoader instanceof AndroidBootLoader) {
+                                    AndroidBootLoader androidBootLoader = (AndroidBootLoader) bootLoader;
+                                    Drawable drawableIcon = androidx.core.content.ContextCompat.getDrawable(MainActivity.this, androidBootLoader.getMenuIcon());
+                                    if (drawableIcon != null) {
+                                        if (!service.getActive().v()) {
+                                            drawableIcon = drawableIcon.mutate();
+                                            int tint = androidx.core.content.ContextCompat.getColor(MainActivity.this, R.color.tintDeactive);
+                                            drawableIcon.setColorFilter(tint, PorterDuff.Mode.MULTIPLY);
+                                        }
+                                        mService.setIcon(drawableIcon);
                                     }
-                                    mService.setIcon(drawableIcon);
                                 }
                             }
+                            MenuItem mNewService = subServices.add(5, R.id.nav_new_service, 0, getText(R.string.drawerCreateNewService));
+                            mNewService.setIcon(R.drawable.ic_menu_add);
                         }
-                        MenuItem mNewService = subServices.add(5, R.id.nav_new_service, 0, getText(R.string.drawerCreateNewService));
-                        mNewService.setIcon(R.drawable.ic_menu_add);
-                    }
-                    MenuItem mLogCat = menu.findItem(R.id.nav_logcat);
-                    if (mLogCat != null) {
-                        mLogCat.setVisible(Lok.isLineStorageActive());
+                        MenuItem mLogCat = menu.findItem(R.id.nav_logcat);
+                        if (mLogCat != null) {
+                            mLogCat.setVisible(Lok.isLineStorageActive());
+                        }
                     }
                 });
             });
@@ -767,7 +732,7 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
     public void askUserForPermissionToManageAllFiles(
             Runnable onSuccess,
             ActionConsumer<Void> onFail) {
-        if (!SAFAccessor.canManageAll()) {
+        if (!Environment.isExternalStorageManager()) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setMessage(R.string.permissionExplainAllText)
                     .setTitle(R.string.permissionExplainAllText)

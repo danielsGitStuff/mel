@@ -2,8 +2,6 @@ package de.mel.auth.service;
 
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.MelAuthSettings;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.service.power.PowerManager;
 import fun.with.promise.Promise;
 import fun.with.promise.PromiseImpl;
@@ -49,7 +47,6 @@ public class BootFailureTest {
 
     @BeforeEach
     public void before() {
-        AbstractFile.configure(new DefaultFileConfiguration());
     }
 
     @AfterEach

@@ -2,8 +2,6 @@
 package de.mel.filesync.sql.dao;
 
 import de.mel.Lok;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
 import de.mel.auth.tools.N;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.RootDirectory;
@@ -24,7 +22,7 @@ public class FsDao extends Dao {
     protected FsDirectory dir = new FsDirectory();
     protected String tableName = dummy.getTableName();
 
-    public FsEntry getBottomFsEntry(Stack<IFile> fileStack) throws SqlQueriesException {
+    public FsEntry getBottomFsEntry(Stack<File> fileStack) throws SqlQueriesException {
         if (fileStack.size() == 0) { //&& fileStack[0].length() == 0) {
             return getRootDirectory();
         }
@@ -261,7 +259,7 @@ public class FsDao extends Dao {
     }
 
     @Deprecated
-    public FsDirectory getFsDirectoryByPathOlde(IFile f) throws SqlQueriesException {
+    public FsDirectory getFsDirectoryByPathOlde(File f) throws SqlQueriesException {
         try {
             RootDirectory rootDirectory = fileSyncDatabaseManager.getFileSyncSettings().getRootDirectory();
             String rootPath = rootDirectory.getPath();
@@ -271,8 +269,8 @@ public class FsDao extends Dao {
             if (f.getAbsolutePath().length() == rootPath.length())
                 return getRootDirectory();
             FsDirectory parent = this.getRootDirectory();
-            Stack<IFile> fileStack = new Stack<>();
-            IFile ff = f;
+            Stack<File> fileStack = new Stack<>();
+            File ff = f;
             while (ff.getAbsolutePath().length() > rootPath.length()) {
                 fileStack.push(ff);
                 ff = ff.getParentFile();
@@ -381,9 +379,9 @@ public class FsDao extends Dao {
         return result;
     }
 
-    public IFile getFileByFsFile(RootDirectory rootDirectory, FsEntry fsEntry) throws SqlQueriesException {
+    public File getFileByFsFile(RootDirectory rootDirectory, FsEntry fsEntry) throws SqlQueriesException {
         if (fsEntry.getParentId().v() == null)
-            return AbstractFile.instance(rootDirectory.getPath());
+            return new File(rootDirectory.getPath());
         Stack<FsDirectory> stack = new Stack<>();
         FsDirectory dbDir = this.getDirectoryById(fsEntry.getParentId().v());
         while (dbDir != null && dbDir.getParentId().v() != null) {
@@ -396,7 +394,7 @@ public class FsDao extends Dao {
             path += dbDir.getName().v() + File.separator;
         }
         path += fsEntry.getName().v();
-        return AbstractFile.instance(path);
+        return new File(path);
 
     }
 

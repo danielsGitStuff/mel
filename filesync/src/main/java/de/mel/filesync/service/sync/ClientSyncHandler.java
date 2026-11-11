@@ -3,7 +3,6 @@ package de.mel.filesync.service.sync;
 import de.mel.Lok;
 import de.mel.auth.data.cached.CachedInitializer;
 import de.mel.auth.data.db.Certificate;
-import de.mel.auth.file.IFile;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.socket.MelValidationProcess;
 import de.mel.auth.socket.process.val.Request;

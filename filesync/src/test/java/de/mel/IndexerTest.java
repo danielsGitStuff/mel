@@ -1,9 +1,6 @@
 package de.mel;
 
 import de.mel.auth.data.MelAuthSettings;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.DefaultFileConfiguration;
-import de.mel.auth.file.IFile;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.service.MelBoot;
 import de.mel.auth.service.power.PowerManager;
@@ -26,11 +23,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-
+import java.io.File;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 
 /**
  * check whether a mix of not-yet-synced files and sync files produces the correct directory contenthash.
@@ -38,22 +34,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * the according file is removed. the contenthash of the parent directory is expected to stay the same.
  */
 public class IndexerTest {
-    private static IFile rootFile;
+    private static File rootFile;
     private static MelAuthService mas;
     private static MelFileSyncServerService mds;
     private static RootDirectory rootDirectory;
 
     @BeforeEach
     public void before() throws Exception {
-        AbstractFile.configure(new DefaultFileConfiguration());
         BashTools.Companion.init();
         Eva.enable();
         RWLock bootLock = new RWLock().lockWrite();
-        rootFile = AbstractFile.instance(AbstractFile.instance("indextest").getAbsolutePath());
+        rootFile = new File("indextest").getAbsoluteFile();
         rootDirectory = RootDirectory.buildRootDirectory(rootFile);//new RootDirectory().setOriginalFile(rootFile).setPath(rootFile.getPath());
 
         BashTools.Companion.rmRf(rootFile);
-        BashTools.Companion.rmRf(AbstractFile.instance(MelBoot.Companion.getDefaultWorkingDir1()));
+        BashTools.Companion.rmRf(MelBoot.Companion.getDefaultWorkingDir1());
 
         TestDirCreator.createTestDirSimple(rootFile);
         MelAuthSettings melAuthSettings = MelAuthSettings.createDefaultSettings();
@@ -64,7 +59,7 @@ public class IndexerTest {
                     .setRole(FileSyncStrings.ROLE_SERVER)
                     .setMaxAge(1000000L)
                     .setRootDirectory(rootDirectory)
-                    .setTransferDirectory(AbstractFile.instance(rootFile, "transfer"))
+                    .setTransferDirectory(new File(rootFile, "transfer"))
                     .setMaxWastebinSize(999999L)
                     .setFastBoot(true);
             new FileSyncCreateServiceHelper(mas).createService(fileSyncSettings, "server");
@@ -83,7 +78,7 @@ public class IndexerTest {
             FsDirectory fsRoot = fsDao.getSubDirectoriesByParentId(null).iterator().next();
             FsDirectory fsSub = fsDao.getSubDirectoryByName(fsRoot.getId().v(), "sub");
             FsFile fsUnSynced = fsDao.getFsFileByName(fsSub.getId().v(), "unsynced3.txt");
-            IFile file2delete = fsDao.getFileByFsFile(rootDirectory, fsUnSynced);
+            File file2delete = fsDao.getFileByFsFile(rootDirectory, fsUnSynced);
             Lok.debug("mofifying file entry: " + fsUnSynced.getName().v());
             fsUnSynced.getSynced().v(false);
             fsDao.update(fsUnSynced);

@@ -21,8 +21,6 @@ import de.mel.android.Threadder;
 import de.mel.android.filesync.controller.RemoteFileSyncServiceChooserGuiController;
 import de.mel.android.filesync.controller.AndroidFileSyncEditGuiController;
 import de.mel.auth.MelNotification;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
 import de.mel.auth.service.IMelService;
 import de.mel.auth.service.MelAuthService;
 import de.mel.android.boot.AndroidBootLoader;
@@ -45,7 +43,7 @@ public class AndroidFileSyncBootloader extends FileSyncBootloader implements And
         super.cleanUpDeletedService(melService, uuid);
         Tools.getApplicationContext().deleteDatabase("service." + uuid + "." + FileSyncStrings.DB_FILENAME);
         File instanceDir = new File(bootLoaderDir, melService.getUuid());
-        N.r(() -> BashTools.Companion.rmRf(AbstractFile.instance(instanceDir)));
+        N.r(() -> BashTools.Companion.rmRf(instanceDir));
     }
 
     /**
@@ -66,9 +64,9 @@ public class AndroidFileSyncBootloader extends FileSyncBootloader implements And
         // create the actual MelDrive service
         FileSyncCreateServiceHelper fileSyncCreateServiceHelper = createCreateServiceHelper(melAuthService);
         if (driveCreateGuiController.isValid())
-            Threadder.runNoTryThread(() -> {
+            N.rte(() -> {
                 String name = driveCreateGuiController.getName();
-                IFile rootFile = driveCreateGuiController.getRootFile();
+                File rootFile = driveCreateGuiController.getRootFile();
                 if (driveCreateGuiController.isServer()) {
                     fileSyncCreateServiceHelper.createServerService(name, rootFile, driveCreateGuiController.getWastebinRatio(), driveCreateGuiController.getMaxDays(), false);
                 } else {
@@ -85,6 +83,8 @@ public class AndroidFileSyncBootloader extends FileSyncBootloader implements And
                     //promise.done(melDriveClientService -> N.r(() -> melDriveClientService.syncThisClient()));
                 }
             });
+        else
+            throw new RuntimeException("Service configuration is invalid.");
     }
 
     @Override

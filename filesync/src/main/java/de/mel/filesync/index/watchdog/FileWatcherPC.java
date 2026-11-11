@@ -2,12 +2,11 @@ package de.mel.filesync.index.watchdog;
 
 
 import de.mel.Lok;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
 import de.mel.auth.tools.N;
 import de.mel.filesync.service.MelFileSyncService;
 import fun.with.promise.Promise;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,7 +32,7 @@ public abstract class FileWatcherPC extends FileWatcher {
         this.useSymLinks = melFileSyncService.getFileSyncSettings().getUseSymLinks();
     }
 
-    protected void analyze(WatchEvent<?> event, IFile file) {
+    protected void analyze(WatchEvent<?> event, File file) {
         try {
             if (melFileSyncService.getMelAuthService().getPowerManager().heavyWorkAllowed()) {
                 watchDogTimer.start();
@@ -44,7 +43,7 @@ public abstract class FileWatcherPC extends FileWatcher {
                 try {
                     double r = Math.random();
                     Lok.debug("IndexWatchdogListener.analyze.attempt to open " + file.getAbsolutePath() + " " + r);
-                    InputStream is = file.inputStream();
+                    InputStream is = new java.io.FileInputStream(file);
                     is.close();
                     Lok.debug("IndexWatchdogListener.analyze.success " + r);
                     watchDogTimer.resume();
@@ -78,7 +77,7 @@ public abstract class FileWatcherPC extends FileWatcher {
     }
 
     @Override
-    public void watchDirectory(IFile dir) throws IOException {
+    public void watchDirectory(File dir) throws IOException {
         try {
             Path path = Paths.get(dir.getAbsolutePath());
             if (Files.isSymbolicLink(path))

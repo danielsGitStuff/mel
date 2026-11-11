@@ -2,9 +2,6 @@ package de.mel.filesync.serialization;
 
 import de.mel.Lok;
 import de.mel.auth.data.access.CertificateManager;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.DefaultFileConfiguration;
-import de.mel.auth.file.IFile;
 import de.mel.auth.tools.N;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.FileSyncStrings;
@@ -34,9 +31,8 @@ public class SqliteThreadingTest {
 
 //    @Test
     public void thread() throws Exception {
-        AbstractFile.configure(new DefaultFileConfiguration());
-        IFile testDir = AbstractFile.instance("test");
-        IFile rootFile = AbstractFile.instance(testDir, "root");
+        File testDir = new File("test");
+        File rootFile = new File(testDir, "root");
         CertificateManager.deleteDirectory(testDir);
         rootFile.mkdirs();
         RootDirectory root = RootDirectory.buildRootDirectory(rootFile);
@@ -45,7 +41,7 @@ public class SqliteThreadingTest {
         root.setPath(rootFile.getAbsolutePath());
         FileSyncSettings fileSyncSettings = new FileSyncSettings().setLastSyncedVersion(0L).setRole(FileSyncStrings.ROLE_CLIENT)
                 .setRootDirectory(root)
-                .setTransferDirectory(AbstractFile.instance(testDir.getPath() + File.separator + "transfer"));
+                .setTransferDirectory(new File(testDir, "transfer"));
 
         FileSyncDatabaseManager.SQLConnectionCreator sqlqueriesCreator = (driveDatabaseManager, uuid) -> new SQLQueries(SQLConnector.createSqliteConnection(new File(testDir.getPath(), "test.db")), true, new RWLock(), SqlResultTransformer.sqliteResultSetTransformer());
         ISQLQueries sqlQueries = sqlqueriesCreator.createConnection(null, null);

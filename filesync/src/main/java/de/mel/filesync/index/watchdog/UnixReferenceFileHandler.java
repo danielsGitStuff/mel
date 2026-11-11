@@ -1,7 +1,5 @@
 package de.mel.filesync.index.watchdog;
 
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
 import de.mel.filesync.bash.AutoKlausIterator;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.bash.BashToolsException;
@@ -26,15 +24,15 @@ public class UnixReferenceFileHandler {
      * more than any file system rounds times (FAT: two seconds)
      */
     static final long MARGIN_MS = 2000;
-    private final IFile directoryToQuery;
-    private final IFile pruneDir;
+    private final File directoryToQuery;
+    private final File pruneDir;
     private final File workingDirectory;
     private boolean refOnFile1 = true;
     private final File timeReferenceFile1;
     private final File timeReferenceFile2;
     private long lastScanStart;
 
-    public UnixReferenceFileHandler(File workingDirectory, IFile directoryToQuery, IFile pruneDir) {
+    public UnixReferenceFileHandler(File workingDirectory, File directoryToQuery, File pruneDir) {
         this.directoryToQuery = directoryToQuery;
         this.pruneDir = pruneDir;
         this.workingDirectory = workingDirectory;
@@ -56,13 +54,13 @@ public class UnixReferenceFileHandler {
         timeReferenceFile.mkdirs();
     }
 
-    public synchronized List<IFile> stuffModifiedAfter() throws IOException, BashToolsException {
+    public synchronized List<File> stuffModifiedAfter() throws IOException, BashToolsException {
         if (BashTools.Companion.canFindByTime()) {
             // taken before find starts: what changes while it runs is found next time
             long since = lastScanStart - MARGIN_MS;
             lastScanStart = System.currentTimeMillis();
-            List<IFile> result = new ArrayList<>();
-            try (AutoKlausIterator<IFile> found = BashTools.Companion.stuffModifiedAfter(directoryToQuery, pruneDir, since)) {
+            List<File> result = new ArrayList<>();
+            try (AutoKlausIterator<File> found = BashTools.Companion.stuffModifiedAfter(directoryToQuery, pruneDir, since)) {
                 while (found.hasNext())
                     result.add(found.next());
             } catch (IOException | RuntimeException e) {
@@ -82,6 +80,6 @@ public class UnixReferenceFileHandler {
         refOnFile1 = !refOnFile1;
         otherFile.delete();
         otherFile.mkdirs();
-        return BashTools.Companion.stuffModifiedAfter(AbstractFile.instance(refFile.getAbsolutePath()), directoryToQuery, pruneDir);
+        return BashTools.Companion.stuffModifiedAfter(refFile, directoryToQuery, pruneDir);
     }
 }

@@ -9,8 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.FileSyncStrings;
@@ -40,7 +38,6 @@ public class LocalStageSetMergerTest {
     @BeforeEach
     public void before() throws Exception {
         BashTools.Companion.init();
-        AbstractFile.configure(new DefaultFileConfiguration());
         File rootFile = new File(dir, "root");
         rootFile.mkdirs();
         RootDirectory rootDirectory = RootDirectory.buildRootDirectory(rootFile);
@@ -52,7 +49,7 @@ public class LocalStageSetMergerTest {
                 .setMaxWastebinSize(9999999L)
                 .setRootDirectory(rootDirectory)
                 .setUseSymLinks(false)
-                .setTransferDirectory(AbstractFile.instance(AbstractFile.instance(dir), "transfer.dir"));
+                .setTransferDirectory(new File(dir, "transfer.dir"));
         databaseManager = new FileSyncDatabaseManager("test service", dir, settings);
         stageDao = databaseManager.getStageDao();
         FsDirectory root = (FsDirectory) databaseManager.getFsDao().insert(new FsDirectory().setName("root").setVersion(0L).setModified(12L).setDepth(0).setPath(""));

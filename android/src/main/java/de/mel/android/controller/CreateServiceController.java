@@ -31,7 +31,9 @@ import de.mel.android.service.AndroidService;
 import de.mel.auth.service.MelService;
 import de.mel.auth.tools.N;
 import de.mel.android.MainActivity;
+import de.mel.auth.tools.Promises;
 import fun.with.Lists;
+import fun.with.promise.Promise;
 
 /**
  * Created by xor on 2/20/17.

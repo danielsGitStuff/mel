@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import de.mel.auth.file.AbstractFile;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.bash.FsBashDetails;
 import de.mel.filesync.sql.FileSyncDatabaseManager;
@@ -63,7 +62,7 @@ public class SyncedStateTest {
                 differences.add(path + f[1] + ": the fs table does not know it");
                 continue;
             }
-            FsBashDetails disk = BashTools.Companion.getFsBashDetails(AbstractFile.instance(file));
+            FsBashDetails disk = BashTools.Companion.getFsBashDetails(file);
             if (!java.util.Objects.equals(entry.getSize().v(), file.length()))
                 differences.add(path + f[1] + ": size " + entry.getSize().v() + " but the file has " + file.length());
             if (!FileSyncInstances.md5Of(file).equals(entry.getContentHash().v()))
@@ -135,7 +134,7 @@ public class SyncedStateTest {
                     for (String[] f : FILES) {
                         File file = new File(instances.clientRoot, f[0] + f[1]);
                         GenericFSEntry entry = database.getFsDao().getGenericByPathAndName("/" + f[0], f[1]);
-                        FsBashDetails disk = BashTools.Companion.getFsBashDetails(AbstractFile.instance(file));
+                        FsBashDetails disk = BashTools.Companion.getFsBashDetails(file);
                         if (entry == null || !de.mel.filesync.index.AbstractIndexer.sameAsInFs(entry, disk, file.length()))
                             looksChanged.add("/" + f[0] + f[1]);
                     }

@@ -14,8 +14,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import de.mel.auth.data.db.ServiceJoinServiceType;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
 import de.mel.auth.service.MelAuthServiceImpl;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.nio.CopyResult;
@@ -58,7 +56,7 @@ public class DumpFlowTest {
      */
     public static class PretendsToReference extends DefaultFsConvenience {
         @Override
-        public CopyResult copy(IFile source, IFile destination, boolean physicalAllowed) throws IOException {
+        public CopyResult copy(File source, File destination, boolean physicalAllowed) throws IOException {
             super.copy(source, destination, true);
             return CopyResult.REFERENCE;
         }
@@ -129,7 +127,7 @@ public class DumpFlowTest {
                 booted.set((TargetService) service);
                 latch.countDown();
             };
-            IFile root = AbstractFile.instance(targetRoot);
+            File root = targetRoot;
             new DumpCreateServiceHelper((de.mel.auth.service.MelAuthServiceImpl) two.server).createServerService("target", root, .5f, 666, false);
             assertTrue(latch.await(30, TimeUnit.SECONDS), "the target did not boot");
             target = booted.get();
@@ -147,7 +145,7 @@ public class DumpFlowTest {
                 booted.set((SourceService) service);
                 latch.countDown();
             };
-            IFile root = AbstractFile.instance(sourceRoot);
+            File root = sourceRoot;
             Long targetAtSource = TwoInstances.idOf(two.server, two.client);
             new DumpCreateServiceHelper((de.mel.auth.service.MelAuthServiceImpl) two.client).createClientService("source", root, targetAtSource, target.getUuid(), .5f, 666, false);
             assertTrue(latch.await(30, TimeUnit.SECONDS), "the source did not boot");
@@ -258,7 +256,7 @@ public class DumpFlowTest {
         assertTrue(probe.isDirectory() || probe.mkdirs());
         File source = new File(probe, "a");
         java.nio.file.Files.write(source.toPath(), new byte[100_000]);
-        CopyResult result = new UnixFsConvenience().copy(AbstractFile.instance(source), AbstractFile.instance(new File(probe, "b")), false);
+        CopyResult result = new UnixFsConvenience().copy(source, new File(probe, "b"), false);
         return result == CopyResult.REFERENCE ? 2 : 1;
     }
 

@@ -10,4 +10,8 @@ public class Threadder {
     public static void runNoTryThread(N.INoTryRunnable noTryRunnable) {
         new Thread(() -> N.r(noTryRunnable)).start();
     }
+
+    public static void runRTEThread(N.INoTryRunnable noTryRunnable) {
+        new Thread(() -> N.rte(noTryRunnable)).start();
+    }
 }

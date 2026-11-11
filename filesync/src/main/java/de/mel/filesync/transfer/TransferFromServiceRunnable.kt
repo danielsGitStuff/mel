@@ -3,8 +3,6 @@ package de.mel.filesync.transfer
 import de.mel.Lok
 import de.mel.MelRunnable
 import de.mel.auth.MelNotification
-import de.mel.auth.file.AbstractFile
-import de.mel.auth.file.IFile
 import de.mel.auth.socket.process.transfer.FileTransferDetail
 import de.mel.auth.socket.process.transfer.FileTransferDetailSet
 import de.mel.auth.socket.process.transfer.MelIsolatedFileProcess
@@ -14,6 +12,7 @@ import de.mel.filesync.service.sync.SyncHandler
 import de.mel.filesync.sql.DbTransferDetails
 import de.mel.filesync.sql.TransferState
 import de.mel.sql.Hash
+import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.RejectedExecutionException
@@ -169,7 +168,7 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MelIs
      * If there is nothing to continue it starts at 0.<br>
      * The database is behind the disk when the app dies between writing and noting down, so the smaller of the two is the safe one.
      */
-    private fun resumePosition(target: IFile, dbDetail: DbTransferDetails): Long {
+    private fun resumePosition(target: File, dbDetail: DbTransferDetails): Long {
         if (!target.exists())
             return 0L
         val size = dbDetail.size.v()
@@ -180,10 +179,10 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MelIs
     /**
      * @return whether the file is there with the size and the content it should have
      */
-    private fun hasExpectedContent(target: IFile, dbDetail: DbTransferDetails): Boolean {
+    private fun hasExpectedContent(target: File, dbDetail: DbTransferDetails): Boolean {
         if (!target.exists() || target.length() != dbDetail.size.v())
             return false
-        val stream = target.inputStream() ?: return false
+        val stream = target.inputStream()
         return Hash.md5(stream) == dbDetail.hash.v()
     }
 
@@ -204,7 +203,7 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MelIs
     /**
      * Everything we have is on disk. If it is what we wanted the file is handed over, otherwise it is thrown away and has to come again.
      */
-    private fun onFileComplete(dbDetail: DbTransferDetails, target: IFile) {
+    private fun onFileComplete(dbDetail: DbTransferDetails, target: File) {
         if (hasExpectedContent(target, dbDetail)) {
             filesRemain.decrementAndGet()
             synchronized(stateLock) {
@@ -256,7 +255,7 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MelIs
      * @return whether it is part of the request
      */
     private fun prepare(dbDetail: DbTransferDetails, batch: Batch, requestedFiles: FileTransferDetailSet): Boolean {
-        val target = AbstractFile.instance(fileSyncService.getFileSyncSettings().getTransferDirectory(), dbDetail.hash.v())
+        val target = File(fileSyncService.getFileSyncSettings().getTransferDirectory(), dbDetail.hash.v())
         val size = dbDetail.size.v()
         var start = resumePosition(target, dbDetail)
         setTransferred(dbDetail, start)
@@ -275,12 +274,12 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MelIs
             transferDetail.openWrite()
         } catch (e: Exception) {
             if (start == 0L) {
-                Lok.error("cannot write ${target.getName()}: $e")
+                Lok.error("cannot write ${target.name}: $e")
                 setState(dbDetail, TransferState.SUSPENDED)
                 return false
             }
             // this file cannot be continued. start over
-            Lok.debug("cannot continue ${target.getName()} at $start, starting over")
+            Lok.debug("cannot continue ${target.name} at $start, starting over")
             start = 0L
             target.delete()
             setTransferred(dbDetail, 0L)
@@ -288,7 +287,7 @@ class TransferFromServiceRunnable(val tManager: TManager, val fileProcess: MelIs
             try {
                 transferDetail.openWrite()
             } catch (e: Exception) {
-                Lok.error("cannot write ${target.getName()}: $e")
+                Lok.error("cannot write ${target.name}: $e")
                 setState(dbDetail, TransferState.SUSPENDED)
                 return false
             }

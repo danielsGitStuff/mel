@@ -4,8 +4,6 @@ import de.mel.Lok
 import de.mel.auth.data.MelAuthSettings
 import de.mel.auth.data.MelRequest
 import de.mel.auth.data.db.Certificate
-import de.mel.auth.file.AbstractFile
-import de.mel.auth.file.DefaultFileConfiguration
 import de.mel.auth.service.power.PowerManager
 import de.mel.auth.socket.process.reg.IRegisterHandler
 import de.mel.auth.socket.process.reg.IRegisterHandlerListener
@@ -38,20 +36,17 @@ class DumpTest {
 
     @BeforeEach
     fun setUp() {
-        AbstractFile.configure(DefaultFileConfiguration())
         BashTools.Companion.init()
-        BashTools.Companion.rmRf(AbstractFile.instance(testDir))
-        BashTools.Companion.rmRf(AbstractFile.instance(MelBoot.defaultWorkingDir1))
-        BashTools.Companion.rmRf(AbstractFile.instance(MelBoot.defaultWorkingDir2))
+        BashTools.Companion.rmRf(testDir)
+        BashTools.Companion.rmRf(MelBoot.defaultWorkingDir1)
+        BashTools.Companion.rmRf(MelBoot.defaultWorkingDir2)
 
         testDir.mkdirs()
         testTarget.mkdirs()
         testSource.mkdirs()
-        TestDirCreator.createFilesTestDir(AbstractFile.instance(testSource), 0)
-        val rTarget = AbstractFile.instance(testTarget)
-        val rSource = AbstractFile.instance(testSource)
-        r1 = RootDirectory.buildRootDirectory(rTarget)
-        r2 = RootDirectory.buildRootDirectory(rSource)
+        TestDirCreator.createFilesTestDir(testSource, 0)
+        r1 = RootDirectory.buildRootDirectory(testTarget)
+        r2 = RootDirectory.buildRootDirectory(testSource)
         s1 = DriveTest.createJson1()
         s2 = DriveTest.createJson2()
         mb1 = MelBoot(s1!!, PowerManager(s1), DumpBootloader::class.java)
@@ -72,7 +67,7 @@ class DumpTest {
                                 Thread {
                                     Lok.debug("ok23")
                                     val help2 = DumpCreateServiceHelper(mas2 as MelAuthServiceImpl)
-                                    help2.createClientService("source", rSource, 1L, targetUUID, 0.5f, 30, false)
+                                    help2.createClientService("source", testSource, 1L, targetUUID, 0.5f, 30, false)
                                 }.start()
                             }.onError {
                                 Lok.error("FAIL")
@@ -86,7 +81,7 @@ class DumpTest {
                 }
             }
 
-            help1.createServerService("target service", rTarget, .5f, 30L, false)
+            help1.createServerService("target service", testTarget, .5f, 30L, false)
 
 
         }

@@ -1,11 +1,11 @@
 package de.mel.auth;
 
 import de.mel.Lok;
-import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.AbstractFileWriter;
-import de.mel.auth.file.IFile;
+import de.mel.auth.file.StandardFileWriter;
 import de.mel.core.serialize.serialize.tools.StringBuilder;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
@@ -25,10 +25,10 @@ public class TestFileCreator {
         return stringBuilder.toString().getBytes();
     }
 
-    public static void saveFile(byte[] data, IFile file) throws Exception {
+    public static void saveFile(byte[] data, File file) throws Exception {
         Lok.debug("TestFileCreator.saveFile: " + file.getAbsolutePath());
-        AbstractFileWriter fos = file.writer();
-        fos.append(data,0l);
+        AbstractFileWriter fos = new StandardFileWriter(file);
+        fos.append(data, 0L);
         fos.close();
     }
 }

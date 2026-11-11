@@ -85,9 +85,6 @@ class PermissionsManager(private val melActivity: MelActivity) {
                 }
                 builder.create().show()
             }
-//        if (manageExternalStoragePermission != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//            SAFAccessor.canManageAll()
-//        }
     }
 
     fun onSuccess(onSuccess: Runnable): PermissionsManager {

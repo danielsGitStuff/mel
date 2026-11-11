@@ -1,9 +1,8 @@
 package de.mel.auth.socket.process.transfer;
 
 import de.mel.Lok;
-import de.mel.auth.file.AbstractFile;
 import de.mel.auth.file.AbstractFileWriter;
-import de.mel.auth.file.IFile;
+import de.mel.auth.file.StandardFileWriter;
 import de.mel.auth.tools.N;
 import de.mel.core.serialize.JsonIgnore;
 import de.mel.core.serialize.SerializableEntity;
@@ -22,7 +21,8 @@ public class FileTransferDetail implements SerializableEntity {
 
     @JsonIgnore
     private long position;
-    private IFile file;
+    @JsonIgnore
+    private File file;
     private int streamId;
     private volatile InputStream in;
     private volatile AbstractFileWriter writer;
@@ -37,7 +37,7 @@ public class FileTransferDetail implements SerializableEntity {
     private boolean e404 = false;
 
     public void openRead() throws FileNotFoundException {
-        in = file.inputStream();
+        in = new FileInputStream(file);
     }
 
     public FileTransferDetail setError(boolean hasError) {
@@ -91,7 +91,7 @@ public class FileTransferDetail implements SerializableEntity {
         return this;
     }
 
-    public FileTransferDetail(IFile file, int streamId, long start, long end) {
+    public FileTransferDetail(File file, int streamId, long start, long end) {
         this.file = file;
         this.streamId = streamId;
         this.start = start;
@@ -109,7 +109,7 @@ public class FileTransferDetail implements SerializableEntity {
         return hash;
     }
 
-    public FileTransferDetail setFile(IFile file) {
+    public FileTransferDetail setFile(File file) {
         this.file = file;
         assertCheck();
         return this;
@@ -132,7 +132,7 @@ public class FileTransferDetail implements SerializableEntity {
     }
 
 
-    public IFile getFile() {
+    public File getFile() {
         return file;
     }
 
@@ -149,7 +149,7 @@ public class FileTransferDetail implements SerializableEntity {
     public void openWrite() throws IOException {
         if (writer != null)
             return;
-        AbstractFileWriter opened = start == 0L ? file.writer() : file.writer(start);
+        AbstractFileWriter opened = StandardFileWriter.open(file, start);
         if (opened == null)
             throw new IOException("cannot write " + file.getName() + " from " + start);
         writer = opened;

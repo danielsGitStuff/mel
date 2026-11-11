@@ -5,12 +5,13 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.File;
+
 import de.mel.R;
-import de.mel.auth.file.IFile;
 
 public class FileViewHolder extends RecyclerView.ViewHolder {
     private TextView lblDir;
-    private IFile directory;
+    private File directory;
     private ImageView icon;
 
     public FileViewHolder(View itemView) {
@@ -19,7 +20,7 @@ public class FileViewHolder extends RecyclerView.ViewHolder {
         icon = itemView.findViewById(R.id.icon);
     }
 
-    public void setDir(IFile directory) {
+    public void setDir(File directory) {
         this.directory = directory;
         if (directory != null) {
             String name = directory.getName();

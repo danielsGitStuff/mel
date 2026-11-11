@@ -3,8 +3,6 @@ package de.mel.filesync;
 import de.mel.Lok;
 import de.mel.auth.data.db.Service;
 import de.mel.auth.data.db.ServiceType;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
 import de.mel.auth.service.MelAuthService;
 import de.mel.core.serialize.exceptions.JsonDeserializationException;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
@@ -41,7 +39,7 @@ public class FileSyncCreateServiceHelper {
 
     public void createService(FileSyncSettings fileSyncSettings, String name) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
         Service service = createDbService(name);
-        IFile transferDir = AbstractFile.instance(fileSyncSettings.getRootDirectory().getOriginalFile(), FileSyncStrings.TRANSFER_DIR);
+        File transferDir = new File(fileSyncSettings.getRootDirectory().getOriginalFile(), FileSyncStrings.TRANSFER_DIR);
         transferDir.mkdirs();
         fileSyncSettings.setTransferDirectory(transferDir);
         File instanceWorkingDir = melAuthService.getMelBoot().createServiceInstanceWorkingDir(service);
@@ -52,31 +50,31 @@ public class FileSyncCreateServiceHelper {
         melAuthService.getMelBoot().bootServices();
     }
 
-    public void createServerService(String name, IFile rootFile, float wastebinRatio, long maxDays, boolean useSymLinks) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
+    public void createServerService(String name, File rootFile, float wastebinRatio, long maxDays, boolean useSymLinks) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
         RootDirectory rootDirectory = RootDirectory.buildRootDirectory(rootFile);
         FileSyncSettings fileSyncSettings = new FileSyncSettings()
                 .setRole(FileSyncStrings.ROLE_SERVER)
                 .setRootDirectory(rootDirectory)
                 .setMaxAge(maxDays)
                 .setUseSymLinks(useSymLinks);
-        IFile transferDir = AbstractFile.instance(rootDirectory.getOriginalFile(), FileSyncStrings.TRANSFER_DIR);
+        File transferDir = new File(rootDirectory.getOriginalFile(), FileSyncStrings.TRANSFER_DIR);
         transferDir.mkdirs();
         fileSyncSettings.setTransferDirectory(transferDir);
         fileSyncSettings.setMaxWastebinSize((long) (fileSyncSettings.getRootDirectory().getOriginalFile().getUsableSpace() * wastebinRatio));
         createService(fileSyncSettings, name);
     }
 
-    public Promise<MelFileSyncServerService, Exception> createDriveServerServiceDeferred(String name, IFile rootFile, float wastebinRatio, int maxDays) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
+    public Promise<MelFileSyncServerService, Exception> createDriveServerServiceDeferred(String name, File rootFile, float wastebinRatio, int maxDays) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
         PromiseImpl<MelFileSyncServerService, Exception> deferred = PromiseImpl.withoutThrowingOnException();
         Lok.debug("REMEMBER ME?");
         return deferred;
     }
 
-    public void createClientService(String name, IFile rootFile, Long certId, String serviceUuid, float wastebinRatio, long maxDays, boolean useSymLinks) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, ClassNotFoundException, SQLException, InstantiationException, IOException, InterruptedException {
+    public void createClientService(String name, File rootFile, Long certId, String serviceUuid, float wastebinRatio, long maxDays, boolean useSymLinks) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, ClassNotFoundException, SQLException, InstantiationException, IOException, InterruptedException {
 //        //create Service
         RootDirectory rootDirectory = RootDirectory.buildRootDirectory(rootFile);
         FileSyncSettings fileSyncSettingsCfg = new FileSyncSettings().setRole(FileSyncStrings.ROLE_CLIENT).setRootDirectory(rootDirectory);
-        fileSyncSettingsCfg.setTransferDirectory(AbstractFile.instance(rootDirectory.getOriginalFile(), FileSyncStrings.TRANSFER_DIR));
+        fileSyncSettingsCfg.setTransferDirectory(new File(rootDirectory.getOriginalFile(), FileSyncStrings.TRANSFER_DIR));
         fileSyncSettingsCfg.setMaxWastebinSize((long) (fileSyncSettingsCfg.getRootDirectory().getOriginalFile().getUsableSpace() * wastebinRatio));
         fileSyncSettingsCfg.setMaxAge(maxDays);
         fileSyncSettingsCfg.setUseSymLinks(useSymLinks);

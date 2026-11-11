@@ -6,8 +6,6 @@ import de.mel.auth.data.access.CertificateCreator;
 import de.mel.auth.data.access.CertificateManager;
 import de.mel.auth.data.access.DatabaseManager;
 import de.mel.auth.data.db.Certificate;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.tools.F;
 import de.mel.sql.SqlQueriesException;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -46,7 +44,6 @@ public class CertificateManagerTest {
 
     @BeforeEach
     public void before() throws Exception, SqlQueriesException {
-        AbstractFile.configure(new DefaultFileConfiguration());
         F.rmRf(TEST_DIR);
         TEST_DIR.mkdirs();
         certificateManager = createCertificateManager(new MelAuthSettings().setWorkingDirectory(TEST_DIR));

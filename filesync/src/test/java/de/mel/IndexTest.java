@@ -2,9 +2,6 @@ package de.mel;
 
 import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.data.access.CertificateManager;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.DefaultFileConfiguration;
-import de.mel.auth.file.IFile;
 import de.mel.auth.service.Bootloader;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.service.MelBoot;
@@ -37,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class IndexTest {
     protected MelAuthService mas;
     private Bootloader dbl;
-    private IFile testRoot;
+    private File testRoot;
     private MelFileSyncServerService service;
     private File wd;
     private MelFileSyncService mds;
@@ -50,13 +47,12 @@ public class IndexTest {
 
     @BeforeEach
     public void before() throws Exception {
-        AbstractFile.configure(new DefaultFileConfiguration());
         BashTools.Companion.init();
-        testRoot = AbstractFile.instance(new File("indextest"));
+        testRoot = new File("indextest");
         BashTools.Companion.rmRf(testRoot);
         wd = new File("indexwd");
         if (index) {
-            BashTools.Companion.rmRf(AbstractFile.instance(wd));
+            BashTools.Companion.rmRf(wd);
             TestDirCreator.createTestDir(testRoot);
             MelAuthSettings settings = MelAuthSettings.createDefaultSettings().setWorkingDirectory(wd).setName("First");
             CountWaitLock lock = new CountWaitLock();
@@ -65,7 +61,7 @@ public class IndexTest {
             promise.onDone(result -> N.r(() -> {
                 mas = result;
                 RootDirectory rootDirectory = RootDirectory.buildRootDirectory(testRoot);
-                IFile transferDir = AbstractFile.instance(rootDirectory.getOriginalFile(), FileSyncStrings.TRANSFER_DIR);
+                File transferDir = new File(rootDirectory.getOriginalFile(), FileSyncStrings.TRANSFER_DIR);
                 FileSyncBootloader bl = (FileSyncBootloader) mas.getMelBoot().getBootLoader(new FileSyncBootloader().getName());
                 FileSyncSettings fileSyncSettings = new FileSyncSettings()
                         .setRole(FileSyncStrings.ROLE_SERVER)

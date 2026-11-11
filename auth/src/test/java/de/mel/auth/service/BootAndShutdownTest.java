@@ -4,8 +4,6 @@ import de.mel.auth.MelStrings;
 import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.data.db.Service;
 import de.mel.auth.data.db.ServiceJoinServiceType;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.service.power.PowerManager;
 import fun.with.promise.Promise;
 import fun.with.promise.PromiseImpl;
@@ -191,7 +189,6 @@ public class BootAndShutdownTest {
     }
 
     private void boot(boolean heavyWork) throws Exception {
-        AbstractFile.configure(new DefaultFileConfiguration());
         int base = nextPortBase.getAndAdd(10);
         File dir = new File(tempDir, "boottest");
         dir.mkdirs();

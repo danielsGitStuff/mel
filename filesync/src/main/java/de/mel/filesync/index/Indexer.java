@@ -1,7 +1,7 @@
 package de.mel.filesync.index;
 
 import de.mel.DeferredRunnable;
-import de.mel.auth.file.IFile;
+import java.io.File;
 import de.mel.filesync.data.RootDirectory;
 import de.mel.filesync.service.MelFileSyncService;
 import de.mel.filesync.service.sync.SyncHandler;
@@ -48,7 +48,7 @@ public class Indexer {
 
 
 
-    public void watchDirectory(IFile dir) throws IOException {
+    public void watchDirectory(File dir) throws IOException {
         indexerRunnable.getFileWatcher().watchDirectory(dir);
     }
 

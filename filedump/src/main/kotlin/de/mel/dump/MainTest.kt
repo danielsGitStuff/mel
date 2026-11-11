@@ -3,9 +3,6 @@ package de.mel.dump
 import de.mel.auth.data.MelAuthSettings
 import de.mel.auth.data.MelRequest
 import de.mel.auth.data.db.Certificate
-import de.mel.auth.file.AbstractFile
-import de.mel.auth.file.DefaultFileConfiguration
-import de.mel.auth.file.IFile
 import de.mel.auth.service.MelAuthServiceImpl
 import de.mel.auth.service.MelBoot
 import de.mel.auth.service.power.PowerManager
@@ -29,13 +26,12 @@ class MainTest {
             FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance())
             FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance())
             FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance())
-            AbstractFile.configure(DefaultFileConfiguration() as AbstractFile.Configuration<IFile>)
             BashTools.Companion.init()
 
             val settings = MelAuthSettings.createDefaultSettings()
             val rootFile = File("dump.test.dir")
             rootFile.mkdir()
-            val root = AbstractFile.instance(rootFile)
+            val root = rootFile
             val boot = MelBoot(settings, PowerManager(settings), DumpBootloader::class.java)
             boot.boot().onDone { mas ->
                 mas.addRegisterHandler(object : IRegisterHandler {

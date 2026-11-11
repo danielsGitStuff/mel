@@ -1,7 +1,5 @@
 package de.mel.filesync.index;
 
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
 import de.mel.auth.tools.Order;
 import de.mel.core.serialize.serialize.tools.OTimer;
 import de.mel.filesync.bash.BashTools;
@@ -13,6 +11,7 @@ import de.mel.filesync.sql.dao.FsDao;
 import de.mel.filesync.sql.dao.StageDao;
 import de.mel.sql.SqlQueriesException;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Stack;
 
@@ -23,7 +22,7 @@ public class IndexHelper {
     private final FsDao fsDao;
     private final StageDao stageDao;
     private final Order order;
-    private final Stack<IFile> fileStack = new Stack<>();
+    private final Stack<File> fileStack = new Stack<>();
     private final Stack<FsEntry> fsEntryStack = new Stack<>();
     private final Stack<Stage> stageStack = new Stack<>();
     private final OTimer timer1 = new OTimer("helper 1");
@@ -51,7 +50,7 @@ public class IndexHelper {
      * @return
      * @throws SqlQueriesException
      */
-    Stage connectToFs(IFile directory) throws SqlQueriesException {
+    Stage connectToFs(File directory) throws SqlQueriesException {
         // remember: we always deal with directories here. that means that we can ask all DAOs for
         // directories and don't have to deal with files :)
         final int rootPathLength = databaseManager.getFileSyncSettings().getRootDirectory().getPath().length();
@@ -76,10 +75,10 @@ public class IndexHelper {
         }
 
         // calculate the parts that go onto the stacks
-        Stack<IFile> remainingParts = new Stack<>();
+        Stack<File> remainingParts = new Stack<>();
         {
             if (!fileStack.empty()) {
-                IFile currentDir = directory;
+                File currentDir = directory;
                 while (currentDir.getAbsolutePath().length() >= fileStack.peek().getAbsolutePath().length()
                         && !currentDir.getAbsolutePath().equals(fileStack.peek().getAbsolutePath())) {
                     remainingParts.push(currentDir);
@@ -98,7 +97,7 @@ public class IndexHelper {
             stageStack.push(stageParent);
         }
         while (!remainingParts.empty()) {
-            final IFile part = remainingParts.pop();
+            final File part = remainingParts.pop();
 
             if (parentFs != null) {
                 parentFs = fsDao.getSubDirectoryByName(parentFs.getId().v(), part.getName());

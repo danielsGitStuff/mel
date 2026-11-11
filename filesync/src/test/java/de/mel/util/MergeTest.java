@@ -1,8 +1,6 @@
 package de.mel.util;
 
 import de.mel.Lok;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.Order;
 import de.mel.core.serialize.exceptions.JsonDeserializationException;
@@ -186,16 +184,13 @@ public class MergeTest {
     @BeforeEach
     public void before() throws SqlQueriesException, IOException, SQLException, InterruptedException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException, JsonSerializationException, JsonDeserializationException {
         BashTools.Companion.init();
-        AbstractFile.configure(new DefaultFileConfiguration());
         workingDirectory = new File("test.workingdir" + counter);
         if (workingDirectory.exists())
             BashTools.Companion.rmRf(workingDirectory);
         workingDirectory.mkdirs();
-        AbstractFile.configure(new DefaultFileConfiguration());
-        BashTools.Companion.init();
 
         rootDir = RootDirectory.buildRootDirectory(workingDirectory);
-        rootDir.setOriginalFile(AbstractFile.instance(AbstractFile.instance(workingDirectory), "rootdir"));
+        rootDir.setOriginalFile(new File(workingDirectory, "rootdir"));
         rootDir.setPath(workingDirectory.getAbsolutePath());
         settings = new FileSyncSettings()
                 .setFastBoot(true)
@@ -205,7 +200,7 @@ public class MergeTest {
                 .setMaxWastebinSize(9999999L)
                 .setRootDirectory(rootDir)
                 .setUseSymLinks(false)
-                .setTransferDirectory(AbstractFile.instance(AbstractFile.instance(workingDirectory), "transfer.dir"));
+                .setTransferDirectory(new File(workingDirectory, "transfer.dir"));
         databaseManager = new FileSyncDatabaseManager("dummy service uuid", workingDirectory, settings);
 
         stageDao = databaseManager.getStageDao();

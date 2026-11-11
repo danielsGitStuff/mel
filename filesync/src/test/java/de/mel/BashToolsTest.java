@@ -1,9 +1,5 @@
 package de.mel;
 
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.AbstractFileWriter;
-import de.mel.auth.file.DefaultFileConfiguration;
-import de.mel.auth.file.IFile;
 import de.mel.auth.tools.F;
 import de.mel.filesync.bash.AutoKlausIterator;
 import de.mel.filesync.bash.BashTools;
@@ -11,7 +7,6 @@ import de.mel.filesync.bash.FsBashDetails;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 
 import java.io.File;
 import java.io.IOException;
@@ -24,32 +19,30 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-
 public class BashToolsTest {
 
     static {
         File f = new File("la");
         Lok.debug("running in: " + f.getAbsolutePath());
-        AbstractFile.configure(new DefaultFileConfiguration());
     }
 
-    private final IFile root = AbstractFile.instance("testdir.root");
-    private final IFile f1 = AbstractFile.instance(root, "f1.txt");
-    private final IFile f2 = AbstractFile.instance(root, "f2.txt");
-    private final IFile sub = AbstractFile.instance(root, "sub");
-    private final IFile f3 = AbstractFile.instance(sub, "f3.txt");
-    private final IFile subsub = AbstractFile.instance(sub, "subsub");
-    private final IFile f4 = AbstractFile.instance(subsub, "f4.txt");
-    private final IFile symFolder = AbstractFile.instance(root, "symfolder");
-    private final IFile symFolderTarget = subsub;
-    private final IFile symFile = AbstractFile.instance(root, "symfile.txt");
-    private final IFile symFileTarget = f3;
+    private final File root = new File("testdir.root");
+    private final File f1 = new File(root, "f1.txt");
+    private final File f2 = new File(root, "f2.txt");
+    private final File sub = new File(root, "sub");
+    private final File f3 = new File(sub, "f3.txt");
+    private final File subsub = new File(sub, "subsub");
+    private final File f4 = new File(subsub, "f4.txt");
+    private final File symFolder = new File(root, "symfolder");
+    private final File symFolderTarget = subsub;
+    private final File symFile = new File(root, "symfile.txt");
+    private final File symFileTarget = f3;
 
     @BeforeEach
     public void before() throws Exception {
         Lok.debug("running in " + System.getProperties().get("user.dir"));
         if (root.exists())
-            F.rmRf(new File(root.getAbsolutePath()));
+            F.rmRf(root);
         subsub.mkdirs();
         write(f1, "f1");
         write(f2, "f2");
@@ -59,20 +52,18 @@ public class BashToolsTest {
         BashTools.Companion.init();
     }
 
-    private Path toPath(IFile f) {
-        return Paths.get(new File(f.getAbsolutePath()).toURI());
+    private Path toPath(File f) {
+        return f.toPath();
     }
 
     @AfterEach
     public void after() {
         if (root.exists())
-            F.rmRf(new File(root.getAbsolutePath()));
+            F.rmRf(root);
     }
 
-    private void write(IFile f, String str) throws Exception {
-        try (AbstractFileWriter writer = f.writer()) {
-            writer.append(str.getBytes(), 0, str.length());
-        }
+    private void write(File f, String str) throws Exception {
+        Files.write(f.toPath(), str.getBytes());
     }
 
     @Test
@@ -113,7 +104,7 @@ public class BashToolsTest {
         expectedPaths.add(f1.getAbsolutePath());
         expectedPaths.add(f2.getAbsolutePath());
         expectedPaths.add(f3.getAbsolutePath());
-        try (AutoKlausIterator<IFile> found = BashTools.Companion.find(root, subsub)) {
+        try (AutoKlausIterator<File> found = BashTools.Companion.find(root, subsub)) {
             while (found.hasNext()) {
                 expectedPaths.remove(found.next().getAbsolutePath());
             }

@@ -1,8 +1,7 @@
 package de.mel.filesync.index;
 
 import de.mel.Lok;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
+import java.io.File;
 import de.mel.auth.tools.Eva;
 import de.mel.auth.tools.Order;
 import de.mel.auth.tools.lock2.P;
@@ -103,10 +102,10 @@ public class IndexerRunnable extends AbstractIndexer {
             FsDirectory fsRoot;
             if (rootDirectory.getId() == null) {
                 fsRoot = (FsDirectory) new FsDirectory().setName("").setVersion(0L).setPath("").setDepth(0);
-                fsRoot.setOriginalFile(AbstractFile.instance(rootDirectory.getOriginalFile()));
+                fsRoot.setOriginalFile(rootDirectory.getOriginalFile());
                 // assume that the root dir is empty -> the first indexed stageset will have no delta to the fs table if the root dir is empty.
                 // this will avoid having a conflict if the clients root is empty but the servers is not.
-                FsBashDetails details = BashTools.Companion.getFsBashDetails(AbstractFile.instance(rootDirectory.getOriginalFile()));
+                FsBashDetails details = BashTools.Companion.getFsBashDetails(rootDirectory.getOriginalFile());
                 fsRoot.calcContentHash();
                 fsRoot.setModified(details.getModified())
                         .setCreated(details.getCreated())
@@ -118,7 +117,7 @@ public class IndexerRunnable extends AbstractIndexer {
             } else {
                 fsRoot = databaseManager.getFsDao().getDirectoryById(rootDirectory.getId());
                 if (fsRoot.getOriginal() == null) {
-                    fsRoot.setOriginalFile(AbstractFile.instance(rootDirectory.getOriginalFile()));
+                    fsRoot.setOriginalFile(rootDirectory.getOriginalFile());
                 }
             }
             BunchOfLocks bunchOfLocks = P.confine(P.read(fsDao));
@@ -131,9 +130,9 @@ public class IndexerRunnable extends AbstractIndexer {
                 // taken before anything is looked at: what changes meanwhile is found next time
                 final long scanStart = System.currentTimeMillis();
                 final Long since = incrementalSince(scanStart);
-                IFile transferDirectory = databaseManager.getMelFileSyncService().getFileSyncSettings().getTransferDirectory();
+                File transferDirectory = databaseManager.getMelFileSyncService().getFileSyncSettings().getTransferDirectory();
                 Lok.debug(since == null ? "index: every file" : "index: what changed since " + since);
-                try (AutoKlausIterator<IFile> found = since == null
+                try (AutoKlausIterator<File> found = since == null
                         ? BashTools.Companion.find(rootDirectory.getOriginalFile(), transferDirectory)
                         : BashTools.Companion.stuffModifiedAfter(rootDirectory.getOriginalFile(), transferDirectory, since)) {
                     Lok.debug("starting stageset initialization");

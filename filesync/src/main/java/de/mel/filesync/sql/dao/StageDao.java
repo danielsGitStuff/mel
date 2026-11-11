@@ -1,8 +1,6 @@
 package de.mel.filesync.sql.dao;
 
 import de.mel.Lok;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
 import de.mel.auth.tools.Eva;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.FileSyncStrings;
@@ -47,14 +45,14 @@ public class StageDao extends Dao.LockingDao {
      * @return relating Stage or null if f is not staged
      */
     @Deprecated
-    public Stage getStageByPath(Long stageSetId, IFile f) throws SqlQueriesException {
+    public Stage getStageByPath(Long stageSetId, File f) throws SqlQueriesException {
         RootDirectory rootDirectory = fileSyncSettings.getRootDirectory();
         String rootPath = rootDirectory.getPath();
         //todo throw Exception if f is not in rootDirectory
         if (f.getAbsolutePath().length() < rootPath.length())
             return null;
-        IFile ff = AbstractFile.instance(f.getAbsolutePath());
-        Stack<IFile> fileStack = FileTools.getFileStack(rootDirectory, ff);
+        File ff = new File(f.getAbsolutePath());
+        Stack<File> fileStack = FileTools.getFileStack(rootDirectory, ff);
         FsEntry bottomFsEntry = fsDao.getBottomFsEntry(fileStack);
         Stage bottomStage = this.getStageByFsId(bottomFsEntry.getId().v(), stageSetId);
         while (!fileStack.empty()) {
@@ -69,30 +67,6 @@ public class StageDao extends Dao.LockingDao {
 //    /**
 //     * finds the relating stage. starts searching from leParentDirectory and traverses Stage table till it finds it.
 //     * use getByPathAndName instead. This method is too expensive
-//     *
-//     * @param f
-//     * @return relating Stage or null if f is not staged
-//     */
-//    @Deprecated
-//    public Stage getStageByPath(Long stageSetId, IFile f) throws SqlQueriesException {
-//        RootDirectory rootDirectory = fileSyncSettings.getRootDirectory();
-//        String rootPath = rootDirectory.getPath();
-//        //todo throw Exception if f is not in rootDirectory
-//        if (f.getAbsolutePath().length() < rootPath.length())
-//            return null;
-//        IFile ff = AbstractFile.instance(f.getAbsolutePath());
-//        Stack<IFile> fileStack = FileTools.getFileStack(rootDirectory, ff);
-//        FsEntry bottomFsEntry = fsDao.getBottomFsEntry(fileStack);
-//        Stage bottomStage = this.getStageByFsId(bottomFsEntry.getId().v(), stageSetId);
-//        while (!fileStack.empty()) {
-//            String name = fileStack.pop().getName();
-//            if (bottomStage == null)
-//                continue;
-//            bottomStage = this.getSubStageByNameAndParent(stageSetId, bottomStage.getId(), name);
-//        }
-//        return bottomStage;
-//    }
-
     public Stage getStageByPathAndName(Long stageSetId, String path, String name) throws SqlQueriesException {
         String where = dummy.getStageSetPair().k() + "=? and " + dummy.getPathPair().k() + "=? and " + dummy.getNamePair().k() + "=?";
         return sqlQueries.loadFirstRow(dummy.getAllAttributes(), dummy, where, ISQLQueries.args(stageSetId, path, name), Stage.class);
@@ -166,7 +140,7 @@ public class StageDao extends Dao.LockingDao {
 
 
     @Deprecated
-    public IFile getFileByStage(Stage stage) throws SqlQueriesException {
+    public File getFileByStage(Stage stage) throws SqlQueriesException {
         RootDirectory rootDirectory = fileSyncSettings.getRootDirectory();
         final Long stageSetId = stage.getStageSet();
         Stack<Stage> stageStack = new Stack<>();
@@ -195,12 +169,12 @@ public class StageDao extends Dao.LockingDao {
         } catch (Exception e) {
             System.err.println("debug93h349");
         }
-        IFile file = fsDao.getFileByFsFile(rootDirectory, bottomFsEntry);
+        File file = fsDao.getFileByFsFile(rootDirectory, bottomFsEntry);
         StringBuilder path = new StringBuilder(file.getAbsolutePath());
         while (!stageStack.empty()) {
             path.append(File.separator).append(stageStack.pop().getName());
         }
-        return AbstractFile.instance(path.toString());
+        return new File(path.toString());
     }
 
     /**

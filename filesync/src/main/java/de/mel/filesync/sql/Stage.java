@@ -1,8 +1,6 @@
 package de.mel.filesync.sql;
 
 import de.mel.Lok;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
 import de.mel.core.serialize.JsonIgnore;
 import de.mel.core.serialize.SerializableEntity;
 import de.mel.filesync.bash.FsBashDetails;
@@ -413,13 +411,13 @@ public class Stage extends SQLTableObject implements SerializableEntity {
         return path.v() + name.v();
     }
 
-    public IFile toIFile(RootDirectory rootDirectory) {
+    public java.io.File toFile(RootDirectory rootDirectory) {
         String path = this.path.v();
         // root dir is a bit different
         if (path.isEmpty())
-            return AbstractFile.instance(rootDirectory.getPath());
+            return new java.io.File(rootDirectory.getPath());
         path = rootDirectory.getPath() + path + name.v();
-        return AbstractFile.instance(path + name.v());
+        return new java.io.File(path);
     }
 
     public Stage applyFsBashDetails(FsBashDetails details) {

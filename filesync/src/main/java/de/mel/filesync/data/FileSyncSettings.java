@@ -1,10 +1,9 @@
 package de.mel.filesync.data;
 
 import de.mel.auth.data.JsonSettings;
-import de.mel.auth.file.IFile;
+import de.mel.core.serialize.JsonIgnore;
 import de.mel.core.serialize.exceptions.JsonDeserializationException;
 import de.mel.core.serialize.exceptions.JsonSerializationException;
-import de.mel.auth.file.AbstractFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,7 +24,8 @@ public class FileSyncSettings extends JsonSettings {
     protected String transferDirectoryPath;
     protected Long maxWastebinSize;
     protected Long maxAge = 30L;
-    protected IFile transferDirectory;
+    @JsonIgnore
+    protected File transferDirectory;
     protected Boolean useSymLinks = true;
 
     /**
@@ -57,7 +57,7 @@ public class FileSyncSettings extends JsonSettings {
     }
 
 
-    public IFile getTransferDirectoryFile() {
+    public File getTransferDirectoryFile() {
         return transferDirectory;
     }
 
@@ -135,13 +135,13 @@ public class FileSyncSettings extends JsonSettings {
         return this;
     }
 
-    public FileSyncSettings setTransferDirectory(IFile transferDirectory) {
+    public FileSyncSettings setTransferDirectory(File transferDirectory) {
         this.transferDirectory = transferDirectory;
         this.transferDirectoryPath = transferDirectory.getAbsolutePath();
         return this;
     }
 
-    public IFile getTransferDirectory() {
+    public File getTransferDirectory() {
         return transferDirectory;
     }
 
@@ -150,7 +150,7 @@ public class FileSyncSettings extends JsonSettings {
         if (fileSyncSettings != null) {
             fileSyncSettings.setJsonFile(jsonFile);
             fileSyncSettings.getRootDirectory().backup();
-            fileSyncSettings.setTransferDirectory(AbstractFile.instance(fileSyncSettings.transferDirectoryPath));
+            fileSyncSettings.setTransferDirectory(new File(fileSyncSettings.transferDirectoryPath));
         }
         return fileSyncSettings;
     }

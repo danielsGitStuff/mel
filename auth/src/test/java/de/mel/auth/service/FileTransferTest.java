@@ -1,7 +1,6 @@
 package de.mel.auth.service;
 
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
+import de.mel.auth.file.StandardFileWriter;
 import de.mel.auth.socket.process.transfer.FileTransferDetail;
 import de.mel.auth.socket.process.transfer.MelIsolatedFileProcess;
 import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
@@ -92,13 +91,11 @@ public class FileTransferTest {
         File source = new File(tempDir, "source" + streamId);
         File target = new File(tempDir, "target" + streamId);
         Files.write(source.toPath(), content);
-        IFile sourceFile = AbstractFile.instance(source);
-        IFile targetFile = AbstractFile.instance(target);
         AtomicBoolean done = new AtomicBoolean();
-        FileTransferDetail receiving = new FileTransferDetail(targetFile, streamId, 0, content.length).setHash("hash" + streamId)
+        FileTransferDetail receiving = new FileTransferDetail(target, streamId, 0, content.length).setHash("hash" + streamId)
                 .setTransferDoneListener(d -> done.set(true));
         receiver.addFilesReceiving(receiving);
-        FileTransferDetail sending = new FileTransferDetail(sourceFile, streamId, 0, content.length).setHash("hash" + streamId);
+        FileTransferDetail sending = new FileTransferDetail(source, streamId, 0, content.length).setHash("hash" + streamId);
         sending.openRead();
         sender.sendFile(sending);
         assertTrue(waitFor(done::get, 20), "file of " + content.length + " bytes did not arrive");
@@ -165,14 +162,14 @@ public class FileTransferTest {
         File source = new File(tempDir, "queued-source-" + number);
         Transfer transfer = new Transfer(streamId, content, new File(tempDir, "queued-target-" + number));
         Files.write(source.toPath(), content);
-        FileTransferDetail receiving = new FileTransferDetail(AbstractFile.instance(transfer.target), streamId, 0, content.length).setHash("hash" + number)
+        FileTransferDetail receiving = new FileTransferDetail(transfer.target, streamId, 0, content.length).setHash("hash" + number)
                 .setTransferDoneListener(d -> {
                     transfer.doneOrder.set(completions.getAndIncrement());
                     transfer.done.set(true);
                 })
                 .setTransferFailedListener(d -> transfer.failed.set(true));
         receiver.addFilesReceiving(receiving);
-        FileTransferDetail sending = new FileTransferDetail(AbstractFile.instance(source), streamId, 0, content.length).setHash("hash" + number);
+        FileTransferDetail sending = new FileTransferDetail(source, streamId, 0, content.length).setHash("hash" + number);
         sending.openRead();
         sender.sendFile(sending);
         return transfer;
@@ -272,11 +269,11 @@ public class FileTransferTest {
         Arrays.fill(present, start, present.length, (byte) 0x55);
         Files.write(target.toPath(), present);
         AtomicBoolean done = new AtomicBoolean();
-        FileTransferDetail receiving = new FileTransferDetail(AbstractFile.instance(target), 9, start, content.length).setHash("resume")
+        FileTransferDetail receiving = new FileTransferDetail(target, 9, start, content.length).setHash("resume")
                 .setTransferDoneListener(d -> done.set(true));
         receiving.openWrite();
         serverSide.addFilesReceiving(receiving);
-        FileTransferDetail sending = new FileTransferDetail(AbstractFile.instance(source), 9, start, content.length).setHash("resume");
+        FileTransferDetail sending = new FileTransferDetail(source, 9, start, content.length).setHash("resume");
         sending.openRead();
         long before = clientSide.getSentFileBytes();
         clientSide.sendFile(sending);
@@ -298,7 +295,7 @@ public class FileTransferTest {
      */
     private Transfer expect(MelIsolatedFileProcess receiver, int streamId, int length) {
         Transfer transfer = new Transfer(streamId, null, new File(tempDir, "expected-" + streamId));
-        FileTransferDetail receiving = new FileTransferDetail(AbstractFile.instance(transfer.target), streamId, 0, length).setHash("expected" + streamId)
+        FileTransferDetail receiving = new FileTransferDetail(transfer.target, streamId, 0, length).setHash("expected" + streamId)
                 .setTransferDoneListener(d -> transfer.done.set(true))
                 .setTransferFailedListener(d -> transfer.failed.set(true));
         receiver.addFilesReceiving(receiving);
@@ -361,7 +358,7 @@ public class FileTransferTest {
     @Test
     public void aSenderThatSaysItCannotSendTheFileFailsTheTransfer() throws Exception {
         Transfer expected = expect(serverSide, 26, 100);
-        clientSide.sendError(new FileTransferDetail(AbstractFile.instance(new File(tempDir, "nothing")), 26, 0, 100).setHash("expected26"));
+        clientSide.sendError(new FileTransferDetail(new File(tempDir, "nothing"), 26, 0, 100).setHash("expected26"));
         assertFailsAndOthersGoOn(expected, clientSide, serverSide);
     }
 
@@ -370,7 +367,7 @@ public class FileTransferTest {
         Transfer expected = expect(serverSide, 27, 100);
         File source = new File(tempDir, "short-source");
         Files.write(source.toPath(), randomBytes(70, 5));
-        FileTransferDetail sending = new FileTransferDetail(AbstractFile.instance(source), 27, 0, 100).setHash("expected27");
+        FileTransferDetail sending = new FileTransferDetail(source, 27, 0, 100).setHash("expected27");
         sending.openRead();
         clientSide.sendFile(sending);
         assertFailsAndOthersGoOn(expected, clientSide, serverSide);
@@ -387,6 +384,6 @@ public class FileTransferTest {
         // a download that is continued needs what came in order
         assertArrayEquals(first, Files.readAllBytes(expected.target.toPath()));
         // and the file can be opened again
-        assertNotNull(AbstractFile.instance(expected.target).writer(40));
+        assertNotNull(StandardFileWriter.open(expected.target, 40));
     }
 }

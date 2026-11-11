@@ -7,17 +7,15 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.io.File;
 import java.util.List;
 
 import de.mel.R;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
-import de.mel.auth.tools.N;
 
 public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> {
     private final AppCompatActivity activity;
     private final View.OnClickListener clickListener;
-    private IFile[] directories;
+    private File[] directories;
     private final RecyclerView recyclerView;
     private Clicked clicked;
 
@@ -25,8 +23,8 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> {
         this.clicked = clicked;
     }
 
-    public static interface Clicked {
-        void clicked(IFile clickedDir);
+    public interface Clicked {
+        void clicked(File clickedDir);
     }
 
     FileAdapter(AppCompatActivity activity, RecyclerView recyclerView) {
@@ -43,12 +41,12 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> {
         };
     }
 
-    public void setDirectories(IFile[] directories) {
+    public void setDirectories(File[] directories) {
         this.directories = directories;
     }
 
-    public void setDirectories(List<IFile> directories) {
-        this.directories = directories.toArray(new IFile[0]);
+    public void setDirectories(List<File> directories) {
+        this.directories = directories.toArray(new File[0]);
     }
 
     @NonNull
@@ -67,8 +65,6 @@ public class FileAdapter extends RecyclerView.Adapter<FileViewHolder> {
 
     @Override
     public int getItemCount() {
-        return directories.length;
+        return directories != null ? directories.length : 0;
     }
-
-
 }

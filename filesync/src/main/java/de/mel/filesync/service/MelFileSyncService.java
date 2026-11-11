@@ -1,6 +1,5 @@
 package de.mel.filesync.service;
 
-import de.mel.auth.file.IFile;
 import de.mel.auth.service.MelAuthService;
 import de.mel.auth.tools.lock2.BunchOfLocks;
 import de.mel.filesync.index.InitialIndexConflictHelper;
@@ -19,7 +18,6 @@ import de.mel.Lok;
 import de.mel.auth.MelNotification;
 import de.mel.auth.data.ServicePayload;
 import de.mel.auth.data.db.Certificate;
-import de.mel.auth.file.AbstractFile;
 import de.mel.auth.jobs.Job;
 import de.mel.auth.jobs.ServiceRequestHandlerJob;
 import de.mel.auth.service.Bootloader;
@@ -302,7 +300,7 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
      * The partner says where it wants to start, so it can continue a download.
      */
     private void sendRequested(MelIsolatedFileProcess fileProcess, FileTransferDetail detail) throws Exception {
-        IFile file = findFileByHash(detail.getHash());
+        File file = findFileByHash(detail.getHash());
         long start = detail.getStart();
         long end = detail.getEnd();
         if (file == null || start < 0 || start > end || end > file.length()) {
@@ -325,13 +323,13 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
     /**
      * @return a file with that content: from the wastebin or one of the files in the directory. null if there is none.
      */
-    protected IFile findFileByHash(String hash) throws Exception {
-        IFile wasteFile = wastebin.getByHash(hash);
+    protected File findFileByHash(String hash) throws Exception {
+        File wasteFile = wastebin.getByHash(hash);
         if (wasteFile != null && wasteFile.exists())
             return wasteFile;
         FsDao fsDao = databaseManager.getFsDao();
         for (FsFile fsFile : fsDao.getFilesByHash(hash)) {
-            IFile file = fsDao.getFileByFsFile(databaseManager.getFileSyncSettings().getRootDirectory(), fsFile);
+            File file = fsDao.getFileByFsFile(databaseManager.getFileSyncSettings().getRootDirectory(), fsFile);
             if (file.exists())
                 return file;
         }
@@ -371,9 +369,9 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
 
     public PromiseImpl<DeferredRunnable, Exception> startIndexer() throws SqlQueriesException {
         this.fileSyncSettings = databaseManager.getFileSyncSettings();
-        IFile transferDir = fileSyncSettings.getTransferDirectory();
+        File transferDir = fileSyncSettings.getTransferDirectory();
         transferDir.mkdirs();
-        IFile wasteDir = AbstractFile.instance(fileSyncSettings.getTransferDirectory(), FileSyncStrings.WASTEBIN);
+        File wasteDir = new File(fileSyncSettings.getTransferDirectory(), FileSyncStrings.WASTEBIN);
         wasteDir.mkdirs();
         this.stageIndexer = new StageIndexer(databaseManager);
         this.indexer = new Indexer(databaseManager, FileWatcherFactory.Companion.getFactory().runInstance(this), createIndexListener());

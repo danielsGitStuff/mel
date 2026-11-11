@@ -1,9 +1,8 @@
 package de.mel.filesync.nio;
 
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
 import de.mel.filesync.data.RootDirectory;
 
+import java.io.File;
 import java.util.Stack;
 
 public class FileTools {
@@ -14,15 +13,13 @@ public class FileTools {
      * @param f
      * @return
      */
-    public static Stack<IFile> getFileStack(RootDirectory rootDirectory, IFile f) {
-        IFile ff = AbstractFile.instance(f.getAbsolutePath());
-        Stack<IFile> fileStack = new Stack<>();
-        while (ff.getAbsolutePath().length() > rootDirectory.getPath().length()) {
+    public static Stack<File> getFileStack(RootDirectory rootDirectory, File f) {
+        File ff = new File(f.getAbsolutePath());
+        Stack<File> fileStack = new Stack<>();
+        while (ff != null && ff.getAbsolutePath().length() > rootDirectory.getPath().length()) {
             fileStack.push(ff);
             ff = ff.getParentFile();
         }
         return fileStack;
     }
-
-
 }

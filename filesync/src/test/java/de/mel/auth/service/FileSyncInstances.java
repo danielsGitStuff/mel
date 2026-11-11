@@ -1,8 +1,6 @@
 package de.mel.auth.service;
 
 import de.mel.auth.data.db.ServiceJoinServiceType;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
 import de.mel.auth.socket.process.transfer.FileTransferDetail;
 import de.mel.auth.socket.process.transfer.MelIsolatedFileProcess;
 import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
@@ -229,16 +227,16 @@ public class FileSyncInstances implements AutoCloseable {
         }
 
         @Override
-        protected IFile findFileByHash(String hash) throws Exception {
-            IFile file = super.findFileByHash(hash);
+        protected File findFileByHash(String hash) throws Exception {
+            File file = super.findFileByHash(hash);
             if (file == null || !damaged.contains(hash))
                 return file;
-            byte[] bytes = Files.readAllBytes(new File(file.getAbsolutePath()).toPath());
+            byte[] bytes = Files.readAllBytes(file.toPath());
             bytes[bytes.length / 2] ^= 0x01;
             File copy = File.createTempFile("damaged", ".bin");
             copy.deleteOnExit();
             Files.write(copy.toPath(), bytes);
-            return AbstractFile.instance(copy);
+            return copy;
         }
 
         /**
@@ -318,7 +316,7 @@ public class FileSyncInstances implements AutoCloseable {
             booted.set((RecordingServerService) service);
             latch.countDown();
         };
-        IFile root = AbstractFile.instance(serverRoot);
+        File root = serverRoot;
         new FileSyncCreateServiceHelper(two.server).createServerService("server", root, .5f, 666, false);
         assertTrue(latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), "the server service did not boot");
         serverService = booted.get();
@@ -339,7 +337,7 @@ public class FileSyncInstances implements AutoCloseable {
             booted.set((MelFileSyncClientService) service);
             latch.countDown();
         };
-        IFile root = AbstractFile.instance(clientRoot);
+        File root = clientRoot;
         Long serverAtClient = TwoInstances.idOf(two.server, two.client);
         new FileSyncCreateServiceHelper(two.client).createClientService("client", root, serverAtClient, serverService.getUuid(), .5f, 666, false);
         assertTrue(latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS), "the client service did not boot");

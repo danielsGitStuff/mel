@@ -1,7 +1,5 @@
 package de.mel.filesync.bash
 
-import de.mel.auth.file.AbstractFile
-import de.mel.auth.file.IFile
 import de.mel.filesync.bash.BufferedIterator.BufferedFileIterator
 import java.io.File
 import java.io.IOException
@@ -12,16 +10,16 @@ import java.nio.file.Paths
 import java.nio.file.attribute.FileTime
 
 
-abstract class BashTools<A : IFile> {
-    abstract fun getFsBashDetails(file: A): FsBashDetails?
+abstract class BashTools {
+    abstract fun getFsBashDetails(file: File): FsBashDetails?
 
     companion object {
         var binPath: String? = null
         val isWindows = System.getProperty("os.name").lowercase().startsWith("windows")
-        var implementation: BashTools<IFile> = if (isWindows) {
-            BashToolsWindows() as BashTools<IFile>
+        var implementation: BashTools = if (isWindows) {
+            BashToolsWindows()
         } else {
-            BashToolsUnix() as BashTools<IFile>
+            BashToolsUnix()
         }
             get
 
@@ -29,39 +27,38 @@ abstract class BashTools<A : IFile> {
             return if (implementation is BashToolsUnix) implementation as BashToolsUnix else null
         }
 
-        fun <F : IFile> getFsBashDetails(file: F): FsBashDetails? = implementation.getFsBashDetails(file)
+        fun getFsBashDetails(file: File): FsBashDetails? = implementation.getFsBashDetails(file)
 
         fun init() {
 
         }
 
-        fun inputStreamToFileIterator(inputStream: InputStream): AutoKlausIterator<AbstractFile<*>> {
+        fun inputStreamToFileIterator(inputStream: InputStream): AutoKlausIterator<File> {
             return BufferedFileIterator(InputStreamReader(inputStream))
         }
 
-        fun rmRf(file: IFile) = implementation.rmRf(file)
-        fun rmRf(file: File) = implementation.rmRf(AbstractFile.instance(file))
+        fun rmRf(file: File) = implementation.rmRf(file)
 
-        fun find(root: IFile, pruneDir: IFile): AutoKlausIterator<IFile> = implementation.find(root, pruneDir)
-        fun isSymLink(file: IFile) = implementation.isSymLink(file)
+        fun find(root: File, pruneDir: File): AutoKlausIterator<File> = implementation.find(root, pruneDir)
+        fun isSymLink(file: File) = implementation.isSymLink(file)
 
-        fun getContentFsBashDetails(dir: IFile) = implementation.getContentFsBashDetails(dir)
-        fun lnS(symbolic: IFile, target: String) = implementation.lnS(symbolic, target)
-        fun stuffModifiedAfter(directory: IFile, pruneDir: IFile, timeStamp: Long): AutoKlausIterator<IFile> = implementation.stuffModifiedAfter(directory, pruneDir, timeStamp)
-        fun stuffModifiedAfter(referenceFile: IFile, directory: IFile, pruneDir: IFile): List<IFile> = implementation.stuffModifiedAfter(referenceFile, directory, pruneDir)
-        fun setCreationDate(target: IFile, created: Long) = implementation.setCreationDate(target = target, created = created)
+        fun getContentFsBashDetails(dir: File) = implementation.getContentFsBashDetails(dir)
+        fun lnS(symbolic: File, target: String) = implementation.lnS(symbolic, target)
+        fun stuffModifiedAfter(directory: File, pruneDir: File, timeStamp: Long): AutoKlausIterator<File> = implementation.stuffModifiedAfter(directory, pruneDir, timeStamp)
+        fun stuffModifiedAfter(referenceFile: File, directory: File, pruneDir: File): List<File> = implementation.stuffModifiedAfter(referenceFile, directory, pruneDir)
+        fun setCreationDate(target: File, created: Long) = implementation.setCreationDate(target = target, created = created)
         fun canFindByTime(): Boolean = implementation.canFindByTime()
     }
 
-    open fun isSymLink(f: A): Boolean = Files.isSymbolicLink(Paths.get(File(f.absolutePath).toURI()))
+    open fun isSymLink(f: File): Boolean = Files.isSymbolicLink(f.toPath())
 
-    abstract fun lnS(file: A, target: String)
+    abstract fun lnS(file: File, target: String)
     open fun setBinPath(binPath: String) {
         // Override if needed
     }
 
-    open fun setCreationDate(target: A, created: Long) {
-        val path = Paths.get(File(target.absolutePath).toURI())
+    open fun setCreationDate(target: File, created: Long) {
+        val path = target.toPath()
         Files.setAttribute(path, "creationTime", FileTime.fromMillis(created))
     }
 
@@ -71,19 +68,19 @@ abstract class BashTools<A : IFile> {
         return FsBashDetails(created, modified, iNode, symLink, symLinkTarget, name)
     }
 
-    abstract fun getContentFsBashDetails(directory: A): MutableMap<String, FsBashDetails>
+    abstract fun getContentFsBashDetails(directory: File): MutableMap<String, FsBashDetails>
     @Throws(exceptionClasses = [IOException::class])
-    abstract fun rmRf(directory: A)
+    abstract fun rmRf(directory: File)
 
     //todo replace return type with AutoKlausIterator
     @Throws(exceptionClasses = [IOException::class, de.mel.filesync.bash.BashToolsException::class])
-    abstract fun stuffModifiedAfter(referenceFile: A, directory: A, pruneDir: A): List<A>
+    abstract fun stuffModifiedAfter(referenceFile: File, directory: File, pruneDir: File): List<File>
 
     @Throws(exceptionClasses = [IOException::class])
-    abstract fun find(directory: A, pruneDir: A): AutoKlausIterator<A>
+    abstract fun find(directory: File, pruneDir: File): AutoKlausIterator<File>
 
     @Throws(exceptionClasses = [IOException::class, java.lang.InterruptedException::class])
-    abstract fun stuffModifiedAfter(directory: A, pruneDir: A, timeStamp: Long): AutoKlausIterator<A>
+    abstract fun stuffModifiedAfter(directory: File, pruneDir: File, timeStamp: Long): AutoKlausIterator<File>
 
     /**
      * @return true if [stuffModifiedAfter] with a time stamp is done by `find` (which is fast and also finds what only changed in ctime).

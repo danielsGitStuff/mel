@@ -7,8 +7,6 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
-
-import de.mel.auth.file.AbstractFile;
 import de.mel.auth.tools.lock2.BunchOfLocks;
 import de.mel.auth.tools.lock2.P;
 import de.mel.filesync.index.watchdog.FileWatcher;
@@ -71,7 +69,7 @@ public class DistributionDuringCommitTest {
                 commit.run(() -> {
                     database.getFsWriteDao().prepare();
                     File oneOnDisk = new File(serverRoot, "a/one.bin");
-                    assertTrue(instances.serverService.getSyncHandler().onFileTransferred(AbstractFile.instance(oneOnDisk), hash, commit, one), "nothing to distribute");
+                    assertTrue(instances.serverService.getSyncHandler().onFileTransferred(oneOnDisk, hash, commit, one), "nothing to distribute");
                     assertTrue(TwoInstances.waitFor(twoOnDisk::exists, TwoInstances.TIMEOUT_SECONDS), "the copy was not made");
                     // time for the distribution to write the fs table, if it does not wait
                     Thread.sleep(500);

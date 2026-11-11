@@ -2,8 +2,6 @@ package de.mel.filesync.index.watchdog;
 
 
 import de.mel.Lok;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
 import de.mel.auth.tools.N;
 import de.mel.filesync.bash.AutoKlausIterator;
 import de.mel.filesync.data.FileSyncSettings;
@@ -36,9 +34,9 @@ public class FileWatcherWindows extends FileWatcherPC {
         PathCollection pathCollection = new PathCollection();
         N.r(() -> {
             FileSyncSettings fileSyncSettings = melFileSyncService.getFileSyncSettings();
-            try (AutoKlausIterator<IFile> paths = BashTools.Companion.stuffModifiedAfter(fileSyncSettings.getRootDirectory().getOriginalFile(), fileSyncSettings.getTransferDirectoryFile(), timeStamp)) {
+            try (AutoKlausIterator<File> paths = BashTools.Companion.stuffModifiedAfter(fileSyncSettings.getRootDirectory().getOriginalFile(), fileSyncSettings.getTransferDirectoryFile(), timeStamp)) {
                 while (paths.hasNext()) {
-                    IFile path = paths.next();
+                    File path = paths.next();
                     Lok.debug("   IndexWatchDogListenerWindows.onTimerStopped: " + path);
                     pathCollection.addPath(path);
                 }
@@ -61,7 +59,7 @@ public class FileWatcherWindows extends FileWatcherPC {
                         Path eventPath = (Path) event.context();
                         String absolutePath = keyPath.toString() + File.separator + eventPath.toString();
                         if (!absolutePath.startsWith(transferDirectoryPath)) {
-                            IFile file = AbstractFile.instance(absolutePath);
+                            File file = new File(absolutePath);
                             Lok.debug("IndexWatchdogListener[" + melFileSyncService.getFileSyncSettings().getRole() + "].got event[" + event.kind() + "] for: " + absolutePath);
                             if (event.kind().equals(StandardWatchEventKinds.ENTRY_CREATE)) {
                                 // start the timer but do not analyze. Sometimes we get the wrong WatchKey so we cannot trust it.

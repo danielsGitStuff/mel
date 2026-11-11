@@ -1,7 +1,7 @@
 package de.mel.dump
 
 import de.mel.Lok
-import de.mel.auth.file.AbstractFile
+import java.io.File
 import de.mel.auth.service.MelAuthService
 import de.mel.auth.socket.process.`val`.Request
 import de.mel.auth.tools.N
@@ -161,7 +161,7 @@ class TargetSyncHandler(melAuthService: MelAuthService, targetService: TargetSer
         entry.synced.v(true)
         fsDao.insert(entry)
         val path = rootPath + entry.path.v() + candidate
-        val dir = AbstractFile.instance(path)
+        val dir = File(path)
         if (!dir.exists()) {
             indexer.ignorePath(path, 1)
             dir.mkdirs()

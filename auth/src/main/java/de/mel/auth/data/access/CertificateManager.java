@@ -3,8 +3,6 @@ package de.mel.auth.data.access;
 import de.mel.Lok;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.data.db.dao.CertificateDao;
-import de.mel.auth.file.IFile;
-import de.mel.auth.file.StandardFile;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.lock2.BunchOfLocks;
 import de.mel.auth.tools.lock2.P;
@@ -103,23 +101,19 @@ public class CertificateManager extends FileRelatedManager {
     }
 
     public static void deleteDirectory(File dir) {
-        deleteDirectory(new StandardFile(dir));
-    }
-
-    public static void deleteDirectory(IFile dir) {
         Lok.debug("CertificateManager.deleteDirectory: " + dir.getAbsolutePath());
-        IFile[] subs = dir.listContent();
+        File[] subs = dir.listFiles();
         if (subs != null)
-            for (IFile f : subs) {
+            for (File f : subs) {
                 deleteDirectoryP(f);
             }
         dir.delete();
     }
 
-    private static void deleteDirectoryP(IFile dir) {
-        IFile[] subs = dir.listContent();
+    private static void deleteDirectoryP(File dir) {
+        File[] subs = dir.listFiles();
         if (subs != null)
-            for (IFile f : subs) {
+            for (File f : subs) {
                 deleteDirectoryP(f);
             }
         dir.delete();

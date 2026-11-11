@@ -5,8 +5,6 @@ import android.os.FileObserver;
 import java.io.File;
 
 import de.mel.Lok;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
 import de.mel.filesync.service.MelFileSyncService;
 import de.mel.filesync.index.watchdog.FileWatcher;
 import de.mel.auth.tools.WatchDogTimer;
@@ -30,7 +28,7 @@ public class AndroidFileWatcher extends FileWatcher {
     }
 
     @Override
-    public void watchDirectory(IFile dir) {
+    public void watchDirectory(File dir) {
 //        Lok.debug("AndroidWatchdogListener.watchDirectory");
         if (!watchesRoot)
             try {
@@ -41,7 +39,7 @@ public class AndroidFileWatcher extends FileWatcher {
                         if (path != null)
                             try {
                                 path = melFileSyncService.getFileSyncSettings().getRootDirectory().getOriginalFile().getAbsolutePath() + File.separator + path;
-                                IFile file = AbstractFile.instance(path);
+                                File file = new File(path);
                                 analyzeEvent(event, file);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
@@ -56,14 +54,14 @@ public class AndroidFileWatcher extends FileWatcher {
             }
     }
 
-    private void analyzeEvent(final int event, IFile path) throws InterruptedException {
+    private void analyzeEvent(final int event, File path) throws InterruptedException {
         if (FileObserver.CLOSE_WRITE == event
                 || FileObserver.CREATE == event
                 || FileObserver.DELETE == event
                 || FileObserver.MOVED_TO == event
                 || FileObserver.MOVED_FROM == event) {
             ignoredSemaphore.acquire();
-            if (!ignoredMap.containsKey(path)) {
+            if (!ignoredMap.containsKey(path.getAbsolutePath())) {
                 Lok.debug("AndroidWatchdogListener.analyzeEvent: " + path);
                 pathCollection.addPath(path);
                 if (melFileSyncService.getMelAuthService().getPowerManager().heavyWorkAllowed()) {

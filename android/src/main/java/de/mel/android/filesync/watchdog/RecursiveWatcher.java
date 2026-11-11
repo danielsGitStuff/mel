@@ -12,8 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 import de.mel.Lok;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
+import de.mel.auth.tools.N;
 import de.mel.auth.tools.WatchDogTimer;
 import de.mel.filesync.data.PathCollection;
 import de.mel.filesync.index.watchdog.FileWatcher;
@@ -29,9 +28,9 @@ import fun.with.promise.Promise;
  * Created by xor on 31.07.2017.
  */
 public class RecursiveWatcher extends FileWatcher {
-    private final IFile target;
+    private final File target;
     private final Map<String, Watcher> watchers = new HashMap<>();
-    private final IFile transferDirectory;
+    private final File transferDirectory;
     private final UnixReferenceFileHandler unixReferenceFileHandler;
 
     public RecursiveWatcher(MelFileSyncService melFileSyncService) {
@@ -65,7 +64,7 @@ public class RecursiveWatcher extends FileWatcher {
     }
 
     @Override
-    public void watchDirectory(IFile dir) {
+    public void watchDirectory(File dir) {
         watch(dir);
     }
 
@@ -73,9 +72,9 @@ public class RecursiveWatcher extends FileWatcher {
     private class Watcher extends FileObserver {
 
         private final RecursiveWatcher recursiveWatcher;
-        private final IFile target;
+        private final File target;
 
-        public Watcher(RecursiveWatcher recursiveWatcher, IFile target) {
+        public Watcher(RecursiveWatcher recursiveWatcher, File target) {
             super(target.getAbsolutePath());
             this.target = target;
             this.recursiveWatcher = recursiveWatcher;
@@ -86,12 +85,12 @@ public class RecursiveWatcher extends FileWatcher {
             recursiveWatcher.onWatcherEvent(this, event, path);
         }
 
-        public IFile getTarget() {
+        public File getTarget() {
             return target;
         }
     }
 
-    private void watch(IFile target) {
+    private void watch(File target) {
         if (!watchers.containsKey(target.getAbsolutePath())) {
             Watcher watcher = new Watcher(this, target);
             watchers.put(target.getAbsolutePath(), watcher);
@@ -102,8 +101,8 @@ public class RecursiveWatcher extends FileWatcher {
     private Set<String> writePaths = new HashSet<>();
 
     private void onWatcherEvent(Watcher watcher, int event, String path) {
-        IFile f = path != null ? AbstractFile.instance(watcher.getTarget().getAbsolutePath() + File.separator + path) : watcher.getTarget();
-        if (transferDirectory.hasSubContent(watcher.getTarget()))
+        File f = path != null ? new File(watcher.getTarget(), path) : watcher.getTarget();
+        if (watcher.getTarget().getAbsolutePath().startsWith(transferDirectory.getAbsolutePath()))
             return;
         if ((FileObserver.CREATE & event) != 0 && f.exists() && f.isDirectory()) {
             watch(f);
@@ -120,72 +119,61 @@ public class RecursiveWatcher extends FileWatcher {
                         newWritePaths.add(writePath);
                 }
                 writePaths = newWritePaths;
+                pathCollection.addPath(f);
                 startTimer();
-            } else if (checkEvent(event, FileObserver.CLOSE_WRITE)) {
-//                Lok.warn("close.write: " + positiveList);
-                writePaths.remove(f.getAbsolutePath());
-                startTimer();
-            } else if (checkEvent(event,
-                    FileObserver.DELETE,
-                    FileObserver.DELETE_SELF,
-                    FileObserver.CREATE,
-                    FileObserver.MOVE_SELF,
-                    FileObserver.MOVED_FROM,
-                    FileObserver.MOVED_TO)) {
-//                Lok.warn("1st: " + positiveList);
-                startTimer();
-            } else if (checkEvent(event, FileObserver.MODIFY)) {
-//                Lok.warn("modify: " + positiveList);
-                writePaths.add(f.getAbsolutePath());
-                startTimer();
-            } else {
-//                Lok.warn("something else: " + positiveList);
+                return;
             }
-        } catch (InterruptedException e) {
+            if (checkEvent(event, FileObserver.MOVED_FROM)) {
+                this.watchers.remove(f.getAbsolutePath());
+                pathCollection.addPath(f);
+                startTimer();
+                return;
+            }
+            if (checkEvent(event, FileObserver.MOVED_TO)) {
+                pathCollection.addPath(f);
+                startTimer();
+                return;
+            }
+            if (checkEvent(event, FileObserver.CLOSE_WRITE)) {
+                writePaths.remove(fPath);
+                startTimer();
+                return;
+            }
+            if (checkEvent(event, FileObserver.OPEN)) {
+                if (writePaths.contains(fPath)) {
+                    stopTimer();
+                }
+                return;
+            }
+            if (checkEvent(event, FileObserver.MODIFY)) {
+                writePaths.add(fPath);
+                stopTimer();
+                return;
+            }
+            if (checkEvent(event, FileObserver.DELETE)) {
+                pathCollection.addPath(f);
+                startTimer();
+                return;
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private boolean checkEvent(int event, int... expected) {
-        for (int e : expected) {
-            if ((e & event) != 0)
-                return true;
-        }
-        return false;
+    private void stopTimer() {
+        N.r(() -> watchDogTimer.waite());
     }
 
-    private Map<String, Boolean> flags(int event) {
-        Map<String, Boolean> flags = new HashMap<>();
-        flags.put("access", (FileObserver.ACCESS & event) != 0);
-        flags.put("all", (FileObserver.ALL_EVENTS & event) != 0);
-        flags.put("attrib", (FileObserver.ATTRIB & event) != 0);
-        flags.put("close.nowrite", (FileObserver.CLOSE_NOWRITE & event) != 0);
-        flags.put("close.write", (FileObserver.CLOSE_WRITE & event) != 0);
-        flags.put("create", (FileObserver.CREATE & event) != 0);
-        flags.put("delete", (FileObserver.DELETE & event) != 0);
-        flags.put("delete.self", (FileObserver.DELETE_SELF & event) != 0);
-        flags.put("modify", (FileObserver.MODIFY & event) != 0);
-        flags.put("modify.self", (FileObserver.MOVE_SELF & event) != 0);
-        flags.put("moved.from", (FileObserver.MOVED_FROM & event) != 0);
-        flags.put("moved.to", (FileObserver.MOVED_TO & event) != 0);
-        flags.put("open", (FileObserver.OPEN & event) != 0);
-        return flags;
-    }
-
-    /**
-     * starts the timer if allowed.
-     * @throws InterruptedException
-     */
-    private void startTimer() throws InterruptedException {
-        if (melFileSyncService.getMelAuthService().getPowerManager().heavyWorkAllowed()) {
-            watchDogTimer.start();
-        } else {
+    private void startTimer() {
+        if (melFileSyncService.getMelAuthService().getPowerManager().heavyWorkAllowed())
+            N.r(() -> watchDogTimer.start());
+        else
             surpressEvent();
-        }
     }
 
-    private boolean hasWrittenSinceStart = false;
-
+    private boolean checkEvent(int event, int eventCode) {
+        return (event & eventCode) != 0;
+    }
 
     @Override
     public void onTimerStopped() {
@@ -201,14 +189,14 @@ public class RecursiveWatcher extends FileWatcher {
              * and watching the directories as well
              */
             Lok.debug("stopped");
-            List<IFile> paths = unixReferenceFileHandler.stuffModifiedAfter();
+            List<File> paths = unixReferenceFileHandler.stuffModifiedAfter();
             pathCollection.addAll(paths);
-            for (IFile f : paths) {
+            for (File f : paths) {
                 if (f.exists() && f.isDirectory()) {
                     watchDirectory(f);
                 }
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         stageIndexer.examinePaths(this, pathCollection);

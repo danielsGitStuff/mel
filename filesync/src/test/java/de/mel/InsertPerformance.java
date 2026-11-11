@@ -26,7 +26,6 @@ public class InsertPerformance {
 //        FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
 //        FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance());
 //        FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
-//        AFile.configure(new DefaultFileConfiguration());
 //        BashTools.Companion.init();
 //        WORKING_DIR = AFile.instance("/home/xor/Downloads/perf.test");
 //        BashTools.Companion.rmRf(WORKING_DIR);
@@ -57,7 +56,6 @@ public class InsertPerformance {
 //        FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PairDeserializerFactory.getInstance());
 //        FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance());
 //        FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
-//        AFile.configure(new DefaultFileConfiguration());
 //        BashTools.Companion.init();
 //        WORKING_DIR = AFile.instance("/home/xor/Downloads/perf.test");
 //        BashTools.Companion.rmRf(WORKING_DIR);

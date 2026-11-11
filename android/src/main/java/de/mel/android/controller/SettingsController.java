@@ -19,7 +19,6 @@ import de.mel.Versioner;
 import de.mel.android.*;
 import de.mel.android.service.AndroidPowerManager;
 import de.mel.android.service.AndroidService;
-import de.mel.android.service.CopyService;
 import de.mel.android.view.PowerView;
 import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.tools.N;
@@ -226,7 +225,9 @@ public class SettingsController extends GuiController {
         File dbFile = Tools.getApplicationContext().getDatabasePath("log");
         File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         File targetFile = new File(downloadDir, "mel.log.db");
-        CopyService.copyStream(new FileInputStream(dbFile), new FileOutputStream(targetFile));
+        try (FileInputStream in = new FileInputStream(dbFile); FileOutputStream out = new FileOutputStream(targetFile)) {
+            in.transferTo(out);
+        }
         String msg = activity.getString(R.string.settingsLokExportToast) + targetFile.getAbsolutePath();
         Notifier.toast(activity, msg);
     }
@@ -239,7 +240,9 @@ public class SettingsController extends GuiController {
             if (!exportName.endsWith(".db"))
                 exportName += ".db";
             File target = new File(downloadDir, exportName);
-            CopyService.copyStream(new FileInputStream(file), new FileOutputStream(target));
+            try (FileInputStream in = new FileInputStream(file); FileOutputStream out = new FileOutputStream(target)) {
+                in.transferTo(out);
+            }
         });
         Notifier.toast(activity, "databases exported to download folder");
     }

@@ -1,7 +1,5 @@
 package de.mel.util;
 
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.RootDirectory;
 import de.mel.filesync.data.conflict.Conflict;
@@ -25,7 +23,6 @@ import java.nio.file.Files;
  */
 public class AnalyseConflictDb {
     public static void main(String[] args) throws Exception {
-        AbstractFile.configure(new DefaultFileConfiguration());
         String serviceUUid = "test uuid";
         File workingDirectory = new File("delete_me_workdir");
         workingDirectory.mkdirs();

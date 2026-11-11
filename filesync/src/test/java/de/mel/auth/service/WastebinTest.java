@@ -11,7 +11,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import de.mel.auth.file.IFile;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.bash.FsBashDetails;
 import de.mel.filesync.service.Wastebin;
@@ -113,10 +112,10 @@ public class WastebinTest {
     }
 
     private void assertFoundInBin(String what) throws Exception {
-        IFile inBin = bin().getByHash(md5);
+        File inBin = bin().getByHash(md5);
         assertNotNull(inBin, what + ": the bin does not know the file. the bin holds " + binListing());
         assertTrue(inBin.exists(), what + ": the bin knows the file, but it is not there. the bin holds " + binListing());
-        assertEquals(md5, FileSyncInstances.md5Of(new File(inBin.getAbsolutePath())), what + ": the bin gives another file");
+        assertEquals(md5, FileSyncInstances.md5Of(inBin), what + ": the bin gives another file");
         assertNoUnnamedWaste();
     }
 
@@ -135,14 +134,10 @@ public class WastebinTest {
         FsFile fsFile = entry("same.bin");
         assertNotNull(fsFile, what + ": no fs entry");
         assertTrue(fsFile.getSynced().v(), what + ": the fs entry says the file is not here");
-        FsBashDetails disk = BashTools.Companion.getFsBashDetails(AbstractFileOf(file));
+        FsBashDetails disk = BashTools.Companion.getFsBashDetails(file);
         assertEquals(disk.getiNode(), fsFile.getiNode().v(), what + ": the fs entry does not have the inode of the file");
         assertEquals(disk.getModified(), fsFile.getModified().v(), what + ": the fs entry does not have the time of the file");
         assertEquals(file.length(), fsFile.getSize().v(), what + ": the fs entry does not have the size of the file");
-    }
-
-    private static IFile AbstractFileOf(File file) {
-        return de.mel.auth.file.AbstractFile.instance(file);
     }
 
     @Test

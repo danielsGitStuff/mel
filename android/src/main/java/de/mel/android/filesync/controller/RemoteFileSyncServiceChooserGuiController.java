@@ -16,7 +16,6 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 
-import de.mel.auth.file.IFile;
 import de.mel.auth.service.Bootloader;
 
 import fun.with.promise.Promise;
@@ -33,11 +32,9 @@ import de.mel.android.Notifier;
 import de.mel.android.Tools;
 import de.mel.android.controller.RemoteServiceChooserController;
 import de.mel.android.filesync.AndroidFileSyncBootloader;
-import de.mel.android.file.SAFAccessor;
 import de.mel.android.file.StoragesManager;
 import de.mel.android.file.chooserdialog.DirectoryChooserDialog;
 import de.mel.auth.data.db.ServiceJoinServiceType;
-import de.mel.auth.file.AbstractFile;
 import de.mel.auth.service.MelAuthService;
 import de.mel.filesync.data.FileSyncDetails;
 import de.mel.filesync.data.FileSyncSettings;
@@ -62,7 +59,7 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
     private Long wastebinSize;
     // this is required for android 5+ only.
     private Uri rootTreeUri;
-    private IFile rootFile;
+    private File rootFile;
     private RelativeLayout container;
 
     private void showIncompatibleState() {
@@ -99,7 +96,7 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
         showNormalState();
     }
 
-    public IFile getRootFile() {
+    public File getRootFile() {
         return rootFile;
     }
 
@@ -115,8 +112,8 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
             return;
         }
 
-        IFile[] rootDirs = StoragesManager.getStorageFiles(Tools.getApplicationContext());
-        Promise<IFile, Void> result = DirectoryChooserDialog.showDialog(activity, rootDirs);
+        File[] rootDirs = StoragesManager.getStorageFiles(Tools.getApplicationContext());
+        Promise<File, Void> result = DirectoryChooserDialog.showDialog(activity, rootDirs);
         result.onDone(chosenDir -> {
             setPath(chosenDir.getAbsolutePath());
         });
@@ -139,19 +136,6 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
         btnPath.setOnClickListener(view -> {
             // explain permissions to user first
             launchDirChooser();
-//            List<String> permissions = Arrays.stream(new AndroidFileSyncBootloader().getPermissions()).map(a -> a.getPermission()).collect(Collectors.toList());
-//            activity.askUserForPermissions(permissions.toArray(new String[0])
-//                    , permissionsGrantedListener
-//                    , R.string.permissionRequiredTitle
-//                    , getPermissionsText()
-//                    , () -> {
-//                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//                            SAFAccessor.setupAllStorages(activity).onDone(result -> launchDirChooser());
-//                        } else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT) {
-//                            launchDirChooser();
-//                        }
-//                    }
-//                    , result -> Notifier.toast(activity, R.string.toastDrivePermissionsRequired));
         });
         maxSizeSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -252,7 +236,7 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
         File dir = new File(path);
         totalSpace = dir.getTotalSpace();
         availableSpace = dir.getUsableSpace();
-        rootFile = AbstractFile.instance(path);
+        rootFile = new File(path);
         adjustMaxWasteBinRatio();
     }
 
@@ -262,15 +246,15 @@ public class RemoteFileSyncServiceChooserGuiController extends RemoteServiceChoo
 
     public boolean isValid() {
         final String path = txtPath.getText().toString();
-        return AbstractFile.instance(path).exists();
+        boolean ok = new File(path).exists();
+        if (!isServer())
+            ok &= this.getSelectedService() != null;
+        return ok;
     }
 
     @Override
     public boolean onOkClicked() {
         if (rootFile == null || !rootFile.exists())
-            return false;
-        if (SAFAccessor.hasExternalSdCard() && (rootFile.getAbsolutePath().startsWith(SAFAccessor.getExternalSDPath()))
-                && !SAFAccessor.canWriteExternal())
             return false;
         return true;
     }

@@ -6,8 +6,6 @@ import fun.with.promise.Promise;
 import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.data.MelRequest;
 import de.mel.auth.data.db.Certificate;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.MelStrings;
 import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.socket.process.reg.IRegisterHandler;
@@ -181,7 +179,6 @@ public class RegistrationTest {
     }
 
     private void startInstances(RecordingHandler serverUser, RecordingHandler clientUser) throws Exception {
-        AbstractFile.configure(new DefaultFileConfiguration());
         // fresh ports for every test: the previous test's sockets may linger a moment after shutdown
         int base = nextPortBase.getAndAdd(10);
         server = boot("regtest-SERVER", base, base + 1, base + 4, base + 5);

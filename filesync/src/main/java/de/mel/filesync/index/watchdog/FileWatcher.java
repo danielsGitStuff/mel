@@ -2,7 +2,6 @@ package de.mel.filesync.index.watchdog;
 
 import de.mel.DeferredRunnable;
 import de.mel.Lok;
-import de.mel.auth.file.IFile;
 import de.mel.auth.tools.lock2.BunchOfLocks;
 import de.mel.filesync.data.PathCollection;
 import de.mel.filesync.index.IndexListener;
@@ -61,7 +60,7 @@ public abstract class FileWatcher extends DeferredRunnable implements IndexListe
         return taken;
     }
 
-    protected synchronized void addEventPath(IFile file) {
+    protected synchronized void addEventPath(File file) {
         pathCollection.addPath(file);
     }
 
@@ -73,7 +72,7 @@ public abstract class FileWatcher extends DeferredRunnable implements IndexListe
         this.stageIndexer = stageIndexer;
     }
 
-    public abstract void watchDirectory(IFile dir) throws IOException;
+    public abstract void watchDirectory(File dir) throws IOException;
 
     @Override
     public void done(Long stageSetId, BunchOfLocks bunchOfLocks) {

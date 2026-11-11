@@ -7,8 +7,6 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.File;
 import java.util.Map;
 
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.data.FileSyncStrings;
@@ -38,7 +36,6 @@ public class ConflictDecisionsTest {
     @BeforeEach
     public void before() throws Exception {
         BashTools.Companion.init();
-        AbstractFile.configure(new DefaultFileConfiguration());
         File rootFile = new File(dir, "root");
         rootFile.mkdirs();
         FileSyncSettings settings = new FileSyncSettings()
@@ -49,7 +46,7 @@ public class ConflictDecisionsTest {
                 .setMaxWastebinSize(9999999L)
                 .setRootDirectory(RootDirectory.buildRootDirectory(rootFile))
                 .setUseSymLinks(false)
-                .setTransferDirectory(AbstractFile.instance(AbstractFile.instance(dir), "transfer.dir"));
+                .setTransferDirectory(new File(dir, "transfer.dir"));
         databaseManager = new FileSyncDatabaseManager("test service", dir, settings);
         stageDao = databaseManager.getStageDao();
         FsDirectory root = (FsDirectory) databaseManager.getFsDao().insert(new FsDirectory().setName("root").setVersion(0L).setModified(12L).setDepth(0).setPath(""));

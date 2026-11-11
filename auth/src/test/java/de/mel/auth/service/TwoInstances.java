@@ -7,8 +7,6 @@ import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.data.MelRequest;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.data.db.Service;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.socket.MelAuthSocket;
 import de.mel.auth.socket.MelSocket;
@@ -111,7 +109,6 @@ public class TwoInstances implements AutoCloseable {
      */
     @SafeVarargs
     TwoInstances(File dir, int portBase, IRegisterHandler serverUser, IRegisterHandler clientUser, Class<? extends Bootloader<? extends MelService>>... bootloaders) throws Exception {
-        AbstractFile.configure(new DefaultFileConfiguration());
         this.bootloaders = bootloaders;
         server = boot(dir, "SERVER", portBase, portBase + 1, portBase + 4, portBase + 6, bootloaders);
         client = boot(dir, "CLIENT", portBase + 2, portBase + 3, portBase + 5, portBase + 7, bootloaders);

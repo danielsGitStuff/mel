@@ -1,8 +1,8 @@
 package de.mel.filesync.sql.dao
 
+import java.io.File
 import java.util.HashMap
 
-import de.mel.auth.file.AbstractFile
 import de.mel.auth.tools.N
 import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer
 import de.mel.filesync.bash.FsBashDetails
@@ -53,7 +53,7 @@ class FileDistTaskDao(sqlQueries: ISQLQueries) : Dao(sqlQueries, false) {
         task.sourceHash = taskWrapper.sourceHash.v()
         task.deleteSource = taskWrapper.deleteSource.v()
         if (taskWrapper.sourcePath.notNull())
-            task.sourceFile = AbstractFile.instance(taskWrapper.sourcePath.v())
+            task.sourceFile = File(taskWrapper.sourcePath.v())
         if (taskWrapper.size.notNull()) {
             val bashDetails = SerializableEntityDeserializer.deserialize(taskWrapper.sourceDetails.v()) as FsBashDetails
             task.setOptionals(bashDetails, taskWrapper.size.v())
@@ -62,7 +62,7 @@ class FileDistTaskDao(sqlQueries: ISQLQueries) : Dao(sqlQueries, false) {
         val whereToo = dummyFW.taskId.k() + "=?"
         val fileWrappers = sqlQueries.load(dummyFW.allAttributes, dummyFW, whereToo, ISQLQueries.args(taskWrapper.id.v()))
         N.forEach(fileWrappers) { fileWrapper ->
-            val targetFile = AbstractFile.instance(fileWrapper.getTargetPath().v())
+            val targetFile = File(fileWrapper.getTargetPath().v())
             task.addTargetFile(targetFile, fileWrapper.getTargetFsId().v())
         }
         task.initFromPaths()

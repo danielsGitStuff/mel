@@ -7,9 +7,6 @@ import fun.with.promise.Promise;
 import de.mel.Lok;
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.MelAuthSettings;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.DefaultFileConfiguration;
-import de.mel.auth.file.IFile;
 import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.tools.CountLock;
 import de.mel.auth.tools.N;
@@ -40,8 +37,8 @@ public class FileSyncTest {
     public static N runner = new N(Throwable::printStackTrace);
     public static MelAuthSettings jsonClient = createJsonClient();
     public static MelAuthSettings jsonServer = createJsonServer();
-    public static IFile testdirServer;
-    public static IFile testdirClient;
+    public static File testdirServer;
+    public static File testdirClient;
 
     public static MelAuthSettings createJsonClient() {
         MelAuthSettings settings = new MelAuthSettings().setPort(8890).setDeliveryPort(8891)
@@ -92,11 +89,10 @@ public class FileSyncTest {
 
     @BeforeEach
     public void before() throws IOException {
-        AbstractFile.configure(new DefaultFileConfiguration());
         BashTools.Companion.init();
         lock = new RWLock();
-        testdirServer = AbstractFile.instance("testdir1");
-        testdirClient = AbstractFile.instance("testdir2");
+        testdirServer = new File("testdir1");
+        testdirClient = new File("testdir2");
         BashTools.Companion.rmRf(MelBoot.Companion.getDefaultWorkingDir1());
         BashTools.Companion.rmRf(MelBoot.Companion.getDefaultWorkingDir2());
         BashTools.Companion.rmRf(testdirServer);

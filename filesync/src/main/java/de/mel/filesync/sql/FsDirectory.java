@@ -1,12 +1,12 @@
 package de.mel.filesync.sql;
 
 import de.mel.Lok;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
 import de.mel.auth.tools.N;
 import de.mel.core.serialize.JsonIgnore;
 import de.mel.sql.Hash;
 import de.mel.sql.Pair;
+
+import java.io.File;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -101,13 +101,13 @@ public class FsDirectory extends FsEntry {
     }
 
     @JsonIgnore
-    protected IFile original;
+    protected File original;
 
-    public IFile getOriginal() {
+    public File getOriginal() {
         return original;
     }
 
-    public FsDirectory setOriginalFile(IFile original) {
+    public FsDirectory setOriginalFile(File original) {
         this.original = original;
         return this;
     }
@@ -121,8 +121,8 @@ public class FsDirectory extends FsEntry {
         return subDirectories;
     }
 
-    public FsDirectory(IFile dir) {
-        if (!dir.isFile()) {
+    public FsDirectory(File dir) {
+        if (dir.isDirectory()) {
             name.v(dir.getName());
             original = dir;
         } else {
@@ -148,19 +148,21 @@ public class FsDirectory extends FsEntry {
         isDirectory.v(true);
     }
 
-    public IFile[] listFiles() {
+    public File[] listFiles() {
         if (original == null) {
-            // ...
+            return new File[0];
         }
-        return original.listFiles();
+        File[] files = original.listFiles(File::isFile);
+        return files != null ? files : new File[0];
     }
 
 
-    public IFile[] listDirectories() {
+    public File[] listDirectories() {
         if (original == null) {
-            // ...
+            return new File[0];
         }
-        return original.listDirectories();
+        File[] dirs = original.listFiles(File::isDirectory);
+        return dirs != null ? dirs : new File[0];
     }
 
 

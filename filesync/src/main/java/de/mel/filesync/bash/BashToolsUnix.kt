@@ -1,9 +1,6 @@
 package de.mel.filesync.bash
 
 import de.mel.Lok
-import de.mel.auth.file.AbstractFile
-import de.mel.auth.file.IFile
-import de.mel.auth.file.StandardFile
 import de.mel.auth.tools.N
 
 import java.io.BufferedReader
@@ -18,8 +15,8 @@ import java.util.concurrent.Executors
 /**
  * Created by xor on 13.07.2017.
  */
-open class BashToolsUnix : BashTools<StandardFile>() {
-    override fun lnS(file: StandardFile, target: String) {
+open class BashToolsUnix : BashTools() {
+    override fun lnS(file: File, target: String) {
         val proc = ProcessBuilder("ln", "-s", File(target).absolutePath, file.absolutePath).start()
         proc.waitFor()
     }
@@ -55,7 +52,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
      * @param file
      * @return
      */
-    fun escapeQuotedAbsoluteFilePath(file: StandardFile): String {
+    fun escapeQuotedAbsoluteFilePath(file: File): String {
         return ("\"${escapeAbsoluteFilePath(file)}\"")
     }
 
@@ -65,7 +62,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
      * @param file
      * @return
      */
-    fun escapeAbsoluteFilePath(file: StandardFile): String {
+    fun escapeAbsoluteFilePath(file: File): String {
         return escapePath(file.absolutePath)
 
     }
@@ -84,7 +81,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
 
     // todo null
     @Throws(IOException::class, InterruptedException::class)
-    override fun getFsBashDetails(file: StandardFile): FsBashDetails? {
+    override fun getFsBashDetails(file: File): FsBashDetails? {
         val args = arrayOf("stat", "-c", "%i %W %F", file.absolutePath)
         val proc = ProcessBuilder(*args).unfrench().start()
 //        proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false
@@ -124,7 +121,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
     /**
      * parses an output line from stat
      */
-    private fun parseSymLink(file: StandardFile, line: String): String {
+    private fun parseSymLink(file: File, line: String): String {
         var symLinkTarget: String? = null
         val originalSym = line
         val parentCanonical = file.getParentFile()!!.canonicalPath
@@ -139,34 +136,37 @@ open class BashToolsUnix : BashTools<StandardFile>() {
         return symLinkTarget
     }
 
-    override fun getContentFsBashDetails(directory: StandardFile): MutableMap<String, FsBashDetails> {
+    override fun getContentFsBashDetails(directory: File): MutableMap<String, FsBashDetails> {
         val map = mutableMapOf<String, FsBashDetails>()
         // the shell expands the globs; the directory is passed as $1 so it needs no escaping.
         // the second glob also returns "." and ".."
-        val script = "stat -c '%i // %W // %F // %n' \"\$1\"/* \"\$1\"/.*"
-        val args = arrayOf(BIN_PATH, "-c", script, BIN_PATH, directory.absolutePath)
-
-        val proc = ProcessBuilder(*args).unfrench().start()
-//        proc.waitFor(); // this line sometimes hangs. Process.exitcode is 0 and Process.hasExited is false
+        val cmd = "stat -c '%n|%i|%W|%F|%Y' \"$1\"/* \"$1\"/.* 2>/dev/null"
+        val proc = ProcessBuilder(BIN_PATH, "-c", cmd, "_", directory.absolutePath).unfrench().start()
         val reader = BufferedReader(InputStreamReader(proc.inputStream))
-        reader.lines().forEach { line ->
-            val parts = line.split("\\ //\\ ".toRegex()).toTypedArray()
-
-//                val parts = line.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-            val iNode = java.lang.Long.parseLong(parts[0])
-            val created = if (readCreated) java.lang.Long.parseLong(parts[1]) * 1000 else null
-            val symLink = parts[2].startsWith("sym")
-            val absolutePath = parts[3]
-            val f = File(absolutePath)
-            val name = f.name
-            val modified = f.lastModified()
-            var symLinkTarget: String? = null
-            if (symLink) {
-                // the target as it is stored in the link (not resolved)
-                symLinkTarget = Files.readSymbolicLink(Paths.get(absolutePath)).toString()
+        var line: String? = reader.readLine()
+        while (line != null) {
+            val parts = line.split("|")
+            val absolute = parts[0]
+            val iNode = parts[1].toLong()
+            val created = if (readCreated) parts[2].toLong() * 1000 else null
+            val symLink = parts[3].startsWith("sym")
+            val modified = parts[4].toLong() * 1000
+            val file = File(absolute)
+            val name = file.name
+            // skip "." and ".."
+            if (name.isNotEmpty() && name != "." && name != "..") {
+                val symLinkTarget: String? = if (symLink)
+                    try {
+                        parseSymLink(file, Files.readSymbolicLink(Paths.get(file.absolutePath)).toString())
+                    } catch (e: Exception) {
+                        null
+                    }
+                else
+                    null
+                val details = createFsBashDetails(created, modified, iNode, symLink, symLinkTarget, name)
+                map[name] = details
             }
-            val details = createFsBashDetails(created, modified, iNode, symLink, symLinkTarget, name) //FsBashDetails(created, modified, iNode, symLink, symLinkTarget, name)
-            map[details.name] = details
+            line = reader.readLine()
         }
         return map
     }
@@ -177,18 +177,15 @@ open class BashToolsUnix : BashTools<StandardFile>() {
      * @param directory
      */
     @Throws(IOException::class)
-    override fun rmRf(directory: StandardFile) {
+    override fun rmRf(directory: File) {
         val args = arrayOf(BIN_PATH, "-c", "rm -rf " + escapeQuotedAbsoluteFilePath(directory))
         val proc = ProcessBuilder(*args).start()
         N.oneLine { proc.waitFor() }
     }
 
     @Throws(IOException::class, BashToolsException::class)
-    override fun stuffModifiedAfter(referenceFile: StandardFile, directory: StandardFile, pruneDir: StandardFile): List<StandardFile> {
+    override fun stuffModifiedAfter(referenceFile: File, directory: File, pruneDir: File): List<File> {
         Lok.debug("BashTools.Companion.stuffModifiedAfter: " + referenceFile.getName() + " mod: " + referenceFile.lastModified())
-        //        String cmd = "find \"" + directory.getAbsolutePath() + "\"  "
-        //                + " -path \"" + pruneDir + "\" -prune"
-        //                + " -o -newer \"" + referenceFile.getAbsolutePath() + "\" -print";
         val cmd = ("find " + escapeQuotedAbsoluteFilePath(directory)
                 + " -path " + escapeQuotedAbsoluteFilePath(pruneDir) + " -prune"
                 + " -o -newercc " + escapeQuotedAbsoluteFilePath(referenceFile) + " -print")
@@ -198,11 +195,10 @@ open class BashToolsUnix : BashTools<StandardFile>() {
         processBuilder.redirectErrorStream(true)
         val proc = processBuilder.start()
         Lok.debug("BashTools.Companion.stuffModifiedAfter.collecting.result")
-        val result = ArrayList<StandardFile>()
-        val iterator = BufferedIterator.BufferedFileIterator<StandardFile>(InputStreamReader(proc.inputStream))
+        val result = ArrayList<File>()
+        val iterator = BufferedIterator.BufferedFileIterator(InputStreamReader(proc.inputStream))
         while (iterator.hasNext()) {
             val path = iterator.next()
-//            Lok.debug(javaClass.simpleName + ".stuffModifiedAfter.collected: " + path)
             result.add(path)
         }
         Lok.debug("BashTools.Companion.stuffModifiedAfter.collecting.done")
@@ -210,7 +206,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
     }
 
     @Throws(IOException::class)
-    private fun exec(cmd: String): AutoKlausIterator<StandardFile> {
+    private fun exec(cmd: String): AutoKlausIterator<File> {
         val args = arrayOf(BIN_PATH, "-c", cmd)
         Lok.debug("BashToolsUnix.exec: $cmd")
         val proc = ProcessBuilder(*args).start()
@@ -218,9 +214,8 @@ open class BashToolsUnix : BashTools<StandardFile>() {
     }
 
     @Throws(IOException::class)
-    override fun find(directory: StandardFile, pruneDir: StandardFile): AutoKlausIterator<StandardFile> {
+    override fun find(directory: File, pruneDir: File): AutoKlausIterator<File> {
         return exec("find ${escapeQuotedAbsoluteFilePath(directory)} -path ${escapeQuotedAbsoluteFilePath(pruneDir)} -prune -o -print")
-//        return exec("find " + escapeQuotedAbsoluteFilePath(directory) + " -mindepth 1" + " -path " + escapeQuotedAbsoluteFilePath(pruneDir) + " -prune -o -print")
     }
 
 
@@ -271,7 +266,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
     private val findByTime: Boolean by lazy {
         val dir = Files.createTempDirectory("mel.find.test").toFile()
         try {
-            val proc = ProcessBuilder(BIN_PATH, "-c", "find ${escapeQuotedAbsoluteFilePath(StandardFile(dir.absolutePath))} -newerct 1970-01-01T00:00:00Z -print").redirectErrorStream(true).start()
+            val proc = ProcessBuilder(BIN_PATH, "-c", "find ${escapeQuotedAbsoluteFilePath(dir)} -newerct 1970-01-01T00:00:00Z -print").redirectErrorStream(true).start()
             val out = proc.inputStream.bufferedReader().readText()
             proc.waitFor() == 0 && out.trim() == dir.absolutePath
         } catch (e: Exception) {
@@ -286,12 +281,12 @@ open class BashToolsUnix : BashTools<StandardFile>() {
     /**
      * `find` by the change time (ctime): what is new, modified, renamed or copied with an old modified time. [timeStamp] is rounded down to the second, so a bit more is found, never less.
      */
-    private fun findChangedAfter(directory: StandardFile, pruneDir: StandardFile, timeStamp: Long): AutoKlausIterator<StandardFile> {
+    private fun findChangedAfter(directory: File, pruneDir: File, timeStamp: Long): AutoKlausIterator<File> {
         // year 9999. Nothing is changed after that, and the format ends there
         if (timeStamp > 253402300799000L)
-            return object : AutoKlausIterator<StandardFile> {
+            return object : AutoKlausIterator<File> {
                 override fun hasNext(): Boolean = false
-                override fun next(): StandardFile = throw NoSuchElementException()
+                override fun next(): File = throw NoSuchElementException()
                 override fun close() {}
             }
         val time = java.time.format.DateTimeFormatter.ISO_INSTANT.format(java.time.Instant.ofEpochSecond(Math.floorDiv(Math.max(timeStamp, 0L), 1000L)))
@@ -302,7 +297,7 @@ open class BashToolsUnix : BashTools<StandardFile>() {
      * Everything below [directory] that was modified after [timeStamp] (ms), except what lives in [pruneDir].
      * [directory] itself is included if it was modified at or after [timeStamp]. Same semantics as the Windows implementation.
      */
-    override fun stuffModifiedAfter(directory: StandardFile, pruneDir: StandardFile, timeStamp: Long): AutoKlausIterator<StandardFile> {
+    override fun stuffModifiedAfter(directory: File, pruneDir: File, timeStamp: Long): AutoKlausIterator<File> {
         if (canFindByTime())
             return findChangedAfter(directory, pruneDir, timeStamp)
         val root = Paths.get(directory.absolutePath)
@@ -315,11 +310,11 @@ open class BashToolsUnix : BashTools<StandardFile>() {
                 val modified = f.lastModified()
                 !pruned && if (path == root) modified >= timeStamp else modified > timeStamp
             }
-            .map { StandardFile(it.toFile().absolutePath) }
+            .map { it.toFile() }
             .iterator()
-        return object : AutoKlausIterator<StandardFile> {
+        return object : AutoKlausIterator<File> {
             override fun hasNext(): Boolean = iterator.hasNext()
-            override fun next(): StandardFile = iterator.next()
+            override fun next(): File = iterator.next()
             override fun close() = stream.close()
         }
     }

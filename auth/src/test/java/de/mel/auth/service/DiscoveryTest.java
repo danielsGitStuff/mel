@@ -4,8 +4,6 @@ import de.mel.auth.MelStrings;
 import de.mel.auth.broadcast.MelAuthBrotCaster;
 import de.mel.auth.data.MelAuthSettings;
 import de.mel.auth.data.NetworkEnvironment;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.service.power.PowerManager;
 import de.mel.auth.tools.CountLock;
 import de.mel.auth.tools.Promises;
@@ -108,7 +106,6 @@ public class DiscoveryTest {
     }
 
     private void start(int base) throws Exception {
-        AbstractFile.configure(new DefaultFileConfiguration());
         server = boot("discovery-SERVER", base, base + 1, base + 4, base + 5);
         client = boot("discovery-CLIENT", base + 2, base + 3, base + 5, base + 4);
     }

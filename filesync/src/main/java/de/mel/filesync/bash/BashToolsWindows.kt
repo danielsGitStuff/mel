@@ -1,8 +1,6 @@
 package de.mel.filesync.bash
 
 import de.mel.Lok
-import de.mel.auth.file.AbstractFile
-import de.mel.auth.file.StandardFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -18,9 +16,9 @@ import java.nio.file.attribute.BasicFileAttributeView
  * Reason: Windoof permits creating symlinks without higher privileges in out of the box configuration
  * Created by xor on 13.07.2017.
  */
-class BashToolsWindows : BashTools<StandardFile>() {
-    override fun getContentFsBashDetails(file: StandardFile): MutableMap<String, FsBashDetails> {
-        val contents: Array<out StandardFile>? = file.listContent()
+class BashToolsWindows : BashTools() {
+    override fun getContentFsBashDetails(file: File): MutableMap<String, FsBashDetails> {
+        val contents: Array<out File>? = file.listFiles()
 
         val symLinkMap: MutableMap<String, String> = mutableMapOf()
         val iNodeMap: MutableMap<String, Long> = mutableMapOf()
@@ -35,7 +33,7 @@ class BashToolsWindows : BashTools<StandardFile>() {
                     val start = end - 34;
                     val id = fsUtil.substring(start, end)
                     val iNode = java.lang.Long.decode(id)
-                    iNodeMap[it.getName()] = iNode
+                    iNodeMap[it.name] = iNode
                 }
             }
 
@@ -67,7 +65,7 @@ class BashToolsWindows : BashTools<StandardFile>() {
                         it.iterator().forEach {
                             val readPath = driveLetter + it
                             if (path != readPath)
-                                symLinkMap[f.getName()] = readPath
+                                symLinkMap[f.name] = readPath
                         }
                     }
                 }
@@ -76,9 +74,9 @@ class BashToolsWindows : BashTools<StandardFile>() {
         }
         val map: MutableMap<String, FsBashDetails> = mutableMapOf()
         contents?.forEach {
-            val name = it.getName()
+            val name = it.name
             val isSymLink = symLinkMap.containsKey(name)
-            val attr = Files.getFileAttributeView(Paths.get(File(it.absolutePath).toURI()), BasicFileAttributeView::class.java).readAttributes()
+            val attr = Files.getFileAttributeView(Paths.get(it.toURI()), BasicFileAttributeView::class.java).readAttributes()
             val details = FsBashDetails(attr.creationTime().toMillis(), attr.lastModifiedTime().toMillis(), iNodeMap[name], isSymLink, symLinkMap[name], name)
             map[name] = details
         }
@@ -86,9 +84,9 @@ class BashToolsWindows : BashTools<StandardFile>() {
     }
 
     @Throws(IOException::class)
-    override fun getFsBashDetails(file: StandardFile): FsBashDetails {
+    override fun getFsBashDetails(file: File): FsBashDetails {
         var iNode: Long? = null
-        val name = file.getName()
+        val name = file.name
         var isSymLink: Boolean = false
         var symLinkTarget: String? = null
         var created: Long? = null
@@ -111,7 +109,7 @@ class BashToolsWindows : BashTools<StandardFile>() {
                     isSymLink = true
             }
             launch {
-                val attr = Files.getFileAttributeView(Paths.get(File(file.absolutePath).toURI()), BasicFileAttributeView::class.java).readAttributes()
+                val attr = Files.getFileAttributeView(Paths.get(file.toURI()), BasicFileAttributeView::class.java).readAttributes()
                 created = attr.creationTime().toMillis()
                 modified = attr.lastModifiedTime().toMillis()
             }
@@ -119,7 +117,7 @@ class BashToolsWindows : BashTools<StandardFile>() {
         return FsBashDetails(created, modified, iNode!!, isSymLink, symLinkTarget, name)
     }
 
-    override fun lnS(file: StandardFile, targetString: String) {
+    override fun lnS(file: File, targetString: String) {
         // we are limited to two ways of using 'mklink' here.
         // /J works for directories whereas /H works for linking files
         val target = File(targetString)
@@ -127,19 +125,18 @@ class BashToolsWindows : BashTools<StandardFile>() {
         exec("mklink", param, file.absolutePath, targetString).waitFor()
     }
 
-
-    override fun isSymLink(f: StandardFile): Boolean {
-        if (Files.isSymbolicLink(Paths.get(File(f.absolutePath).toURI())))
+    override fun isSymLink(f: File): Boolean {
+        if (Files.isSymbolicLink(Paths.get(f.toURI())))
             return true
         val path = f.absolutePath
         if (f.isDirectory) {
             // check if junction
             var countDown = 5;
-            execReader("dir", "/al", f.getParentFile()!!.absolutePath)?.useLines {
+            execReader("dir", "/al", f.parentFile!!.absolutePath)?.useLines {
                 it.iterator().forEach {
                     if (countDown == 0) {
                         var stripped = it.substringAfter("<JUNCTION>").substring(5)
-                        if (stripped.startsWith(f.getName())) {
+                        if (stripped.startsWith(f.name)) {
                             return true
                         }
                     }
@@ -166,19 +163,19 @@ class BashToolsWindows : BashTools<StandardFile>() {
         Lok.debug("BashToolsWindows.setBinPath")
     }
 
-    private fun getSymLink(f: StandardFile): String? {
-        if (Files.isSymbolicLink(Paths.get(File(f.absolutePath).toURI())))
-            return Files.readSymbolicLink(Paths.get(File(f.absolutePath).toURI())).toFile().absolutePath
+    private fun getSymLink(f: File): String? {
+        if (Files.isSymbolicLink(Paths.get(f.toURI())))
+            return Files.readSymbolicLink(Paths.get(f.toURI())).toFile().absolutePath
         val path = f.absolutePath
         if (f.isDirectory) {
             // check if junction
             var countDown = 5;
-            execReader("dir", "/al", f.getParentFile()!!.absolutePath)?.useLines {
+            execReader("dir", "/al", f.parentFile!!.absolutePath)?.useLines {
                 it.iterator().forEach {
                     if (countDown == 0) {
                         var stripped = it.substringAfter("<JUNCTION>").substring(5)
-                        if (stripped.startsWith(f.getName())) {
-                            stripped = stripped.substringAfter(f.getName()).trim()
+                        if (stripped.startsWith(f.name)) {
+                            stripped = stripped.substringAfter(f.name).trim()
                             stripped = stripped.substring(1, stripped.length - 1)
                             if (path != stripped)
                                 return stripped
@@ -205,78 +202,70 @@ class BashToolsWindows : BashTools<StandardFile>() {
     }
 
     @Throws(IOException::class)
-    override fun rmRf(directory: StandardFile) {
-        //        exec("rd /s /q \"" + directory.getAbsolutePath() + "\"");
+    override fun rmRf(directory: File) {
         exec("rd", "/s", "/q", directory.absolutePath).waitFor()
-//        Files.delete(Paths.get(File(directory.absolutePath).toURI()))
-
     }
 
-    private fun buildArgs(vararg commands: String): Array<String?> {
-        val result = arrayOfNulls<String>(commands.size + 2)
-        result[0] = BIN_PATH
-        result[1] = "/c"
-        var i = 2
-        for (command in commands) {
-            result[i] = command
-            i++
-        }
-        return result
-    }
-
-    @Throws(IOException::class)
-    private fun exec(vararg commands: String): Process {
-//        Lok.debug("BashToolsWindows.exec: " + Arrays.toString(commands));
-        val args = buildArgs(*commands)
-        val process = ProcessBuilder(*args).start()
+    private fun exec(vararg cmd: String): Process {
+        val wholeCmd = arrayOf(BIN_PATH, "/c") + cmd
+        Lok.debug("BashToolsWindows.exec: " + wholeCmd.joinToString(" "))
+        val process = ProcessBuilder(*wholeCmd).start()
         return process
     }
 
-    @Throws(IOException::class)
-    private fun execLine(vararg commands: String): String? {
-        try {
-            val process = exec(*commands)
-            val reader = BufferedReader(InputStreamReader(process.inputStream))
-            return reader.readLine()
-        } catch (e: Exception) {
-            e.printStackTrace()
+    private fun execLine(vararg cmd: String): String? {
+        val reader = execReader(*cmd)
+        val line = reader?.readLine()
+        reader?.close()
+        return line
+    }
+
+    private fun execReader(vararg cmd: String): WindowsPowerReader? {
+        val wholeCmd = arrayOf(BIN_PATH, "/c") + cmd
+        val process = ProcessBuilder(*wholeCmd).start()
+        val reader = WindowsPowerReader(InputStreamReader(process.inputStream, CHARSET))
+        return reader
+    }
+
+    class WindowsPowerReader(ins: Reader) : BufferedReader(ins) {
+        private var prependLine: String? = null
+
+        fun addFirstLine(line: String): WindowsPowerReader {
+            this.prependLine = line
+            return this
         }
 
-        return null
+        fun prependLine(prependLine: String?) {
+            this.prependLine = prependLine
+        }
+
+        override fun readLine(): String? {
+            if (prependLine != null) {
+                val line = prependLine
+                prependLine = null
+                return line
+            } else
+                return super.readLine()
+        }
     }
 
     @Throws(IOException::class)
-    private fun execReader(vararg commands: String): WindowsBashReader? {
-        try {
-            val process = exec(*commands)
-//            process.waitFor()
-            return WindowsBashReader(InputStreamReader(process.inputStream, CHARSET))
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-        return null
-    }
-
-    @Throws(IOException::class)
-    override fun find(directory: StandardFile, pruneDir: StandardFile): AutoKlausIterator<StandardFile> {
-        return object : AutoKlausIterator<StandardFile> {
+    override fun find(directory: File, pruneDir: File): AutoKlausIterator<File> {
+        return object : AutoKlausIterator<File> {
             val windowsBashReader = execReader("dir", "/b/s", directory.absolutePath, "|", "findstr", "/vc:\"" + pruneDir.absolutePath + "\"")!!
                     .addFirstLine(directory.absolutePath)
             val iterator = windowsBashReader!!.lines()
-                    .map { it: String -> AbstractFile.instance(it) as StandardFile }.iterator()
+                    .map { File(it) }.iterator()
 
             override fun hasNext(): Boolean = iterator.hasNext()
 
-            override fun next(): StandardFile = iterator.next()
+            override fun next(): File = iterator.next()
 
             override fun close() {
                 windowsBashReader!!.close()
             }
 
         }
-
-        //.map<AFile>(Function<String, AFile> { it:String -> AFile.instance(it) }).iterator()
     }
 
     @Throws(IOException::class, InterruptedException::class)
@@ -289,32 +278,26 @@ class BashToolsWindows : BashTools<StandardFile>() {
         stdin.close()
         val reader = WindowsPowerReader(InputStreamReader(process.inputStream))
         reader.prependLine(prependLine)
-        //process.waitFor();
         return reader
-//        return reader.lines().map(Function<String, AFile<*>> { s: String -> AFile.instance(s) })
     }
 
     @Throws(IOException::class, InterruptedException::class)
-    override fun stuffModifiedAfter(directory: StandardFile, pruneDir: StandardFile, timeStamp: Long): AutoKlausIterator<StandardFile> {
+    override fun stuffModifiedAfter(directory: File, pruneDir: File, timeStamp: Long): AutoKlausIterator<File> {
         val winTimeStamp = timeStamp / 1000.0
         var prependLine: String? = null
-        val lm = directory.lastModified()
-        // todo null
-        if (directory.lastModified()!! >= timeStamp) {
+        if (directory.lastModified() >= timeStamp) {
             prependLine = directory.absolutePath
         }
         val command = "get-childitem \"" + directory.absolutePath + "\" -recurse | " +
                 "where {(Get-Date(\$_.LastWriteTime.ToUniversalTime()) -UFormat \"%s\") -gt " + winTimeStamp + " -and -not \$_.FullName.StartsWith(\"" + pruneDir.absolutePath + "\")} " +
                 "| foreach {\$_.FullName}"
-        return object : AutoKlausIterator<StandardFile> {
+        return object : AutoKlausIterator<File> {
             val windowsBashReader = execPowerShell(command, prependLine)
-            val iterator = windowsBashReader.lines().map { AbstractFile.instance(it) as StandardFile }.iterator()
+            val iterator = windowsBashReader.lines().map { File(it) }.iterator()
 
             override fun hasNext(): Boolean = iterator.hasNext()
 
-
-            override fun next(): StandardFile = iterator.next()
-
+            override fun next(): File = iterator.next()
 
             override fun close() {
                 windowsBashReader.close()
@@ -328,5 +311,5 @@ class BashToolsWindows : BashTools<StandardFile>() {
         private val CHARSET = StandardCharsets.ISO_8859_1
     }
 
-    override fun stuffModifiedAfter(referenceFile: StandardFile, directory: StandardFile, pruneDir: StandardFile): List<StandardFile> = mutableListOf()
+    override fun stuffModifiedAfter(referenceFile: File, directory: File, pruneDir: File): List<File> = mutableListOf()
 }

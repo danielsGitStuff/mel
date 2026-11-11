@@ -2,8 +2,6 @@ package de.mel.filesync.index;
 
 import de.mel.DeferredRunnable;
 import de.mel.Lok;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.Order;
 import de.mel.filesync.bash.BashTools;
@@ -19,6 +17,8 @@ import de.mel.sql.SqlQueriesException;
 import fun.with.promise.Promise;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 
@@ -58,7 +58,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         return null;
     }
 
-    protected void initStage(String stageSetType, Iterator<IFile> iterator, FileWatcher fileWatcher, long basedOnVersion) throws IOException, SqlQueriesException {
+    protected void initStage(String stageSetType, Iterator<File> iterator, FileWatcher fileWatcher, long basedOnVersion) throws IOException, SqlQueriesException {
         initialStageSet = stageDao.createStageSet(stageSetType, null, null, null, basedOnVersion);
         if (initialIndexConflictHelper != null)
             initialIndexConflictHelper.onStart(initialStageSet);
@@ -66,17 +66,17 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         this.initialStageSetId = initialStageSet.getId().v();
 
         while (iterator.hasNext()) {
-            IFile f = iterator.next();
+            File f = iterator.next();
             String name = f.getAbsolutePath().length() > rootPathLength ? f.getName() : "";
-            IFile parent = f.getParentFile();
+            File parent = f.getParentFile();
             String path = parent.getAbsolutePath().length() >= rootPathLength ? parent.getAbsolutePath().substring(rootPathLength) + "/" : "";
             Stage stage = new Stage().setStageSet(initialStageSetId);
             stage.setSynced(true); // true because this is an observation on the file system.
             stage.setPath(path).setName(name);
             stage.setOrder(order.ord());
             if (stage.getDepthPair().isNull()) {
-                IFile root = AbstractFile.instance(this.databaseManager.getFileSyncSettings().getRootDirectory().getPath());
-                IFile fileUp = f;
+                File root = new File(this.databaseManager.getFileSyncSettings().getRootDirectory().getPath());
+                File fileUp = f;
                 int depth = 0;
                 while (!root.getAbsolutePath().equals(fileUp.getAbsolutePath()) && fileUp.getAbsolutePath().length() > root.getAbsolutePath().length()) {
                     fileUp = fileUp.getParentFile();
@@ -101,8 +101,8 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         return databaseManager.getFileSyncSettings().getRootDirectory().getPath();
     }
 
-    private IFile fileOf(String path, String name) {
-        return AbstractFile.instance(rootPath() + path + name);
+    private File fileOf(String path, String name) {
+        return new File(rootPath() + path + name);
     }
 
     private static boolean isRoot(String path, String name) {
@@ -158,7 +158,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             return examinedStages.get(key);
         if (unchangedPaths.contains(key))
             return null;
-        IFile file = isRoot(path, name) ? AbstractFile.instance(rootPath()) : fileOf(path, name);
+        File file = isRoot(path, name) ? new File(rootPath()) : fileOf(path, name);
         GenericFSEntry fsEntry = fsDao.getGenericByPathAndName(path, name);
         Stage stage = new Stage().setStageSet(examinedStageSetId).setPath(path).setName(name);
         stage.setSynced(true); // true because this is an observation on the file system.
@@ -216,12 +216,18 @@ public abstract class AbstractIndexer extends DeferredRunnable {
      * Sets the content hash of the directory stage (names of what is in it). If it is the one the fs table has nothing was added or removed.
      * Otherwise whatever is new or gone is examined as well, a new directory is examined down to its leaves.
      */
-    private void examineDirectory(Stage stage, IFile dir, @Nullable GenericFSEntry fsDirectory) throws SqlQueriesException {
+    private void examineDirectory(Stage stage, File dir, @Nullable GenericFSEntry fsDirectory) throws SqlQueriesException {
         Map<String, Boolean> onDisk = new HashMap<>(); // name -> is directory
-        for (IFile f : dir.listDirectories())
-            onDisk.put(f.getName(), true);
-        for (IFile f : dir.listFiles())
-            onDisk.put(f.getName(), false);
+        File[] dirs = dir.listFiles(File::isDirectory);
+        if (dirs != null) {
+            for (File f : dirs)
+                onDisk.put(f.getName(), true);
+        }
+        File[] diskFiles = dir.listFiles(File::isFile);
+        if (diskFiles != null) {
+            for (File f : diskFiles)
+                onDisk.put(f.getName(), false);
+        }
         boolean root = isRoot(stage.getPath(), stage.getName());
         if (root)
             onDisk.remove(FileSyncStrings.TRANSFER_DIR);
@@ -318,8 +324,12 @@ public abstract class AbstractIndexer extends DeferredRunnable {
             Stage stage = stages.getNext();
             while (stage != null) {
                 // gone files have the hash of the fs table, so only files that exist
-                IFile file = fileOf(stage.getPath(), stage.getName());
-                stage.setContentHash(Hash.md5(file.inputStream()));
+                File file = fileOf(stage.getPath(), stage.getName());
+                try {
+                    stage.setContentHash(Hash.md5(new FileInputStream(file)));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 stageDao.update(stage);
                 stage = stages.getNext();
             }

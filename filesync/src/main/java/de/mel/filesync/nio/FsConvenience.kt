@@ -1,8 +1,6 @@
 package de.mel.filesync.nio
 
 import de.mel.Lok
-import de.mel.auth.file.IFile
-import de.mel.auth.file.StandardFile
 import de.mel.filesync.sql.FsEntry
 import java.io.File
 import java.io.IOException
@@ -22,7 +20,7 @@ interface FsConvenience {
      *
      * @return true if the file has the time now
      */
-    fun applyModified(file: IFile, fsFile: FsEntry?): Boolean
+    fun applyModified(file: File, fsFile: FsEntry?): Boolean
 
     /**
      * Puts a copy of [source] at [destination], which must not exist: a reference that costs no space if the file system has them, a physical copy if [physicalAllowed].
@@ -31,7 +29,7 @@ interface FsConvenience {
      * @throws IOException if it failed half way; a copy that was not made because it would have to be physical is [CopyResult.NOT_DONE]
      */
     @Throws(IOException::class)
-    fun copy(source: IFile, destination: IFile, physicalAllowed: Boolean = true): CopyResult
+    fun copy(source: File, destination: File, physicalAllowed: Boolean = true): CopyResult
 
     /**
      * true if a place for a file that cannot be had without a physical copy is not wanted at all: the fs entry for it is dropped (see [ReferencesOnly]).
@@ -44,10 +42,10 @@ interface FsConvenience {
  * For a service that must never store content twice: copies are references or they are not made, and an entry whose copy was not made is dropped.
  */
 class ReferencesOnly(private val delegate: FsConvenience) : FsConvenience {
-    override fun applyModified(file: IFile, fsFile: FsEntry?): Boolean = delegate.applyModified(file, fsFile)
+    override fun applyModified(file: File, fsFile: FsEntry?): Boolean = delegate.applyModified(file, fsFile)
 
     @Throws(IOException::class)
-    override fun copy(source: IFile, destination: IFile, physicalAllowed: Boolean): CopyResult = delegate.copy(source, destination, false)
+    override fun copy(source: File, destination: File, physicalAllowed: Boolean): CopyResult = delegate.copy(source, destination, false)
 
     override val copiesAreOptional: Boolean
         get() = true
@@ -68,7 +66,7 @@ enum class CopyResult {
  * What works everywhere: the modified time as far as the file allows it, and physical copies.
  */
 open class DefaultFsConvenience : FsConvenience {
-    override fun applyModified(file: IFile, fsFile: FsEntry?): Boolean {
+    override fun applyModified(file: File, fsFile: FsEntry?): Boolean {
         val time = fsFile?.modified?.v() ?: return false
         return try {
             file.setLastModified(time)
@@ -79,7 +77,7 @@ open class DefaultFsConvenience : FsConvenience {
     }
 
     @Throws(IOException::class)
-    override fun copy(source: IFile, destination: IFile, physicalAllowed: Boolean): CopyResult {
+    override fun copy(source: File, destination: File, physicalAllowed: Boolean): CopyResult {
         if (!physicalAllowed)
             return CopyResult.NOT_DONE
         physicalCopy(source, destination)
@@ -87,18 +85,15 @@ open class DefaultFsConvenience : FsConvenience {
     }
 
     @Throws(IOException::class)
-    protected fun physicalCopy(source: IFile, destination: IFile) {
-        val ins = source.inputStream() ?: throw IOException("could not read from ${source.absolutePath}")
+    protected fun physicalCopy(source: File, destination: File) {
+        val ins = source.inputStream()
         try {
-            val out = destination.writer() ?: throw IOException("could not write to ${destination.absolutePath}")
+            val out = destination.outputStream()
             try {
                 val buffer = ByteArray(BUFFER_SIZE)
-                var position = 0L
                 var read = ins.read(buffer)
                 while (read > 0) {
-                    // the second argument is the position in the target file, not in the buffer
-                    out.append(buffer, position, read)
-                    position += read
+                    out.write(buffer, 0, read)
                     read = ins.read(buffer)
                 }
             } catch (e: Exception) {
@@ -110,7 +105,7 @@ open class DefaultFsConvenience : FsConvenience {
         } finally {
             ins.close()
         }
-        source.lastModified()?.let { destination.setLastModified(it) }
+        destination.setLastModified(source.lastModified())
     }
 
     companion object {
@@ -128,15 +123,15 @@ open class UnixFsConvenience : DefaultFsConvenience() {
     private var referencesWork = true
 
     @Throws(IOException::class)
-    override fun copy(source: IFile, destination: IFile, physicalAllowed: Boolean): CopyResult {
-        if (referencesWork && source is StandardFile && destination is StandardFile) {
+    override fun copy(source: File, destination: File, physicalAllowed: Boolean): CopyResult {
+        if (referencesWork) {
             if (reference(source, destination))
                 return CopyResult.REFERENCE
         }
         return super.copy(source, destination, physicalAllowed)
     }
 
-    private fun reference(source: StandardFile, destination: StandardFile): Boolean {
+    private fun reference(source: File, destination: File): Boolean {
         return try {
             val process = ProcessBuilder("cp", "--reflink=always", "--preserve=timestamps", "--", source.absolutePath, destination.absolutePath)
                     .redirectErrorStream(true)
@@ -144,13 +139,13 @@ open class UnixFsConvenience : DefaultFsConvenience() {
             val output = process.inputStream.bufferedReader().readText()
             if (!process.waitFor(30, TimeUnit.SECONDS)) {
                 process.destroyForcibly()
-                File(destination.absolutePath).delete()
+                destination.delete()
                 return false
             }
             if (process.exitValue() == 0)
                 return true
             // nothing of it may stay, a half made destination would be taken for the copy
-            File(destination.absolutePath).delete()
+            destination.delete()
             // "not supported" and "cross device" will be the same next time, a full disk or a vanished file will not
             if (output.contains("not supported", true) || output.contains("cross-device", true) || output.contains("invalid argument", true) || output.contains("unrecognized option", true) || output.contains("invalid option", true)) {
                 Lok.debug("no references on this file system: $output")

@@ -1,7 +1,5 @@
 package de.mel.filesync.data;
 
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.IFile;
 import de.mel.core.serialize.JsonIgnore;
 import de.mel.core.serialize.SerializableEntity;
 import de.mel.core.serialize.deserialize.entity.SerializableEntityDeserializer;
@@ -17,18 +15,15 @@ public class RootDirectory implements SerializableEntity {
     private String path;
     @JsonIgnore
     private RootDirectory backup;
-    private IFile originalFile;
+    @JsonIgnore
+    private File originalFile;
     private Long id;
 
     public RootDirectory() {
 
     }
 
-    public static RootDirectory buildRootDirectory(File rootFile) throws IOException, JsonDeserializationException, JsonSerializationException, IllegalAccessException {
-        return buildRootDirectory(AbstractFile.instance(rootFile));
-    }
-
-    public static RootDirectory buildRootDirectory(IFile rootFile) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException, IOException {
+    public static RootDirectory buildRootDirectory(File rootFile) throws IllegalAccessException, JsonSerializationException, JsonDeserializationException, IOException {
         String path = rootFile.getCanonicalPath();
         RootDirectory rootDirectory = new RootDirectory().setPath(path);
         rootDirectory.setOriginalFile(rootFile);
@@ -63,7 +58,7 @@ public class RootDirectory implements SerializableEntity {
         return this;
     }
 
-    public RootDirectory setOriginalFile(IFile originalFile) {
+    public RootDirectory setOriginalFile(File originalFile) {
         this.originalFile = originalFile;
         return this;
     }
@@ -77,7 +72,7 @@ public class RootDirectory implements SerializableEntity {
         return this;
     }
 
-    public IFile getOriginalFile() {
-        return AbstractFile.instance(path);
+    public File getOriginalFile() {
+        return new File(path);
     }
 }

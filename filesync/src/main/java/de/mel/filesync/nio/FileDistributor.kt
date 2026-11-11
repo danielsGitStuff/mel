@@ -3,8 +3,6 @@ package de.mel.filesync.nio
 import de.mel.Lok
 import de.mel.MelRunnable
 import de.mel.auth.MelNotification
-import de.mel.auth.file.AbstractFile
-import de.mel.auth.file.IFile
 import de.mel.auth.service.MelAuthService
 import de.mel.auth.tools.N
 import de.mel.filesync.bash.BashTools
@@ -15,8 +13,7 @@ import java.io.File
 import java.io.IOException
 import java.util.*
 
-@Suppress("FINITE_BOUNDS_VIOLATION_IN_JAVA")
-open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>) : MelRunnable {
+open class FileDistributor(val fileSyncService: MelFileSyncService<*>) : MelRunnable {
     /**
      * Set while the service is suspended: the thread ends after the task it works on, jobs that come meanwhile wait in the database until [resume].
      */
@@ -44,7 +41,7 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
             set
 
 
-        fun createInstance(fileSyncService: MelFileSyncService<*>): FileDistributor<*> = factory!!.createInstance(fileSyncService)
+        fun createInstance(fileSyncService: MelFileSyncService<*>): FileDistributor = factory!!.createInstance(fileSyncService)
     }
 
     fun isRunning() = running
@@ -147,8 +144,8 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
         distributionTask.initFromPaths()
 
         // do the actual work
-        val targetStack = Stack<T>()
-        distributionTask.targetFiles.forEach { targetStack.push(it as T) }
+        val targetStack = Stack<File>()
+        distributionTask.targetFiles.forEach { targetStack.push(it) }
 
         val targetPathStack = Stack<String>()
         targetPathStack.addAll(distributionTask.targetPaths)
@@ -156,7 +153,7 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
         val targetIds = Stack<Long>()
         targetIds.addAll(distributionTask.targetFsIds)
 
-        val sourceFile: T = AbstractFile.instance(distributionTask.sourceFile.absolutePath) as T
+        val sourceFile: File = File(distributionTask.sourceFile.absolutePath)
 
         // ...the last file is arbitrary
         val lastFile = targetStack.pop()
@@ -193,7 +190,7 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
      * Call with the lock of the fs table: a stage set that is committed meanwhile puts its copy of the table in place at its end and would undo this.
      * @return null if the entry is gone or wants other content now (changed while the file was moved or copied): it is not this file's any more
      */
-    protected fun updateFs(fsId: Long?, target: T, hash: String?): FsFile? {
+    protected fun updateFs(fsId: Long?, target: File, hash: String?): FsFile? {
         val fsTarget = fsDao.getFile(fsId)
         if (fsTarget == null || (hash != null && hash != fsTarget.contentHash.v())) {
             Lok.debug("fs entry $fsId gone or changed while ${target.absolutePath} was placed")
@@ -212,14 +209,14 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
         return fsTarget
     }
 
-    open protected fun moveFile(sourceFile: T, lastFile: T, lastPath: String, lastId: Long?) {
+    open protected fun moveFile(sourceFile: File, lastFile: File, lastPath: String, lastId: Long?) {
         val f = File(sourceFile.absolutePath)
         f.renameTo(File(lastFile.absolutePath))
 
     }
 
     @Throws(IOException::class)
-    protected fun copyFile(source: T, target: T, targetPath: String, fsId: Long?, mayBeLeftOut: Boolean = false, hash: String? = null) {
+    protected fun copyFile(source: File, target: File, targetPath: String, fsId: Long?, mayBeLeftOut: Boolean = false, hash: String? = null) {
         if (target.exists())
             throw  IOException("file already exists")
         val convenience = fileSyncService.fsConvenience
@@ -247,7 +244,7 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
      * @throws IOException if the file is not at the target afterwards, or still at the source
      */
     @Throws(IOException::class)
-    fun moveBlocking(source: T, target: T, fsId: Long?) {
+    fun moveBlocking(source: File, target: File, fsId: Long?) {
         moveFile(source, target, target.absolutePath, fsId)
         if (!target.exists() || source.exists())
             throw IOException("could not move ${source.absolutePath} to ${target.absolutePath}")
@@ -262,6 +259,4 @@ open class FileDistributor<T : IFile>(val fileSyncService: MelFileSyncService<*>
         if (!active.get() && fileDistTaskDao.hasWork())
             fileSyncService.execute(this)
     }
-
-
 }

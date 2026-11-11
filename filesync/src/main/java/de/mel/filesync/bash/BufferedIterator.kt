@@ -1,8 +1,7 @@
 package de.mel.filesync.bash
 
-import de.mel.auth.file.AbstractFile
-import de.mel.auth.file.IFile
 import java.io.BufferedReader
+import java.io.File
 import java.io.Reader
 import java.util.*
 
@@ -36,10 +35,9 @@ abstract class BufferedIterator<T>(ins: Reader) : BufferedReader(ins), AutoKlaus
         }
     }
 
-    class BufferedFileIterator<T : IFile>(ins: Reader) : BufferedIterator<T>(ins) {
-
-        override fun convert(line: String): T {
-            return AbstractFile.instance(line!!) as T
+    class BufferedFileIterator(ins: Reader) : BufferedIterator<File>(ins) {
+        override fun convert(line: String): File {
+            return File(line)
         }
     }
 

@@ -8,9 +8,6 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.DefaultFileConfiguration;
-
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FsConvenienceStressTest {
@@ -19,7 +16,6 @@ public class FsConvenienceStressTest {
 
     @Test
     public void manyCopiesOfTheSameFileAreAllThere() throws Exception {
-        AbstractFile.configure(new DefaultFileConfiguration());
         List<String> problems = new ArrayList<>();
         for (int size : new int[]{0, 30_000}) {
             for (int round = 0; round < 200; round++) {
@@ -30,7 +26,7 @@ public class FsConvenienceStressTest {
                 Files.write(source.toPath(), new byte[size]);
                 for (int i = 0; i < 5; i++) {
                     File target = new File(round_dir, "c" + i);
-                    CopyResult result = convenience.copy(AbstractFile.instance(source), AbstractFile.instance(target), true);
+                    CopyResult result = convenience.copy(source, target, true);
                     if (!target.exists() || target.length() != size)
                         problems.add("size " + size + " round " + round + " copy " + i + ": " + result + ", exists " + target.exists());
                 }

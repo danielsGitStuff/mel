@@ -10,9 +10,6 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.DefaultFileConfiguration;
-import de.mel.auth.file.IFile;
 import de.mel.filesync.bash.AutoKlausIterator;
 import de.mel.filesync.bash.BashTools;
 
@@ -32,7 +29,6 @@ public class UnixReferenceFileHandlerTest {
 
     @BeforeEach
     public void before() throws Exception {
-        AbstractFile.configure(new DefaultFileConfiguration());
         BashTools.Companion.init();
         Assumptions.assumeTrue(BashTools.Companion.canFindByTime(), "this find cannot take a time");
         root = new File(dir, "root");
@@ -42,14 +38,14 @@ public class UnixReferenceFileHandlerTest {
     }
 
     private UnixReferenceFileHandler handler() {
-        UnixReferenceFileHandler handler = new UnixReferenceFileHandler(work, AbstractFile.instance(root), AbstractFile.instance(transfer));
+        UnixReferenceFileHandler handler = new UnixReferenceFileHandler(work, root, transfer);
         handler.onStart();
         return handler;
     }
 
-    private static List<String> names(List<IFile> found) {
+    private static List<String> names(List<File> found) {
         List<String> names = new ArrayList<>();
-        for (IFile file : found)
+        for (File file : found)
             names.add(file.getName());
         return names;
     }
@@ -108,7 +104,7 @@ public class UnixReferenceFileHandlerTest {
 
     @Test
     public void aDirectoryThatIsNotThereFindsNothing() throws Exception {
-        UnixReferenceFileHandler handler = new UnixReferenceFileHandler(work, AbstractFile.instance(new File(dir, "does not exist")), AbstractFile.instance(transfer));
+        UnixReferenceFileHandler handler = new UnixReferenceFileHandler(work, new File(dir, "does not exist"), transfer);
         handler.onStart();
         assertEquals(0, handler.stuffModifiedAfter().size());
     }
