@@ -63,8 +63,8 @@ public class AndroidFileSyncBootloader extends FileSyncBootloader implements And
 
         // create the actual MelDrive service
         FileSyncCreateServiceHelper fileSyncCreateServiceHelper = createCreateServiceHelper(melAuthService);
-        if (driveCreateGuiController.isValid())
-            N.rte(() -> {
+        if (driveCreateGuiController.isValid()) {
+            N.thread(() -> {
                 String name = driveCreateGuiController.getName();
                 File rootFile = driveCreateGuiController.getRootFile();
                 if (driveCreateGuiController.isServer()) {
@@ -83,6 +83,7 @@ public class AndroidFileSyncBootloader extends FileSyncBootloader implements And
                     //promise.done(melDriveClientService -> N.r(() -> melDriveClientService.syncThisClient()));
                 }
             });
+        }
         else
             throw new RuntimeException("Service configuration is invalid.");
     }
