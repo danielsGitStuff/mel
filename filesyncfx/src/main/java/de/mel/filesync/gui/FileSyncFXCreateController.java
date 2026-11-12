@@ -3,7 +3,6 @@ package de.mel.filesync.gui;
 import de.mel.MelRunnable;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.data.db.ServiceJoinServiceType;
-import de.mel.auth.file.AbstractFile;
 import de.mel.auth.gui.EmbeddedServiceSettingsFX;
 import de.mel.auth.gui.XCBFix;
 import de.mel.auth.service.MelAuthAdminFX;
@@ -107,21 +106,21 @@ public class FileSyncFXCreateController extends EmbeddedServiceSettingsFX {
         return N.result(() -> {
             final String name = txtName.getText().trim();
             final boolean isServer = this.isServerSelected();
-            final String path = txtPath.getText();
+            final File path = new File(txtPath.getText());
             final boolean useSymLinks = !cbIgnoreSymLinks.isSelected();
             return createInstance(name, isServer, path, useSymLinks);
         }, false);
     }
 
-    protected boolean createInstance(final String name, final boolean isServer, final String path, final boolean useSymLinks) {
+    protected boolean createInstance(final String name, final boolean isServer, final File path, final boolean useSymLinks) {
         return N.result(() -> {
             FileSyncCreateServiceHelper fileSyncCreateServiceHelper = new FileSyncCreateServiceHelper(melAuthService);
             if (isServer)
-                fileSyncCreateServiceHelper.createServerService(name, AbstractFile.instance(path), 0.1f, 30, useSymLinks);
+                fileSyncCreateServiceHelper.createServerService(name, path, 0.1f, 30, useSymLinks);
             else {
                 Certificate certificate = this.getSelectedCertificate();
                 ServiceJoinServiceType serviceJoinServiceType = this.getSelectedService();
-                fileSyncCreateServiceHelper.createClientService(name, AbstractFile.instance(path), certificate.getId().v(), serviceJoinServiceType.getUuid().v(), 0.1f, 30, useSymLinks);
+                fileSyncCreateServiceHelper.createClientService(name, path, certificate.getId().v(), serviceJoinServiceType.getUuid().v(), 0.1f, 30, useSymLinks);
             }
             return true;
         }, false);

@@ -10,7 +10,7 @@
     <TextField  fx:id="txtName" maxWidth="1.7976931348623157E308" text="%create.exampleName"/>
     <Label styleClass="lbl-center-section" text="%create.path"/>
     <HBox>
-        <TextField fx:id="txtPath" text="/home/xor/Downloads/mel/" HBox.hgrow="ALWAYS"/>
+        <TextField fx:id="txtPath" text="~/Downloads/mel/" HBox.hgrow="ALWAYS"/>
         <Button styleClass="btn" fx:id="btnPath" text="%create.btn.path"/>
     </HBox>
 

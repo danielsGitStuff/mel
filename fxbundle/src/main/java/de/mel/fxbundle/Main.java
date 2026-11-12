@@ -3,8 +3,6 @@ package de.mel.fxbundle;
 import de.mel.Lok;
 import de.mel.auth.MelStrings;
 import de.mel.auth.data.MelAuthSettings;
-import de.mel.auth.file.AbstractFile;
-import de.mel.auth.file.DefaultFileConfiguration;
 import de.mel.auth.gui.RegisterHandlerFX;
 import de.mel.auth.service.MelAuthFxLoader;
 import de.mel.auth.service.MelBoot;
@@ -45,7 +43,6 @@ public class Main {
         FieldSerializerFactoryRepository.addAvailableSerializerFactory(PrimitiveCollectionSerializerFactory.getInstance());
         FieldSerializerFactoryRepository.addAvailableDeserializerFactory(PrimitiveCollectionDeserializerFactory.getInstance());
         CurrentJar.initCurrentJarClass(Main.class);
-        AbstractFile.configure(new DefaultFileConfiguration());
         BashTools.Companion.init();
     }
 
