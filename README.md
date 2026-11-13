@@ -4,8 +4,6 @@ If you are looking for a solution to synchronize files and contacts between vari
 It has no "cloud" thing built in and is intended for home network use. 
 The main scenario (I guess?) is doing synchronization work in the background when you are sleeping and your phone plugged into the charger.
 
-[The homepage is here](https://xorserv.spdns.de)
-
 ## When to use and when not to use?
 When:
 - You want to share files or contacts between your devices
@@ -31,10 +29,11 @@ All services come with a client/server role. By design all server services do no
   - comes with conflict solution (if files have been altered differently across devices)
   - supports symlinks on Linux (sort of for Windows too)
 - File Dump
-  - a one way backup: clients send their files to a server, nothing comes back
-  - keeps everything: files deleted or changed on the client stay on the server
-  - the content hash counts: content that the server has already is neither transferred nor stored again, whatever its name
-  - the folder structure of the client is kept as far as it is free; a file name that is taken by other content gets the date of its last modification added
+  - think of it as a one way file synchronisation service
+  - client sends all files of a folder to the server
+  - files deleted on the client are not deleted on the server
+  - folder structure remains
+  - server automatically resolves conflicts by adding dates and IDs to duplicate file names
   
 Syncing can be delayed (and it is by default) until certain conditions hold:
 - you have WiFi
@@ -96,7 +95,7 @@ Note: this protocol is not compatible with versions that still had the old secre
 
 
 ## License
-You can find all licenses and according modules and usage under `auth/src/main/resources/de/mel/auth/licences.html`.
+You can find all licenses and according modules and usage under [licenses.html](auth/src/main/resources/de/mel/auth/licences.html).
 
 ## Current issues
 - does not work on MacOS (won't be addressed: too expensive, no FileWatcher)
