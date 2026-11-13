@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadFactory;
 
 import de.mel.Lok;
+import de.mel.auth.data.MelServiceProperties;
 import de.mel.auth.data.ServicePayload;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.jobs.Job;
@@ -56,6 +57,11 @@ public class ContactsClientService extends ContactsService {
     @Override
     public void onBootLevel1Finished() {
 
+    }
+
+    @Override
+    public MelServiceProperties<?> getServiceProperties() {
+        return null;
     }
 
     @Override

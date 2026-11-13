@@ -52,8 +52,8 @@ public class RemoteServiceChooserFX extends AuthSettingsFX {
     }
 
     @Override
-    public boolean onPrimaryClicked() {
-        return embeddedServiceSettingsFX.onPrimaryClicked();
+    public boolean onPrimaryClicked(MelAuthAdminFX melAuthAdminFX) {
+        return embeddedServiceSettingsFX.onPrimaryClicked(melAuthAdminFX);
     }
 
     public boolean isServerSelected() {

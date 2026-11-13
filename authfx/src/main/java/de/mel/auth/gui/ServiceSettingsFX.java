@@ -54,13 +54,13 @@ public abstract class ServiceSettingsFX<T extends MelService> extends AuthSettin
     }
 
     @Override
-    public boolean onPrimaryClicked() {
+    public boolean onPrimaryClicked(MelAuthAdminFX melAuthAdminFX) {
         applyName();
         return false;
     }
 
     @Override
-    public void onSecondaryClicked() {
+    public void onSecondaryClicked(MelAuthAdminFX melAuthAdminFX) {
         N.r(() -> service.onShutDown());
         N.r(() -> {
             Service dbService = melAuthService.getDatabaseManager().getServiceByUuid(service.getUuid());

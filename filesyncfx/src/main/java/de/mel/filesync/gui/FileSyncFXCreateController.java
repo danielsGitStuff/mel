@@ -85,7 +85,7 @@ public class FileSyncFXCreateController extends EmbeddedServiceSettingsFX {
     }
 
     @Override
-    public boolean onPrimaryClicked() {
+    public boolean onPrimaryClicked(MelAuthAdminFX melAuthAdminFX) {
         File dir = new File(txtPath.getText());
         if (!dir.exists()) {
 

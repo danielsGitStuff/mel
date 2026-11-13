@@ -28,7 +28,7 @@ public class GeneralSettingsFX extends AuthSettingsFX {
     private TextField txtName, txtPort, txtSslPort, txtLogToDB;
 
     @Override
-    public boolean onPrimaryClicked() {
+    public boolean onPrimaryClicked(MelAuthAdminFX melAuthAdminFX) {
         Lok.debug("GeneralSettingsFX.onPrimaryClicked");
         MelAuthSettings settings = melAuthService.getSettings();
         settings.setName(txtName.getText());

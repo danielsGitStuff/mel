@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<VBox xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="de.mel.filesync.gui.FileSyncFXPropertiesBaseController">
+    <GridPane maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS"  hgap="8" vgap="4">
+        <columnConstraints>
+            <ColumnConstraints hgrow="NEVER"/>
+            <ColumnConstraints hgrow="ALWAYS"/>
+        </columnConstraints>
+        <Label styleClass="lbl-kv-left" text="%edit.role" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <Label styleClass="lbl-kv-right" fx:id="lblRole" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        <Label styleClass="lbl-kv-left" text="%edit.name" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <TextField styleClass="lbl-kv-right" fx:id="txtName" maxWidth="1.7976931348623157E308" text="Example Name"
+                   GridPane.columnIndex="1"
+                   GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" editable="false"/>
+        <Label styleClass="lbl-kv-left" text="%edit.path" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+        <TextField styleClass="lbl-kv-right" editable="false" fx:id="txtPath" text="/home/xor/Documents/seminar/"
+                   GridPane.hgrow="ALWAYS" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+        <Label styleClass="lbl-kv-left" text="%prop.space.free" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+        <Label styleClass="lbl-kv-right" fx:id="lblSpaceFree" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+        <Label styleClass="lbl-kv-left" text="%prop.space.total" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+        <Label styleClass="lbl-kv-right" fx:id="lblSpaceTotal" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+
+
+        <rowConstraints>
+            <RowConstraints/>
+            <RowConstraints/>
+            <RowConstraints/>
+            <RowConstraints/>
+        </rowConstraints>
+    </GridPane>
+</VBox>

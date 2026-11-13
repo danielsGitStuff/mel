@@ -2,9 +2,7 @@ package de.mel.web.miniserver
 
 import de.mel.KResult
 import de.mel.auth.data.MelAuthSettings
-import de.mel.sql.Pair
 import java.io.File
-import java.util.*
 
 class ServerConfig : KResult {
     var certPath: String? = null
@@ -13,7 +11,6 @@ class ServerConfig : KResult {
     var certName: String? = null
 
     var privKeyPath: String? = null
-    private val files = HashMap<String, Pair<String>>()
     var httpPort: Int? = null
     var httpsPort: Int? = null
     var authPort: Int = DEFAULT_AUTH
@@ -26,16 +23,6 @@ class ServerConfig : KResult {
     var keepBinaries: Boolean = false
     var preserveLogLinesInDb = 2000L
     var printDebug = false
-
-
-    fun getFiles(): Map<String, Pair<String>> {
-        return files
-    }
-
-    fun addEntry(binaryFile: String, name: String, versionFile: String): ServerConfig {
-        files[binaryFile] = Pair(String::class.java, name, versionFile)
-        return this
-    }
 
     companion object {
         val DEFAULT_WORKING_DIR = File("server")

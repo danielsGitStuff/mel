@@ -4,6 +4,7 @@ import de.mel.auth.service.MelAuthService;
 import de.mel.auth.tools.lock2.BunchOfLocks;
 import de.mel.filesync.index.InitialIndexConflictHelper;
 import de.mel.filesync.index.watchdog.FileWatcherFactory;
+import de.mel.filesync.service.sync.FileSyncServiceProperties;
 import fun.with.promise.PromiseImpl;
 import fun.with.promise.Promise;
 import de.mel.auth.socket.process.transfer.MelIsolatedProcess;
@@ -94,6 +95,13 @@ public abstract class MelFileSyncService<S extends SyncHandler> extends MelServi
             }
         }
         return result;
+    }
+
+    @Override
+    public FileSyncServiceProperties getServiceProperties() {
+        long totalSpace = this.fileSyncSettings.getRootDirectory().getOriginalFile().getTotalSpace();
+        long freeSpace = this.fileSyncSettings.getRootDirectory().getOriginalFile().getFreeSpace();
+        return new FileSyncServiceProperties(this, totalSpace, freeSpace);
     }
 
     /**

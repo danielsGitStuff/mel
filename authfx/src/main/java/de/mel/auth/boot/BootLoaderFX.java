@@ -20,6 +20,8 @@ public interface BootLoaderFX<T extends IMelService> {
 
     String getEditFXML(T melService);
 
+    String getPropertiesFXML(T melService);
+
     String getPopupFXML(IMelService melService, MelNotification dataObject);
 
     String getIconURL();

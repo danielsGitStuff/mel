@@ -26,7 +26,7 @@ public abstract class AuthSettingsFX implements Initializable {
      *
      * @return
      */
-    public abstract boolean onPrimaryClicked();
+    public abstract boolean onPrimaryClicked(MelAuthAdminFX melAuthAdminFX);
 
     public void setMelAuthService(MelAuthServiceImpl melAuthService) {
         this.melAuthService = melAuthService;
@@ -52,7 +52,7 @@ public abstract class AuthSettingsFX implements Initializable {
     /**
      * called when bottom left button is clicked.
      */
-    public void onSecondaryClicked() {
+    public void onSecondaryClicked(MelAuthAdminFX melAuthAdminFX) {
 
     }
 

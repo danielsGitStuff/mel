@@ -17,7 +17,7 @@ public class OthersSettingsFX extends AuthSettingsFX {
     private Certificate selectedCert;
 
     @Override
-    public boolean onPrimaryClicked() {
+    public boolean onPrimaryClicked(MelAuthAdminFX melAuthAdminFX) {
         N.r(() -> {
             if (selectedCert != null) {
                 melAuthService.getCertificateManager().deleteCertificate(selectedCert);

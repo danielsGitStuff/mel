@@ -2,6 +2,7 @@ package de.mel.filesync.gui;
 
 import de.mel.Lok;
 import de.mel.auth.data.db.ServiceJoinServiceType;
+import de.mel.auth.service.MelAuthAdminFX;
 import de.mel.filesync.data.FileSyncSettings;
 import de.mel.filesync.service.MelFileSyncClientService;
 import javafx.fxml.FXML;
@@ -18,7 +19,7 @@ public class FileSyncFXEditClientController extends FileSyncFXEditBaseController
     private Button btnSync;
 
     @Override
-    public boolean onPrimaryClicked() {
+    public boolean onPrimaryClicked(MelAuthAdminFX melAuthAdminFX) {
         applyName();
         return false;
     }

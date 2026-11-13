@@ -16,7 +16,7 @@ public class ErrorController extends AuthSettingsFX {
     private TextArea txtJson;
 
     @Override
-    public boolean onPrimaryClicked() {
+    public boolean onPrimaryClicked(MelAuthAdminFX melAuthAdminFX) {
 
         return false;
     }

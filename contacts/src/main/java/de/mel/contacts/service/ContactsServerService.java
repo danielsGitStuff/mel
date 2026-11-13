@@ -2,6 +2,7 @@ package de.mel.contacts.service;
 
 import de.mel.Lok;
 import de.mel.auth.data.ClientData;
+import de.mel.auth.data.MelServiceProperties;
 import de.mel.auth.data.ServicePayload;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.jobs.Job;
@@ -125,5 +126,10 @@ public class ContactsServerService extends ContactsService {
     @Override
     public void handleMessage(ServicePayload payload, Certificate partnerCertificate) {
         addJob(new ServiceRequestHandlerJob().setPayload(payload).setPartnerCertificate(partnerCertificate).setIntent(payload.getIntent()));
+    }
+
+    @Override
+    public MelServiceProperties<?> getServiceProperties() {
+        return null;
     }
 }

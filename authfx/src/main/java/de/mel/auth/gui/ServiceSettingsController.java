@@ -32,8 +32,8 @@ public class ServiceSettingsController extends AuthSettingsFX {
 
 
     @Override
-    public boolean onPrimaryClicked() {
-        return contentController.onPrimaryClicked();
+    public boolean onPrimaryClicked(MelAuthAdminFX melAuthAdminFX) {
+        return contentController.onPrimaryClicked(melAuthAdminFX);
     }
 
     @Override
@@ -43,7 +43,7 @@ public class ServiceSettingsController extends AuthSettingsFX {
 
     @Override
     public String getTitle() {
-        return resources.getString("service.title");
+        return resources.getString("service.settings.title");
     }
 
     @Override
@@ -59,8 +59,8 @@ public class ServiceSettingsController extends AuthSettingsFX {
     }
 
     @Override
-    public void onSecondaryClicked() {
-        contentController.onSecondaryClicked();
+    public void onSecondaryClicked(MelAuthAdminFX melAuthAdminFX) {
+        contentController.onSecondaryClicked(melAuthAdminFX);
     }
 
     public void setContent(Pane pane, ServiceSettingsFX contentController) {

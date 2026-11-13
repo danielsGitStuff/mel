@@ -1,4 +1,4 @@
-.lbl, .lbl-center, .lbl-center-section, .lbl-positive, .lbl-negative, .lbl-section {
+.lbl, .lbl-center, .lbl-center-section, .lbl-positive, .lbl-negative, .lbl-section, .lbl-kv-left, .lbl-kv-right {
     -fx-padding: 5;
 }
 
@@ -35,8 +35,17 @@
     -fx-text-fill: #9eb34d;
 }
 
-.lbl-center-section, .lbl-section {
+.lbl-center-section, .lbl-section, .lbl-kv-left {
     -fx-background-color: #4f4f4f;
+}
+
+.lbl-kv-left {
+    -fx-pref-width: -1;
+    -fx-max-width: Infinity;
+}
+
+.lbl-kv-right {
+    -fx-max-width: Infinity
 }
 
 .lbl-positive {

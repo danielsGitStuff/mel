@@ -20,6 +20,11 @@ public class ContactsFXBootloader extends ContactsBootloader implements BootLoad
     }
 
     @Override
+    public String getPropertiesFXML(ContactsService melService) {
+        return null;
+    }
+
+    @Override
     public boolean embedCreateFXML() {
         return true;
     }
@@ -28,6 +33,8 @@ public class ContactsFXBootloader extends ContactsBootloader implements BootLoad
     public String getEditFXML(ContactsService melService) {
         return (melService instanceof ContactsServerService) ? "de/mel/contacts/editserver.fxml" : "de/mel/contacts/editclient.fxml";
     }
+
+
 
     @Override
     public String getPopupFXML(IMelService melService, MelNotification dataObject) {

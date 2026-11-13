@@ -25,7 +25,7 @@ class BlogThingy(val blogSettings: BlogSettings, sslContext: SSLContext?) : Abst
     val blogAuthenticator = BlogAuthenticator(blogSettings, sslContext != null)
     val subUrl = blogSettings.subUrl
     var visitors: Visitors? = null
-    val pageCache = UrlPageCache(this, 100)
+    val pageCache = UrlPageCache(100)
 
     override val errorPagePath = "/de/mel/web/blog/error.html"
 

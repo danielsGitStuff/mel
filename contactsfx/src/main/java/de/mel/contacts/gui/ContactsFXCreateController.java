@@ -2,6 +2,7 @@ package de.mel.contacts.gui;
 
 import de.mel.auth.gui.EmbeddedServiceSettingsFX;
 import de.mel.auth.service.BootException;
+import de.mel.auth.service.MelAuthAdminFX;
 import de.mel.contacts.ContactsBootloader;
 import de.mel.contacts.data.ContactStrings;
 import de.mel.contacts.data.ContactsSettings;
@@ -29,7 +30,7 @@ public class ContactsFXCreateController extends EmbeddedServiceSettingsFX {
 //    }
 
     @Override
-    public boolean onPrimaryClicked() {
+    public boolean onPrimaryClicked(MelAuthAdminFX melAuthAdminFX) {
         try {
             String name = txtName.getText();
             ContactsBootloader bootloader =(ContactsBootloader)  melAuthService.getMelBoot().getBootLoader(ContactStrings.TYPE);

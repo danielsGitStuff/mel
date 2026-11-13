@@ -9,7 +9,6 @@ import de.mel.auth.gui.controls.UnkownListCell;
 import de.mel.auth.socket.MelValidationProcess;
 import de.mel.auth.tools.N;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import fun.with.promise.Promise;
@@ -30,7 +29,7 @@ public class PairingFX extends AuthSettingsFX {
     private TextField txtAddress, txtPort, txtCertDeliveryPort;
 
     @Override
-    public boolean onPrimaryClicked() {
+    public boolean onPrimaryClicked(MelAuthAdminFX melAuthAdminFX) {
         N.r(() -> {
             Promise<MelValidationProcess, Exception> promise = melAuthService.connect(txtAddress.getText(), Integer.parseInt(txtPort.getText()), Integer.parseInt(txtCertDeliveryPort.getText()), true);
             promise.onDone(result -> discover());

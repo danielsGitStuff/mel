@@ -102,19 +102,6 @@ constructor(val config: ServerConfig) {
         val socketSqlQueries = SetupHelper.setupMelAuthSqlqueries(secretSocketDir)
         socketCertificateManager = CertificateManager(secretSocketDir, socketSqlQueries, config.keySize)
 
-        if (socketCertificateManager.hadToInitialize()) {
-            // new keys -> copy
-            if (!File(secretDir, "cert.cert").exists())
-                Processor.runProcesses("copying cert.cert from socket/ to http/")
-            if (!File(secretDir, "pk.key").exists())
-                Processor.runProcesses("copying pk.key from socket/ to http/")
-            if (!File(secretDir, "pub.key").exists())
-                Processor.runProcesses("copying pub.key from socket/ to http/")
-//            Processor.runProcesses("copy keys after init",
-//                    Processor("cp", File(secretSocketDir, "cert.cert").absolutePath, secretHttpDir.absolutePath),
-//                    Processor("cp", File(secretSocketDir, "pk.key").absolutePath, secretHttpDir.absolutePath),
-//                    Processor("cp", File(secretSocketDir, "pub.key").absolutePath, secretHttpDir.absolutePath))
-        }
         val httpSqlQueries = SetupHelper.setupMelAuthSqlqueries(secretHttpDir)
         httpCertificateManager = CertificateManager(secretHttpDir, httpSqlQueries, config.keySize)
 

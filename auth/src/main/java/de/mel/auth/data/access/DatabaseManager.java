@@ -184,6 +184,10 @@ public final class DatabaseManager extends FileRelatedManager {
         return serviceDao.getAllServices();
     }
 
+    public ServiceJoinServiceType getService(String uuid) throws SqlQueriesException {
+        return this.serviceDao.getService(uuid);
+    }
+
     public List<Approval> getAllApprovals() throws SqlQueriesException {
         return approvalDao.getAllApprovals();
     }

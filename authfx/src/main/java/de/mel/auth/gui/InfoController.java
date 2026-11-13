@@ -26,7 +26,7 @@ public class InfoController extends AuthSettingsFX {
     private ServiceNotificationManager.ServiceStateListener stateListener;
 
     @Override
-    public boolean onPrimaryClicked() {
+    public boolean onPrimaryClicked(MelAuthAdminFX melAuthAdminFX) {
 
         return false;
     }

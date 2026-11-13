@@ -33,6 +33,17 @@ public class ServiceDao extends Dao {
         return services;
     }
 
+    public ServiceJoinServiceType getService(String uuid) throws SqlQueriesException {
+        Service s = new Service();
+        ServiceType t = new ServiceType();
+        ServiceJoinServiceType dummy = new ServiceJoinServiceType();
+        String query = "select s." + s.getId().k() + ",s." + s.getName().k() + ",s." + s.getUuid().k() + ", t." + t.getType().k() + ", t." + t.getDescription().k() + ", s." + s.getActivePair().k()
+                + " from " + s.getTableName() + " s left join " + t.getTableName() + " t on s." + s.getTypeId().k() + "=t." + t.getId().k() + " where s." + s.getUuid().k() + " = ?";
+        List<SQLTableObject> result = sqlQueries.loadString(dummy.getAllAttributes(), dummy, query, List.of(uuid));
+        if (result != null && !result.isEmpty())
+            return (ServiceJoinServiceType) result.getFirst();
+        return null;
+    }
 
     public void update(Service service) throws SqlQueriesException {
         List<Object> args = new ArrayList<>();

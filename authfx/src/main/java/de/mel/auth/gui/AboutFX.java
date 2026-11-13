@@ -41,7 +41,7 @@ public class AboutFX extends AuthSettingsFX {
     private Updater updater;
 
     @Override
-    public boolean onPrimaryClicked() {
+    public boolean onPrimaryClicked(MelAuthAdminFX melAuthAdminFX) {
 
 
         return false;

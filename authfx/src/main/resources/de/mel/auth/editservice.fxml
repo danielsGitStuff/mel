@@ -2,25 +2,33 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Font?>
-<VBox stylesheets="@mel.css" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="de.mel.auth.gui.ServiceSettingsController">
+<GridPane stylesheets="@mel.css" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="de.mel.auth.gui.ServiceSettingsController" hgap="8" vgap="4" maxWidth="1.7976931348623157E308"
+          maxHeight="1.7976931348623157E308">
+    <columnConstraints>
+        <ColumnConstraints hgrow="NEVER"/>
+        <ColumnConstraints hgrow="ALWAYS"/>
+    </columnConstraints>
+    <Label styleClass="lbl-kv-left" text="%service.settings.type" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+    <Label styleClass="lbl-kv-right" fx:id="lblType" text="type goes here" GridPane.rowIndex="0"
+           GridPane.columnIndex="1"/>
+    <Label styleClass="lbl-kv-left" text="%service.settings.name" GridPane.rowIndex="1"
+           GridPane.columnIndex="0"/>
+    <Label styleClass="lbl-kv-right" fx:id="lblName" text="name goes here" GridPane.rowIndex="1"
+           GridPane.columnIndex="1"/>
+    <Label styleClass="lbl-kv-left" text="%service.state" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+    <Label styleClass="lbl-kv-right" fx:id="lblState" text="state goes here"
+           GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+    <Label styleClass="lbl-kv-left" fx:id="lblProgress" visible="false" managed="false"
+           GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+    <ProgressBar fx:id="progressBoot" maxWidth="1.7976931348623157E308" visible="false" managed="false"
+                 GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+    <Label styleClass="lbl-kv-left" text="%service.settings" GridPane.rowIndex="4" GridPane.columnIndex="0"
+           GridPane.columnSpan="2"/>
 
-    <children>
-        <Label styleClass="lbl-center-section" text="%service.type"  />
-        <Label styleClass="lbl" style="-fx-max-width: Infinity" fx:id="lblType" text="type goes here"/>
-        <Label styleClass="lbl-center-section" text="%service.name"  />
-        <Label styleClass="lbl" style="-fx-max-width: Infinity" fx:id="lblName" text="name goes here"/>
-        <Label styleClass="lbl-center-section" text="%service.state"  />
-        <Label styleClass="lbl" style="-fx-max-width: Infinity" fx:id="lblState" text="state goes here"/>
-        <Label styleClass="lbl" style="-fx-max-width: Infinity" fx:id="lblProgress" visible="false" managed="false"/>
-        <ProgressBar fx:id="progressBoot" maxWidth="1.7976931348623157E308" visible="false" managed="false"/>
-        <Label styleClass="lbl-center-section" text="%service.settings"  />
-
-        <VBox maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS" fx:id="content">
+    <VBox maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS" fx:id="content" GridPane.rowIndex="5"
+          GridPane.columnIndex="0" GridPane.hgrow="ALWAYS" GridPane.columnSpan="2">
 
 
-
-        </VBox>
-    </children>
-</VBox>
+    </VBox>
+</GridPane>

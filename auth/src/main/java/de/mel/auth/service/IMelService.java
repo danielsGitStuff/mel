@@ -2,6 +2,7 @@ package de.mel.auth.service;
 
 import de.mel.auth.MelNotification;
 import de.mel.auth.data.IsolationDetails;
+import de.mel.auth.data.MelServiceProperties;
 import de.mel.auth.data.ServicePayload;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.socket.MelAuthSocket;
@@ -69,5 +70,7 @@ public interface IMelService {
     void onBootLevel2Finished();
 
     void onBootLevel1Finished();
+
+    MelServiceProperties<?> getServiceProperties();
 
 }

@@ -22,6 +22,11 @@ public class FileSyncFXBootloader extends FileSyncBootloader implements BootLoad
     }
 
     @Override
+    public String getPropertiesFXML(MelFileSyncService melService) {
+        return "de/mel/filesyncfx/properties.fxml";
+    }
+
+    @Override
     public boolean embedCreateFXML() {
         return true;
     }

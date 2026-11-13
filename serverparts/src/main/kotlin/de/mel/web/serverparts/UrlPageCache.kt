@@ -1,11 +1,9 @@
 package de.mel.web.serverparts
 
-import com.sun.net.httpserver.HttpExchange
-
 /**
  * the server answers on many threads at once: everything that touches the maps is synchronized
  */
-class UrlPageCache(private val abstractHttpsThingy: AbstractHttpsThingy, val size: Int) {
+class UrlPageCache(val size: Int) {
     @Synchronized
     operator fun set(url: String, page: Page) {
         // page is new
@@ -45,14 +43,6 @@ class UrlPageCache(private val abstractHttpsThingy: AbstractHttpsThingy, val siz
 
     private val pageCache = mutableMapOf<String, Page>()
     private val getCounts = mutableMapOf<String, Int>()
-
-    fun respondPage(ex: HttpExchange, resource: String, vararg replacers: Replacer) {
-        val url = ex.requestURI.toURL().toString()
-        var page = get(url)
-        if (page == null)
-            page = Page(resource, *replacers)
-        abstractHttpsThingy.respondPage(ex, page)
-    }
 
     @Synchronized
     fun clear() {

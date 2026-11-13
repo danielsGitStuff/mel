@@ -11,6 +11,10 @@ import java.util.*
 class DumpFxBootloader : DumpBootloader(), BootLoaderFX<MelFileSyncService<*>> {
     override fun getCreateFXML(): String =  "de/mel/filedumpfx/create.embedded.fxml"
 
+    override fun getPropertiesFXML(melService: MelFileSyncService<*>?): String? {
+        return null
+    }
+
     override fun embedCreateFXML(): Boolean = true
 
     override fun getEditFXML(melService: MelFileSyncService<*>?): String = if (melService is MelFileSyncServerService) "de/mel/filesyncfx/editserver.fxml" else "de/mel/filesyncfx/editclient.fxml"

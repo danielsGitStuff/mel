@@ -11,7 +11,7 @@ import javafx.scene.control.TextField;
 /**
  * Created by xor on 10/27/16.
  */
-public abstract class FileSyncFXEditBaseController extends ServiceSettingsFX<MelFileSyncService> {
+public abstract class FileSyncFXEditBaseController extends ServiceSettingsFX<MelFileSyncService<?>> {
 
     @FXML
     protected Label lblRole;

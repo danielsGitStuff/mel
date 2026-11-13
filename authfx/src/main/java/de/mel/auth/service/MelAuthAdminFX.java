@@ -35,6 +35,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -133,7 +134,7 @@ public class MelAuthAdminFX implements Initializable, MelAuthAdmin, MelNotificat
                         ImageView image = new ImageView(new Image(bootLoaderFX.getIconURL(), IMAGE_SIZE, IMAGE_SIZE, true, true));
                         button.setGraphic(image);
                         button.setOnAction(event -> {
-                            showService(bootLoaderFX, serviceJoinServiceType);
+                            showService(bootLoaderFX, serviceJoinServiceType, true);
                         });
                     }
                     vboxServices.getChildren().add(button);
@@ -166,8 +167,7 @@ public class MelAuthAdminFX implements Initializable, MelAuthAdmin, MelNotificat
                         });
                         N.r(() -> {
                             Bootloader bootLoader = melAuthService.getMelBoot().getBootLoader(name);
-                            if (bootLoader instanceof BootLoaderFX) {
-                                BootLoaderFX bootLoaderFX = (BootLoaderFX) bootLoader;
+                            if (bootLoader instanceof BootLoaderFX bootLoaderFX) {
                                 ImageView imgService = new ImageView(new Image(bootLoaderFX.getIconURL(), IMAGE_SIZE, IMAGE_SIZE, true, true));
                                 menuItem.setGraphic(imgService);
                             }
@@ -184,7 +184,7 @@ public class MelAuthAdminFX implements Initializable, MelAuthAdmin, MelNotificat
         });
     }
 
-    private void showService(BootLoaderFX bootLoaderFX, ServiceJoinServiceType serviceJoinServiceType) {
+    private void showService(BootLoaderFX bootLoaderFX, ServiceJoinServiceType serviceJoinServiceType, boolean showProperties) {
         IMelService melService = melAuthService.getMelService(serviceJoinServiceType.getUuid().v());
         if (melService == null) {
             N.r(() -> {
@@ -193,10 +193,22 @@ public class MelAuthAdminFX implements Initializable, MelAuthAdmin, MelNotificat
                 ErrorController errorController = (ErrorController) contentController;
                 errorController.showError(service);
             });
+        } else if (showProperties) {
+            loadServicePropertiesFX(bootLoaderFX.getPropertiesFXML(melService), bootLoaderFX.getResourceBundle(locale), serviceJoinServiceType);
         } else {
             loadServiceSettingsFX(bootLoaderFX.getEditFXML(melService), bootLoaderFX.getResourceBundle(locale), serviceJoinServiceType);
-
         }
+    }
+
+    public void showServiceSettings(MelService service) {
+        N.r(() -> {
+            Bootloader<?> bootLoader = this.melAuthService.getMelBoot().getBootLoader(service);
+            if (bootLoader instanceof BootLoaderFX<?> bootLoaderFX) {
+                ServiceJoinServiceType serviceJoinServiceType = melAuthService.getDatabaseManager().getService(service.getUuid());
+                this.showService(bootLoaderFX, serviceJoinServiceType, false);
+            }
+        });
+
     }
 
     public Locale getLocale() {
@@ -231,7 +243,7 @@ public class MelAuthAdminFX implements Initializable, MelAuthAdmin, MelNotificat
         btnInfo.setOnAction(event -> showInfo());
         btnSecondary.setOnAction(event -> {
             if (contentController != null) {
-                contentController.onSecondaryClicked();
+                contentController.onSecondaryClicked(this);
                 contentController.onClose();
                 contentController = null;
                 paneContainer.getChildren().clear();
@@ -239,7 +251,7 @@ public class MelAuthAdminFX implements Initializable, MelAuthAdmin, MelNotificat
         });
         btnPrimary.setOnAction(event -> {
             if (contentController != null) {
-                if (contentController.onPrimaryClicked()) {
+                if (contentController.onPrimaryClicked(this)) {
                     contentController.onClose();
                     contentController = null;
                     paneContainer.getChildren().clear();
@@ -411,12 +423,11 @@ public class MelAuthAdminFX implements Initializable, MelAuthAdmin, MelNotificat
     private void loadServiceSettingsFX(String resource, ResourceBundle resourceBundle, ServiceJoinServiceType serviceJoinServiceType) {
         try {
             lblTitle.setVisible(true);
-            lblTitle.setText(this.resourceBundle.getString("service.title"));
+            lblTitle.setText(this.resourceBundle.getString("service.settings.title"));
             FXMLLoader containerLoader = new FXMLLoader(getClass().getClassLoader().getResource("de/mel/auth/editservice.fxml"));
             containerLoader.setResources(this.resourceBundle);
             Pane containerPane = containerLoader.load();
             ServiceSettingsController serviceSettingsController = containerLoader.getController();
-//            serviceSettingsController.initialize(lo);
             if (contentController != null) {
                 contentController.onClose();
             }
@@ -426,17 +437,42 @@ public class MelAuthAdminFX implements Initializable, MelAuthAdmin, MelNotificat
                 lo.setResources(resourceBundle);
             Pane pane = lo.load();
 
-            ServiceSettingsFX embeddedController = lo.getController();
+            ServiceSettingsFX<?> embeddedController = lo.getController();
             serviceSettingsController.setContent(pane, embeddedController);
             serviceSettingsController.setMelAuthService(melAuthService);
             serviceSettingsController.configureParentGui(this);
             serviceSettingsController.feed(serviceJoinServiceType);
-//            contentController = lo.getController();
-//            contentController.configureParentGui(this);
-//            contentController.setMelAuthService(melAuthService);
-
             setContentPane(containerPane);
             Lok.debug("MelAuthAdminFX.loadSettingsFX.loaded");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadServicePropertiesFX(String resource, ResourceBundle resourceBundle, ServiceJoinServiceType serviceJoinServiceType) {
+        try {
+            lblTitle.setVisible(true);
+            lblTitle.setText(this.resourceBundle.getString("service.properties.title"));
+            FXMLLoader containerLoader = new FXMLLoader(getClass().getClassLoader().getResource("de/mel/auth/showservice.fxml"));
+            containerLoader.setResources(this.resourceBundle);
+            Pane containerPane = containerLoader.load();
+            ServicePropertiesController controller = containerLoader.getController();
+            if (contentController != null) {
+                contentController.onClose();
+            }
+            contentController = controller;
+            FXMLLoader lo = new FXMLLoader(getClass().getClassLoader().getResource(resource));
+            if (resourceBundle != null)
+                lo.setResources(resourceBundle);
+            Pane pane = lo.load();
+
+            ServicePropertiesFX<?> embeddedController = lo.getController();
+            controller.setContent(pane, embeddedController);
+            controller.setMelAuthService(melAuthService);
+            controller.configureParentGui(this);
+            controller.feed(serviceJoinServiceType);
+            setContentPane(containerPane);
+            Lok.debug("MelAuthAdminFX.loadServicePropertiesFX.loaded");
         } catch (Exception e) {
             e.printStackTrace();
         }

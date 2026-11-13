@@ -11,14 +11,11 @@ import de.mel.sql.SqlQueriesException;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ResourceBundle;
 
 /**
  * Created by xor on 9/22/16.
@@ -29,7 +26,7 @@ public class ApprovalSettingsFX extends AuthSettingsFX{
     private TableView<ServiceJoinServiceType> table;
 
     @Override
-    public boolean onPrimaryClicked() {
+    public boolean onPrimaryClicked(MelAuthAdminFX melAuthAdminFX) {
         Lok.debug("ApprovalSettingsFX.onPrimaryClicked");
         try {
             melAuthService.saveApprovals(approvalMatrix);

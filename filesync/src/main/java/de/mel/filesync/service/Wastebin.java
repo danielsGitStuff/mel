@@ -58,6 +58,10 @@ public class Wastebin {
         deferredDir.mkdirs();
     }
 
+    public File getWasteDir() {
+        return wasteDir;
+    }
+
     /**
      * will delete everything older than the maximum allowed age or more if max wastebin size is exceeded.<br>
      * See {@link FileSyncSettings}
