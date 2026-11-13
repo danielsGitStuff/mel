@@ -1,7 +1,5 @@
 # Welcome to M[e](https://xorserv.spdns.de)l - Beta*
 
-**warning: Just tested the build/update system. Once functional builds arrive this text will be removed. My phone just got Android 10 recently. Therefore it is not compatible with Android 10 yet. Things broke. Fix is in progress.**
-
 If you are looking for a solution to synchronize files and contacts between various Android devices and PCs you might want to read further.
 It has no "cloud" thing built in and is intended for home network use. 
 The main scenario (I guess?) is doing synchronization work in the background when you are sleeping and your phone plugged into the charger.
@@ -18,7 +16,7 @@ When:
 
 When not:
 - You don't have a home network
-- Your old Android phone does not sport Android v 4.4.4 or above
+- Your old Android phone does not sport Android 15 (API 35) or above
 - You want your files to be globally available
 - Syncing should always be immediately
 
@@ -62,8 +60,7 @@ But this is up to you. Just keep in mind that listening for file system changes 
 ## Requirements
 Two devices:
 - Android:
-  - v 4.4.4 or above
-  - Android Q not tested
+  - Android 15 (API 35) or above
   - some free storage on that device
 - PC*:
   - a Linux distribution of you choice or Windows (7 and up) if you prefer that
@@ -99,7 +96,7 @@ Note: this protocol is not compatible with versions that still had the old secre
 
 
 ## License
-You can find all licenses and according modules and usage under `auth/src/main/resources/de/mel/auth/licenses.html`.
+You can find all licenses and according modules and usage under `auth/src/main/resources/de/mel/auth/licences.html`.
 
 ## Current issues
 - does not work on MacOS (won't be addressed: too expensive, no FileWatcher)
@@ -108,7 +105,7 @@ You can find all licenses and according modules and usage under `auth/src/main/r
 
 ## Dev stuff
 ### Modules
-- `app`: Android implementation of `auth`, `filesync`, `contacts` and `filedump`
+- `android`: Android implementation of `auth`, `filesync`, `contacts` and `filedump`
 - `auth`: handles pairing, key management, connections, sending/receiving data, service management, Bash/Shell commands
 - `authfx`: wraps `auth` into a GUI on PCs so you can click on things
 - `blog`: runs a web server with your blog. 
@@ -139,7 +136,7 @@ From an algorithmic POV: no. Fortunately Android has many quirks that require ex
 For example:
 - the contacts database has 15 columns named "data$Number"
 - inserting a blob (contact image) will alter the blob (why???)
-- the Storage Access Framework is a complete fuckup!
+- the Storage Access Framework is a complete fuckup! **Fortunately all of SAF had been removed!**
   - it is slow!
   - it uses different [URIs](https://en.wikipedia.org/wiki/Uniform_Resource_Identifier)
     - a URI is supposed to be a naming scheme. That means a plain String. 
