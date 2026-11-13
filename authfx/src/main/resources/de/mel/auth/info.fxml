@@ -21,5 +21,13 @@
         <GridPane fx:id="table">
 
         </GridPane>
+        <Label styleClass="lbl-center-section" alignment="CENTER" maxWidth="1.7976931348623157E308" text="%info.services">
+            <padding>
+                <Insets top="5" />
+            </padding>
+        </Label>
+        <GridPane fx:id="servicesTable" hgap="8" vgap="4">
+
+        </GridPane>
 
 </VBox>

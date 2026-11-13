@@ -39,6 +39,10 @@ public abstract class FileSyncStrings {
     public static final String STAGESET_STATUS_DELETE = "del";
     public static final String TRANSFER_DIR = ".mel.filesync.transfer";
 
+    public static String transferDirName(String serviceUuid) {
+        return TRANSFER_DIR + "." + serviceUuid;
+    }
+
     public class Notifications {
         public static final String INTENTION_CONFLICT_DETECTED = "filesync.conflict.detected";
         public static final String INTENTION_PROGRESS = "filesync.progress";

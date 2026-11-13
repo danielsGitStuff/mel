@@ -157,6 +157,7 @@ class MelBoot(private val melAuthSettings: MelAuthSettings, private val powerMan
         Lok.stacktTrace(e.stackTrace)
         service.lastError = ServiceError(e)
         melAuthService!!.databaseManager!!.updateService(service)
+        melAuthService?.notificationManager?.notifyServiceChanged(service.uuid.v())
     }
 
     private fun handleBootError(bootloader: Bootloader<*>, e: BootException) {

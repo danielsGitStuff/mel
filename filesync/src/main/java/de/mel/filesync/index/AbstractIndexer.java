@@ -230,7 +230,7 @@ public abstract class AbstractIndexer extends DeferredRunnable {
         }
         boolean root = isRoot(stage.getPath(), stage.getName());
         if (root)
-            onDisk.remove(FileSyncStrings.TRANSFER_DIR);
+            onDisk.keySet().removeIf(name -> name.startsWith(FileSyncStrings.TRANSFER_DIR));
         Map<String, FsEntry> inFs = new HashMap<>();
         Set<String> names = new HashSet<>(onDisk.keySet());
         if (fsDirectory != null) {

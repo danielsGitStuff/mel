@@ -102,6 +102,10 @@ public class MelAuthAdminFX implements Initializable, MelAuthAdmin, MelNotificat
 
     @Override
     public void shutDown() {
+        if (contentController != null) {
+            contentController.onClose();
+            contentController = null;
+        }
         XCBFix.runLater(() -> {
             stage.close();
             if (trayIcon != null) {
@@ -228,6 +232,7 @@ public class MelAuthAdminFX implements Initializable, MelAuthAdmin, MelNotificat
         btnSecondary.setOnAction(event -> {
             if (contentController != null) {
                 contentController.onSecondaryClicked();
+                contentController.onClose();
                 contentController = null;
                 paneContainer.getChildren().clear();
             }
@@ -235,6 +240,7 @@ public class MelAuthAdminFX implements Initializable, MelAuthAdmin, MelNotificat
         btnPrimary.setOnAction(event -> {
             if (contentController != null) {
                 if (contentController.onPrimaryClicked()) {
+                    contentController.onClose();
                     contentController = null;
                     paneContainer.getChildren().clear();
                 }
@@ -377,6 +383,9 @@ public class MelAuthAdminFX implements Initializable, MelAuthAdmin, MelNotificat
     private void loadSettingsFX(String resource, ResourceBundle resourceBundle) {
         N.r(() -> {
             lblTitle.setVisible(true);
+            if (contentController != null) {
+                contentController.onClose();
+            }
             contentController = null;
             FXMLLoader lo = new FXMLLoader(getClass().getClassLoader().getResource(resource));
             if (resourceBundle != null)
@@ -408,6 +417,9 @@ public class MelAuthAdminFX implements Initializable, MelAuthAdmin, MelNotificat
             Pane containerPane = containerLoader.load();
             ServiceSettingsController serviceSettingsController = containerLoader.getController();
 //            serviceSettingsController.initialize(lo);
+            if (contentController != null) {
+                contentController.onClose();
+            }
             contentController = serviceSettingsController;
             FXMLLoader lo = new FXMLLoader(getClass().getClassLoader().getResource(resource));
             if (resourceBundle != null)

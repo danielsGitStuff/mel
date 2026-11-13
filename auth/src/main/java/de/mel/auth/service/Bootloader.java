@@ -45,6 +45,9 @@ public abstract class Bootloader<T extends MelService> {
             melService = bootLevelShortImpl(melAuthService, serviceDescription);
             melService.setReachedBootLevel(BootLevel.SHORT);
             melService.onBootLevel1Finished();
+            if (melAuthService.getNotificationManager() != null) {
+                melAuthService.getNotificationManager().notifyServiceChanged(melService.getUuid());
+            }
             return melService;
         } else {
             Lok.error("Bootloader in " + this.bootLoaderDir + " was told to boot to level 1. But its current level was not 0. current level=" + bootLevel.get());
@@ -83,6 +86,9 @@ public abstract class Bootloader<T extends MelService> {
                 promise.onDone(nil -> {
                     melService.setReachedBootLevel(BootLevel.LONG);
                     melService.onBootLevel2Finished();
+                    if (melAuthService.getNotificationManager() != null) {
+                        melAuthService.getNotificationManager().notifyServiceChanged(melService.getUuid());
+                    }
                 });
             return promise;
         } else {

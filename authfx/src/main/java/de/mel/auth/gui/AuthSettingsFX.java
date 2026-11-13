@@ -56,6 +56,13 @@ public abstract class AuthSettingsFX implements Initializable {
 
     }
 
+    /**
+     * called when this view is replaced or the window shuts down.
+     */
+    public void onClose() {
+
+    }
+
     public void setStage(Stage stage) {
         this.stage = stage;
     }

@@ -7,6 +7,7 @@ import de.mel.core.serialize.exceptions.JsonSerializationException;
 import de.mel.core.serialize.serialize.fieldserializer.entity.SerializableEntitySerializer;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * Created by xor on 08.08.2017.
@@ -20,7 +21,7 @@ public class MelNotification {
     private boolean isUserCancelable = true;
     private Map<String, String> extras = new HashMap<>();
     // progress related stuff
-    private Set<MelProgressListener> progressListeners = new HashSet<>();
+    private Set<MelProgressListener> progressListeners = new CopyOnWriteArraySet<>();
     private boolean indeterminate = false;
     private int current = 0;
     private int max = 0;
@@ -163,6 +164,10 @@ public class MelNotification {
 
     public void addProgressListener(MelProgressListener progressListener) {
         progressListeners.add(progressListener);
+    }
+
+    public void removeProgressListener(MelProgressListener progressListener) {
+        progressListeners.remove(progressListener);
     }
 
     public MelNotification setProgress(int max, int current, boolean indeterminate) {

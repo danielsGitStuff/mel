@@ -39,7 +39,7 @@ public class FileSyncCreateServiceHelper {
 
     public void createService(FileSyncSettings fileSyncSettings, String name) throws SqlQueriesException, IllegalAccessException, JsonSerializationException, JsonDeserializationException, InstantiationException, SQLException, IOException, ClassNotFoundException {
         Service service = createDbService(name);
-        File transferDir = new File(fileSyncSettings.getRootDirectory().getOriginalFile(), FileSyncStrings.TRANSFER_DIR);
+        File transferDir = new File(fileSyncSettings.getRootDirectory().getOriginalFile(), FileSyncStrings.transferDirName(service.getUuid().v()));
         transferDir.mkdirs();
         fileSyncSettings.setTransferDirectory(transferDir);
         File instanceWorkingDir = melAuthService.getMelBoot().createServiceInstanceWorkingDir(service);
@@ -57,9 +57,6 @@ public class FileSyncCreateServiceHelper {
                 .setRootDirectory(rootDirectory)
                 .setMaxAge(maxDays)
                 .setUseSymLinks(useSymLinks);
-        File transferDir = new File(rootDirectory.getOriginalFile(), FileSyncStrings.TRANSFER_DIR);
-        transferDir.mkdirs();
-        fileSyncSettings.setTransferDirectory(transferDir);
         fileSyncSettings.setMaxWastebinSize((long) (fileSyncSettings.getRootDirectory().getOriginalFile().getUsableSpace() * wastebinRatio));
         createService(fileSyncSettings, name);
     }
@@ -74,7 +71,6 @@ public class FileSyncCreateServiceHelper {
 //        //create Service
         RootDirectory rootDirectory = RootDirectory.buildRootDirectory(rootFile);
         FileSyncSettings fileSyncSettingsCfg = new FileSyncSettings().setRole(FileSyncStrings.ROLE_CLIENT).setRootDirectory(rootDirectory);
-        fileSyncSettingsCfg.setTransferDirectory(new File(rootDirectory.getOriginalFile(), FileSyncStrings.TRANSFER_DIR));
         fileSyncSettingsCfg.setMaxWastebinSize((long) (fileSyncSettingsCfg.getRootDirectory().getOriginalFile().getUsableSpace() * wastebinRatio));
         fileSyncSettingsCfg.setMaxAge(maxDays);
         fileSyncSettingsCfg.setUseSymLinks(useSymLinks);

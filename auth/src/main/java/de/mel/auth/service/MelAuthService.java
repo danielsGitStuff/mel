@@ -258,5 +258,9 @@ public abstract class MelAuthService {
 
     public abstract File getCacheDir();
 
+    public ServiceNotificationManager getNotificationManager() {
+        return null;
+    }
+
     protected abstract boolean isConnectedTo(Long certId);
 }

@@ -78,6 +78,7 @@ public class MelAuthServiceImpl extends MelAuthService {
     private MelAuthWorker melAuthWorker;
     protected final CertificateManager certificateManager;
     private List<MelAuthAdmin> melAuthAdmins = new ArrayList<>();
+    private final ServiceNotificationManager notificationManager = new ServiceNotificationManager();
     private final DatabaseManager databaseManager;
     private final File workingDirectory;
     protected List<IRegisterHandler> registerHandlers = new ArrayList<>();
@@ -279,6 +280,7 @@ public class MelAuthServiceImpl extends MelAuthService {
         }
         uuidServiceMapSemaphore.unlock();
         notifyAdmins();
+        notificationManager.notifyServiceChanged(melService.getUuid());
         return this;
     }
 
@@ -288,6 +290,7 @@ public class MelAuthServiceImpl extends MelAuthService {
         uuidServiceMap.remove(serviceUuid);
         uuidServiceMapSemaphore.unlock();
         notifyAdmins();
+        notificationManager.notifyServiceChanged(serviceUuid);
         return this;
     }
 
@@ -651,6 +654,7 @@ public class MelAuthServiceImpl extends MelAuthService {
 
     @Override
     public void onNotificationFromService(IMelService melService, MelNotification notification) {
+        notificationManager.record(notification);
         for (MelAuthAdmin admin : melAuthAdmins) {
             notification.addProgressListener(admin);
             admin.onNotificationFromService(melService, notification);
@@ -672,7 +676,13 @@ public class MelAuthServiceImpl extends MelAuthService {
 
             }
             databaseManager.deleteService(service.getId().v());
+            notificationManager.removeService(uuid);
         }
+    }
+
+    @Override
+    public ServiceNotificationManager getNotificationManager() {
+        return notificationManager;
     }
 
     @Override
@@ -682,6 +692,7 @@ public class MelAuthServiceImpl extends MelAuthService {
 
     @Override
     public void onServicesChanged() {
+        notificationManager.notifyServiceChanged(null);
         for (MelAuthAdmin admin : melAuthAdmins) {
             admin.onChanged();
         }

@@ -10,6 +10,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 
 /**
  * Syntactic sugar. Saves you lots of try/catches. calls e.stacktrace() per default.
@@ -104,6 +106,27 @@ public class N {
 
     public static <T> T rte(INoTryWithResult<T> noTryRunnable) {
         return N.runner.runResultRTE(noTryRunnable);
+    }
+
+    public static void rteBlocking(N.INoTryRunnable... noTryRunnables){
+        CountDownLatch latch = new CountDownLatch(2);
+        new Thread(() -> {
+            try {
+                for (INoTryRunnable noTryRunnable : noTryRunnables) {
+                    noTryRunnable.run();
+                }
+            }catch (Exception e){
+                throw new RuntimeException(e);
+            }
+            finally {
+                latch.countDown();
+            }
+        }).start();
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

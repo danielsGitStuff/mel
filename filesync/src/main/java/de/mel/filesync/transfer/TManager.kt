@@ -268,9 +268,7 @@ class TManager(
     }
 
     override fun runImpl() {
-        val transferDirPath = melFileSyncService.fileSyncSettings.rootDirectory.path + File.separator + FileSyncStrings.TRANSFER_DIR
-        val transferDir = File(transferDirPath)
-        transferDir.mkdirs()
+        melFileSyncService.fileSyncSettings.transferDirectory.mkdirs()
 
         while (!Thread.currentThread().isInterrupted && !isStopped) {
             try {
