@@ -1,0 +1,9 @@
+plugins {
+    id 'mel-kotlin-jvm-library'
+}
+
+dependencies {
+    api project(':auth')
+    implementation libs.kotlin.stdlib
+    testImplementation project(':auth')
+}

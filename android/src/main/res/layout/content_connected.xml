@@ -5,18 +5,33 @@
     android:orientation="vertical">
 
 
-    <Button
-        android:id="@+id/btnDelete"
+    <LinearLayout
+        android:id="@+id/buttonRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:text="Delete" />
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnEditAddresses"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/editAddresses" />
+
+        <Button
+            android:id="@+id/btnDelete"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Delete" />
+    </LinearLayout>
 
     <ListView
         android:id="@+id/listCertificates"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@id/btnDelete"
+        android:layout_above="@id/buttonRow"
         android:layout_alignParentTop="true" />
 
 

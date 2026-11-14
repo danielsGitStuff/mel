@@ -1,0 +1,10 @@
+BEGIN TRANSACTION;
+CREATE TABLE IF NOT EXISTS sms_messages (
+  id         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  msg_hash   TEXT NOT NULL UNIQUE,
+  iv         TEXT NOT NULL,
+  ciphertext TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_sms_id ON sms_messages(id);
+COMMIT;

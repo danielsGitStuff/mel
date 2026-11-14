@@ -10,4 +10,6 @@ dependencies {
     implementation project(':filesync')
     implementation project(':filedump')
     implementation project(':contacts')
+    implementation project(':sms')
+    implementation project(':location')
 }

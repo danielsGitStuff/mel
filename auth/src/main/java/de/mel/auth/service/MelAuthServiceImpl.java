@@ -336,13 +336,27 @@ public class MelAuthServiceImpl extends MelAuthService {
     @Override
     <T extends MelIsolatedProcess> PromiseImpl<T, Exception> connectToService(Class<T> isolatedServiceClass, Long certId, String remoteServiceUuid, String ownServiceUuid, String address, Integer port, Integer portCert) throws SqlQueriesException, InterruptedException {
         Certificate certificate = certificateManager.getTrustedCertificateById(certId);
-        if (address == null)
+        List<de.mel.auth.data.db.AddressCandidate> candidates = null;
+        if (address == null && certificate != null) {
+            candidates = certificateManager.getConnectCandidates(certificate);
+            if (!candidates.isEmpty()) {
+                de.mel.auth.data.db.AddressCandidate primary = candidates.get(0);
+                address = primary.getAddress();
+                if (port == null)
+                    port = primary.getPort();
+                if (portCert == null)
+                    portCert = primary.getPortCert();
+            }
+        }
+        if (address == null && certificate != null)
             address = certificate.getAddress().v();
-        if (port == null)
+        if (port == null && certificate != null)
             port = certificate.getPort().v();
-        if (portCert == null)
+        if (portCert == null && certificate != null)
             portCert = certificate.getCertDeliveryPort().v();
         IsolatedConnectJob<T> job = new IsolatedConnectJob<>(certId, address, port, portCert, remoteServiceUuid, ownServiceUuid, isolatedServiceClass);
+        if (candidates != null && !candidates.isEmpty())
+            job.setCandidates(candidates);
         if (shuttingDown) {
             job.resolveError(new CannotConnectException(new Exception("shutting down"), address, port));
             return job;
@@ -407,11 +421,13 @@ public class MelAuthServiceImpl extends MelAuthService {
 
     @Override
     protected void connectAndCollect(Map<String, Boolean> checkedAddresses, NetworkEnvironment networkEnvironment, Certificate intendedCertificate) throws IOException, IllegalAccessException, SqlQueriesException, URISyntaxException, ClassNotFoundException, KeyManagementException, BadPaddingException, KeyStoreException, NoSuchAlgorithmException, InvalidKeyException, UnrecoverableKeyException, CertificateException, NoSuchPaddingException, JsonSerializationException, IllegalBlockSizeException, InterruptedException {
-        String address = MelAuthSocket.getAddressString(intendedCertificate.getInetAddress(), intendedCertificate.getPort().v());
+        String address = (intendedCertificate.getAddress().v() != null && intendedCertificate.getPort().v() != null)
+                ? MelAuthSocket.getAddressString(intendedCertificate.getInetAddress(), intendedCertificate.getPort().v())
+                : "cert:" + intendedCertificate.getId().v();
         N runner = new N(e -> e.printStackTrace());
         if (!checkedAddresses.containsKey(address)) {
             checkedAddresses.put(address, true);
-            Promise<MelValidationProcess, Exception> authenticatedPromise = this.connect(intendedCertificate.getAddress().v(), intendedCertificate.getPort().v(), intendedCertificate.getCertDeliveryPort().v(), false);
+            Promise<MelValidationProcess, Exception> authenticatedPromise = this.connect(intendedCertificate.getId().v());
             authenticatedPromise.onDone(melValidationProcess -> {
                 runner.runTry(() -> {
                     Request<MelServicesPayload> servicesPromise = this.getAllowedServices(melValidationProcess.getPartnerCertificate().getId().v());
@@ -428,7 +444,9 @@ public class MelAuthServiceImpl extends MelAuthService {
                         || result instanceof WrongPartnerException
                         || (result != null && result.getCause() instanceof UntrustedPartnerException)
                         || (result != null && result.getCause() instanceof WrongPartnerException)) {
-                    networkEnvironment.addUnkown(intendedCertificate.getAddress().v(), intendedCertificate.getPort().v(), intendedCertificate.getCertDeliveryPort().v());
+                    if (intendedCertificate.getAddress().v() != null && intendedCertificate.getPort().v() != null && intendedCertificate.getCertDeliveryPort().v() != null) {
+                        networkEnvironment.addUnkown(intendedCertificate.getAddress().v(), intendedCertificate.getPort().v(), intendedCertificate.getCertDeliveryPort().v());
+                    }
                 } else {
                     checkedAddresses.remove(address);
                 }

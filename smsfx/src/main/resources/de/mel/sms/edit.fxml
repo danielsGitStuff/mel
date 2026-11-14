@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="8.0" xmlns="http://javafx.com/javafx/8.0.121"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mel.sms.gui.SmsFXEditController">
+    <HBox spacing="8.0" alignment="CENTER_LEFT">
+        <Label text="%edit.role"/>
+        <Label fx:id="lblRole" style="-fx-font-weight: bold;"/>
+        <Label fx:id="lblStatus"/>
+        <Button fx:id="btnSync" text="%edit.syncNow" onAction="#onSyncNow"/>
+    </HBox>
+    <HBox spacing="6.0" alignment="CENTER_LEFT">
+        <Label text="%edit.secret"/>
+        <TextField fx:id="txtSecret" HBox.hgrow="ALWAYS" promptText="%create.secretPrompt"/>
+        <Button text="%create.generate" onAction="#onGenerateSecret"/>
+        <Button text="%edit.unlock" onAction="#onApplySecret"/>
+    </HBox>
+    <CheckBox fx:id="chkShareSecret" text="%create.shareSecret" selected="false"/>
+    <TextField fx:id="txtSearch" promptText="%edit.searchPrompt"/>
+    <SplitPane dividerPositions="0.32" VBox.vgrow="ALWAYS" prefHeight="320.0">
+        <ListView fx:id="listThreads"/>
+        <ListView fx:id="listMessages"/>
+    </SplitPane>
+</VBox>

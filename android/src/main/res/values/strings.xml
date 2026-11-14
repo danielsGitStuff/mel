@@ -38,6 +38,13 @@
     <string name="accessKnownCerts">Known Instances</string>
     <string name="accessAvailableServices">Available Services  (on this device)</string>
     <string name="connectedTitle">Connected Instances</string>
+    <string name="editAddresses">Edit Addresses</string>
+    <string name="addressPrompt">host[:port] or [ipv6]:port</string>
+    <string name="btnAdd">Add</string>
+    <string name="btnUp">Up</string>
+    <string name="btnDown">Down</string>
+    <string name="btnRemove">Remove</string>
+    <string name="duplicateAddress">Address already in list</string>
     <string name="accessTitle">Access</string>
     <string name="createServiceTitle">Create Service</string>
     <string name="infoTitle">Info</string>
@@ -161,6 +168,8 @@
     <string name="driveIncompatibleServerService">The server uses symbolic links which -unless you got root- are not supported on Android. A compatibility mode is currently not available.</string>
     <string name="permissionDefaultText">The services asks for some permissions.</string>
     <string name="permissionContacts">As this is a service that is supposed to synchronize contacts, you habe to grant the obvious permission in the next dialog.</string>
+    <string name="permissionSms">Grant SMS read permission to back up your encrypted SMS messages.</string>
+    <string name="warningLocationPlainHttp">Warning: OwnTracks endpoint uses plain HTTP. Only expose via LAN/VPN or behind a TLS reverse proxy.</string>
     <string name="settingsLokToDb">Log to database</string>
     <string name="settingsBtnExport">Export</string>
     <string name="settingsPermissionTitle">Permission required!</string>

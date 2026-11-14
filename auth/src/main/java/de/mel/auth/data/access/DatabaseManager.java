@@ -123,9 +123,27 @@ public final class DatabaseManager extends FileRelatedManager {
             sqliteExecutor.executeStream(sqlInputStreamInjector.createSqlFileInputStream());
             hadToInitialize = true;
         }
+        ensureCertificateAddressTable();
         serviceTypeDao = new ServiceTypeDao(ISQLQueries);
         approvalDao = new ApprovalDao(ISQLQueries);
         serviceDao = new ServiceDao(ISQLQueries);
+    }
+
+    private void ensureCertificateAddressTable() throws SQLException {
+        try {
+            ISQLQueries.execute("CREATE TABLE IF NOT EXISTS certificate_address ("
+                    + "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
+                    + "certificateid INTEGER NOT NULL, "
+                    + "address TEXT NOT NULL, "
+                    + "port INTEGER, "
+                    + "certport INTEGER, "
+                    + "priority INTEGER NOT NULL DEFAULT 0, "
+                    + "FOREIGN KEY (certificateid) REFERENCES certificate (id) ON DELETE CASCADE, "
+                    + "UNIQUE (certificateid, address, port));", null);
+            ISQLQueries.execute("CREATE INDEX IF NOT EXISTS certificate_address_cert_idx ON certificate_address (certificateid);", null);
+        } catch (SqlQueriesException e) {
+            throw new SQLException("failed to migrate certificate_address table", e);
+        }
     }
 
 

@@ -8,6 +8,8 @@ dependencies {
     api project(':filesyncfx')
     api project(':filedumpfx')
     api project(':contactsfx')
+    api project(':smsfx')
+    api project(':locationfx')
 }
 
 application {

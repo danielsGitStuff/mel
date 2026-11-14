@@ -19,6 +19,10 @@ import de.mel.android.filesync.watchdog.RecursiveWatcher;
 import de.mel.auth.tools.N;
 import de.mel.contacts.ContactsInjector;
 import de.mel.contacts.data.ContactStrings;
+import de.mel.sms.data.SmsStrings;
+import de.mel.sms.data.db.SmsDatabaseManager;
+import de.mel.location.data.LocationStrings;
+import de.mel.location.data.db.LocationDatabaseManager;
 import de.mel.filesync.FileSyncInjector;
 import de.mel.filesync.bash.BashTools;
 import de.mel.filesync.data.FileSyncStrings;
@@ -155,6 +159,60 @@ public class AndroidInjector {
         ContactsInjector.setDriveSqlInputStreamInjector(() -> {
             try {
                 return assetManager.open("de/mel/contacts/contacts.sql");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
+
+        // sms
+        SmsDatabaseManager.setSqlqueriesCreator((mgr, uuid) -> {
+            SQLiteOpenHelper helper = new SQLiteOpenHelper(context, "service." + uuid + "." + SmsStrings.DB_FILENAME, null, 1) {
+                @Override
+                public void onConfigure(SQLiteDatabase db) {
+                    super.onConfigure(db);
+                    db.disableWriteAheadLogging();
+                    db.setForeignKeyConstraintsEnabled(true);
+                }
+
+                @Override
+                public void onCreate(SQLiteDatabase db) {}
+
+                @Override
+                public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
+            };
+            return new AndroidSQLQueries(new AndroidDBConnection(helper.getWritableDatabase()));
+        });
+        SmsDatabaseManager.setSqlInputStreamInjector(() -> {
+            try {
+                return assetManager.open("de/mel/sms/sms.sql");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
+
+        // location
+        LocationDatabaseManager.setSqlqueriesCreator((mgr, uuid) -> {
+            SQLiteOpenHelper helper = new SQLiteOpenHelper(context, "service." + uuid + "." + LocationStrings.DB_FILENAME, null, 1) {
+                @Override
+                public void onConfigure(SQLiteDatabase db) {
+                    super.onConfigure(db);
+                    db.disableWriteAheadLogging();
+                    db.setForeignKeyConstraintsEnabled(true);
+                }
+
+                @Override
+                public void onCreate(SQLiteDatabase db) {}
+
+                @Override
+                public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
+            };
+            return new AndroidSQLQueries(new AndroidDBConnection(helper.getWritableDatabase()));
+        });
+        LocationDatabaseManager.setSqlInputStreamInjector(() -> {
+            try {
+                return assetManager.open("de/mel/location/location.sql");
             } catch (IOException e) {
                 e.printStackTrace();
             }

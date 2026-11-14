@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="6dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/lblSmsRole"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Role"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnSmsSync"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sync Now" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/txtSmsSecret"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Passphrase or b64:... key"
+            android:inputType="text" />
+
+        <Button
+            android:id="@+id/btnSmsGenSecret"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Generate" />
+    </LinearLayout>
+
+    <CheckBox
+        android:id="@+id/chkSmsShareSecret"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="false"
+        android:text="Share secret with server (off by default)" />
+
+    <EditText
+        android:id="@+id/txtSmsSearch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Search address or message..."
+        android:inputType="text" />
+
+    <ListView
+        android:id="@+id/listSmsMessages"
+        android:layout_width="match_parent"
+        android:layout_height="320dp" />
+</LinearLayout>

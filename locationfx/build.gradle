@@ -1,0 +1,8 @@
+plugins {
+    id 'mel-javafx-library'
+}
+
+dependencies {
+    api project(':location')
+    api project(':authfx')
+}

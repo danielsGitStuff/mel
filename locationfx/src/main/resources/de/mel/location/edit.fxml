@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="8.0" xmlns="http://javafx.com/javafx/8.0.121"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mel.location.gui.LocationFXEditController">
+    <Label text="%warning.plainHttp" wrapText="true" style="-fx-text-fill: #b00020; -fx-font-weight: bold;"/>
+    <Label fx:id="lblEndpoint" style="-fx-font-weight: bold;"/>
+    <HBox spacing="6.0">
+        <Label text="%create.port"/>
+        <TextField fx:id="txtPort" prefWidth="80.0"/>
+        <Label text="%create.bind"/>
+        <TextField fx:id="txtBind" HBox.hgrow="ALWAYS"/>
+    </HBox>
+    <HBox spacing="6.0">
+        <Label text="%create.user"/>
+        <TextField fx:id="txtUser" HBox.hgrow="ALWAYS"/>
+        <Label text="%create.pass"/>
+        <TextField fx:id="txtPass" HBox.hgrow="ALWAYS"/>
+    </HBox>
+    <TextField fx:id="txtFilterTid" promptText="%edit.filterTid"/>
+    <ListView fx:id="listPoints" VBox.vgrow="ALWAYS" prefHeight="280.0"/>
+</VBox>

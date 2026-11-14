@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="6dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="6dp"
+        android:text="@string/warningLocationPlainHttp"
+        android:textColor="#B00020"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Service Name" />
+
+    <EditText
+        android:id="@+id/txtLocName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Location"
+        android:inputType="text" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="OwnTracks HTTP Port" />
+
+    <EditText
+        android:id="@+id/txtLocPort"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="8083"
+        android:inputType="number" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Bind Address" />
+
+    <EditText
+        android:id="@+id/txtLocBind"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="0.0.0.0"
+        android:inputType="text" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Basic Auth Username (optional)" />
+
+    <EditText
+        android:id="@+id/txtLocUser"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="text" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Basic Auth Password (optional)" />
+
+    <EditText
+        android:id="@+id/txtLocPass"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPassword" />
+</LinearLayout>

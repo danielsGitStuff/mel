@@ -1,10 +1,12 @@
 package de.mel.android.controller;
 
 import android.content.Context;
+import android.os.SystemClock;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 
+import de.mel.Lok;
 import de.mel.R;
 import de.mel.android.MainActivity;
 import de.mel.android.Tools;
@@ -37,10 +39,12 @@ public abstract class AndroidServiceGuiController {
     }
 
     public AndroidServiceGuiController(MainActivity activity, ViewGroup embedded, int resource) {
+        long t0 = SystemClock.elapsedRealtime();
         this.rootView = activity.getLayoutInflater().inflate(resource, embedded);
         this.activity = activity;
 
         init();
+        Lok.debug("UI service-sub loaded " + getClass().getSimpleName() + " in " + (SystemClock.elapsedRealtime() - t0) + "ms");
     }
 
     /**

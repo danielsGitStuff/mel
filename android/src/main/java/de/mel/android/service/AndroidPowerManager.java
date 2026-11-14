@@ -62,9 +62,12 @@ public class AndroidPowerManager extends PowerManager {
         wakeLock(this);
         wakeTimer = new WatchDogTimer("android power manager", () -> {
             stateLock.lock();
-            changeState();
-            wakeTimer.cancel();
-            stateLock.unlock();
+            try {
+                changeState();
+                wakeTimer.cancel();
+            } finally {
+                stateLock.unlock();
+            }
         }, 10, 100, 1000);
     }
 

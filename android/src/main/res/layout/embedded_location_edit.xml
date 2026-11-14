@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="6dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="6dp"
+        android:text="@string/warningLocationPlainHttp"
+        android:textColor="#B00020"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/lblLocEndpoint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:text="OwnTracks HTTP" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/txtLocPort"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:hint="Port"
+            android:inputType="number" />
+
+        <EditText
+            android:id="@+id/txtLocBind"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Bind Address"
+            android:inputType="text" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/txtLocUser"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Username"
+            android:inputType="text" />
+
+        <EditText
+            android:id="@+id/txtLocPass"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Password"
+            android:inputType="textPassword" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/txtLocFilterTid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Filter by tracker ID (tid)..."
+        android:inputType="text" />
+
+    <ListView
+        android:id="@+id/listLocPoints"
+        android:layout_width="match_parent"
+        android:layout_height="300dp" />
+</LinearLayout>

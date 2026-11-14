@@ -461,10 +461,13 @@ public class MainActivity extends MelActivity implements PowerManager.IPowerStat
         }
         currentDestination = dest;
 
+        long t0 = android.os.SystemClock.elapsedRealtime();
+        Lok.debug("UI navigateTo navId=" + dest.navId + " serviceUuid=" + dest.serviceUuid);
         GuiController newController = createControllerFor(dest);
         if (newController != null) {
             enableGuiController(newController);
             updateDrawerSelection(dest.navId);
+            Lok.debug("UI navigateTo ready " + newController.getClass().getSimpleName() + " in " + (android.os.SystemClock.elapsedRealtime() - t0) + "ms");
         }
     }
 

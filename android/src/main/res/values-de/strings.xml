@@ -39,6 +39,13 @@
     <string name="accessKnownCerts">Bekannte Instanzen</string>
     <string name="accessAvailableServices">Verfügbare Dienste  (auf diesem Gerät)</string>
     <string name="connectedTitle">Verbundene Instanzen</string>
+    <string name="editAddresses">Adressen bearbeiten</string>
+    <string name="addressPrompt">Host[:Port] oder [IPv6]:Port</string>
+    <string name="btnAdd">Hinzufügen</string>
+    <string name="btnUp">Hoch</string>
+    <string name="btnDown">Runter</string>
+    <string name="btnRemove">Entfernen</string>
+    <string name="duplicateAddress">Adresse bereits vorhanden</string>
     <string name="accessTitle">Zugriffsrechte</string>
     <string name="createServiceTitle">Dienst erstellen</string>
     <string name="infoTitle">Info</string>

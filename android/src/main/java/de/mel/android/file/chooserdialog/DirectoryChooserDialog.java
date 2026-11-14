@@ -271,5 +271,10 @@ public class DirectoryChooserDialog extends PopupActivity<DirectoryChooserDialog
         public void onCommunicationsEnabled() {
 
         }
+
+        @Override
+        public de.mel.auth.data.MelServiceProperties<?> getServiceProperties() {
+            return null;
+        }
     }
 }

@@ -12,6 +12,10 @@ import de.mel.auth.tools.N;
 import de.mel.auth.tools.WaitLock;
 import de.mel.contacts.ContactsBootloader;
 import de.mel.contacts.ContactsFXBootloader;
+import de.mel.sms.SmsBootloader;
+import de.mel.sms.SmsFXBootloader;
+import de.mel.location.LocationBootloader;
+import de.mel.location.LocationFXBootloader;
 import de.mel.core.serialize.deserialize.collections.PrimitiveCollectionDeserializerFactory;
 import de.mel.core.serialize.serialize.fieldserializer.FieldSerializerFactoryRepository;
 import de.mel.core.serialize.serialize.fieldserializer.collections.PrimitiveCollectionSerializerFactory;
@@ -90,13 +94,13 @@ public class Main {
         }
 
         if (melAuthSettings.isHeadless() || !canDisplay) {
-            MelBoot melBoot = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncBootloader.class, ContactsBootloader.class, DumpBootloader.class);
+            MelBoot melBoot = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncBootloader.class, ContactsBootloader.class, DumpBootloader.class, SmsBootloader.class, LocationBootloader.class);
             melBoot.boot().onDone(melAuthService -> {
                 Lok.debug("Main.main.booted (headless)");
                 lock.unlockWrite();
             }).onError(e -> bootFailed(e, false));
         } else {
-            MelBoot melBoot = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncFXBootloader.class, ContactsFXBootloader.class, DumpFxBootloader.class);
+            MelBoot melBoot = new MelBoot(melAuthSettings, new PowerManager(melAuthSettings), FileSyncFXBootloader.class, ContactsFXBootloader.class, DumpFxBootloader.class, SmsFXBootloader.class, LocationFXBootloader.class);
             MelAuthFxLoader fxLoader = new MelAuthFxLoader();
             melBoot.addMelAuthAdmin(fxLoader);
             melBoot.boot().onDone(melAuthService -> {

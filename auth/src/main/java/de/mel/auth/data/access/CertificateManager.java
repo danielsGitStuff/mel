@@ -1,7 +1,10 @@
 package de.mel.auth.data.access;
 
 import de.mel.Lok;
+import de.mel.auth.data.db.AddressCandidate;
 import de.mel.auth.data.db.Certificate;
+import de.mel.auth.data.db.CertificateAddress;
+import de.mel.auth.data.db.dao.CertificateAddressDao;
 import de.mel.auth.data.db.dao.CertificateDao;
 import de.mel.auth.tools.N;
 import de.mel.auth.tools.lock2.BunchOfLocks;
@@ -29,7 +32,9 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -55,6 +60,7 @@ public class CertificateManager extends FileRelatedManager {
     private X509Certificate certificate;
     private X509Certificate updateServerCertificate;
     private CertificateDao certificateDao;
+    private CertificateAddressDao certificateAddressDao;
     private String updateServerCertificateHash;
 
     public X509Certificate getUpdateServerCertificate() {
@@ -92,6 +98,7 @@ public class CertificateManager extends FileRelatedManager {
         keyStore.load(null, PASS.toCharArray());
         //init DB stuff
         certificateDao = new CertificateDao(ISQLQueries, false);
+        certificateAddressDao = new CertificateAddressDao(ISQLQueries, false);
         //the actual loading
         if (!loadKeys())
             generateCertificate();
@@ -417,6 +424,61 @@ public class CertificateManager extends FileRelatedManager {
         if (certificate.getId().v() != null) {
             certificateDao.delete(certificate.getId().v());
         }
+    }
+
+    public List<CertificateAddress> getAlternativeAddresses(long certificateId) throws SqlQueriesException {
+        BunchOfLocks locks = P.confine(P.read(certificateAddressDao));
+        try {
+            return locks.runResult(() -> certificateAddressDao.getAddressesForCertificate(certificateId));
+        } finally {
+            locks.end();
+        }
+    }
+
+    public void replaceAlternativeAddresses(long certificateId, List<CertificateAddress> addresses) throws SqlQueriesException {
+        BunchOfLocks locks = P.confine(certificateAddressDao);
+        try {
+            locks.run(() -> certificateAddressDao.replaceAddressesForCertificate(certificateId, addresses));
+        } finally {
+            locks.end();
+        }
+    }
+
+    public List<AddressCandidate> getConnectCandidates(Certificate certificate) throws SqlQueriesException {
+        if (certificate == null || certificate.getId().v() == null)
+            return new ArrayList<>();
+        return buildCandidates(certificate, getAlternativeAddresses(certificate.getId().v()));
+    }
+
+    public static List<AddressCandidate> buildCandidates(Certificate certificate, List<CertificateAddress> alternatives) {
+        List<AddressCandidate> candidates = new ArrayList<>();
+        if (certificate == null)
+            return candidates;
+        Set<String> seen = new HashSet<>();
+        Integer defaultPort = certificate.getPort().v();
+        Integer defaultCertPort = certificate.getCertDeliveryPort().v();
+        String primaryAddr = certificate.getAddress().v();
+        if (primaryAddr != null && !primaryAddr.trim().isEmpty() && defaultPort != null && defaultCertPort != null) {
+            String key = primaryAddr.trim() + "|" + defaultPort;
+            if (seen.add(key))
+                candidates.add(new AddressCandidate(primaryAddr.trim(), defaultPort, defaultCertPort));
+        }
+        if (alternatives != null) {
+            for (CertificateAddress alt : alternatives) {
+                if (alt == null || alt.getAddress().v() == null)
+                    continue;
+                String addr = alt.getAddress().v().trim();
+                if (addr.isEmpty())
+                    continue;
+                Integer port = alt.getPort().v() != null ? alt.getPort().v() : defaultPort;
+                Integer certPort = alt.getCertPort().v() != null ? alt.getCertPort().v() : defaultCertPort;
+                if (port == null || certPort == null)
+                    continue;
+                if (seen.add(addr + "|" + port))
+                    candidates.add(new AddressCandidate(addr, port, certPort));
+            }
+        }
+        return candidates;
     }
 
     public static String[] filterCipherSuites(String[] cipherSuites) {

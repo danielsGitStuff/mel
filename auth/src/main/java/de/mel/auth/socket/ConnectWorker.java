@@ -2,6 +2,7 @@ package de.mel.auth.socket;
 
 import de.mel.DeferredRunnable;
 import de.mel.Lok;
+import de.mel.auth.data.db.AddressCandidate;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.jobs.AConnectJob;
 import de.mel.auth.jobs.ConnectJob;
@@ -15,6 +16,8 @@ import fun.with.promise.Promise;
 import fun.with.promise.PromiseImpl;
 
 import java.net.ConnectException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -101,49 +104,120 @@ public class ConnectWorker extends DeferredRunnable {
     }
 
     private <T extends MelIsolatedProcess> void isolate(IsolatedConnectJob<T> job) {
-        MelAuthSocket socket = new MelAuthSocket(melAuthService, job);
-        socket.setRunnableName("-> " + job.getAddress() + ":" + job.getPort());
-        new MelAuthProcess(socket).authenticate(job);
+        List<AddressCandidate> candidates = job.getCandidates();
+        if (candidates == null || candidates.size() <= 1) {
+            MelAuthSocket socket = new MelAuthSocket(melAuthService, job);
+            socket.setRunnableName("-> " + job.getAddress() + ":" + job.getPort());
+            new MelAuthProcess(socket).authenticate(job);
+            return;
+        }
+        Exception lastFailure = null;
+        AddressCandidate lastCandidate = candidates.get(0);
+        for (AddressCandidate candidate : candidates) {
+            lastCandidate = candidate;
+            IsolatedConnectJob<T> attempt = new IsolatedConnectJob<>(
+                    job.getCertificateId(),
+                    candidate.getAddress(),
+                    candidate.getPort(),
+                    candidate.getPortCert(),
+                    job.getRemoteServiceUuid(),
+                    job.getOwnServiceUuid(),
+                    job.getProcessClass()
+            );
+            MelAuthSocket socket = new MelAuthSocket(melAuthService, attempt);
+            socket.setRunnableName("-> " + attempt.getAddress() + ":" + attempt.getPort());
+            new MelAuthProcess(socket).authenticate(attempt);
+            try {
+                T result = await(attempt);
+                try {
+                    job.resolveOk(result);
+                } catch (AlreadyResolvedOkException | AlreadyResolvedErrorException ignored) {
+                }
+                return;
+            } catch (Exception first) {
+                if (isImmediateStop(first)) {
+                    settle(first);
+                    return;
+                }
+                lastFailure = first;
+            }
+        }
+        settle(new CannotConnectException(lastFailure, lastCandidate.getAddress(), lastCandidate.getPort()));
+    }
+
+    private static boolean isImmediateStop(Exception e) {
+        return e instanceof DuplicateConnectionException
+                || e instanceof ShamefulSelfConnectException
+                || e instanceof UntrustedPartnerException;
     }
 
     /**
      * one attempt to authenticate on a socket of its own
      */
-    private PromiseImpl<MelValidationProcess, Exception> authenticate(Long certificateId) {
-        ConnectJob attempt = new ConnectJob(certificateId, connectJob.getAddress(), connectJob.getPort(), connectJob.getPortCert(), false);
+    private PromiseImpl<MelValidationProcess, Exception> authenticate(Long certificateId, AddressCandidate candidate) {
+        ConnectJob attempt = new ConnectJob(certificateId, candidate.getAddress(), candidate.getPort(), candidate.getPortCert(), false);
         MelAuthSocket socket = new MelAuthSocket(melAuthService, attempt);
         socket.setRunnableName("-> " + attempt.getAddress() + ":" + attempt.getPort());
         new MelAuthProcess(socket).authenticate(attempt);
         return attempt;
     }
 
+    private PromiseImpl<MelValidationProcess, Exception> authenticate(Long certificateId) {
+        return authenticate(certificateId, new AddressCandidate(connectJob.getAddress(), connectJob.getPort(), connectJob.getPortCert()));
+    }
+
     private void connect(ConnectJob job) {
         final Long remoteCertId = job.getCertificateId();
         final boolean mayRegister = job.getRegOnUnknown() && remoteCertId == null;
-        MelValidationProcess process;
-        try {
-            process = await(authenticate(remoteCertId));
-            // the one we meant to pair with is a trusted partner of both sides already
-            process.setAlreadyPaired(mayRegister);
-        } catch (Exception first) {
-            if (first instanceof ShamefulSelfConnectException || first instanceof WrongPartnerException
-                    || first instanceof DuplicateConnectionException || first instanceof ConnectException) {
-                settle(first);
-                return;
-            }
-            if (!mayRegister) {
-                if (first instanceof UntrustedPartnerException)
-                    settle(first);
-                else
-                    settle(new CannotConnectException(first, job.getAddress(), job.getPort()));
-                return;
-            }
-            Lok.debug("could not authenticate (" + first + "), trying to register");
+        List<AddressCandidate> candidates = job.getCandidates();
+        if (candidates == null || candidates.isEmpty()) {
+            candidates = Collections.singletonList(new AddressCandidate(job.getAddress(), job.getPort(), job.getPortCert()));
+        }
+
+        MelValidationProcess process = null;
+        if (mayRegister) {
+            AddressCandidate primary = candidates.get(0);
             try {
-                process = registerAndAuthenticate(job);
-            } catch (Exception e) {
-                settle(e instanceof ShamefulSelfConnectException || e instanceof WrongPartnerException
-                        || e instanceof DuplicateConnectionException ? e : new CannotConnectException(e, job.getAddress(), job.getPort()));
+                process = await(authenticate(remoteCertId, primary));
+                // the one we meant to pair with is a trusted partner of both sides already
+                process.setAlreadyPaired(true);
+            } catch (Exception first) {
+                if (first instanceof ShamefulSelfConnectException || first instanceof WrongPartnerException
+                        || first instanceof DuplicateConnectionException || first instanceof ConnectException) {
+                    settle(first);
+                    return;
+                }
+                Lok.debug("could not authenticate (" + first + "), trying to register");
+                try {
+                    process = registerAndAuthenticate(job);
+                } catch (Exception e) {
+                    settle(e instanceof ShamefulSelfConnectException || e instanceof WrongPartnerException
+                            || e instanceof DuplicateConnectionException ? e : new CannotConnectException(e, primary.getAddress(), primary.getPort()));
+                    return;
+                }
+            }
+        } else {
+            Exception lastFailure = null;
+            AddressCandidate lastCandidate = candidates.get(0);
+            for (AddressCandidate candidate : candidates) {
+                lastCandidate = candidate;
+                try {
+                    process = await(authenticate(remoteCertId, candidate));
+                    process.setAlreadyPaired(false);
+                    break;
+                } catch (Exception first) {
+                    if (isImmediateStop(first)) {
+                        settle(first);
+                        return;
+                    }
+                    lastFailure = first;
+                }
+            }
+            if (process == null) {
+                if (candidates.size() == 1 && (lastFailure instanceof WrongPartnerException || lastFailure instanceof ConnectException))
+                    settle(lastFailure);
+                else
+                    settle(new CannotConnectException(lastFailure, lastCandidate.getAddress(), lastCandidate.getPort()));
                 return;
             }
         }

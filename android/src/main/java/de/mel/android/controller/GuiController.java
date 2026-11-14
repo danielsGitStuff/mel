@@ -1,10 +1,12 @@
 package de.mel.android.controller;
 
 import android.graphics.Paint;
+import android.os.SystemClock;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import de.mel.Lok;
 import de.mel.android.MainActivity;
 import de.mel.android.MelActivity;
 import de.mel.android.service.AndroidService;
@@ -31,9 +33,11 @@ public abstract class GuiController implements AndroidServiceBind {
     private volatile boolean isDestroyed = false;
 
     protected GuiController(MainActivity activity, ViewGroup content, int resourceId) {
+        long t0 = SystemClock.elapsedRealtime();
         content.removeAllViews();
         this.activity = activity;
         this.rootView = View.inflate(activity, resourceId, content);
+        Lok.debug("UI loaded " + getClass().getSimpleName() + " in " + (SystemClock.elapsedRealtime() - t0) + "ms");
     }
 
 
@@ -41,6 +45,7 @@ public abstract class GuiController implements AndroidServiceBind {
      * called when the controller is removed from the view. you should clean up references to this instance here.
      */
     public void onDestroy() {
+        Lok.debug("UI destroy " + getClass().getSimpleName());
         isDestroyed = true;
         androidService = null;
     }
@@ -58,7 +63,12 @@ public abstract class GuiController implements AndroidServiceBind {
         }
         activity.runOnUiThread(() -> {
             if (!isDestroyed && !activity.isFinishing() && !activity.isDestroyed()) {
+                long t0 = SystemClock.elapsedRealtime();
                 action.run();
+                long dt = SystemClock.elapsedRealtime() - t0;
+                if (dt > 50L) {
+                    Lok.warn("UI slow main-thread task in " + getClass().getSimpleName() + ": " + dt + "ms");
+                }
             }
         });
     }
@@ -81,6 +91,7 @@ public abstract class GuiController implements AndroidServiceBind {
 
     @Override
     public void onAndroidServiceAvailable(AndroidService androidService) {
+        Lok.debug("UI service bound to " + getClass().getSimpleName());
         this.androidService = androidService;
     }
 

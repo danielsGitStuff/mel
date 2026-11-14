@@ -94,9 +94,40 @@ public class LogCatController extends GuiController {
     }
 
     private void showLog() {
-        String[] lines = Lok.getLines();
-        listAdapter.clear().addAll(lines);
+        String[] memLines = Lok.getLines();
+        listAdapter.clear().addAll(memLines);
         listAdapter.notifyDataSetChanged();
+        if (memLines.length == 0) {
+            de.mel.android.Threadder.runNoTryThread(() -> {
+                java.io.File dbFile = activity.getDatabasePath("log");
+                if (!dbFile.exists()) return;
+                java.util.List<String> dbLines = new java.util.ArrayList<>();
+                try (android.database.sqlite.SQLiteDatabase db = android.database.sqlite.SQLiteDatabase.openDatabase(
+                        dbFile.getAbsolutePath(), null, android.database.sqlite.SQLiteDatabase.OPEN_READONLY);
+                     android.database.Cursor c = db.rawQuery("SELECT msg FROM log ORDER BY rowid DESC LIMIT 200", null)) {
+                    while (c.moveToNext()) {
+                        dbLines.add(c.getString(0));
+                    }
+                } catch (Exception e) {
+                    Lok.warn("LogCatController: failed reading log db: " + e.getMessage());
+                }
+                if (!dbLines.isEmpty()) {
+                    java.util.Collections.reverse(dbLines);
+                    runOnUiThreadSafely(() -> {
+                        if (logEnabled) {
+                            listAdapter.clear().addAll(dbLines.toArray(new String[0]));
+                            listAdapter.notifyDataSetChanged();
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        Lok.setLokListener(null);
+        super.onDestroy();
     }
 
     @Override

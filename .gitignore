@@ -43,10 +43,14 @@
 !/icons/**
 !/json/
 !/konsole/
+!/location/
+!/locationfx/
 !/lok/
 !/miniserver/
 !/serialize/
 !/serverparts/
+!/sms/
+!/smsfx/
 !/sql/
 !/testtools/
 

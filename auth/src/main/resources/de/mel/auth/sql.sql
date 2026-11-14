@@ -2,6 +2,7 @@ BEGIN TRANSACTION;
 DROP TABLE IF EXISTS  type ;
 DROP TABLE IF EXISTS  service ;
 DROP TABLE IF EXISTS  authentication ;
+DROP TABLE IF EXISTS  certificate_address ;
 DROP TABLE IF EXISTS  certificate ;
 DROP TABLE IF EXISTS  approval ;
 DROP TABLE IF EXISTS  servicetype ;
@@ -45,4 +46,16 @@ CREATE TABLE  approval  (
 );
 CREATE INDEX uuidindex
   ON certificate (uuid);
+CREATE TABLE  certificate_address  (
+   id            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+   certificateid INTEGER NOT NULL,
+   address       TEXT    NOT NULL,
+   port          INTEGER,
+   certport      INTEGER,
+   priority      INTEGER NOT NULL DEFAULT 0,
+  FOREIGN KEY ( certificateid ) REFERENCES certificate (id) on delete cascade ,
+  UNIQUE (certificateid, address, port)
+);
+CREATE INDEX certificate_address_cert_idx
+  ON certificate_address (certificateid);
 COMMIT;

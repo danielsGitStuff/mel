@@ -5,9 +5,11 @@ import fun.with.promise.Promise;
 import fun.with.promise.PromiseImpl;
 
 import de.mel.Lok;
+import de.mel.auth.data.db.AddressCandidate;
 import de.mel.auth.data.db.Certificate;
 import de.mel.auth.jobs.AConnectJob;
 import de.mel.auth.jobs.ConnectJob;
+import de.mel.auth.socket.CannotConnectException;
 import de.mel.auth.socket.ConnectWorker;
 import de.mel.auth.socket.MelAuthSocket;
 import de.mel.auth.socket.DuplicateConnectionException;
@@ -60,18 +62,26 @@ public class ConnectedEnvironment {
                 MelValidationProcess mvp = getValidationProcess(certificateId);
                 if (mvp != null) {
                     return deferred.resolveOk(mvp);
-                } else if ((mvp = getValidationProcess(certificate.getAddress().v(), certificate.getPort().v())) != null) {
+                } else if (certificate.getAddress().v() != null && certificate.getPort().v() != null
+                        && (mvp = getValidationProcess(certificate.getAddress().v(), certificate.getPort().v())) != null) {
                     return deferred.resolveOk(mvp);
                 }
             }
+            List<AddressCandidate> candidates = melAuthService.getCertificateManager().getConnectCandidates(certificate);
+            if (candidates.isEmpty()) {
+                int port = certificate.getPort().v() != null ? certificate.getPort().v() : 0;
+                return deferred.resolveError(new CannotConnectException(new Exception("no address for certificate " + certificateId), certificate.getAddress().v(), port));
+            }
+            AddressCandidate primary = candidates.get(0);
             {
-                ConnectJob job = new ConnectJob(certificateId, certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), false);
+                ConnectJob job = new ConnectJob(certificateId, primary.getAddress(), primary.getPort(), primary.getPortCert(), false);
+                job.setCandidates(candidates);
                 job.onDone(result -> {
                     // use a new transaction, because we want connect in parallel.
                     P.confine(this)
                             .run(() -> {
                                 removeCurrentlyConnecting(certificateId);
-                                removeCurrentlyConnecting(certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v());
+                                removeCurrentlyConnecting(primary.getAddress(), primary.getPort(), primary.getPortCert());
                             })
                             .end();
                     deferred.resolveOk(result);
@@ -79,7 +89,7 @@ public class ConnectedEnvironment {
                     P.confine(this)
                             .run(() -> {
                                 removeCurrentlyConnecting(certificateId);
-                                removeCurrentlyConnecting(certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v());
+                                removeCurrentlyConnecting(primary.getAddress(), primary.getPort(), primary.getPortCert());
                             })
                             .end();
                     if (result instanceof DuplicateConnectionException)
@@ -88,7 +98,7 @@ public class ConnectedEnvironment {
                         deferred.resolveError(result);
                 });
                 currentlyConnecting(certificateId, job);
-                currentlyConnecting(certificate.getAddress().v(), certificate.getPort().v(), certificate.getCertDeliveryPort().v(), job);
+                currentlyConnecting(primary.getAddress(), primary.getPort(), primary.getPortCert(), job);
                 melAuthService.execute(new ConnectWorker(melAuthService, job));
             }
         } catch (Exception e) {

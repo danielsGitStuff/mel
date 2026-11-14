@@ -189,13 +189,9 @@ public class SettingsController extends GuiController {
             }
 
         }));
-        cbLokToDb.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            Long preserveLogLines = cbLokToDb.isChecked() ? 2000L : 0L;
-            prefs.edit().putLong(PreferenceStrings.LOK_PRESERVED_LINES, preserveLogLines).apply();
-            AndroidLok.setupDbLok(Tools.getApplicationContext());
-        });
         btnExportLok.setOnClickListener(v -> N.r(() -> {
-            if (!activity.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R
+                    && !activity.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                 activity.askUserForPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}
                         , null
                         , R.string.settingsPermissionTitle
@@ -203,21 +199,29 @@ public class SettingsController extends GuiController {
                         , () -> N.r(this::exportLok)
                         , result -> Notifier.toast(activity, R.string.settingsPermToastFail));
             } else {
-                exportLok();
+                try {
+                    exportLok();
+                } catch (Exception e) {
+                    Notifier.toast(activity, "Export failed: " + e.getMessage());
+                }
             }
         }));
         btnExportDBs.setOnClickListener(view -> {
-//            if (!activity.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            activity.askUserForPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}
-                    , () -> {
-                        Lok.debug("listener called");
-                    }, R.string.permissionRequiredTitle,
-                    R.string.permissionDriveWriteMessage
-                    , () -> {
-                        Lok.debug("success");
-                        N.r(this::exportDBs);
-                    }, result -> Lok.debug("failed"));
-//            }
+            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R
+                    && !activity.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                activity.askUserForPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}
+                        , () -> Lok.debug("listener called")
+                        , R.string.permissionRequiredTitle
+                        , R.string.permissionDriveWriteMessage
+                        , () -> N.r(this::exportDBs)
+                        , result -> Lok.debug("failed"));
+            } else {
+                try {
+                    exportDBs();
+                } catch (Exception e) {
+                    Notifier.toast(activity, "Export failed: " + e.getMessage());
+                }
+            }
         });
     }
 
@@ -258,7 +262,12 @@ public class SettingsController extends GuiController {
                 txtName.setText(melAuthSettings.getName());
                 txtCertPort.setText(melAuthSettings.getDeliveryPort().toString());
                 cbRedirectSysOut.setChecked(Lok.isLineStorageActive());
-                cbLokToDb.setChecked(Tools.getSharedPreferences().getLong(PreferenceStrings.LOK_PRESERVED_LINES, 0L) > 0L);
+                cbLokToDb.setChecked(Tools.getSharedPreferences().getLong(PreferenceStrings.LOK_PRESERVED_LINES, 1000L) > 0L);
+                cbLokToDb.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                    Long preserveLogLines = isChecked ? 2000L : 0L;
+                    Tools.getSharedPreferences().edit().putLong(PreferenceStrings.LOK_PRESERVED_LINES, preserveLogLines).apply();
+                    AndroidLok.setupDbLok(Tools.getApplicationContext());
+                });
                 cbRedirectSysOut.setOnCheckedChangeListener((buttonView, isChecked) -> {
                     melAuthSettings.setRedirectSysout(isChecked);
                     int lines = isChecked ? 200 : 0;
@@ -301,8 +310,8 @@ public class SettingsController extends GuiController {
         cbWorkWhenPlugged.setChecked(powerManager.getHeavyWorkWhenPlugged());
         cbWorkWhenPlugged.setOnCheckedChangeListener((compoundButton, isChecked) -> powerManager.setHeavyWorkWhenPlugged(isChecked));
         CheckBox cbWorkWhenOffline = rootView.findViewById(R.id.cbWorkWhenOffline);
-        cbWorkWhenOffline.setOnCheckedChangeListener((compoundButton, isChecked) -> powerManager.setHeavyWorkWhenOffline(isChecked));
         cbWorkWhenOffline.setChecked(powerManager.getHeavyWorkWhenOffline());
+        cbWorkWhenOffline.setOnCheckedChangeListener((compoundButton, isChecked) -> powerManager.setHeavyWorkWhenOffline(isChecked));
         powerView.setPowerManager(powerManager);
         powerView.update();
         showAll();

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="6.0" xmlns="http://javafx.com/javafx/8.0.121"
+      xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.mel.location.gui.LocationFXCreateController">
+    <Label text="%warning.plainHttp" wrapText="true" style="-fx-text-fill: #b00020; -fx-font-weight: bold;"/>
+    <Label text="%create.name"/>
+    <TextField fx:id="txtName" text="%create.exampleName"/>
+    <Label text="%create.port"/>
+    <TextField fx:id="txtPort" text="8083"/>
+    <Label text="%create.bind"/>
+    <TextField fx:id="txtBind" text="0.0.0.0"/>
+    <Label text="%create.user"/>
+    <TextField fx:id="txtUser" promptText="%create.optional"/>
+    <Label text="%create.pass"/>
+    <TextField fx:id="txtPass" promptText="%create.optional"/>
+</VBox>

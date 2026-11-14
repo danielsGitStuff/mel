@@ -27,7 +27,7 @@ public class AndroidLok extends DBLokImpl {
      */
     public static void setupDbLok(Context context) {
         boolean timestamp = Tools.getSharedPreferences().getBoolean(PreferenceStrings.LOK_TIMESTAMP, true);
-        int lines = Tools.getSharedPreferences().getInt(PreferenceStrings.LOK_LINE_COUNT, 0);
+        int lines = Tools.getSharedPreferences().getInt(PreferenceStrings.LOK_LINE_COUNT, 200);
         Long preserveLokLines = Tools.getSharedPreferences().getLong(PreferenceStrings.LOK_PRESERVED_LINES, 1000L);
         AndroidLok lokImpl = (AndroidLok) new AndroidLok(preserveLokLines).setPrintDebug(true).setup(lines, timestamp);
         if (preserveLokLines > 0L && !(Lok.getImpl() instanceof AndroidLok)) {
